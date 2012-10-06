@@ -2,7 +2,7 @@
 
 numNodes=8
 numEdges=16
-export instanceGen="tools/graphs/instance_generator.py $numNodes $numEdges"
+export instanceGen="tools/mincol/instance_generator.py $numNodes $numEdges"
 export monolithicEncoding=asp_encodings/mincol/monolithic.lp
 export dflatArguments="asp_encodings/mincol/dynamic.lp -e edge --multi-level"
 

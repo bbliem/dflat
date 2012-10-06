@@ -1,5 +1,5 @@
 color(red;green;blue).
-minColor(red).
+criticalColor(red).
 
 levels(2).
 
@@ -15,11 +15,11 @@ item(L,map(V,C)) :- extend(L,S), childItem(S,map(V,C)), current(V).
 % Only join matching colorings
 :- item(L,map(V,C0;C1)), C0 != C1.
 
-% Level 1 coloring must not be bigger (w.r.t. minimized color) than level 0
-:- minColor(C), item(1,map(V,C)), not item(0,map(V,C)).
+% Level 1 coloring must not be bigger (w.r.t. critical color and critical vertices) than level 0
+:- criticalColor(C), criticalVertex(V), item(1,map(V,C)), not item(0,map(V,C)).
 
 item(1,smaller) :- extend(1,S), childItem(S,smaller).
-item(1,smaller) :- minColor(C), item(0,map(V,C)), not item(1,map(V,C)).
+item(1,smaller) :- criticalColor(C), criticalVertex(V), item(0,map(V,C)), not item(1,map(V,C)).
 
 :- root, extend(0,R), sub(R,S), childItem(S,smaller).
 
