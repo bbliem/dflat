@@ -20,9 +20,9 @@ if dimacs:
 
 for i in range(numClauses):
 	atoms = random.sample(range(numVars), random.randint(1,numVars))
-	negative = random.random() < 0.5
 
 	for j in atoms:
+		negative = random.random() < 0.5
 		if dimacs:
 			if negative:
 				sys.stdout.write("-")
