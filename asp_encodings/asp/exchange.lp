@@ -1,3 +1,4 @@
+% This algorithm follows the ideas in Jakl et al: Answer-Set Programming with Bounded Treewidth.
 map(0,X,true) :- m(X).
 map(1,X,true) :- c(X).
 % Assign false to anything not true
@@ -5,7 +6,7 @@ map(0,X,false) :- current(X), not map(0,X,true).
 map(1,X,false) :- cExists, current(X), not map(1,X,true).
 
 % Which tuple to use?
-1 { chosenChildTuple(I) : childTuple(I) } 1 :- childTuple(_).
+1 { chosenChildTuple(I) : childTuple(I) } 1.
 
 %%%%%%%%%%%%%%%%%%%%%
 % Atom introduction %
@@ -26,15 +27,11 @@ cExists :- chosenChildTuple(M), sub(M,C), not killedOldC(C).
 % a) From M' by adding any proper subset of {a | true(a)}
 % b) From any C' by adding any subset of {a | true(a)}
 % Also, we need to add thereby satisfied rules of the reduct
-
-% a) or b)?
-0 { chosenOldC(C) : sub(M,C) : not killedOldC(C) } 1 :- cExists, chosenChildTuple(M).
-cFromOldC :- chosenOldC(_).
-cFromOldM :- cExists, not cFromOldC.
+1 { cFromOldM, chosenOldC(C) : sub(M,C) : not killedOldC(C) } 1 :- cExists, chosenChildTuple(M).
 
 % Guess a subset of {a | true(a)}
 cFalse(A) :- false(A), cExists.
-1 {cTrue(A), cFalse(A)} 1 :- true(A).
+1 { cTrue(A), cFalse(A) } 1 :- true(A).
 
 % Add atoms guessed to true
 c(A) :- cTrue(A).

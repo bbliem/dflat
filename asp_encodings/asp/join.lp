@@ -1,40 +1,63 @@
-% Condition (2)
-:- atom(A), m1(A), not m2(A).
-:- atom(A), m2(A), not m1(A).
-m(X) :- m1(X).
-m(X) :- m2(X).
+% This algorithm follows the ideas in Jakl et al: Answer-Set Programming with Bounded Treewidth.
+map(0,X,true) :- m(X).
+map(1,X,true) :- c(X).
+% Assign false to anything not true
+map(0,X,false) :- current(X), not map(0,X,true).
+map(1,X,false) :- cExists, current(X), not map(1,X,true).
+
+1 { chosenChildTupleL(I) : childTupleL(I) } 1.
+1 { chosenChildTupleR(I) : childTupleR(I) } 1.
+
+mL(X) :- chosenChildTupleL(I), mapped(I,X,true).
+mR(X) :- chosenChildTupleR(I), mapped(I,X,true).
+
+% If atoms coincide, unify the sets mL and mR.
+:- atom(A), mL(A), not mR(A).
+:- atom(A), mR(A), not mL(A).
+m(X) :- mL(X).
+m(X) :- mR(X).
+
+cLI(I) :- chosenChildTupleL(L), sub(L,I).
+cRI(I) :- chosenChildTupleR(R), sub(R,I).
+
+cL(I,X) :- cLI(I), mapped(I,X,true).
+cR(I,X) :- cRI(I), mapped(I,X,true).
 
 % If there is no C we must take care not to kill M with constraints later.
 % Which C's are not joinable?
-notc1c2(I,J) :- atom(A), c1i(I), c2i(J), c1(I,A), not c2(J,A).
-notc1c2(I,J) :- atom(A), c1i(I), c2i(J), c2(J,A), not c1(I,A).
-notm1c2(J) :- atom(A), c2i(J), m1(A), not c2(J,A).
-notm1c2(J) :- atom(A), c2i(J), c2(J,A), not m1(A).
-notc1m2(I) :- atom(A), c1i(I), c1(I,A), not m2(A).
-notc1m2(I) :- atom(A), c1i(I), m2(A), not c1(I,A).
+not_cc(L,R) :- atom(A), cLI(L), cRI(R), mapped(L,A,V), not mapped(R,A,V).
+not_mc(I) :- atom(A), mL(A), cRI(I), not cR(I,A).
+not_mc(I) :- atom(A), cR(I,A), not mL(A).
+not_cm(I) :- atom(A), mR(A), cLI(I), not cL(I,A).
+not_cm(I) :- atom(A), cL(I,A), not mR(A).
 
-cExists :- c1i(I), c2i(J), not notc1c2(I,J).
-cExists :- c2i(J), not notm1c2(J).
-cExists :- c1i(I), not notc1m2(I).
+% A certificate exists if there are two joinable child C's or if a child C joins with M
+cExists :- cLI(L), cRI(R), not not_cc(L,R).
+cExists :- cRI(I), not not_mc(I).
+cExists :- cLI(I), not not_cm(I).
 
-% Guess which of the certificates to join
-1 { m1c2(J) : c2i(J), c1m2(I) : c1i(I), c1c2(I,J) : c1i(I) : c2i(J) } 1 :- cExists.
-:- c1c2(I,J), notc1c2(I,J).
-:- m1c2(J), notm1c2(J).
-:- c1m2(I), notc1m2(I).
+%% Guess which of the certificates to join
+0 { chosenCL(I) : sub(L,I) } 1 :- chosenChildTupleL(L).
+choseCL :- chosenCL(_).
+cCandidateL(I) :- chosenCL(I).
+cCandidateL(I) :- not choseCL, chosenChildTupleL(I).
 
-c(X) :- c1c2(I,J), c1(I,X).
-c(X) :- c1c2(I,J), c2(J,X).
-c(X) :- m1c2(J), m1(X).
-c(X) :- m1c2(J), c2(J,X).
-c(X) :- c1m2(I), c1(I,X).
-c(X) :- c1m2(I), m2(X).
+0 { chosenCR(I) : sub(R,I) } 1 :- chosenChildTupleR(R).
+choseCR :- chosenCR(_).
+cCandidateR(I) :- chosenCR(I).
+cCandidateR(I) :- not choseCR, chosenChildTupleR(I).
+
+:- cExists, not choseCL, not choseCR.
+
+% Join candidates must coincide on atoms
+:- cCandidateL(L), cCandidateR(R), atom(A), mapped(L,A,V), not mapped(R,A,V).
+
+c(X) :- cExists, cCandidateL(I), mapped(I,X,true).
+c(X) :- cExists, cCandidateR(I), mapped(I,X,true).
+
 
 
 #hide.
-#show m/1.
-#show c/1.
-#show m1c2/1.
-#show c1m2/1.
-#show c1c2/2.
-#show cExists/0.
+#show map/3.
+#show chosenChildTupleL/1.
+#show chosenChildTupleR/1.
