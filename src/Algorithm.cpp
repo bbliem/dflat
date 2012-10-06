@@ -1,5 +1,7 @@
 #include <iostream>
 #include <iomanip>
+#include <sstream>
+#include <gringo/streams.h>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 #ifdef WITH_NODE_TIMER
@@ -8,6 +10,9 @@
 
 #include "Algorithm.h"
 #include "Tuple.h"
+#include "ClaspInputReader.h"
+#include "ClaspCallbackGeneral.h"
+#include "ClaspCallbackNP.h"
 
 using sharp::Plan;
 using sharp::PlanFactory;
@@ -16,9 +21,23 @@ using sharp::ExtendedHypertree;
 using sharp::VertexSet;
 using sharp::Vertex;
 
-Algorithm::Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, sharp::NormalizationType normalizationType)
-	: AbstractSemiNormalizedHTDAlgorithm(&problem, planFactory), problem(problem), normalizationType(normalizationType)
-#if PROGRESS_REPORT > 0
+namespace {
+	inline void declareBagContents(std::ostream& bagContents, const sharp::Problem& problem, const std::string& instanceFacts, const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed)
+	{
+		bagContents << instanceFacts << std::endl;
+
+		foreach(sharp::Vertex v, vertices)
+			bagContents << "current(" << const_cast<sharp::Problem&>(problem).getVertexName(v) << ")." << std::endl;
+		foreach(sharp::Vertex v, introduced)
+			bagContents << "introduced(" << const_cast<sharp::Problem&>(problem).getVertexName(v) << ")." << std::endl;
+		foreach(sharp::Vertex v, removed)
+			bagContents << "removed(" << const_cast<sharp::Problem&>(problem).getVertexName(v) << ")." << std::endl;
+	}
+}
+
+Algorithm::Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram, sharp::NormalizationType normalizationType, unsigned int level)
+	: AbstractSemiNormalizedHTDAlgorithm(&problem, planFactory), problem(problem), normalizationType(normalizationType), instanceFacts(instanceFacts), exchangeNodeProgram(exchangeNodeProgram), joinNodeProgram(joinNodeProgram), level(level)
+#ifdef PROGRESS_REPORT
 	  , nodesProcessed(0)
 #endif
 {
@@ -27,7 +46,7 @@ Algorithm::Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFact
 
 Plan* Algorithm::selectPlan(TupleTable* table, const ExtendedHypertree* root)
 {
-#if PROGRESS_REPORT > 0
+#ifdef PROGRESS_REPORT
 	std::cout << '\r' << std::setw(66) << std::left << "Done." << std::endl; // Clear/end progress line
 #endif
 
@@ -43,6 +62,57 @@ Plan* Algorithm::selectPlan(TupleTable* table, const ExtendedHypertree* root)
 	return result;
 }
 
+sharp::ExtendedHypertree* Algorithm::prepareHypertreeDecomposition(sharp::ExtendedHypertree* root)
+{
+	assert(normalizationType == sharp::DefaultNormalization || normalizationType == sharp::SemiNormalization);
+	//return root->normalize(normalizationType);
+
+	// FIXME: This is a workaround until SHARP lets us insert an empty root in the normalization
+	sharp::ExtendedHypertree* newRoot = new sharp::ExtendedHypertree(sharp::VertexSet());
+	newRoot->insChild(root);
+
+	return newRoot->normalize(normalizationType);
+}
+
+
+sharp::TupleTable* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertree* node)
+{
+	TupleTable* childTable = 0;
+
+	if(node->getType() != sharp::Leaf)
+		childTable = evaluateNode(node->firstChild());
+
+#ifdef VERBOSE
+	printBagContents(node->getVertices());
+#endif
+#ifdef PROGRESS_REPORT
+	printProgressLine(node, childTable ? childTable->size() : 0);
+#endif
+#ifdef WITH_NODE_TIMER
+	boost::timer::auto_cpu_timer timer(" %ts\n");
+#endif
+
+	TupleTable* newTable;
+
+	if(childTable) {
+		assert(node->getType() != sharp::Leaf);
+		newTable = exchangeNonLeaf(node->getVertices(), node->getIntroducedVertices(), node->getRemovedVertices(), *childTable);
+		delete childTable;
+	} else {
+		assert(node->getType() == sharp::Leaf);
+		newTable = exchangeLeaf(node->getVertices(), node->getVertices(), node->getRemovedVertices());
+	}
+
+#ifdef VERBOSE
+	std::cout << std::endl << "Resulting tuples of exchange node:" << std::endl;
+	for(TupleTable::const_iterator it = newTable->begin(); it != newTable->end(); ++it)
+		dynamic_cast<Tuple*>(it->first)->print(std::cout);
+	std::cout << std::endl;
+#endif
+
+	return newTable;
+}
+
 TupleTable* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 {
 	TupleTable* left = evaluateNode(node->firstChild());
@@ -50,7 +120,7 @@ TupleTable* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 #ifdef VERBOSE
 	printBagContents(node->getVertices());
 #endif
-#if PROGRESS_REPORT > 0
+#ifdef PROGRESS_REPORT
 	printProgressLine(node, left->size()+right->size());
 #endif
 #ifdef WITH_NODE_TIMER
@@ -72,105 +142,158 @@ TupleTable* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 	return newTable;
 }
 
-sharp::TupleTable* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertree* node)
+TupleTable* Algorithm::exchangeLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed)
 {
-	TupleTable* childTable = 0;
+	std::stringstream* bagContents = new std::stringstream;
+	declareBagContents(*bagContents, problem, instanceFacts, vertices, introduced, removed);
 
-	if(node->getType() != sharp::Leaf)
-		childTable = evaluateNode(node->firstChild());
+	Streams inputStreams;
+	inputStreams.addFile(exchangeNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
+	// Remember: "Streams" deletes the appended streams -_-
+	inputStreams.appendStream(Streams::StreamPtr(bagContents), "<bag_contents>");
 
-#ifdef VERBOSE
-	printBagContents(node->getVertices());
-#endif
-#if PROGRESS_REPORT > 0
-	printProgressLine(node, childTable ? childTable->size() : 0);
-#endif
-#ifdef WITH_NODE_TIMER
-	boost::timer::auto_cpu_timer timer(" %ts\n");
-#endif
+	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
+	ClaspInputReader inputReader(inputStreams, *outputProcessor);
 
-	TupleTable* newTable;
-
-	if(childTable) {
-		assert(node->getType() != sharp::Leaf);
-		newTable = exchangeNonLeaf(node->getVertices(), node->getIntroducedVertices(), node->getRemovedVertices(), *childTable);
-		delete childTable;
-	} else {
-		assert(node->getType() == sharp::Leaf);
-//		newTable = exchangeLeaf(node->getVertices(), node->getIntroducedVertices(), node->getRemovedVertices());
-		newTable = exchangeLeaf(node->getVertices(), node->getVertices(), node->getRemovedVertices());
-	}
-
-#ifdef VERBOSE
-	std::cout << std::endl << "Resulting tuples of exchange node:" << std::endl;
-	for(TupleTable::const_iterator it = newTable->begin(); it != newTable->end(); ++it)
-		dynamic_cast<Tuple*>(it->first)->print(std::cout);
-	std::cout << std::endl;
-#endif
+	TupleTable* newTable = new TupleTable;
+	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor);
+	Clasp::ClaspConfig config;
+	config.enumerate.numModels = 0;
+	clasp.solve(inputReader, config, cb.get());
 
 	return newTable;
 }
 
-sharp::TupleTable* Algorithm::join(const sharp::VertexSet&, sharp::TupleTable& left, sharp::TupleTable& right)
+TupleTable* Algorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed, const sharp::TupleTable& childTable)
 {
-	TupleTable* tt = new TupleTable;
+	TupleTable* newTable = new TupleTable;
+	// There might be no child tuples, consider as a child e.g. a join node without matches.
+	// If we were to run the program without child tuples, it would consider the current node as a leaf node and wrongly generate new tuples.
+	if(childTable.empty())
+		return newTable;
 
-	// TupleTables are ordered, use sort merge join algorithm
-	TupleTable::const_iterator lit = left.begin();
-	TupleTable::const_iterator rit = right.begin();
+	std::stringstream* bagContents = new std::stringstream;
+	declareBagContents(*bagContents, problem, instanceFacts, vertices, introduced, removed);
+
+	std::stringstream* childTableInput = new std::stringstream;
+	// Declare child tuples
+	foreach(const TupleTable::value_type& tupleAndSolution, childTable)
+		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTableInput, tupleAndSolution);
+//#ifdef VERBOSE
+//	std::cout << std::endl << "Child tuple input:" << std::endl << childTableInput->str() << std::endl;
+//#endif
+
+	Streams inputStreams;
+	inputStreams.addFile(exchangeNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
+	// Remember: "Streams" deletes the appended streams -_-
+	inputStreams.appendStream(Streams::StreamPtr(bagContents), "<bag_contents>");
+	inputStreams.appendStream(Streams::StreamPtr(childTableInput), "<child_tuples>");
+
+	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
+	ClaspInputReader inputReader(inputStreams, *outputProcessor);
+	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor);
+	Clasp::ClaspConfig config;
+	config.enumerate.numModels = 0;
+	clasp.solve(inputReader, config, cb.get());
+
+	return newTable;
+}
+
+TupleTable* Algorithm::join(const sharp::VertexSet& vertices, sharp::TupleTable& childTableLeft, sharp::TupleTable& childTableRight)
+{
+	TupleTable* newTable = new TupleTable;
+
+	if(joinNodeProgram) {
+		std::stringstream* bagContents = new std::stringstream;
+		declareBagContents(*bagContents, problem, instanceFacts, vertices, sharp::VertexSet(), sharp::VertexSet());
+
+		std::stringstream* childTableInput = new std::stringstream;
+		// Declare child tuples
+		foreach(const TupleTable::value_type& tupleAndSolution, childTableLeft)
+			dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTableInput, tupleAndSolution, "L");
+		foreach(const TupleTable::value_type& tupleAndSolution, childTableRight)
+			dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTableInput, tupleAndSolution, "R");
+		//#ifdef VERBOSE
+		//	std::cout << std::endl << "Child tuple input:" << std::endl << childTableInput->str() << std::endl;
+		//#endif
+
+		Streams inputStreams;
+		inputStreams.addFile(joinNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
+		// Remember: "Streams" deletes the appended streams -_-
+		inputStreams.appendStream(Streams::StreamPtr(bagContents), "<bag_contents>");
+		inputStreams.appendStream(Streams::StreamPtr(childTableInput), "<child_tuples>");
+
+		std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
+		ClaspInputReader inputReader(inputStreams, *outputProcessor);
+
+		std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor);
+		Clasp::ClaspConfig config;
+		config.enumerate.numModels = 0;
+		clasp.solve(inputReader, config, cb.get());
+	}
+
+	else {
+		// Default join implementation (used when no join node program is specified)
+		// TupleTables are ordered, use sort merge join algorithm
+		TupleTable::const_iterator lit = childTableLeft.begin();
+		TupleTable::const_iterator rit = childTableRight.begin();
 #define TUP(X) (*dynamic_cast<const Tuple*>(X->first)) // FIXME: Think of something better
-	while(lit != left.end() && rit != right.end()) {
-		while(!TUP(lit).matches(TUP(rit))) {
-			// Advance iterator pointing to smaller value
-			if(TUP(lit) < TUP(rit)) {
-				++lit;
-				if(lit == left.end())
-					goto endJoin;
-			} else {
+		while(lit != childTableLeft.end() && rit != childTableRight.end()) {
+			while(!TUP(lit).matches(TUP(rit))) {
+				// Advance iterator pointing to smaller value
+				if(TUP(lit) < TUP(rit)) {
+					++lit;
+					if(lit == childTableLeft.end())
+						goto endJoin;
+				} else {
+					++rit;
+					if(rit == childTableRight.end())
+						goto endJoin;
+				}
+			}
+
+			// Now lit and rit join
+			// Remember position of rit and advance rit until no more match
+			TupleTable::const_iterator mark = rit;
+joinLitWithAllPartners:
+			do {
+				sharp::Tuple* t = TUP(lit).join(TUP(rit));
+				Plan* p = planFactory.join(lit->second, rit->second, *t);
+				addRowToTupleTable(*newTable, t, p);
 				++rit;
-				if(rit == right.end())
-					goto endJoin;
+			} while(rit != childTableRight.end() && TUP(lit).matches(TUP(rit)));
+
+			// lit and rit don't join anymore. Advance lit. If it joins with mark, reset rit to mark.
+			++lit;
+			if(lit == childTableLeft.end())
+				break;
+
+			if(TUP(lit).matches(TUP(mark))) {
+				rit = mark;
+				goto joinLitWithAllPartners; // Ha!
 			}
 		}
-
-		// Now lit and rit join
-		// Remember position of rit and advance rit until no more match
-		TupleTable::const_iterator mark = rit;
-joinLitWithAllPartners:
-		do {
-			sharp::Tuple* t = TUP(lit).join(TUP(rit));
-			Plan* p = planFactory.join(lit->second, rit->second, *t);
-			addRowToTupleTable(*tt, t, p);
-			++rit;
-		} while(rit != right.end() && TUP(lit).matches(TUP(rit)));
-
-		// lit and rit don't join anymore. Advance lit. If it joins with mark, reset rit to mark.
-		++lit;
-		if(lit == left.end())
-			break;
-
-		if(TUP(lit).matches(TUP(mark))) {
-			rit = mark;
-			goto joinLitWithAllPartners; // Ha!
-		}
-	}
 endJoin:
-	return tt;
+		;
+	}
+
+	return newTable;
 }
 
-sharp::ExtendedHypertree* Algorithm::prepareHypertreeDecomposition(sharp::ExtendedHypertree* root)
+std::auto_ptr<Clasp::ClaspFacade::Callback> Algorithm::newClaspCallback(sharp::TupleTable& newTable, const GringoOutputProcessor& gringoOutput) const
 {
-	assert(normalizationType == sharp::DefaultNormalization || normalizationType == sharp::SemiNormalization);
-	//return root->normalize(normalizationType);
-
-	// FIXME: This is a workaround until SHARP lets us insert an empty root in the normalization
-	sharp::ExtendedHypertree* newRoot = new sharp::ExtendedHypertree(sharp::VertexSet());
-	newRoot->insChild(root);
-
-	return newRoot->normalize(normalizationType);
+	if(level == 0)
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTable, dynamic_cast<const GringoOutputProcessor&>(gringoOutput)));
+	else
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackGeneral(*this, newTable, dynamic_cast<const GringoOutputProcessor&>(gringoOutput), level));
 }
 
-#if PROGRESS_REPORT > 0
+std::auto_ptr<GringoOutputProcessor> Algorithm::newGringoOutputProcessor() const
+{
+	return std::auto_ptr<GringoOutputProcessor>(new GringoOutputProcessor());
+}
+
+#ifdef PROGRESS_REPORT
 sharp::TupleTable* Algorithm::evaluateNode(const sharp::ExtendedHypertree* node) {
 	sharp::TupleTable* tt = sharp::AbstractSemiNormalizedHTDAlgorithm::evaluateNode(node);
 	++nodesProcessed;

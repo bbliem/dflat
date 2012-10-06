@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(sharp++)
+project(dflat)
 
 add_definitions("-Wall -pedantic -ansi -DDISABLE_MULTI_THREADING")
 set(CMAKE_CXX_FLAGS_GPROF "-O3 -g -pg")
@@ -22,5 +22,5 @@ find_library(gmpxx gmpxx)
 find_library(gmp gmp)
 find_package(Boost COMPONENTS system filesystem timer REQUIRED)
 
-add_executable(asdp Algorithm.cpp ClaspAlgorithm.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp asdp/Problem.cpp asdp/GringoOutputProcessor.cpp asdp/ClaspCallback.cpp asdp/ClaspCallbackNP.cpp asdp/ClaspAlgorithm.cpp asdp/Tuple.cpp asdp/TupleNP.cpp asdp/main.cpp asdp/solution/DecisionPlan.cpp asdp/solution/CountingPlan.cpp asdp/solution/EnumerationPlan.cpp asdp/solution/EnumerationSolution.cpp asdp/solution/OptValuePlan.cpp asdp/solution/OptCountingPlan.cpp asdp/solution/OptEnumPlan.cpp asdp/solution/OptEnumSolution.cpp)
-target_link_libraries(asdp libsharp.a gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})
+add_executable(dflat Algorithm.cpp ClaspCallbackGeneral.cpp ClaspCallbackNP.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp Problem.cpp TupleGeneral.cpp TupleNP.cpp solution/DecisionPlan.cpp solution/CountingPlan.cpp solution/EnumerationPlan.cpp solution/EnumerationSolution.cpp solution/OptValuePlan.cpp solution/OptCountingPlan.cpp solution/OptEnumPlan.cpp solution/OptEnumSolution.cpp main.cpp)
+target_link_libraries(dflat libsharp.a gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})

@@ -26,6 +26,9 @@ GringoOutputProcessor::GringoOutputProcessor()
 	: LparseConverter(0, false)
 	, b_(0)
 	, lastUnnamed_(0)
+#ifndef NDEBUG
+	, mapArity(0)
+#endif
 {
 }
 
@@ -123,6 +126,58 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 	}
 	b_->setAtomName(atom.first, ss.str().c_str());
 	atomUnnamed_[atom.first - lastUnnamed_] = false;
+
+#ifndef NDEBUG
+	// Arity of map must be used consistently
+	if(name == "map") {
+		assert(!mapArity || mapArity == arity);
+		mapArity = arity;
+	}
+#endif
+
+	if(name == "map") {
+		if(arity == 3) {
+			std::stringstream firstArg; // First argument
+			std::ostringstream args[2]; // The last two arguments
+			ValVec::const_iterator k = vals_.begin() + atom.second;
+			(k++)->print(s_, firstArg);
+			(k++)->print(s_, args[0]);
+			k->print(s_, args[1]);
+
+			unsigned int firstArgNum;
+			firstArg >> firstArgNum;
+
+			mapAtoms.push_back(MapAtom(firstArgNum, args[0].str(), args[1].str(), atom.first));
+		}
+		else if(arity == 2) {
+			std::ostringstream args[2]; // The two arguments
+			ValVec::const_iterator k = vals_.begin() + atom.second;
+			(k++)->print(s_, args[0]);
+			k->print(s_, args[1]);
+
+			mapAtoms.push_back(MapAtom(0, args[0].str(), args[1].str(), atom.first));
+		}
+	}
+	else if(name == "chosenChildTuple") {
+		assert(arity == 1);
+		storeChildTupleAtom(name, atom, chosenChildTupleAtoms);
+	}
+	else if(name == "chosenChildTupleL") {
+		assert(arity == 1);
+		storeChildTupleAtom(name, atom, chosenChildTupleLAtoms);
+	}
+	else if(name == "chosenChildTupleR") {
+		assert(arity == 1);
+		storeChildTupleAtom(name, atom, chosenChildTupleRAtoms);
+	}
+	else if(name == "currentCost") {
+		assert(arity == 1);
+		storeCostAtom(name, atom, currentCostAtoms);
+	}
+	else if(name == "cost") {
+		assert(arity == 1);
+		storeCostAtom(name, atom, costAtoms);
+	}
 }
 
 void GringoOutputProcessor::printExternalTableEntry(const AtomRef &atom, uint32_t arity, const std::string &name)
@@ -155,4 +210,20 @@ const LparseConverter::SymbolMap &GringoOutputProcessor::symbolMap(uint32_t domI
 ValRng GringoOutputProcessor::vals(Domain *dom, uint32_t offset) const
 {
 	return ValRng(vals_.begin() + offset, vals_.begin() + offset + dom->arity());
+}
+
+inline void GringoOutputProcessor::storeChildTupleAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store)
+{
+	std::stringstream firstArg; // First argument
+	ValVec::const_iterator k = vals_.begin() + atom.second;
+	k->print(s_, firstArg);
+	store[std::strtol(firstArg.str().c_str()+1, 0, 0)] = atom.first;
+}
+
+inline void GringoOutputProcessor::storeCostAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store)
+{
+	std::stringstream firstArg; // First argument
+	ValVec::const_iterator k = vals_.begin() + atom.second;
+	k->print(s_, firstArg);
+	store[std::strtol(firstArg.str().c_str(), 0, 0)] = atom.first;
 }
