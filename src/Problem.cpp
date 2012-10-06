@@ -30,11 +30,14 @@ namespace {
 		InstanceGrammar(Problem& problem) : InstanceGrammar::base_type(start)
 		{
 			identifier = qi::char_("a-z") >> *qi::char_("A-Za-z0-9_");
-			fact = identifier >> -( qi::lit('(') >> (identifier % ',') >> ')' ) >> '.';
+//			fact = identifier >> -( qi::lit('(') >> (identifier % ',') >> ')' ) >> '.';
+			argument = identifier | (*qi::char_("0-9"));
+			fact = identifier >> -( qi::lit('(') >> (argument % ',') >> ')' ) >> '.';
 			start = *fact[boost::bind(&Problem::parsedFact, &problem, _1)];
 		}
 
 		qi::rule<Iterator, std::string()> identifier; // Note the absence of the skipper
+		qi::rule<Iterator, std::string()> argument; // Note the absence of the skipper
 		qi::rule<Iterator, Skipper, Problem::Fact()> fact;
 		qi::rule<Iterator, Skipper> start;
 	};

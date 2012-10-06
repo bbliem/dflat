@@ -156,7 +156,7 @@ TupleTable* Algorithm::exchangeLeaf(const sharp::VertexSet& vertices, const shar
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
 
 	TupleTable* newTable = new TupleTable;
-	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor);
+	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor, vertices);
 	Clasp::ClaspConfig config;
 	config.enumerate.numModels = 0;
 	clasp.solve(inputReader, config, cb.get());
@@ -191,7 +191,7 @@ TupleTable* Algorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, const s
 
 	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
-	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor);
+	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor, vertices);
 	Clasp::ClaspConfig config;
 	config.enumerate.numModels = 0;
 	clasp.solve(inputReader, config, cb.get());
@@ -226,7 +226,7 @@ TupleTable* Algorithm::join(const sharp::VertexSet& vertices, sharp::TupleTable&
 		std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
 		ClaspInputReader inputReader(inputStreams, *outputProcessor);
 
-		std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor);
+		std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor, vertices);
 		Clasp::ClaspConfig config;
 		config.enumerate.numModels = 0;
 		clasp.solve(inputReader, config, cb.get());
@@ -280,12 +280,23 @@ endJoin:
 	return newTable;
 }
 
-std::auto_ptr<Clasp::ClaspFacade::Callback> Algorithm::newClaspCallback(sharp::TupleTable& newTable, const GringoOutputProcessor& gringoOutput) const
+std::auto_ptr<Clasp::ClaspFacade::Callback> Algorithm::newClaspCallback(sharp::TupleTable& newTable, const GringoOutputProcessor& gringoOutput, const sharp::VertexSet& currentVertices) const
 {
+#ifndef NDEBUG
+	std::set<std::string> currentVertexNames;
+	foreach(sharp::Vertex v, currentVertices)
+		currentVertexNames.insert(const_cast<sharp::Problem&>(problem).getVertexName(v));
+
 	if(level == 0)
-		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTable, dynamic_cast<const GringoOutputProcessor&>(gringoOutput)));
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTable, gringoOutput, currentVertexNames));
 	else
-		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackGeneral(*this, newTable, dynamic_cast<const GringoOutputProcessor&>(gringoOutput), level));
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackGeneral(*this, newTable, gringoOutput, level, currentVertexNames));
+#else
+	if(level == 0)
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTable, gringoOutput));
+	else
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackGeneral(*this, newTable, gringoOutput, level));
+#endif
 }
 
 std::auto_ptr<GringoOutputProcessor> Algorithm::newGringoOutputProcessor() const

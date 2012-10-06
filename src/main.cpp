@@ -55,231 +55,237 @@ namespace {
 
 int main(int argc, char** argv)
 {
-	unsigned int level = 0;
-	enum { ENUMERATION, COUNTING, DECISION, OPT_ENUM, OPT_COUNTING, OPT_VALUE } problemType = ENUMERATION;
-	time_t seed = time(0);
-	sharp::NormalizationType normalizationType = sharp::SemiNormalization;
-	bool onlyDecompose = false;
-	bool stats = false;
-	const char* exchangeProgram = 0;
-	const char* joinProgram = 0;
-	std::set<std::string> hyperedgePredicateNames;
+	try {
+		unsigned int level = 0;
+		enum { ENUMERATION, COUNTING, DECISION, OPT_ENUM, OPT_COUNTING, OPT_VALUE } problemType = ENUMERATION;
+		time_t seed = time(0);
+		sharp::NormalizationType normalizationType = sharp::SemiNormalization;
+		bool onlyDecompose = false;
+		bool stats = false;
+		const char* exchangeProgram = 0;
+		const char* joinProgram = 0;
+		std::set<std::string> hyperedgePredicateNames;
 
-	for(int i = 1; i < argc; ++i) {
-		bool hasArg = i+1 < argc;
-		std::string arg = argv[i];
+		for(int i = 1; i < argc; ++i) {
+			bool hasArg = i+1 < argc;
+			std::string arg = argv[i];
 
-		if(arg == "-e" && hasArg)
-			hyperedgePredicateNames.insert(argv[++i]);
-		else if(arg == "-n" && hasArg) {
-			std::string typeArg = argv[++i];
-			if(typeArg == "semi")
-				normalizationType = sharp::SemiNormalization;
-			else if(typeArg == "normalized")
-				normalizationType = sharp::DefaultNormalization;
-			else
-				usage(argv[0]);
-		}
-		else if(arg == "-j" && hasArg) {
-			if(joinProgram)
-				usage(argv[0]);
-			else
-				joinProgram = argv[++i];
-		}
-		else if(arg == "-l" && hasArg) {
-			char* endptr;
-			level = strtol(argv[++i], &endptr, 0);
-			if(*endptr) {
-				std::cerr << "Invalid level" << std::endl;
-				usage(argv[0]);
+			if(arg == "-e" && hasArg)
+				hyperedgePredicateNames.insert(argv[++i]);
+			else if(arg == "-n" && hasArg) {
+				std::string typeArg = argv[++i];
+				if(typeArg == "semi")
+					normalizationType = sharp::SemiNormalization;
+				else if(typeArg == "normalized")
+					normalizationType = sharp::DefaultNormalization;
+				else
+					usage(argv[0]);
 			}
-		}
-		else if(arg == "--only-decompose")
-			onlyDecompose = true;
-		else if(arg == "-p" && hasArg) {
-			std::string typeArg = argv[++i];
-			if(typeArg == "enumeration")
-				problemType = ENUMERATION;
-			else if(typeArg == "counting")
-				problemType = COUNTING;
-			else if(typeArg == "decision")
-				problemType = DECISION;
-			else if(typeArg == "opt-enum")
-				problemType = OPT_ENUM;
-			else if(typeArg == "opt-counting")
-				problemType = OPT_COUNTING;
-			else if(typeArg == "opt-value")
-				problemType = OPT_VALUE;
-			else
-				usage(argv[0]);
-		}
-		else if(arg == "-s" && hasArg) {
-			char* endptr;
-			seed = strtol(argv[++i], &endptr, 0);
-			if(*endptr) {
-				std::cerr << "Invalid seed" << std::endl;
-				usage(argv[0]);
+			else if(arg == "-j" && hasArg) {
+				if(joinProgram)
+					usage(argv[0]);
+				else
+					joinProgram = argv[++i];
 			}
-		}
-		else if(arg == "--stats")
-			stats = true;
-		else if(arg == "-x" && hasArg) {
-			if(exchangeProgram)
-				usage(argv[0]);
+			else if(arg == "-l" && hasArg) {
+				char* endptr;
+				level = strtol(argv[++i], &endptr, 0);
+				if(*endptr) {
+					std::cerr << "Invalid level" << std::endl;
+					usage(argv[0]);
+				}
+			}
+			else if(arg == "--only-decompose")
+				onlyDecompose = true;
+			else if(arg == "-p" && hasArg) {
+				std::string typeArg = argv[++i];
+				if(typeArg == "enumeration")
+					problemType = ENUMERATION;
+				else if(typeArg == "counting")
+					problemType = COUNTING;
+				else if(typeArg == "decision")
+					problemType = DECISION;
+				else if(typeArg == "opt-enum")
+					problemType = OPT_ENUM;
+				else if(typeArg == "opt-counting")
+					problemType = OPT_COUNTING;
+				else if(typeArg == "opt-value")
+					problemType = OPT_VALUE;
+				else
+					usage(argv[0]);
+			}
+			else if(arg == "-s" && hasArg) {
+				char* endptr;
+				seed = strtol(argv[++i], &endptr, 0);
+				if(*endptr) {
+					std::cerr << "Invalid seed" << std::endl;
+					usage(argv[0]);
+				}
+			}
+			else if(arg == "--stats")
+				stats = true;
+			else if(arg == "-x" && hasArg) {
+				if(exchangeProgram)
+					usage(argv[0]);
+				else
+					exchangeProgram = argv[++i];
+			}
 			else
-				exchangeProgram = argv[++i];
+				usage(argv[0]);
 		}
-		else
+
+		if((!exchangeProgram && !onlyDecompose) || hyperedgePredicateNames.empty())
 			usage(argv[0]);
-	}
 
-	if((!exchangeProgram && !onlyDecompose) || hyperedgePredicateNames.empty())
-		usage(argv[0]);
+		srand(seed);
 
-	srand(seed);
+		// Store all of stdin in a string
+		std::ostringstream inputStringStream;
+		inputStringStream << std::cin.rdbuf();
+		std::string inputString = inputStringStream.str();
 
-	// Store all of stdin in a string
-	std::ostringstream inputStringStream;
-	inputStringStream << std::cin.rdbuf();
-	std::string inputString = inputStringStream.str();
+		Problem problem(inputString, hyperedgePredicateNames);
 
-	Problem problem(inputString, hyperedgePredicateNames);
+		sharp::ExtendedHypertree* decomposition = problem.calculateHypertreeDecomposition();
 
-	sharp::ExtendedHypertree* decomposition = problem.calculateHypertreeDecomposition();
-
-	if(stats) {
-		std::cout << "Decomposition stats:" << std::endl;
-		printDecompositionStats(*decomposition);
-		if(normalizationType == sharp::DefaultNormalization) {
-			std::cout << "Normalization stats:" << std::endl;
-			printDecompositionStats(*decomposition->normalize(sharp::DefaultNormalization));
-		} else {
-			assert(normalizationType == sharp::SemiNormalization);
-			std::cout << "Semi-normalization stats:" << std::endl;
-			printDecompositionStats(*decomposition->normalize(sharp::SemiNormalization));
+		if(stats) {
+			std::cout << "Decomposition stats:" << std::endl;
+			printDecompositionStats(*decomposition);
+			if(normalizationType == sharp::DefaultNormalization) {
+				std::cout << "Normalization stats:" << std::endl;
+				printDecompositionStats(*decomposition->normalize(sharp::DefaultNormalization));
+			} else {
+				assert(normalizationType == sharp::SemiNormalization);
+				std::cout << "Semi-normalization stats:" << std::endl;
+				printDecompositionStats(*decomposition->normalize(sharp::SemiNormalization));
+			}
 		}
-	}
-	if(onlyDecompose)
-		return 0;
+		if(onlyDecompose)
+			return 0;
 
-	switch(problemType) {
-		case ENUMERATION: {
-			sharp::GenericPlanFactory<solution::EnumerationPlan, Tuple> planFactory;
-			Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
-			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
+		switch(problemType) {
+			case ENUMERATION: {
+								  sharp::GenericPlanFactory<solution::EnumerationPlan, Tuple> planFactory;
+								  Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+								  sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
 
-			if(plan) {
-				std::auto_ptr<solution::EnumerationSolution> s(dynamic_cast<solution::EnumerationSolution*>(plan->materialize()));
-				delete plan;
-				std::cout << "Solutions: " << s->getSolutions().size() << std::endl;
+								  if(plan) {
+									  std::auto_ptr<solution::EnumerationSolution> s(dynamic_cast<solution::EnumerationSolution*>(plan->materialize()));
+									  delete plan;
+									  std::cout << "Solutions: " << s->getSolutions().size() << std::endl;
 
-				foreach(const Tuple::Assignment& a, s->getSolutions()) {
-					foreach(const Tuple::Assignment::value_type& pair, a)
-						std::cout << pair.first << '=' << pair.second << ' ';
-					std::cout << std::endl;
-				}
+									  foreach(const Tuple::Assignment& a, s->getSolutions()) {
+										  foreach(const Tuple::Assignment::value_type& pair, a)
+											  std::cout << pair.first << '=' << pair.second << ' ';
+										  std::cout << std::endl;
+									  }
 
-				return s->getSolutions().empty() ? INCONSISTENT : CONSISTENT;
-			} else {
-				std::cout << "Solutions: 0" << std::endl;
-				return INCONSISTENT;
-			}
-		} break;
+									  return s->getSolutions().empty() ? INCONSISTENT : CONSISTENT;
+								  } else {
+									  std::cout << "Solutions: 0" << std::endl;
+									  return INCONSISTENT;
+								  }
+							  } break;
 
-		case COUNTING: {
-			sharp::GenericPlanFactory<solution::CountingPlan> planFactory;
-			Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
-			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
+			case COUNTING: {
+							   sharp::GenericPlanFactory<solution::CountingPlan> planFactory;
+							   Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+							   sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
 
-			if(plan) {
-				std::auto_ptr<solution::CountingSolution> s(dynamic_cast<solution::CountingSolution*>(plan->materialize()));
-				delete plan;
-				std::cout << "Solutions: " << s->getCount() << std::endl;
-				return s->getCount() == 0 ? INCONSISTENT : CONSISTENT;
-			} else {
-				std::cout << "Solutions: 0" << std::endl;
-				return INCONSISTENT;
-			}
-		} break;
+							   if(plan) {
+								   std::auto_ptr<solution::CountingSolution> s(dynamic_cast<solution::CountingSolution*>(plan->materialize()));
+								   delete plan;
+								   std::cout << "Solutions: " << s->getCount() << std::endl;
+								   return s->getCount() == 0 ? INCONSISTENT : CONSISTENT;
+							   } else {
+								   std::cout << "Solutions: 0" << std::endl;
+								   return INCONSISTENT;
+							   }
+						   } break;
 
-		case DECISION: {
-			sharp::GenericPlanFactory<solution::DecisionPlan> planFactory;
-			Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
-			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
+			case DECISION: {
+							   sharp::GenericPlanFactory<solution::DecisionPlan> planFactory;
+							   Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+							   sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
 
-			if(plan) {
-				// Since there is a plan, there must also be a solution
+							   if(plan) {
+								   // Since there is a plan, there must also be a solution
 #ifndef NDEBUG
-				std::auto_ptr<solution::DecisionSolution> s(dynamic_cast<solution::DecisionSolution*>(plan->materialize()));
-				assert(s.get());
+								   std::auto_ptr<solution::DecisionSolution> s(dynamic_cast<solution::DecisionSolution*>(plan->materialize()));
+								   assert(s.get());
 #endif
-				delete plan;
-				std::cout << "CONSISTENT" << std::endl;
-				return CONSISTENT;
-			} else {
-				std::cout << "INCONSISTENT" << std::endl;
-				return INCONSISTENT;
-			}
-		} break;
+								   delete plan;
+								   std::cout << "CONSISTENT" << std::endl;
+								   return CONSISTENT;
+							   } else {
+								   std::cout << "INCONSISTENT" << std::endl;
+								   return INCONSISTENT;
+							   }
+						   } break;
 
-		case OPT_ENUM: {
-			sharp::GenericPlanFactory<solution::OptEnumPlan, Tuple> planFactory;
-			Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
-			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
+			case OPT_ENUM: {
+							   sharp::GenericPlanFactory<solution::OptEnumPlan, Tuple> planFactory;
+							   Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+							   sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
 
-			if(plan) {
-				std::auto_ptr<solution::OptEnumSolution> s(dynamic_cast<solution::OptEnumSolution*>(plan->materialize()));
-				delete plan;
+							   if(plan) {
+								   std::auto_ptr<solution::OptEnumSolution> s(dynamic_cast<solution::OptEnumSolution*>(plan->materialize()));
+								   delete plan;
 
-				std::cout << "Minimum cost: " << s->getCost() << std::endl;
-				std::cout << "Optimal solutions: " << s->getSolutions().size() << std::endl;
+								   std::cout << "Minimum cost: " << s->getCost() << std::endl;
+								   std::cout << "Optimal solutions: " << s->getSolutions().size() << std::endl;
 
-				foreach(const Tuple::Assignment& a, s->getSolutions()) {
-					foreach(const Tuple::Assignment::value_type& pair, a)
-						std::cout << pair.first << '=' << pair.second << ' ';
-					std::cout << std::endl;
-				}
+								   foreach(const Tuple::Assignment& a, s->getSolutions()) {
+									   foreach(const Tuple::Assignment::value_type& pair, a)
+										   std::cout << pair.first << '=' << pair.second << ' ';
+									   std::cout << std::endl;
+								   }
 
-				return s->getSolutions().empty() ? INCONSISTENT : CONSISTENT;
-			} else {
-				std::cout << "Optimal solutions: 0" << std::endl;
-				return INCONSISTENT;
-			}
-		} break;
+								   return s->getSolutions().empty() ? INCONSISTENT : CONSISTENT;
+							   } else {
+								   std::cout << "Optimal solutions: 0" << std::endl;
+								   return INCONSISTENT;
+							   }
+						   } break;
 
-		case OPT_COUNTING: {
-			sharp::GenericPlanFactory<solution::OptCountingPlan, Tuple> planFactory;
-			Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
-			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
+			case OPT_COUNTING: {
+								   sharp::GenericPlanFactory<solution::OptCountingPlan, Tuple> planFactory;
+								   Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+								   sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
 
-			if(plan) {
-				std::auto_ptr<solution::OptCountingSolution> s(dynamic_cast<solution::OptCountingSolution*>(plan->materialize()));
-				delete plan;
-				std::cout << "Minimum cost: " << s->getCost() << std::endl;
-				std::cout << "Optimal solutions: " << s->getCount() << std::endl;
-				return s->getCount() == 0 ? INCONSISTENT : CONSISTENT;
-			} else {
-				std::cout << "Optimal Solutions: 0" << std::endl;
-				return INCONSISTENT;
-			}
-		} break;
+								   if(plan) {
+									   std::auto_ptr<solution::OptCountingSolution> s(dynamic_cast<solution::OptCountingSolution*>(plan->materialize()));
+									   delete plan;
+									   std::cout << "Minimum cost: " << s->getCost() << std::endl;
+									   std::cout << "Optimal solutions: " << s->getCount() << std::endl;
+									   return s->getCount() == 0 ? INCONSISTENT : CONSISTENT;
+								   } else {
+									   std::cout << "Optimal Solutions: 0" << std::endl;
+									   return INCONSISTENT;
+								   }
+							   } break;
 
-		case OPT_VALUE: {
-			sharp::GenericPlanFactory<solution::OptValuePlan, Tuple> planFactory;
-			Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
-			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
+			case OPT_VALUE: {
+								sharp::GenericPlanFactory<solution::OptValuePlan, Tuple> planFactory;
+								Algorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+								sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
 
-			if(plan) {
-				std::auto_ptr<solution::OptValueSolution> s(dynamic_cast<solution::OptValueSolution*>(plan->materialize()));
-				delete plan;
-				std::cout << "Minimum cost: " << s->getCost() << std::endl;
-				return CONSISTENT;
-			} else {
-				std::cout << "INCONSISTENT" << std::endl;
-				return INCONSISTENT;
-			}
-		} break;
+								if(plan) {
+									std::auto_ptr<solution::OptValueSolution> s(dynamic_cast<solution::OptValueSolution*>(plan->materialize()));
+									delete plan;
+									std::cout << "Minimum cost: " << s->getCost() << std::endl;
+									return CONSISTENT;
+								} else {
+									std::cout << "INCONSISTENT" << std::endl;
+									return INCONSISTENT;
+								}
+							} break;
+		}
+	} catch(const std::exception& e) {
+		std::cerr << "Fatal error: " << e.what() << std::endl;
+		return 2;
 	}
+
 	assert(false); // Should never reach this point
 	return INCONSISTENT;
 }

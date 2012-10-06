@@ -5,7 +5,7 @@ nonLeaf :- childTuple(I).
 :- clause(C), removed(C), chosenChildTuple(I), not mapped(I,C,true).
 
 % True atoms and satisfied clauses remain so unless removed
-map(X,true) :- chosenChildTuple(I), mapped(I,X,true), current(A).
+map(X,true) :- chosenChildTuple(I), mapped(I,X,true), current(X).
 
 % Guess truth value of introduced atoms
 1 { map(A,true), map(A,false) } 1 :- atom(A), introduced(A).

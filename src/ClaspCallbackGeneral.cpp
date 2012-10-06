@@ -114,11 +114,29 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	foreach(MapAtom& atom, mapAtoms) {
 		assert(atom.level < numLevels);
 		if(s.isTrue(atom.literal)) {
+#ifndef NDEBUG
+			// Only current vertices may be assigned
+			if(currentVertices.find(atom.vertex) == currentVertices.end()) {
+				std::ostringstream err;
+				err << "Attempted assigning non-current vertex " << atom.vertex;
+				throw std::runtime_error(err.str());
+			}
+#endif
 			assert(path[atom.level].find(atom.vertex) == path[atom.level].end()); // vertex must not be assigned yet
 			path[atom.level][atom.vertex] = atom.value;
 		}
 	}
 	assert(path.size() == numLevels);
+
+#ifndef NDEBUG
+	// On each level, all vertices must be assigned now
+	foreach(const Tuple::Assignment& levelAssignment, path) {
+		std::set<std::string> assigned;
+		foreach(const Tuple::Assignment::value_type& kv, levelAssignment)
+			assigned.insert(kv.first);
+		assert(assigned == currentVertices);
+	}
+#endif
 
 	if(oldTupleAndPlan)
 		leftTupleAndPlan = oldTupleAndPlan;

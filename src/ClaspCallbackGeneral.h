@@ -11,9 +11,15 @@ class GringoOutputProcessor;
 class ClaspCallbackGeneral : public Clasp::ClaspFacade::Callback
 {
 public:
+#ifdef NDEBUG
 	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int level)
 		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numLevels(level+1)
 	{}
+#else
+	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int level, const std::set<std::string>& currentVertices)
+		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numLevels(level+1), currentVertices(currentVertices)
+	{}
+#endif
 
 	// Called if the current configuration contains unsafe/unreasonable options
 	virtual void warning(const char* msg);
@@ -76,4 +82,8 @@ private:
 	};
 
 	PathCollection pathCollection;
+
+#ifndef NDEBUG
+	std::set<std::string> currentVertices; // To check if all vertices are assigned
+#endif
 };

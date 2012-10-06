@@ -18,9 +18,6 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 			foreach(const GringoOutputProcessor::MapAtom& it, gringoOutput.getMapAtoms()) {
 				assert(it.level == 0);
 				mapAtoms.push_back(MapAtom(it.vertex, it.value, symTab[it.symbolTableKey].lit));
-#ifndef NDEBUG
-				vertices.insert(it.vertex);
-#endif
 			}
 
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleAtoms())
@@ -109,13 +106,24 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 
 	foreach(MapAtom& atom, mapAtoms) {
 		if(s.isTrue(atom.literal)) {
+#ifndef NDEBUG
+			// Only current vertices may be assigned
+			if(currentVertices.find(atom.vertex) == currentVertices.end()) {
+				std::ostringstream err;
+				err << "Attempted assigning non-current vertex " << atom.vertex;
+				throw std::runtime_error(err.str());
+			}
+#endif
 			assert(newTuple.assignment.find(atom.vertex) == newTuple.assignment.end()); // vertex must not be assigned yet
 			newTuple.assignment[atom.vertex] = atom.value;
 		}
 	}
 #ifndef NDEBUG
 	// All vertices must be assigned now
-	assert(vertices.size() == newTuple.assignment.size());
+	std::set<std::string> assigned;
+	foreach(const Tuple::Assignment::value_type& kv, newTuple.assignment)
+		assigned.insert(kv.first);
+	assert(assigned == currentVertices);
 #endif
 
 	// If oldTupleAndPlan is set, then left/rightTupleAndPlan are unset
