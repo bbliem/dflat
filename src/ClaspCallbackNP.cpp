@@ -34,7 +34,8 @@ void ClaspCallbackNP::warning(const char* msg)
 
 void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 {
-	if(f.state() == Clasp::ClaspFacade::state_solve && e == Clasp::ClaspFacade::event_state_enter) {
+	if(f.state() == Clasp::ClaspFacade::state_solve) {
+		if(e == Clasp::ClaspFacade::event_state_enter) {
 			Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
 
 			foreach(const GringoOutputProcessor::ItemAtom& it, gringoOutput.getItemAtoms()) {
@@ -54,7 +55,16 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
 				costAtoms[it.first] = symTab[it.second].lit;
 #ifdef PRINT_MODELS
- 			std::cout << std::endl;
+			std::cout << std::endl;
+#endif
+		}
+#ifdef PRINT_COMPUTED_ROWS
+		else if(e == Clasp::ClaspFacade::event_state_exit) {
+			// Tell each row its table index
+			unsigned int i = 0;
+			foreach(sharp::Row* row, table)
+				dynamic_cast<Row*>(row)->setIndex(i++);
+		}
 #endif
 	}
 }

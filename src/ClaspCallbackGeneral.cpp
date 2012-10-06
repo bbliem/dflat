@@ -60,6 +60,12 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 					algorithm.addRowToTable(table, it2.second);
 				}
 			}
+#ifdef PRINT_COMPUTED_ROWS
+			// Tell each row its table index
+			unsigned int i = 0;
+			foreach(sharp::Row* row, table)
+				dynamic_cast<Row*>(row)->setIndex(i++);
+#endif
 		}
 	}
 }
@@ -110,7 +116,6 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 		if(s.isTrue(atom.literal))
 			highestLevel = std::max(highestLevel, atom.level);
 	}
-	// A path does not have to use as many levels as its siblings, but up to the highest used level it must be connected.
 	Path path(highestLevel+1);
 
 	foreach(ItemAtom& atom, itemAtoms) {

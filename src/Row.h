@@ -92,6 +92,8 @@ public:
 	void addExtensionPointerTuple(const ExtensionPointerTuple&);
 
 #ifdef PRINT_COMPUTED_ROWS
+	void setIndex(unsigned int i) { index = i; }
+	unsigned int getIndex() const { return index; }
 	void print(std::ostream&) const;
 #endif
 
@@ -128,4 +130,8 @@ private:
 	unsigned int currentCost;
 	unsigned int cost;
 	ExtensionPointers extensionPointers;
+
+#ifdef PRINT_COMPUTED_ROWS
+	unsigned int index; // Index in the table
+#endif 
 };

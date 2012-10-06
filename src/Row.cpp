@@ -121,8 +121,21 @@ void Row::Tree::print(std::ostream& out, const std::string& indent) const {
 
 void Row::print(std::ostream& str) const
 {
-	str << "Row (count " << count << "; cost " << cost << "): ";
+	str << "[Row " << index << ']' << std::endl;
 	tree.print(str);
+	str << "Count: " << count << std::endl;
+	str << "Cost: " << cost << std::endl;
+	str << "Extends:";
+	foreach(const ExtensionPointerTuple& tup, extensionPointers) {
+		str << ' ';
+		char openingChar = '(';
+		foreach(const Row* r, tup) {
+			str << openingChar << r->getIndex();
+			openingChar = ',';
+		}
+		str << ")";
+	}
+	str << std::endl << std::endl;
 }
 #endif
 
