@@ -1,4 +1,4 @@
-introduced(X) :- current(X), not before(X).
+%introduced(X) :- current(X), not before(X).
 removed(X) :- before(X), not current(X).
 
 guessable(A) :- current(A), atom(A).
@@ -21,19 +21,16 @@ sup(M) :- oldMi(M), not not_sup(M).
 not_inf(N) :- lt(M,N).
 inf(M) :- oldMi(M), not not_inf(M).
 
-% matchUpTo(I) is true iff among the first I tuples there is a valid predecessor of the current guess
-
-% TODO: Performance with/without an extra predicate to factor out the common parts of the version with inf and succ?
-
+% noMatch(I) is true iff the I'th child tuple is no valid predecessor of the current guess
 noMatch(M) :- oldMi(M), removed(R), rule(R), not oldM(M,R). % Killed tuples do not match
 noMatch(M) :- oldMi(M), before(X), not oldM(M,X), guess(X).
 noMatch(M) :- oldMi(M), guessable(X), not guess(X), oldM(M,X).
 
-matchUpTo(M) :- inf(M), not noMatch(M).
-matchUpTo(N) :- succ(M,N), matchUpTo(M).
-matchUpTo(N) :- succ(M,N), not matchUpTo(M), not noMatch(N).
+% noMatchUpTo(I) is true iff among the first I tuples there is no valid predecessor of the current guess
+noMatchUpTo(M) :- inf(M), noMatch(M).
+noMatchUpTo(N) :- succ(M,N), noMatchUpTo(M), noMatch(N).
 
-:- sup(M), not matchUpTo(M).
+:- sup(M), noMatchUpTo(M).
 
 % TODO: Count aggregate instead of loop more efficient?
 
@@ -41,5 +38,5 @@ matchUpTo(N) :- succ(M,N), not matchUpTo(M), not noMatch(N).
 
 #hide.
 #show m/1.
-#show matchUpTo/1.
-#show sup/1.
+%#show matchUpTo/1.
+%#show sup/1.
