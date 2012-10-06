@@ -40,7 +40,9 @@ int main(int argc, char** argv)
 	for(int i = 1; i < argc; ++i) {
 		std::string arg = argv[i];
 
-		if(arg == "-p") {
+		if(arg == "--only-decompose")
+			onlyDecompose = true;
+		else if(arg == "-p") {
 			std::string typeArg = argv[++i];
 			if(typeArg == "enumeration")
 				problemType = Algorithm::ENUMERATION;
@@ -59,8 +61,6 @@ int main(int argc, char** argv)
 				usage(argv[0]);
 			}
 		}
-		else if(arg == "--only-decompose")
-			onlyDecompose = true;
 		else if(arg == "--stats")
 			stats = true;
 		else
@@ -70,7 +70,6 @@ int main(int argc, char** argv)
 	srand(seed);
 
 	Problem problem(std::cin, true);
-	Algorithm algorithm(problem, problemType);
 
 	//sharp::Solution* solution = problem.calculateSolution(&algorithm);
 	sharp::ExtendedHypertree* decomposition = problem.calculateHypertreeDecomposition();
@@ -78,12 +77,15 @@ int main(int argc, char** argv)
 	if(stats) {
 		std::cout << "Decomposition stats:" << std::endl;
 		printDecompositionStats(*decomposition);
-		std::cout << "Normalization stats:" << std::endl;
+		std::cout << "Semi-normalization stats:" << std::endl;
 		printDecompositionStats(*decomposition->normalize(sharp::SemiNormalization));
+//		std::cout << "Normalization stats:" << std::endl;
+//		printDecompositionStats(*decomposition->normalize(sharp::DefaultNormalization));
 	}
 	if(onlyDecompose)
 		return 0;
 
+	Algorithm algorithm(problem, problemType);
 	sharp::Solution* solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 
 	// Print solution

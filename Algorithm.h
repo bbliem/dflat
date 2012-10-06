@@ -27,4 +27,12 @@ protected:
 private:
 	Clasp::ClaspFacade clasp;
 	ProblemType problemType;
+
+#ifndef NO_PROGRESS_REPORT
+private:
+	int nodesProcessed; // For progress report
+	void printProgressLine(const sharp::ExtendedHypertree* node);
+protected:
+	virtual sharp::TupleSet* evaluateNode(const sharp::ExtendedHypertree* node);
+#endif
 };

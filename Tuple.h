@@ -15,7 +15,7 @@ struct Tuple : public sharp::Tuple
 	typedef std::set<sharp::Vertex> VertexSet;
 	VertexSet m;
 
-#ifndef NDEBUG
+#ifndef VERBOSE
 	void print(std::ostream&) const;
 	void print(std::ostream&, class Problem&) const; // prints names instead of vertex numbers for atoms
 #endif

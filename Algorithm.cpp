@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <gringo/streams.h>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
@@ -103,6 +104,9 @@ namespace {
 
 Algorithm::Algorithm(sharp::Problem& problem, Algorithm::ProblemType problemType)
 	: AbstractSemiNormalizedHTDAlgorithm(&problem), problemType(problemType)
+#ifndef NO_PROGRESS_REPORT
+	  , nodesProcessed(0)
+#endif
 {
 }
 
@@ -112,6 +116,10 @@ Algorithm::~Algorithm()
 
 Solution* Algorithm::selectSolution(TupleSet* tuples, const ExtendedHypertree* root)
 {
+#ifndef NO_PROGRESS_REPORT
+	std::cout << std::endl; // End progress line
+#endif
+
 	Solution* result = createEmptySolution();
 
 	VertexSet currentRules;
@@ -134,6 +142,7 @@ TupleSet* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 {
 	TupleSet* left = evaluateNode(node->firstChild());
 	TupleSet* right = evaluateNode(node->secondChild());
+	printProgressLine(node);
 	TupleSet* ts = new TupleSet;
 
 	for(TupleSet::const_iterator lit = left->begin(); lit != left->end(); ++lit) {
@@ -162,7 +171,7 @@ TupleSet* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 	delete left;
 	delete right;
 
-#ifndef NDEBUG
+#ifdef VERBOSE
 	std::cout << "Join node result:" << std::endl;
 	for(TupleSet::const_iterator it = ts->begin(); it != ts->end(); ++it)
 		dynamic_cast<Tuple*>(it->first)->print(std::cout, *dynamic_cast<Problem*>(problem()));
@@ -185,12 +194,13 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 
 	if(node->getType() != sharp::Leaf) {
 		TupleSet* childTuples = evaluateNode(node->firstChild());
+		printProgressLine(node);
 		// There might be no child tuples, consider as a child e.g. a join node without matches.
 		// If we were to run the program without child tuples, it would consider the current node as a leaf node and wrongly generate new tuples.
 		if(childTuples->empty() == false) {
 			std::stringstream* childTuplesInput = new std::stringstream;
 			describeChildTuples(*childTuplesInput, *childTuples);
-#ifndef NDEBUG
+#ifdef VERBOSE
 			std::cout << "Exchange node; bag contents:" << std::endl;
 			std::cout << bagContents->str() << std::endl;
 			foreach(Vertex v, node->getVertices()) {
@@ -221,7 +231,8 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 	}
 	else {
 		// This is a leaf, run the program once
-#ifndef NDEBUG
+		printProgressLine(node);
+#ifdef VERBOSE
 		std::cout << "Leaf node; bag contents:" << std::endl;
 		std::cout << bagContents->str() << std::endl;
 		foreach(Vertex v, node->getVertices()) {
@@ -244,7 +255,7 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 		clasp.solve(inputReader, config, &cb);
 	}
 
-#ifndef NDEBUG
+#ifdef VERBOSE
 	std::cout << "Resulting tuples:" << std::endl;
 	for(TupleSet::const_iterator it = newTuples->begin(); it != newTuples->end(); ++it)
 		dynamic_cast<Tuple*>(it->first)->print(std::cout, *dynamic_cast<Problem*>(problem()));
@@ -253,3 +264,32 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 
 	return newTuples;
 }
+
+#ifndef NO_PROGRESS_REPORT
+sharp::TupleSet* Algorithm::evaluateNode(const sharp::ExtendedHypertree* node) {
+	sharp::TupleSet* ts = sharp::AbstractSemiNormalizedHTDAlgorithm::evaluateNode(node);
+	++nodesProcessed;
+	return ts;
+}
+
+inline void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node) {
+	std::cout << '\r' << "Processing node ";
+	std::cout << std::setw(4) << std::left << (nodesProcessed+1) << " [";
+	switch(node->getType()) {
+		case sharp::Leaf:
+			std::cout << 'L';
+			break;
+		case sharp::Permutation:
+			std::cout << 'E';
+			break;
+		case sharp::Branch:
+			std::cout << 'J';
+			break;
+		default:
+			assert(false);
+			std::cout << '?';
+			break;
+	}
+	std::cout << "] bag size " << std::setw(3) << node->getVertices().size() << std::flush;
+}
+#endif

@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "Tuple.h"
 #include "Problem.h"
 
@@ -18,10 +20,11 @@ bool Tuple::operator==(const sharp::Tuple& rhs) const
 
 int Tuple::hash() const
 {
+	assert(false);
 	return 0; // TODO
 }
 
-#ifndef NDEBUG
+#ifdef VERBOSE
 void Tuple::print(std::ostream& str) const
 {
 	str << "Tuple\tm: ";
