@@ -1,3 +1,5 @@
+cxxflags="" # additional flags, like, e.g., -DVERBOSE
+
 gringo_dir=/home/bernhard/Informatik/gringo-3.0.3-source
 gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a
 gringo_lib_debug=$(gringo_dir)/build/debug/lib/libgringo.a
@@ -17,6 +19,7 @@ release:
 	cd build/release && \
 	cmake ../.. \
 		-DCMAKE_BUILD_TYPE=release \
+		-DCMAKE_CXX_FLAGS=$(cxxflags) \
 		-Dgringo_lib=$(gringo_lib) \
 		-Dclasp_lib=$(clasp_lib) \
 		-Dgringo_dir=$(gringo_dir) \
@@ -29,6 +32,7 @@ debug:
 	cd build/debug && \
 	cmake ../.. \
 		-DCMAKE_BUILD_TYPE=debug \
+		-DCMAKE_CXX_FLAGS=$(cxxflags) \
 		-Dgringo_lib=$(gringo_lib_debug) \
 		-Dclasp_lib=$(clasp_lib_debug) \
 		-Dgringo_dir=$(gringo_dir) \
@@ -41,6 +45,7 @@ gprof:
 	cd build/gprof && \
 	cmake ../.. \
 		-DCMAKE_BUILD_TYPE=gprof \
+		-DCMAKE_CXX_FLAGS=$(cxxflags) \
 		-Dgringo_lib=$(gringo_lib_gprof) \
 		-Dclasp_lib=$(clasp_lib_gprof) \
 		-Dgringo_dir=$(gringo_dir) \

@@ -1,4 +1,6 @@
 #include <cassert>
+#include <boost/foreach.hpp>
+#define foreach BOOST_FOREACH
 
 #include "Tuple.h"
 #include "Problem.h"

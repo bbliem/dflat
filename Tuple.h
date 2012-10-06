@@ -1,8 +1,6 @@
 #pragma once
 
 #include <set>
-#include <boost/foreach.hpp>
-#define foreach BOOST_FOREACH
 #include <sharp/main>
 
 struct Tuple : public sharp::Tuple

@@ -78,8 +78,8 @@ namespace {
 	}
 }
 
-Algorithm::Algorithm(sharp::Problem& problem, Algorithm::ProblemType problemType)
-	: AbstractSemiNormalizedHTDAlgorithm(&problem), problemType(problemType)
+Algorithm::Algorithm(Problem& problem, Algorithm::ProblemType problemType)
+	: AbstractSemiNormalizedHTDAlgorithm(&problem), problem(dynamic_cast<Problem&>(problem)), problemType(problemType)
 #ifndef NO_PROGRESS_REPORT
 	  , nodesProcessed(0)
 #endif
@@ -93,14 +93,14 @@ Algorithm::~Algorithm()
 Solution* Algorithm::selectSolution(TupleSet* tuples, const ExtendedHypertree* root)
 {
 #ifndef NO_PROGRESS_REPORT
-	std::cout << '\r' << std::setw(40) << "Done." << std::endl; // Clear/end progress line
+	std::cout << '\r' << std::setw(40) << std::left << "Done." << std::endl; // Clear/end progress line
 #endif
 
 	Solution* result = createEmptySolution();
 
 	VertexSet currentRules;
 	foreach(Vertex v, root->getVertices())
-		if(dynamic_cast<Problem*>(problem())->vertexIsRule(v))
+		if(problem.vertexIsRule(v))
 			currentRules.insert(v);
 
 	for(TupleSet::iterator it = tuples->begin(); it != tuples->end(); ++it) {
@@ -179,7 +179,7 @@ endJoin:
 #ifdef VERBOSE
 	std::cout << "Join node result:" << std::endl;
 	for(TupleSet::const_iterator it = ts->begin(); it != ts->end(); ++it)
-		dynamic_cast<Tuple*>(it->first)->print(std::cout, *dynamic_cast<Problem*>(problem()));
+		dynamic_cast<Tuple*>(it->first)->print(std::cout, problem);
 	std::cout << std::endl;
 #endif
 
@@ -195,7 +195,7 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 
 	// Build input for the exchange node program
 	std::stringstream* bagContents = new std::stringstream;
-	describeExchangeNodeContents(*bagContents, *node, *dynamic_cast<Problem*>(problem()));
+	describeExchangeNodeContents(*bagContents, *node, problem);
 
 	if(node->getType() != sharp::Leaf) {
 		TupleSet* childTuples = evaluateNode(node->firstChild());
@@ -208,14 +208,7 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 			std::stringstream* childTuplesInput = new std::stringstream;
 			describeChildTuples(*childTuplesInput, *childTuples);
 #ifdef VERBOSE
-			std::cout << "Bag contents:" << std::endl;
-//			std::cout << bagContents->str() << std::endl;
-			foreach(Vertex v, node->getVertices()) {
-				if(dynamic_cast<Problem*>(problem())->vertexIsRule(v))
-					std::cout << v << std::endl;
-				else
-					std::cout << problem()->getVertexName(v) << '[' << v << "]" << std::endl;
-			}
+			printBagContents(node->getVertices());
 			std::cout << "Child tuple input:" << std::endl << childTuplesInput->str() << std::endl;
 #endif
 
@@ -242,14 +235,7 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 		printProgressLine(node);
 #endif
 #ifdef VERBOSE
-		std::cout << "Bag contents:" << std::endl;
-//		std::cout << bagContents->str() << std::endl;
-		foreach(Vertex v, node->getVertices()) {
-			if(dynamic_cast<Problem*>(problem())->vertexIsRule(v))
-				std::cout << v << std::endl;
-			else
-				std::cout << problem()->getVertexName(v) << '[' << v << "]" << std::endl;
-		}
+		printBagContents(node->getVertices());
 #endif
 
 		Streams inputStreams;
@@ -267,7 +253,7 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 #ifdef VERBOSE
 	std::cout << "Resulting tuples:" << std::endl;
 	for(TupleSet::const_iterator it = newTuples->begin(); it != newTuples->end(); ++it)
-		dynamic_cast<Tuple*>(it->first)->print(std::cout, *dynamic_cast<Problem*>(problem()));
+		dynamic_cast<Tuple*>(it->first)->print(std::cout, problem);
 	std::cout << std::endl;
 #endif
 
@@ -281,7 +267,7 @@ sharp::TupleSet* Algorithm::evaluateNode(const sharp::ExtendedHypertree* node) {
 	return ts;
 }
 
-inline void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node) {
+void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node) {
 	std::cout << '\r' << "Processing node ";
 	std::cout << std::setw(4) << std::left << (nodesProcessed+1) << " [";
 	switch(node->getType()) {
@@ -294,11 +280,32 @@ inline void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node) {
 		case sharp::Branch:
 			std::cout << 'J';
 			break;
+		case sharp::Introduction:
+			assert(typeid(*this) != typeid(Algorithm)); // This cannot happen with the semi-normalized algorithm, but only with the normalized one
+			std::cout << 'I';
+			break;
+		case sharp::Removal:
+			assert(typeid(*this) != typeid(Algorithm));
+			std::cout << 'R';
+			break;
 		default:
 			assert(false);
 			std::cout << '?';
 			break;
 	}
 	std::cout << "] bag size " << std::setw(3) << node->getVertices().size() << std::flush;
+}
+#endif
+
+#ifdef VERBOSE
+void Algorithm::printBagContents(const sharp::VertexSet& vertices) const
+{
+	std::cout << "Bag contents:" << std::endl;
+	foreach(Vertex v, vertices) {
+		if(problem.vertexIsRule(v))
+			std::cout << "rule " << v << std::endl;
+		else
+			std::cout << "atom " << problem.getVertexName(v) << '[' << v << "]" << std::endl;
+	}
 }
 #endif

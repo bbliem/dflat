@@ -1,4 +1,5 @@
 #!/bin/bash
+# Arguments to this script will be passed to $sat additionally
 
 numInstances=100
 numClauses=12
@@ -20,7 +21,7 @@ for instance in $(seq 1 $numInstances); do
 	miniSatExitCode=$?
 
 	$satgen $numClauses $numVars lp $seed > $lpInstance 2>/dev/null || exit
-	$sat -p decision -s $seed < $lpInstance &>/dev/null
+	$sat -p decision -s $seed $@ < $lpInstance &>/dev/null
 	satExitCode=$?
 
 	if [[ ($miniSatExitCode -eq 10 && $satExitCode -ne 0) || ($miniSatExitCode -eq 20 && $satExitCode -ne 23) ]]; then

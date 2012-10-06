@@ -6,18 +6,25 @@
 
 #include "Problem.h"
 #include "Algorithm.h"
+#include "AlgorithmNormalized.h"
 
 namespace {
 	const int CONSISTENT = 0;
 	const int INCONSISTENT = 23;
 
-	inline void usage(const char* program) {
-		std::cerr << "Usage: " << program << "[--only-decompose] [-p problem_type] [-s seed]" << std::endl;
-		std::cerr << "--only-decompose: Only perform decomposition and do not solve (useful with --stats)" << std::endl;
-		std::cerr << "-p problem_type: Either enumeration (default), counting or decision" << std::endl;
-		std::cerr << "-s seed: Initialize random number generator with <seed>" << std::endl;
-		std::cerr << "--stats: Print statistics" << std::endl;
-		std::cerr << "If \"problem_type\" is \"decision\", exit code " << CONSISTENT << " means consistent, " << INCONSISTENT << " means inconsistent" << std::endl;
+	void usage(const char* program) {
+		const int w = 20;
+		std::cerr << "Usage: " << program << " [-a algorithm] [-n normalization] [--only-decompose] [-p problem_type] [-s seed]" << std::endl;
+		std::cerr << std::endl << std::left;
+		std::cerr << '\t' << std::setw(w) << "-a algorithm: " << "Either \"semi\" or \"normalized\" (default: argument of -n)" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\" or \"decision\"" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-s seed: " << "Initialize random number generator with <seed>" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "--stats: " << "Print statistics" << std::endl;
+		std::cerr << std::endl;
+		std::cerr << "\"-a normalized\" only works if \"-n normalized\" is set." << std::endl;
+		std::cerr << "If \"problem_type\" is \"decision\", exit code " << CONSISTENT << " means consistent, " << INCONSISTENT << " means inconsistent." << std::endl;
 		exit(1);
 	}
 
@@ -34,13 +41,35 @@ int main(int argc, char** argv)
 {
 	Algorithm::ProblemType problemType = Algorithm::ENUMERATION;
 	time_t seed = time(0);
+	bool algorithmSpecified = false;
+	sharp::NormalizationType algorithmType = sharp::SemiNormalization;
+	sharp::NormalizationType normalizationType = sharp::SemiNormalization;
 	bool onlyDecompose = false;
 	bool stats = false;
 
 	for(int i = 1; i < argc; ++i) {
 		std::string arg = argv[i];
 
-		if(arg == "--only-decompose")
+		if(arg == "-a") {
+			algorithmSpecified = true;
+			std::string typeArg = argv[++i];
+			if(typeArg == "semi")
+				algorithmType = sharp::SemiNormalization;
+			else if(typeArg == "normalized")
+				algorithmType = sharp::DefaultNormalization;
+			else
+				usage(argv[0]);
+		}
+		else if(arg == "-n") {
+			std::string typeArg = argv[++i];
+			if(typeArg == "semi")
+				normalizationType = sharp::SemiNormalization;
+			else if(typeArg == "normalized")
+				normalizationType = sharp::DefaultNormalization;
+			else
+				usage(argv[0]);
+		}
+		else if(arg == "--only-decompose")
 			onlyDecompose = true;
 		else if(arg == "-p") {
 			std::string typeArg = argv[++i];
@@ -67,26 +96,42 @@ int main(int argc, char** argv)
 			usage(argv[0]);
 	}
 
+	if(algorithmSpecified) {
+		if(algorithmType == sharp::DefaultNormalization && normalizationType == sharp::SemiNormalization)
+			usage(argv[0]);
+	} else
+		algorithmType = normalizationType;
+
 	srand(seed);
 
 	Problem problem(std::cin, true);
 
-	//sharp::Solution* solution = problem.calculateSolution(&algorithm);
 	sharp::ExtendedHypertree* decomposition = problem.calculateHypertreeDecomposition();
 
 	if(stats) {
 		std::cout << "Decomposition stats:" << std::endl;
 		printDecompositionStats(*decomposition);
-		std::cout << "Semi-normalization stats:" << std::endl;
-		printDecompositionStats(*decomposition->normalize(sharp::SemiNormalization));
-//		std::cout << "Normalization stats:" << std::endl;
-//		printDecompositionStats(*decomposition->normalize(sharp::DefaultNormalization));
+		if(normalizationType == sharp::DefaultNormalization) {
+			std::cout << "Normalization stats:" << std::endl;
+			printDecompositionStats(*decomposition->normalize(sharp::DefaultNormalization));
+		} else {
+			assert(normalizationType == sharp::SemiNormalization);
+			std::cout << "Semi-normalization stats:" << std::endl;
+			printDecompositionStats(*decomposition->normalize(sharp::SemiNormalization));
+		}
 	}
 	if(onlyDecompose)
 		return 0;
 
-	Algorithm algorithm(problem, problemType);
-	sharp::Solution* solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
+	sharp::Solution* solution;
+	if(normalizationType == sharp::DefaultNormalization) {
+		AlgorithmNormalized algorithm(problem, problemType, algorithmType == sharp::SemiNormalization);
+		solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
+	} else {
+		assert(normalizationType == sharp::SemiNormalization);
+		Algorithm algorithm(problem, problemType);
+		solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
+	}
 
 	// Print solution
 	if(solution) {
