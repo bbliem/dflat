@@ -1,46 +1,50 @@
-# Unfortunately libclasp does not compile with -pedantic.
-# Using -isystem instead of -I; then they are treated as system headers,
-# i.e., warnings are suppressed for the clasp headers.
+gringo_dir=$(PWD)/../../gringo-3.0.3-source
+gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a
+gringo_lib_gprof=$(gringo_dir)/build/gprof/lib/libgringo.a
 
-# debug build
-#CXXFLAGS=-Wall -pedantic -ansi -I../sharp/include -isystem /home/bernhard/Informatik/clasp-2.0.3/libclasp -I/home/bernhard/Informatik/gringo-3.0.3-source/libgringo -DDISABLE_MULTI_THREADING -g
-#LDFLAGS=-lgmpxx ../sharp/src/.libs/libsharp.a /home/bernhard/Informatik/clasp-2.0.3/build/release/libclasp/lib/libclasp.a /home/bernhard/Informatik/gringo-3.0.3-source/build/release/lib/libgringo.a -lboost_filesystem
+clasp_dir=$(PWD)/../../clasp-2.0.3
+clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
+clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
 
-# gprof build
-#CXXFLAGS=-Wall -pedantic -ansi -I../sharp/include -isystem /home/bernhard/Informatik/clasp-2.0.3/libclasp -I/home/bernhard/Informatik/gringo-3.0.3-source/libgringo -DDISABLE_MULTI_THREADING -g -pg -DNDEBUG -O3
-#LDFLAGS=-lgmpxx ../sharp/src/.libs/libsharp.a /home/bernhard/Informatik/clasp-2.0.3/build/gprof/libclasp/lib/libclasp.a /home/bernhard/Informatik/gringo-3.0.3-source/build/gprof/lib/libgringo.a -lboost_filesystem -pg
+sharp_dir=$(PWD)/../sharp
 
-# release build
-CXXFLAGS=-Wall -pedantic -ansi -I../sharp/include -isystem /home/bernhard/Informatik/clasp-2.0.3/libclasp -I/home/bernhard/Informatik/gringo-3.0.3-source/libgringo -DDISABLE_MULTI_THREADING -DNDEBUG -O3
-LDFLAGS=-lgmpxx ../sharp/src/.libs/libsharp.a /home/bernhard/Informatik/clasp-2.0.3/build/release/libclasp/lib/libclasp.a /home/bernhard/Informatik/gringo-3.0.3-source/build/release/lib/libgringo.a -lboost_filesystem
-# TODO: Remove -pg flags from gringo's build config again
+all: release
 
-CPP=gfilt -banner:N
-#CPP=g++
+release:
+	mkdir -p build/release
+	cd build/release && \
+	cmake ../.. \
+		-DCMAKE_BUILD_TYPE=release \
+		-Dgringo_lib=$(gringo_lib) \
+		-Dclasp_lib=$(clasp_lib) \
+		-Dgringo_dir=$(gringo_dir) \
+		-Dclasp_dir=$(clasp_dir) \
+		-Dsharp_dir=$(sharp_dir) \
+	&& $(MAKE)
 
-all: Problem.o Algorithm.o ClaspInputReader.o GringoOutputProcessor.o Tuple.o ModelProcessor.o main.o
-	${CPP} -o main $^ ${LDFLAGS}
+debug:
+	mkdir -p build/debug
+	cd build/debug && \
+	cmake ../.. \
+		-DCMAKE_BUILD_TYPE=debug \
+		-Dgringo_lib=$(gringo_lib) \
+		-Dclasp_lib=$(clasp_lib) \
+		-Dgringo_dir=$(gringo_dir) \
+		-Dclasp_dir=$(clasp_dir) \
+		-Dsharp_dir=$(sharp_dir) \
+	&& $(MAKE)
 
-main.o: main.cpp
-	${CPP} -c main.cpp ${CXXFLAGS}
-
-Problem.o: Problem.cpp Problem.h
-	${CPP} -c Problem.cpp ${CXXFLAGS}
-
-Algorithm.o: Algorithm.cpp Algorithm.h ClaspInputReader.h Problem.h Tuple.h ModelProcessor.h
-	${CPP} -c Algorithm.cpp ${CXXFLAGS}
-
-Tuple.o: Tuple.cpp Tuple.h Problem.h
-	${CPP} -c Tuple.cpp ${CXXFLAGS}
-
-GringoOutputProcessor.o: GringoOutputProcessor.cpp GringoOutputProcessor.h
-	${CPP} -c GringoOutputProcessor.cpp ${CXXFLAGS}
-
-ClaspInputReader.o: ClaspInputReader.cpp ClaspInputReader.h GringoOutputProcessor.h
-	${CPP} -c ClaspInputReader.cpp ${CXXFLAGS}
-
-ModelProcessor.o: ModelProcessor.cpp ModelProcessor.h GringoOutputProcessor.h Algorithm.h Tuple.h Problem.h
-	${CPP} -c ModelProcessor.cpp ${CXXFLAGS}
+gprof:
+	mkdir -p build/gprof
+	cd build/gprof && \
+	cmake ../.. \
+		-DCMAKE_BUILD_TYPE=gprof \
+		-Dgringo_lib=$(gringo_lib_gprof) \
+		-Dclasp_lib=$(clasp_lib_gprof) \
+		-Dgringo_dir=$(gringo_dir) \
+		-Dclasp_dir=$(clasp_dir) \
+		-Dsharp_dir=$(sharp_dir) \
+	&& $(MAKE)
 
 clean:
-	rm -f *.o main
+	rm -rf build

@@ -38,6 +38,7 @@ void ModelProcessor::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, 
 		return;
 
 #ifndef NDEBUG
+	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
 	std::cout << "Model " << f.config()->ctx.enumerator()->enumerated << ": ";
 	for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
 		if(s.isTrue(it->second.lit) && !it->second.name.empty())
