@@ -60,6 +60,7 @@ public:
 	const std::vector<ExtendAtom>& getExtendAtoms() const { return extendAtoms; }
 
 	typedef std::map<long, Clasp::SymbolTable::key_type> LongToSymbolTableKey;
+	const LongToSymbolTableKey& getLevelsAtoms() const { return levelsAtoms; }
 	const LongToSymbolTableKey& getCountAtoms() const { return countAtoms; }
 	const LongToSymbolTableKey& getCurrentCostAtoms() const { return currentCostAtoms; }
 	const LongToSymbolTableKey& getCostAtoms() const { return costAtoms; }
@@ -90,6 +91,7 @@ private:
 	bool ignoreOptimization;
 	std::vector<ItemAtom> itemAtoms;
 	std::vector<ExtendAtom> extendAtoms;
+	LongToSymbolTableKey levelsAtoms;
 	LongToSymbolTableKey countAtoms;
 	LongToSymbolTableKey currentCostAtoms;
 	LongToSymbolTableKey costAtoms;

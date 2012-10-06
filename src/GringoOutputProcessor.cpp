@@ -194,6 +194,10 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 			extendAtoms.push_back(ExtendAtom(0, arg.str(), atom.first));
 		}
 	}
+	else if(name == "levels") {
+		assert(arity == 1);
+		storeNumberAtom(atom, levelsAtoms);
+	}
 	else if(name == "count") {
 		assert(arity == 1);
 		storeNumberAtom(atom, countAtoms);

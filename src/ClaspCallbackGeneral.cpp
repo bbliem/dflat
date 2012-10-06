@@ -43,6 +43,8 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 				itemAtoms.push_back(ItemAtom(it.level, it.value, symTab[it.symbolTableKey].lit));
 			foreach(const GringoOutputProcessor::ExtendAtom& it, gringoOutput.getExtendAtoms())
 				extendAtoms.push_back(ExtendAtom(it.level, it.extended, symTab[it.symbolTableKey].lit));
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getLevelsAtoms())
+				levelsAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCountAtoms())
 				countAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
@@ -112,25 +114,37 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	std::cout << std::endl;
 #endif
 
-	unsigned int highestLevel = 0;
-	foreach(ExtendAtom& atom, extendAtoms) {
-		if(s.isTrue(atom.literal))
-			highestLevel = std::max(highestLevel, atom.level);
+	unsigned int numLevels = 0;
+	foreach(const LongToLiteral::value_type& it, levelsAtoms) {
+		if(s.isTrue(it.second)) {
+			numLevels = it.first;
+			break;
+		}
 	}
-	foreach(ItemAtom& atom, itemAtoms) {
-		if(s.isTrue(atom.literal))
-			highestLevel = std::max(highestLevel, atom.level);
-	}
+#ifndef DISABLE_ANSWER_SET_CHECKS
+	if(numLevels == 0)
+		throw std::runtime_error("Number of levels > 0 must be specified");
+#endif
 
-	Path path(highestLevel+1);
+	Path path(numLevels);
 
 	foreach(ExtendAtom& atom, extendAtoms) {
-		if(s.isTrue(atom.literal))
+		if(s.isTrue(atom.literal)) {
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(atom.level >= numLevels)
+				throw std::runtime_error("'extend' atom with too high level");
+#endif
 			path[atom.level].first.push_back(atom.extended);
+		}
 	}
 	foreach(ItemAtom& atom, itemAtoms) {
-		if(s.isTrue(atom.literal))
+		if(s.isTrue(atom.literal)) {
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(atom.level >= numLevels)
+				throw std::runtime_error("'item' atom with too high level");
+#endif
 			path[atom.level].second.insert(atom.value);
+		}
 	}
 
 	bool hasCount = false, hasCurrentCost = false, hasCost = false;

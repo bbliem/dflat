@@ -77,6 +77,7 @@ private:
 	std::vector<ExtendAtom> extendAtoms;
 
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
+	LongToLiteral levelsAtoms;
 	LongToLiteral countAtoms;
 	LongToLiteral currentCostAtoms;
 	LongToLiteral costAtoms;
