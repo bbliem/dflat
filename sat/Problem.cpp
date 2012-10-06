@@ -2,14 +2,18 @@
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
+#include <sharp/main>
 
 #include "Problem.h"
+
+namespace sat {
 
 namespace qi = boost::spirit::qi;
 
 using std::vector;
 using std::string;
 using std::pair;
+using sharp::Vertex;
 
 namespace {
 	typedef Problem::Identifier Identifier;
@@ -74,15 +78,31 @@ namespace {
 
 
 
-Problem::Problem(std::istream& input, bool printBenchmarkInformation)
-	: sharp::Problem(printBenchmarkInformation), input(input), lastRule(0), atomsInRules(0)
-//	: sharp::Problem(new sharp::BucketEliminationAlgorithm(new sharp::MaximumCardinalitySearchOrdering())), input(input), lastRule(0), atomsInRules(0)
+Problem::Problem(std::istream& input)
+	: input(input), lastRule(0), atomsInRules(0)
 {
 }
 
 Problem::~Problem()
 {
 	delete[] atomsInRules;
+}
+
+void Problem::declareVertex(std::ostream& out, Vertex v) const
+{
+	if(vertexIsRule(v)) {
+		out << "rule(v" << v << ")." << std::endl;
+
+		const Problem::VerticesInRule& atoms = getAtomsInRule(v);
+		foreach(Vertex v2, atoms.head)
+			out << "head(v" << v << ",v" << v2 << ")." << std::endl;
+		foreach(Vertex v2, atoms.pos)
+			out << "pos(v" << v << ",v" << v2 << ")." << std::endl;
+		foreach(Vertex v2, atoms.neg)
+			out << "neg(v" << v << ",v" << v2 << ")." << std::endl;
+	}
+	else // an atom
+		out << "atom(v" << v << ")." << std::endl;
 }
 
 void Problem::parse()
@@ -176,3 +196,5 @@ sharp::Hypergraph* Problem::buildHypergraphRepresentation()
 
 	return createGraphFromDisjointSets(ruleVertices, atomVertices, edges);
 }
+
+} // namespace sat

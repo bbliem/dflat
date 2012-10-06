@@ -1,28 +1,33 @@
+// FIXME: See header.
+
+/*
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 
-#include "AlgorithmNormalized.h"
+#include "CppAlgorithmNormalized.h"
 #include "Problem.h"
-#include "Tuple.h"
+#include "sat/Tuple.h"
+
+namespace sat {
 
 using sharp::TupleSet;
 using sharp::ExtendedHypertree;
 
-AlgorithmNormalized::AlgorithmNormalized(Problem& problem, AlgorithmNormalized::ProblemType problemType, AlgorithmType algorithmType)
+CppAlgorithmNormalized::CppAlgorithmNormalized(Problem& problem)
 	: Algorithm(problem, problemType, algorithmType)
 {
 }
 
-AlgorithmNormalized::~AlgorithmNormalized()
+CppAlgorithmNormalized::~CppAlgorithmNormalized()
 {
 }
 
-ExtendedHypertree* AlgorithmNormalized::prepareHypertreeDecomposition(ExtendedHypertree* root)
+ExtendedHypertree* CppAlgorithmNormalized::prepareHypertreeDecomposition(ExtendedHypertree* root)
 {
 	return root->normalize(sharp::DefaultNormalization);
 }
 
-TupleSet* AlgorithmNormalized::evaluatePermutationNode(const ExtendedHypertree* node)
+TupleSet* CppAlgorithmNormalized::evaluatePermutationNode(const ExtendedHypertree* node)
 {
 	switch(algorithmType) {
 		case SEMI: case SEMI_ASP:
@@ -45,7 +50,7 @@ TupleSet* AlgorithmNormalized::evaluatePermutationNode(const ExtendedHypertree* 
 	return 0;
 }
 
-TupleSet* AlgorithmNormalized::evaluateIntroductionNode(const ExtendedHypertree* node)
+TupleSet* CppAlgorithmNormalized::evaluateIntroductionNode(const ExtendedHypertree* node)
 {
 	TupleSet* childTuples = evaluateNode(node->firstChild());
 #if PROGRESS_REPORT> 0
@@ -142,7 +147,7 @@ TupleSet* AlgorithmNormalized::evaluateIntroductionNode(const ExtendedHypertree*
 	return newTuples;
 }
 
-TupleSet* AlgorithmNormalized::evaluateRemovalNode(const ExtendedHypertree* node)
+TupleSet* CppAlgorithmNormalized::evaluateRemovalNode(const ExtendedHypertree* node)
 {
 	TupleSet* childTuples = evaluateNode(node->firstChild());
 #if NO_PROGRESS_REPORT > 0
@@ -189,3 +194,6 @@ TupleSet* AlgorithmNormalized::evaluateRemovalNode(const ExtendedHypertree* node
 #endif
 	return newTuples;
 }
+
+} // namespace sat
+*/

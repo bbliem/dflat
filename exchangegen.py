@@ -59,7 +59,7 @@ for v in rules[numRemovedRules:]:
 # Print child tuples
 for m in range(numChildTuples):
 	mName = "m"+str(m)
-	print("oldMi("+mName+").")
+	print("childTuple("+mName+").")
 	# Some rules are already true without having been guessed to true
 	for r in random.sample(rules, random.randint(0,len(rules))):
 		print("oldMRule("+mName+","+r['name']+").")

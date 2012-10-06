@@ -1,18 +1,19 @@
 #pragma once
 
 #include <clasp/clasp_facade.h>
-#include <sharp/AbstractAlgorithm.hpp>
 
+#include "ClaspAlgorithm.h"
 #include "Tuple.h"
 
-class Algorithm;
+namespace sat {
+
 class GringoOutputProcessor;
 
 // Gets called by clasp whenever a model has been found
-class ModelProcessor : public Clasp::ClaspFacade::Callback
+class ClaspCallback : public Clasp::ClaspFacade::Callback
 {
 public:
-	ModelProcessor(Algorithm& algorithm, sharp::TupleSet& newTuples, const GringoOutputProcessor& gringoOutput)
+	ClaspCallback(const ClaspAlgorithm& algorithm, sharp::TupleSet& newTuples, const GringoOutputProcessor& gringoOutput)
 		: algorithm(algorithm), newTuples(newTuples), gringoOutput(gringoOutput)
 	{}
 
@@ -26,7 +27,7 @@ public:
 	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f);
 
 private:
-	Algorithm& algorithm;
+	const ClaspAlgorithm& algorithm;
 	sharp::TupleSet& newTuples;
 	const GringoOutputProcessor& gringoOutput;
 
@@ -34,5 +35,7 @@ private:
 	typedef std::vector<LongAndLiteral> LongAndLiteralVec;
 	LongAndLiteralVec mAtom;
 	LongAndLiteralVec mRule;
-	LongAndLiteralVec chosenOldM;
+	LongAndLiteralVec chosenChildTuple;
 };
+
+} // namespace sat

@@ -1,7 +1,9 @@
 oldM(M,A) :- oldMAtom(M,A).
 oldM(M,R) :- oldMRule(M,R).
 
-removed(X) :- before(X), not current(X).
+%removed(X) :- before(X), not current(X).
+before(X) :- removed(X).
+before(X) :- current(X), not introduced(X).
 
 guessable(A) :- current(A), atom(A).
 guessable(R) :- current(R), before(R), rule(R).
@@ -15,19 +17,19 @@ mRule(R) :- pos(R,A), current(R), guessable(A), not guess(A).
 mAtom(A) :- guess(A), atom(A).
 mRule(R) :- guess(R), rule(R).
 
-noMatch(M) :- oldMi(M), removed(R), rule(R), not oldMRule(M,R). % Killed tuples do not match
-noMatch(M) :- before(X), guess(X), oldMi(M), not oldM(M,X). % What was guessed to true cannot have been false before
-noMatch(M) :- guessable(X), not guess(X), oldMi(M), oldM(M,X). % What guessed to false cannot have been true before
+noMatch(M) :- childTuple(M), removed(R), rule(R), not oldMRule(M,R). % Killed tuples do not match
+noMatch(M) :- before(X), guess(X), childTuple(M), not oldM(M,X). % What was guessed to true cannot have been false before
+noMatch(M) :- guessable(X), not guess(X), childTuple(M), oldM(M,X). % What guessed to false cannot have been true before
 
 %%%% Version 1:
 %% lt, succ, inf, sup
-%lt(M,N) :- oldMi(M), oldMi(N), M < N.
+%lt(M,N) :- childTuple(M), childTuple(N), M < N.
 %not_succ(M,O) :- lt(M,N), lt(N,O).
 %succ(M,N) :- lt(M,N), not not_succ(M,N).
 %not_sup(M) :- lt(M,N).
-%sup(M) :- oldMi(M), not not_sup(M).
+%sup(M) :- childTuple(M), not not_sup(M).
 %not_inf(N) :- lt(M,N).
-%inf(M) :- oldMi(M), not not_inf(M).
+%inf(M) :- childTuple(M), not not_inf(M).
 %
 %% noMatchUpTo(I) is true iff among the first I tuples there is no valid predecessor of the current guess
 %noMatchUpTo(M) :- inf(M), noMatch(M).
@@ -35,8 +37,8 @@ noMatch(M) :- guessable(X), not guess(X), oldMi(M), oldM(M,X). % What guessed to
 %:- sup(M), noMatchUpTo(M).
 
 %%% Version 2:
-nonLeaf :- oldMi(M).
-match :- oldMi(M), not noMatch(M).
+nonLeaf :- childTuple(M).
+match :- childTuple(M), not noMatch(M).
 :- nonLeaf, not match.
 
 

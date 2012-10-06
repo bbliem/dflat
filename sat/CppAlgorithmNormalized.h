@@ -1,13 +1,18 @@
 #pragma once
 
+// FIXME: This is still from before "the big refactoring"... Have to adjust it yet. Meanwhile, this algorithm does not exist.
+
+/*
 #include "Algorithm.h"
 
+namespace sat {
+
 // XXX: Note that this isn't derived from sharp::AbstractNormalizedHTDAlgorithm because we re-use code from the semi-normalized algorithm. Maybe I can think of something better?
-class AlgorithmNormalized : public Algorithm
+class CppAlgorithmNormalized : public ::Algorithm
 {
 public:
-	AlgorithmNormalized(Problem& problem, ProblemType problemType = ENUMERATION, AlgorithmType algorithmType = NORMALIZED);
-	virtual ~AlgorithmNormalized();
+	CppAlgorithmNormalized(Problem& problem);
+	virtual ~CppAlgorithmNormalized();
 
 protected:
 	virtual sharp::ExtendedHypertree* prepareHypertreeDecomposition(sharp::ExtendedHypertree* root);
@@ -19,3 +24,6 @@ protected:
 private:
 	bool useSemiNormalizedAlgorithm;
 };
+
+} // namespace sat
+*/

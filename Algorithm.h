@@ -1,51 +1,36 @@
 #pragma once
 
-#include <sharp/AbstractAlgorithm.hpp>
-#include <clasp/clasp_facade.h>
-
-class Problem;
-class ModelProcessor;
+#include <sharp/main>
 
 class Algorithm : public sharp::AbstractSemiNormalizedHTDAlgorithm
 {
-	// XXX: IIRC this is just because there are protected methods in Algorithm's base class which do not belong there...
-	friend class ModelProcessor;
 public:
-	enum ProblemType {
-		ENUMERATION,
-		COUNTING,
-		DECISION
-	};
-
-	enum AlgorithmType { // XXX: This should not be here, but the class hierarchy is crap anyway...
-		SEMI,
-		SEMI_ASP,
-		NORMALIZED
-	};
-
-	Algorithm(Problem& problem, ProblemType problemType = ENUMERATION, AlgorithmType = SEMI);
-	virtual ~Algorithm();
+	Algorithm(sharp::Problem& problem);
 
 protected:
 	virtual sharp::Solution* selectSolution(sharp::TupleSet* tuples, const sharp::ExtendedHypertree* root);
 	virtual sharp::TupleSet* evaluateBranchNode(const sharp::ExtendedHypertree* node);
-	virtual sharp::TupleSet* evaluatePermutationNode(const sharp::ExtendedHypertree* node);
 
-	Problem& problem;
+	/**
+	 * Do not override this! Rather override exchangeLeaf() and
+	 * exchangeNonLeaf(). This method calls them, deletes the child tuple set
+	 * afterwards, and optionally outputs debug information.
+	 */
+	sharp::TupleSet* evaluatePermutationNode(const sharp::ExtendedHypertree* node);
 
-private:
-	Clasp::ClaspFacade clasp;
-	ProblemType problemType;
+	// Override these methods to process exchange nodes. Potential child tuples are passed to exchangeNonLeaf().
+	virtual sharp::TupleSet* exchangeLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed) = 0;
+	virtual sharp::TupleSet* exchangeNonLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed, const sharp::TupleSet& childTuples) = 0;
+
+	sharp::Problem& problem;
 
 protected:
-	AlgorithmType algorithmType;
-
 #if PROGRESS_REPORT > 0
 	int nodesProcessed; // For progress report
-	void printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildTuples = 0);
+	virtual void printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildTuples = 0);
 	virtual sharp::TupleSet* evaluateNode(const sharp::ExtendedHypertree* node);
 #endif
 #ifdef VERBOSE
-	void printBagContents(const sharp::VertexSet& vertices) const;
+	virtual void printBagContents(const sharp::VertexSet& vertices) const;
 #endif
 };

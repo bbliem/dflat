@@ -22,8 +22,8 @@
 #include <gringo/storage.h>
 #include <gringo/domain.h>
 
-GringoOutputProcessor::GringoOutputProcessor(bool shiftDisj)
-	: LparseConverter(0, shiftDisj)
+GringoOutputProcessor::GringoOutputProcessor()
+	: LparseConverter(0, false)
 	, b_(0)
 	, lastUnnamed_(0)
 {
@@ -107,15 +107,13 @@ void GringoOutputProcessor::printComputeRule(int models, const AtomVec &pos, con
 void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t arity, const std::string &name)
 {
 	std::stringstream ss;
-	std::stringstream arg; // The first argument
 	ss << name;
 	if(arity > 0)
 	{
 		ValVec::const_iterator k = vals_.begin() + atom.second;
 		ValVec::const_iterator end = k + arity;
 		ss << "(";
-		k->print(s_, arg);
-		ss << arg.str();
+		k->print(s_, ss);
 		for(++k; k != end; ++k)
 		{
 			ss << ",";
@@ -125,13 +123,6 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 	}
 	b_->setAtomName(atom.first, ss.str().c_str());
 	atomUnnamed_[atom.first - lastUnnamed_] = false;
-
-	if(name == "mAtom") // FIXME: I'm dirty
-		mAtom.push_back(LongAndSymbolTableKey(std::strtol(arg.str().c_str()+1, 0, 0), atom.first)); // +1 because of the leading "m" of the argument
-	else if(name == "mRule")
-		mRule.push_back(LongAndSymbolTableKey(std::strtol(arg.str().c_str()+1, 0, 0), atom.first));
-	else if(name == "chosenOldM")
-		chosenOldM.push_back(LongAndSymbolTableKey(std::strtol(arg.str().c_str()+1, 0, 0), atom.first));
 }
 
 void GringoOutputProcessor::printExternalTableEntry(const AtomRef &atom, uint32_t arity, const std::string &name)
@@ -164,8 +155,4 @@ const LparseConverter::SymbolMap &GringoOutputProcessor::symbolMap(uint32_t domI
 ValRng GringoOutputProcessor::vals(Domain *dom, uint32_t offset) const
 {
 	return ValRng(vals_.begin() + offset, vals_.begin() + offset + dom->arity());
-}
-
-GringoOutputProcessor::~GringoOutputProcessor()
-{
 }

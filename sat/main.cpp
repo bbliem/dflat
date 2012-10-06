@@ -5,8 +5,9 @@
 #include <sharp/main>
 
 #include "Problem.h"
-#include "Algorithm.h"
-#include "AlgorithmNormalized.h"
+#include "ClaspAlgorithm.h"
+#include "CppAlgorithm.h"
+#include "CppAlgorithmNormalized.h"
 
 namespace {
 	const int CONSISTENT = 0;
@@ -14,7 +15,7 @@ namespace {
 
 	void usage(const char* program) {
 		const int w = 20;
-		std::cerr << "Usage: " << program << " [-a algorithm] [-n normalization] [--only-decompose] [-p problem_type] [-s seed]" << std::endl;
+		std::cerr << "Usage: " << program << " [-a algorithm] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats]" << std::endl;
 		std::cerr << std::endl << std::left;
 		std::cerr << '\t' << std::setw(w) << "-a algorithm: " << "Either \"semi\", \"semi-asp\" or \"normalized\" (default: argument of -n)" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
@@ -39,10 +40,10 @@ namespace {
 
 int main(int argc, char** argv)
 {
-	Algorithm::ProblemType problemType = Algorithm::ENUMERATION;
+	enum { ENUMERATION, COUNTING, DECISION } problemType = ENUMERATION;
 	time_t seed = time(0);
 	bool algorithmSpecified = false;
-	Algorithm::AlgorithmType algorithmType = Algorithm::SEMI;
+	enum { SEMI, SEMI_ASP, NORMALIZED } algorithmType = SEMI;
 	sharp::NormalizationType normalizationType = sharp::SemiNormalization;
 	bool onlyDecompose = false;
 	bool stats = false;
@@ -54,11 +55,11 @@ int main(int argc, char** argv)
 			algorithmSpecified = true;
 			std::string typeArg = argv[++i];
 			if(typeArg == "semi")
-				algorithmType = Algorithm::SEMI;
+				algorithmType = SEMI;
 			else if(typeArg == "semi-asp")
-				algorithmType = Algorithm::SEMI_ASP;
+				algorithmType = SEMI_ASP;
 			else if(typeArg == "normalized")
-				algorithmType = Algorithm::NORMALIZED;
+				algorithmType = NORMALIZED;
 			else
 				usage(argv[0]);
 		}
@@ -76,11 +77,11 @@ int main(int argc, char** argv)
 		else if(arg == "-p") {
 			std::string typeArg = argv[++i];
 			if(typeArg == "enumeration")
-				problemType = Algorithm::ENUMERATION;
+				problemType = ENUMERATION;
 			else if(typeArg == "counting")
-				problemType = Algorithm::COUNTING;
+				problemType = COUNTING;
 			else if(typeArg == "decision")
-				problemType = Algorithm::DECISION;
+				problemType = DECISION;
 			else
 				usage(argv[0]);
 		}
@@ -99,14 +100,14 @@ int main(int argc, char** argv)
 	}
 
 	if(algorithmSpecified) {
-		if(algorithmType == Algorithm::NORMALIZED && normalizationType != sharp::DefaultNormalization)
+		if(algorithmType == NORMALIZED && normalizationType != sharp::DefaultNormalization)
 			usage(argv[0]);
 	} else
-		algorithmType = normalizationType == sharp::DefaultNormalization ? Algorithm::NORMALIZED : Algorithm::SEMI;
+		algorithmType = normalizationType == sharp::DefaultNormalization ? NORMALIZED : SEMI;
 
 	srand(seed);
 
-	Problem problem(std::cin, true);
+	sat::Problem problem(std::cin);
 
 	sharp::ExtendedHypertree* decomposition = problem.calculateHypertreeDecomposition();
 
@@ -127,18 +128,20 @@ int main(int argc, char** argv)
 
 	sharp::Solution* solution;
 	if(normalizationType == sharp::DefaultNormalization) {
-		AlgorithmNormalized algorithm(problem, problemType, algorithmType);
-		solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
+		std::cerr << "not implemented" << std::endl;
+		return 1;
+//		CppAlgorithmNormalized algorithm(problem);
+//		solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 	} else {
 		assert(normalizationType == sharp::SemiNormalization);
-		Algorithm algorithm(problem, problemType, algorithmType);
+		sat::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "sat/exchange_decision.lp" : "sat/exchange.lp");
 		solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 	}
 
 	// Print solution
 	if(solution) {
 		switch(problemType) {
-			case Algorithm::ENUMERATION: {
+			case ENUMERATION: {
 				sharp::EnumerationSolutionContent* sol = dynamic_cast<sharp::EnumerationSolutionContent*>(solution->getContent(new sharp::GenericInstantiator<sharp::EnumerationSolutionContent>()));
 
 				std::cout << "Solutions: " << sol->enumerations.size() << std::endl;
@@ -157,12 +160,12 @@ int main(int argc, char** argv)
 				std::cout << "}" << std::endl;
 			} break;
 
-			case Algorithm::COUNTING: {
+			case COUNTING: {
 				sharp::CountingSolutionContent* content = dynamic_cast<sharp::CountingSolutionContent*>(solution->getContent(new sharp::GenericInstantiator<sharp::CountingSolutionContent>()));
 				std::cout << "Solutions: " << content->count << std::endl;
 			} break;
 
-			case Algorithm::DECISION: {
+			case DECISION: {
 				sharp::ConsistencySolutionContent* content = dynamic_cast<sharp::ConsistencySolutionContent*>(solution->getContent(new sharp::GenericInstantiator<sharp::ConsistencySolutionContent>()));
 				if(content->consistent == false) {
 					std::cout << "INCONSISTENT" << std::endl;

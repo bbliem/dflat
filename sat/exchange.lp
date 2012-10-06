@@ -1,13 +1,15 @@
-introduced(X) :- current(X), not before(X).
-removed(X) :- before(X), not current(X).
+%introduced(X) :- current(X), not before(X).
+%removed(X) :- before(X), not current(X).
+before(X) :- removed(X).
+before(X) :- current(X), not introduced(X).
 
 % Which tuple to use?
-nonLeaf :- oldMi(X).
-1 {chosenOldM(I) : oldMi(I)} 1 :- nonLeaf.
+nonLeaf :- childTuple(X).
+1 {chosenChildTuple(I) : childTuple(I)} 1 :- nonLeaf.
 
 % Only atoms and rules that are not removed persist
-mAtom(X) :- chosenOldM(M), oldMAtom(M,X), not removed(X).
-mRule(X) :- chosenOldM(M), oldMRule(M,X), not removed(X).
+mAtom(X) :- chosenChildTuple(M), oldMAtom(M,X), not removed(X).
+mRule(X) :- chosenChildTuple(M), oldMRule(M,X), not removed(X).
 
 %%%%%%%%%%%%%%%%%%%%%
 % Atom introduction %
@@ -28,11 +30,11 @@ mRule(R) :- introduced(R), pos(R,A), current(A), not mAtom(A).
 %%%%%%%%%%%%%%%%
 % Rule removal %
 %%%%%%%%%%%%%%%%
-:- rule(R), removed(R), chosenOldM(M), not oldMRule(M,R).
+:- rule(R), removed(R), chosenChildTuple(M), not oldMRule(M,R).
 
 
 
 #hide.
 #show mAtom/1.
 #show mRule/1.
-#show chosenOldM/1.
+#show chosenChildTuple/1.
