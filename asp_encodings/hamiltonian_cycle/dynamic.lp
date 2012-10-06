@@ -1,26 +1,24 @@
-levels(2).
+% TODO: Update comments
 
 % Auxiliary predicates computed by the grounder
 
-toOrTowards(S,X,Y) :- sub(_,S), childItem(S,to(X,Y)).
-toOrTowards(S,X,Y) :- sub(_,S), childItem(S,towards(X,Y)).
+toOrTowards(R,X,Y) :- childItem(R,to(X,Y)).
+toOrTowards(R,X,Y) :- childItem(R,towards(X,Y)).
 
 % reachesViaRemoved(S,X,Y): In "subtuple" S, there is a (possibly empty) "to"/"towards" path from X to Y s.t. X and all vertices between X and Y are removed. Reflexive.
-reachesViaRemoved(S,X,X) :- childRow(R,N), childBag(N,X), removed(X), sub(R,S).
-reachesViaRemoved(S,X,Z) :- sub(_,S), reachesViaRemoved(S,X,Y), removed(Y), childItem(S,to(Y,Z)).
-reachesViaRemoved(S,X,Z) :- sub(_,S), reachesViaRemoved(S,X,Y), removed(Y), childItem(S,towards(Y,Z)).
+reachesViaRemoved(R,X,X) :- childRow(R,N), childBag(N,X), removed(X).
+reachesViaRemoved(R,X,Z) :- reachesViaRemoved(R,X,Y), removed(Y), childItem(R,to(Y,Z)).
+reachesViaRemoved(R,X,Z) :- reachesViaRemoved(R,X,Y), removed(Y), childItem(R,towards(Y,Z)).
 
 % nextCurrent(S,X,Y): In "subtuple" S, Y is the next current vertex reachable from the removed X via "to" or "towards"
-nextCurrent(S,X,Y) :- reachesViaRemoved(S,X,Y), current(Y).
+nextCurrent(R,X,Y) :- reachesViaRemoved(R,X,Y), current(Y).
 
 %%%
 
-1 { extend(0,R) : childRow(R,N) } 1 :- childNode(N).
-1 { extend(1,S) : sub(R,S) } 1 :- extend(0,R), sub(R,_). % Last conjunct required because dummy leaf has no "subtuple"
-% XXX: Is there always exactly one subtuple (except in leafs)? If so, no need for the choice.
+1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
 
-oldTo(X,Y) :- extend(1,S), childItem(S,to(X,Y)).
-oldTowards(X,Y) :- extend(1,S), childItem(S,towards(X,Y)).
+oldTo(X,Y) :- extend(R), childItem(R,to(X,Y)).
+oldTowards(X,Y) :- extend(R), childItem(R,towards(X,Y)).
 
 hadSuccessor(X) :- oldTo(X,_).
 hadSuccessor(X) :- oldTowards(X,_).
@@ -36,11 +34,11 @@ hadPredecessor(X) :- oldTowards(_,X).
 :- oldTo(_,X), oldTowards(_,X).
 
 % If two different preceding tuples have a towards-edge starting at X, the immediate successors of X are different.
-:- extend(1,S0;S1), S0 != S1, childItem(S0,towards(X,_)), childItem(S1,towards(X,_)).
+:- extend(R0;R1), R0 != R1, childItem(R0,towards(X,_)), childItem(R1,towards(X,_)).
 
 % When joining tuple T, corresponding to bag B, with tuple T', corresponding to bag B', it must hold: For each edge (x,y) in the subgraph induced by B \cap B': (x,y) is in T iff (x,y) is in T'.
 % Because of connectedness, this is equivalent to: For each child tuple and each pair of vertices in the current bag and the bag of the child tuple: There is an edge between these vertices in the current tuple iff this edge is also in the child tuple.
-:- item(1,to(X,Y)), extend(0,R), childRow(R,N), childBag(N,X;Y), not childItem(R,to(X,Y)).
+:- item(to(X,Y)), extend(R), childRow(R,N), childBag(N,X;Y), not childItem(R,to(X,Y)).
 
 % If X is removed, it occurs only in one child (by connectedness). We require that the tuple of this child fully integrates X into a path.
 :- removed(X), not hadPredecessor(X).
@@ -51,7 +49,7 @@ hadPredecessor(X) :- oldTowards(_,X).
 towards(X,Y) :- oldTowards(X,Y), current(X;Y).
 to(X,Y)      :- oldTo(X,Y),      current(X;Y).
 
-towards(X,Z) :- extend(1,S), toOrTowards(S,X,Y), current(X), removed(Y), nextCurrent(S,Y,Z).
+towards(X,Z) :- extend(R), toOrTowards(R,X,Y), current(X), removed(Y), nextCurrent(R,Y,Z).
 
 % Edges can be added to the paths because of introduced vertices or by connecting ends to starts of paths in children
 
@@ -59,7 +57,7 @@ towards(X,Z) :- extend(1,S), toOrTowards(S,X,Y), current(X), removed(Y), nextCur
 to(X,Y) :- newEdge(X,Y).
 
 % A guessed edge is invalid if the bag of a preceding child tuple contains both endpoints
-:- newEdge(X,Y), extend(0,R), childRow(R,N), childBag(N,X;Y).
+:- newEdge(X,Y), extend(R), childRow(R,N), childBag(N,X;Y).
 % ... or if it would give a vertex more than one successor or predecessor.
 e(X,Y) :- to(X,Y).
 e(X,Y) :- towards(X,Y).
@@ -72,17 +70,11 @@ eTrans(X,Z) :- eTrans(X,Y), e(Y,Z).
 
 %%%
 
-item(1,to(X,Y)) :- to(X,Y).
-item(1,towards(X,Y)) :- towards(X,Y).
-
-%%%
-
-item(0,to(X,Y)) :- newEdge(X,Y).
-item(0,to(X,Y)) :- extend(0,R), childItem(R,to(X,Y)), current(X).
+item(to(X,Y)) :- to(X,Y).
+item(towards(X,Y)) :- towards(X,Y).
 
 
 
 #hide.
-#show extend/2.
-#show item/2.
-#show levels/1.
+#show extend/1.
+#show item/1.
