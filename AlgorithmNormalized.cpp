@@ -45,7 +45,7 @@ TupleSet* AlgorithmNormalized::evaluateIntroductionNode(const ExtendedHypertree*
 {
 	TupleSet* childTuples = evaluateNode(node->firstChild());
 #ifndef NO_PROGRESS_REPORT
-	printProgressLine(node);
+	printProgressLine(node, childTuples->size());
 #endif
 #ifdef VERBOSE
 	printBagContents(node->getVertices());
@@ -142,7 +142,7 @@ TupleSet* AlgorithmNormalized::evaluateRemovalNode(const ExtendedHypertree* node
 {
 	TupleSet* childTuples = evaluateNode(node->firstChild());
 #ifndef NO_PROGRESS_REPORT
-	printProgressLine(node);
+	printProgressLine(node, childTuples->size());
 #endif
 #ifdef VERBOSE
 	printBagContents(node->getVertices());

@@ -34,7 +34,7 @@ private:
 protected:
 #ifndef NO_PROGRESS_REPORT
 	int nodesProcessed; // For progress report
-	void printProgressLine(const sharp::ExtendedHypertree* node);
+	void printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildTuples = 0);
 	virtual sharp::TupleSet* evaluateNode(const sharp::ExtendedHypertree* node);
 #endif
 #ifdef VERBOSE

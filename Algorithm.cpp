@@ -93,7 +93,7 @@ Algorithm::~Algorithm()
 Solution* Algorithm::selectSolution(TupleSet* tuples, const ExtendedHypertree* root)
 {
 #ifndef NO_PROGRESS_REPORT
-	std::cout << '\r' << std::setw(40) << std::left << "Done." << std::endl; // Clear/end progress line
+	std::cout << '\r' << std::setw(64) << std::left << "Done." << std::endl; // Clear/end progress line
 #endif
 
 	Solution* result = createEmptySolution();
@@ -119,7 +119,7 @@ TupleSet* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 	TupleSet* left = evaluateNode(node->firstChild());
 	TupleSet* right = evaluateNode(node->secondChild());
 #ifndef NO_PROGRESS_REPORT
-	printProgressLine(node);
+	printProgressLine(node, left->size()+right->size());
 #endif
 	TupleSet* ts = new TupleSet;
 
@@ -200,7 +200,7 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 	if(node->getType() != sharp::Leaf) {
 		TupleSet* childTuples = evaluateNode(node->firstChild());
 #ifndef NO_PROGRESS_REPORT
-		printProgressLine(node);
+		printProgressLine(node, childTuples->size());
 #endif
 		// There might be no child tuples, consider as a child e.g. a join node without matches.
 		// If we were to run the program without child tuples, it would consider the current node as a leaf node and wrongly generate new tuples.
@@ -267,7 +267,7 @@ sharp::TupleSet* Algorithm::evaluateNode(const sharp::ExtendedHypertree* node) {
 	return ts;
 }
 
-void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node) {
+void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildTuples) {
 	std::cout << '\r' << "Processing node ";
 	std::cout << std::setw(4) << std::left << (nodesProcessed+1) << " [";
 	switch(node->getType()) {
@@ -293,7 +293,9 @@ void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node) {
 			std::cout << '?';
 			break;
 	}
-	std::cout << "] bag size " << std::setw(3) << node->getVertices().size() << std::flush;
+	std::cout << "] " << std::setw(3) << std::right << node->getVertices().size() << " bag elements, "
+		<< std::setw(8) << numChildTuples << " child tuples";
+	std::cout << std::flush;
 }
 #endif
 
