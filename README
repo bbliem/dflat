@@ -1,4 +1,4 @@
-Make sure that gringo, clasp, sharp and this library are build with the same C++ defines. In particular, for the debug build, gringo by default uses defines like -DGLIBCXX_DEBUG which clasp's debug build does not use. Since I had some problem with clasp when defining these flags, I would recommend NOT compiling gringo with them.
+For instructions about compiling or installing, see the file INSTALL.
 
 ---
 
