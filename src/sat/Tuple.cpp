@@ -12,13 +12,13 @@ bool Tuple::operator<(const sharp::Tuple& rhs) const
 	if(atoms < dynamic_cast<const Tuple&>(rhs).atoms)
 		return true;
 	if(atoms == dynamic_cast<const Tuple&>(rhs).atoms) // XXX: Why compare twice?
-		return rules < dynamic_cast<const Tuple&>(rhs).rules;
+		return clauses < dynamic_cast<const Tuple&>(rhs).clauses;
 	return false;
 }
 
 bool Tuple::operator==(const sharp::Tuple& rhs) const
 {
-	return atoms == dynamic_cast<const Tuple&>(rhs).atoms && rules == dynamic_cast<const Tuple&>(rhs).rules;
+	return atoms == dynamic_cast<const Tuple&>(rhs).atoms && clauses == dynamic_cast<const Tuple&>(rhs).clauses;
 }
 
 bool Tuple::matches(const ::Tuple& other) const
@@ -29,7 +29,7 @@ bool Tuple::matches(const ::Tuple& other) const
 Tuple* Tuple::join(const ::Tuple& other) const
 {
 	Tuple* t = new Tuple(*this);
-	t->rules.insert(dynamic_cast<const Tuple&>(other).rules.begin(), dynamic_cast<const Tuple&>(other).rules.end());
+	t->clauses.insert(dynamic_cast<const Tuple&>(other).clauses.begin(), dynamic_cast<const Tuple&>(other).clauses.end());
 	return t;
 }
 
@@ -38,20 +38,20 @@ void Tuple::declare(std::ostream& out, const sharp::TupleSet::value_type& tupleA
 	out << "childTuple(m" << &tupleAndSolution << ")." << std::endl;
 	foreach(sharp::Vertex v, atoms)
 		out << "oldMAtom(m" << &tupleAndSolution << ",v" << v << ")." << std::endl;
-	foreach(sharp::Vertex v, rules)
-		out << "oldMRule(m" << &tupleAndSolution << ",v" << v << ")." << std::endl;
+	foreach(sharp::Vertex v, clauses)
+		out << "oldMClause(m" << &tupleAndSolution << ",v" << v << ")." << std::endl;
 }
 
 bool Tuple::isValid(const sharp::Problem& problem, const sharp::ExtendedHypertree& root) const
 {
 	// FIXME: This does not have to be done for each tuple but only once
-	unsigned int numRulesInRoot = 0;
+	unsigned int numClausesInRoot = 0;
 	foreach(sharp::Vertex v, root.getVertices())
-		if(dynamic_cast<const Problem&>(problem).vertexIsRule(v))
-			++numRulesInRoot;
+		if(dynamic_cast<const Problem&>(problem).vertexIsClause(v))
+			++numClausesInRoot;
 
-	// Suppose if the size is the same, the rules are the same
-	return rules.size() == numRulesInRoot;
+	// Suppose if the size is the same, the clauses are the same
+	return clauses.size() == numClausesInRoot;
 }
 
 #ifdef VERBOSE
@@ -60,7 +60,7 @@ void Tuple::print(std::ostream& str, ::Problem& problem) const
 	str << "Tuple: ";
 	foreach(sharp::Vertex v, atoms)
 		str << problem.getVertexName(v) << '[' << v << "] ";
-	foreach(sharp::Vertex v, rules)
+	foreach(sharp::Vertex v, clauses)
 		str << v << ' ';
 	str << std::endl;
 }

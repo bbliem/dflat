@@ -1,4 +1,5 @@
 #include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
 #include <boost/fusion/include/std_pair.hpp>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
@@ -16,62 +17,40 @@ using std::pair;
 using sharp::Vertex;
 
 namespace {
-	typedef Problem::Identifier Identifier;
-	typedef Problem::Atom Atom;
-	typedef Problem::Literal Literal;
-	typedef Problem::Head Head;
-	typedef Problem::Body Body;
-	typedef Problem::Rule Rule;
-	typedef Problem::Program Program;
-
-	// Skipper for comments and whitespace
-	template <typename Iterator>
-	struct SkipperGrammar : qi::grammar<Iterator>
+	void insertPos(Problem::Instance& instance, const std::string& clause, const std::string& atom)
 	{
-		SkipperGrammar() : SkipperGrammar::base_type(start)
-		{
-			start = qi::space | ('%' >> *(qi::char_ - qi::eol));
-		}
-		qi::rule<Iterator> start;
-	};
+		instance[clause].first.insert(atom);
+	}
+	void insertNeg(Problem::Instance& instance, const std::string& clause, const std::string& atom)
+	{
+		instance[clause].second.insert(atom);
+	}
 
 	template <typename Iterator>
-	struct LogicProgramGrammar : qi::grammar<Iterator, SkipperGrammar<Iterator>, Program()>
+	struct InstanceGrammar : qi::grammar<Iterator, Problem::Instance()>
 	{
-		typedef SkipperGrammar<Iterator> Skipper;
-
-		LogicProgramGrammar(Skipper& skipper) : LogicProgramGrammar::base_type(program)
+		InstanceGrammar() : InstanceGrammar::base_type(start)
 		{
 			identifier = qi::char_("a-z") >> *qi::char_("A-Za-z0-9_");
 
-			atom =
-				identifier
-				>> -(
-						qi::char_('(')
-						>> identifier >> *(qi::char_(',') >> identifier)
-						>> qi::char_(')')
-					)
-				;
+			pos = "pos" >> qi::lit('(') >> identifier >> ',' >> identifier >> ')' >> '.';
+			neg = "neg" >> qi::lit('(') >> identifier >> ',' >> identifier >> ')' >> '.';
 
-			// Use qi::lexeme to switch off skipping one space after "not".
-			// If there are any subsequent spaces, these are skipped when parsing the atom.
-			literal = qi::matches[qi::lexeme["not" >> skipper]] >> atom;
-
-			head = atom % '|';
-
-			body = literal % ',';
-
-			program = *(
-					(head || (":-" >> body)) >> '.'
+			using qi::_1;
+			using qi::_val;
+			using boost::phoenix::at_c;
+			using boost::phoenix::push_back;
+			start = *(
+					pos [boost::phoenix::bind(insertPos, _val, at_c<0>(_1), at_c<1>(_1))]
+					|
+					neg [boost::phoenix::bind(insertNeg, _val, at_c<0>(_1), at_c<1>(_1))]
 					);
 		}
 
-		qi::rule<Iterator, Identifier()> identifier; // ground term or predicate name
-		qi::rule<Iterator, Skipper, Atom()> atom;
-		qi::rule<Iterator, Skipper, Literal()> literal;
-		qi::rule<Iterator, Skipper, Head()> head;
-		qi::rule<Iterator, Skipper, Body()> body;
-		qi::rule<Iterator, Skipper, Program()> program;
+		qi::rule<Iterator, std::string()> identifier;
+		qi::rule<Iterator, std::pair<std::string,std::string>()> pos;
+		qi::rule<Iterator, std::pair<std::string,std::string>()> neg;
+		qi::rule<Iterator, Problem::Instance()> start;
 	};
 }
 
@@ -79,23 +58,21 @@ namespace {
 
 
 Problem::Problem(std::istream& input)
-	: input(input), lastRule(0), atomsInRules(0)
+	: input(input), lastClause(0), atomsInClauses(0)
 {
 }
 
 Problem::~Problem()
 {
-	delete[] atomsInRules;
+	delete[] atomsInClauses;
 }
 
 void Problem::declareVertex(std::ostream& out, Vertex v) const
 {
-	if(vertexIsRule(v)) {
-		out << "rule(v" << v << ")." << std::endl;
+	if(vertexIsClause(v)) {
+		out << "clause(v" << v << ")." << std::endl;
 
-		const Problem::VerticesInRule& atoms = getAtomsInRule(v);
-		foreach(Vertex v2, atoms.head)
-			out << "head(v" << v << ",v" << v2 << ")." << std::endl;
+		const Problem::VerticesInClause& atoms = getAtomsInClause(v);
 		foreach(Vertex v2, atoms.pos)
 			out << "pos(v" << v << ",v" << v2 << ")." << std::endl;
 		foreach(Vertex v2, atoms.neg)
@@ -107,47 +84,30 @@ void Problem::declareVertex(std::ostream& out, Vertex v) const
 
 void Problem::parse()
 {
-	SkipperGrammar<boost::spirit::istream_iterator> skipper;
-	LogicProgramGrammar<boost::spirit::istream_iterator> logicProgramParser(skipper);
+	InstanceGrammar<boost::spirit::istream_iterator> instanceParser;
 
-	input.unsetf(std::ios::skipws);
 	boost::spirit::istream_iterator it(input);
 	boost::spirit::istream_iterator end;
 
 	bool result = qi::phrase_parse(
 			it,
 			end,
-			logicProgramParser,
-			skipper,
-			program
+			instanceParser,
+			boost::spirit::qi::ascii::space,
+			instance
 			);
 
 	if(!result || it != end)
 		throw std::runtime_error("Parse error");
 
-	/*
-	// Print parsed problem for debugging purposes
-	std::cout << "done:" << std::endl;
-
-	for(Program::iterator r = program.begin(); r != program.end(); ++r) {
-		for(Head::iterator it = r->first.begin(); it != r->first.end(); ++it) {
-			if(it != r->first.begin())
-				std::cout << " | ";
-			std::cout << *it;
-		}
-		std::cout << " :- ";
-		for(Body::iterator it = r->second.begin(); it != r->second.end(); ++it) {
-			if(it != r->second.begin())
-				std::cout << ", ";
-			bool negative = it->first;
-			string atom = it->second;
-			if(negative)
-				std::cout << "not ";
-			std::cout << atom;
-		}
-		std::cout << '.' << std::endl;
+	foreach(const Instance::value_type& kv, instance) {
+		std::cout << kv.first << ": ";
+		foreach(const std::string& a, kv.second.first)
+			std::cout << a << " ";
+		foreach(const std::string& a, kv.second.second)
+			std::cout << '-' << a << " ";
+		std::cout << std::endl;
 	}
-	*/
 }
 
 void Problem::preprocess()
@@ -156,45 +116,39 @@ void Problem::preprocess()
 
 sharp::Hypergraph* Problem::buildHypergraphRepresentation()
 {
-	assert(atomsInRules == 0 && lastRule == 0);
-	atomsInRules = new VerticesInRule[program.size()];
-	lastRule = program.size();
+	assert(atomsInClauses == 0 && lastClause == 0);
+	atomsInClauses = new VerticesInClause[instance.size()];
+	lastClause = instance.size();
 
-	sharp::VertexSet ruleVertices;
+	sharp::VertexSet clauseVertices;
 	sharp::VertexSet atomVertices;
 	sharp::EdgeSet edges;
 
 	// XXX: Probably this is the wrong location for storing vertex names. Ideally we would do this during parsing
-	for(Program::iterator r = program.begin(); r != program.end(); ++r) {
-		sharp::Vertex vRule = createAuxiliaryVertex();
-		assert(vRule == r - program.begin() + 1); // Suppose that the first vertex is 1
-		ruleVertices.insert(vRule);
-	}
+	for(Instance::const_iterator it = instance.begin(); it != instance.end(); ++it)
+		clauseVertices.insert(createAuxiliaryVertex());
 
-	sharp::Vertex vRule = 0;
-	foreach(const Rule& rule, program) {
-		VerticesInRule& verticesInThisRule = atomsInRules[vRule++];
+	sharp::Vertex vClause = 0;
+	foreach(const Instance::value_type& clause, instance) {
+		VerticesInClause& verticesInThisClause = atomsInClauses[vClause++];
 
-		foreach(const Atom& a, rule.first) {
-			sharp::Vertex v = storeVertexName(a);
+		// Positive atoms
+		foreach(const std::string& atom, clause.second.first) {
+			sharp::Vertex v = storeVertexName(atom);
 			atomVertices.insert(v);
-			edges.insert(std::make_pair(vRule, v));
-
-			verticesInThisRule.head.insert(v);
+			edges.insert(std::make_pair(vClause, v));
+			verticesInThisClause.pos.insert(v);
 		}
-		foreach(const Literal& l, rule.second) {
-			sharp::Vertex v = storeVertexName(l.second);
+		// Negative atoms
+		foreach(const std::string& atom, clause.second.second) {
+			sharp::Vertex v = storeVertexName(atom);
 			atomVertices.insert(v);
-			edges.insert(std::make_pair(vRule, v));
-
-			if(l.first == true)
-				verticesInThisRule.neg.insert(v);
-			else
-				verticesInThisRule.pos.insert(v);
+			edges.insert(std::make_pair(vClause, v));
+			verticesInThisClause.neg.insert(v);
 		}
 	}
 
-	return createGraphFromDisjointSets(ruleVertices, atomVertices, edges);
+	return createGraphFromDisjointSets(clauseVertices, atomVertices, edges);
 }
 
 } // namespace sat

@@ -34,7 +34,7 @@ private:
 	typedef std::pair<long, Clasp::Literal> LongAndLiteral;
 	typedef std::vector<LongAndLiteral> LongAndLiteralVec;
 	LongAndLiteralVec mAtom;
-	LongAndLiteralVec mRule;
+	LongAndLiteralVec mClause;
 	LongAndLiteralVec chosenChildTuple;
 };
 

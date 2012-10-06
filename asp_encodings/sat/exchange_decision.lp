@@ -1,23 +1,22 @@
 oldM(M,A) :- oldMAtom(M,A).
-oldM(M,R) :- oldMRule(M,R).
+oldM(M,C) :- oldMClause(M,C).
 
 %removed(X) :- before(X), not current(X).
 before(X) :- removed(X).
 before(X) :- current(X), not introduced(X).
 
 guessable(A) :- current(A), atom(A).
-guessable(R) :- current(R), before(R), rule(R).
+guessable(C) :- current(C), before(C), clause(C).
 0 {guess(X)} 1 :- guessable(X).
 
-% Add enforced rules made true by the guess
-mRule(R) :- head(R,A), current(R), guess(A).
-mRule(R) :- neg(R,A), current(R), guess(A).
-mRule(R) :- pos(R,A), current(R), guessable(A), not guess(A).
+% Add enforced clauses made true by the guess
+mClause(C) :- pos(C,A), current(C), guess(A).
+mClause(C) :- neg(C,A), current(C), guessable(A), not guess(A).
 
 mAtom(A) :- guess(A), atom(A).
-mRule(R) :- guess(R), rule(R).
+mClause(C) :- guess(C), clause(C).
 
-noMatch(M) :- childTuple(M), removed(R), rule(R), not oldMRule(M,R). % Killed tuples do not match
+noMatch(M) :- childTuple(M), removed(C), clause(C), not oldMClause(M,C). % Killed tuples do not match
 noMatch(M) :- before(X), guess(X), childTuple(M), not oldM(M,X). % What was guessed to true cannot have been false before
 noMatch(M) :- guessable(X), not guess(X), childTuple(M), oldM(M,X). % What guessed to false cannot have been true before
 
@@ -61,6 +60,6 @@ match :- childTuple(M), not noMatch(M).
 
 #hide.
 #show mAtom/1.
-#show mRule/1.
+#show mClause/1.
 %#show matchUpTo/1.
 %#show sup/1.

@@ -8,9 +8,9 @@ sat=build/release/sat
 minNumClauses=30
 maxNumClauses=60
 stepNumClauses=2
-minNumVars=20
-maxNumVars=80
-stepNumVars=4
+minNumVars=8
+maxNumVars=16
+stepNumVars=1
 
 numInstances=4
 
@@ -32,7 +32,7 @@ for numClauses in $(seq $minNumClauses $stepNumClauses $maxNumClauses); do
 			$satgen $numClauses $numVars lp $seed > $instance
 
 			width=$($sat -s $seed --only-decompose --stats < $instance | awk '/Width:/ {print $2}' | head -n1)
-			directory=instances/width${width}
+			directory=instances/sat/width${width}
 
 			# does an instance for this width/size already exist?
 			if [ -e ${directory}/${numClauses}_${numVars}_*.lp ]; then

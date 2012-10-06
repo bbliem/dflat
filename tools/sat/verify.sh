@@ -5,10 +5,9 @@ numInstances=100
 numClauses=12
 numVars=8
 
-satgen=./satgen.py
-#minisat=/home/bernhard/Informatik/MiniSat_v1.14_linux
+satgen=tools/sat/instance_generator.py
 clasp=../clasp-2.0.2-st-x86-linux
-sat=./build/release/sat
+sat=build/release/sat
 
 for instance in $(seq 1 $numInstances); do
 	seed=$RANDOM
@@ -17,22 +16,18 @@ for instance in $(seq 1 $numInstances); do
 	dimacsInstance=$(mktemp)
 	trap "rm -f $lpInstance $dimacsInstance" EXIT
 
-	$satgen $numClauses $numVars dimacs $seed > $dimacsInstance 2>/dev/null || exit
-#	$minisat < $dimacsInstance &>/dev/null
-#	miniSatExitCode=$?
+	$satgen $numClauses $numVars $seed --dimacs > $dimacsInstance 2>/dev/null || exit
 	claspNum=$($clasp -q 0 -f $dimacsInstance | awk '/Models/ { print $4 }')
 
-	$satgen $numClauses $numVars lp $seed > $lpInstance 2>/dev/null || exit
-#	$sat -p decision -s $seed $@ < $lpInstance &>/dev/null
-#	satExitCode=$?
-	satNum=$($sat -p counting -s $seed $@ < $lpInstance | awk '/^Solutions/ { print $2 }')
+	$satgen $numClauses $numVars $seed > $lpInstance 2>/dev/null || exit
+	satNum=$($sat -p counting -s $seed $@ < $lpInstance | tail -n1 | awk '{ print $2 }')
 
-#	if [[ ($miniSatExitCode -eq 10 && $satExitCode -ne 0) || ($miniSatExitCode -eq 20 && $satExitCode -ne 23) ]]; then
 	if [ $satNum -ne $claspNum ]; then
 		cp $dimacsInstance mismatch${seed}.dimacs
 		cp $lpInstance mismatch${seed}.lp
 		echo
 		echo "Mismatch for seed $seed (sat: ${satNum}, clasp: ${claspNum})"
+		exit 1
 	else
 		echo -n .
 	fi

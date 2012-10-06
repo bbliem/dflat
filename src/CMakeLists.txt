@@ -21,7 +21,7 @@ set_target_properties(clasp PROPERTIES IMPORTED_LOCATION ${clasp_lib})
 find_library(gmpxx gmpxx)
 find_package(Boost COMPONENTS system filesystem timer REQUIRED)
 
-add_executable(sat Algorithm.cpp ClaspAlgorithm.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp sat/Problem.cpp sat/ClaspAlgorithm.cpp sat/CppAlgorithm.cpp sat/CppAlgorithmNormalized.cpp sat/ClaspCallback.cpp sat/GringoOutputProcessor.cpp sat/Tuple.cpp sat/main.cpp)
+add_executable(sat Algorithm.cpp ClaspAlgorithm.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp sat/Problem.cpp sat/ClaspAlgorithm.cpp sat/ClaspCallback.cpp sat/GringoOutputProcessor.cpp sat/Tuple.cpp sat/main.cpp)
 target_link_libraries(sat libsharp.a gringo clasp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})
 
 add_executable(3col Algorithm.cpp ClaspAlgorithm.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp 3col/Problem.cpp 3col/ClaspAlgorithm.cpp 3col/ClaspCallback.cpp 3col/GringoOutputProcessor.cpp 3col/Tuple.cpp 3col/main.cpp)

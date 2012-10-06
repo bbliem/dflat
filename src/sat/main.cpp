@@ -6,8 +6,6 @@
 
 #include "Problem.h"
 #include "ClaspAlgorithm.h"
-#include "CppAlgorithm.h"
-#include "CppAlgorithmNormalized.h"
 
 namespace {
 	const int CONSISTENT = 10;

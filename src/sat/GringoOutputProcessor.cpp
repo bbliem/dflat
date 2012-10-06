@@ -15,8 +15,8 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 
 	if(name == "mAtom") // FIXME: I'm dirty
 		mAtom.push_back(LongAndSymbolTableKey(std::strtol(arg.str().c_str()+1, 0, 0), atom.first)); // +1 because of the leading "m" of the argument
-	else if(name == "mRule")
-		mRule.push_back(LongAndSymbolTableKey(std::strtol(arg.str().c_str()+1, 0, 0), atom.first));
+	else if(name == "mClause")
+		mClause.push_back(LongAndSymbolTableKey(std::strtol(arg.str().c_str()+1, 0, 0), atom.first));
 	else if(name == "chosenChildTuple")
 		chosenChildTuple.push_back(LongAndSymbolTableKey(std::strtol(arg.str().c_str()+1, 0, 0), atom.first));
 }

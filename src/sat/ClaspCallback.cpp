@@ -25,8 +25,8 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 
 	foreach(const GringoOutputProcessor::LongAndSymbolTableKey& it, gringoOutput.getMAtom())
 		mAtom.push_back(LongAndLiteral(it.first, symTab[it.second].lit));
-	foreach(const GringoOutputProcessor::LongAndSymbolTableKey& it, gringoOutput.getMRule())
-		mRule.push_back(LongAndLiteral(it.first, symTab[it.second].lit));
+	foreach(const GringoOutputProcessor::LongAndSymbolTableKey& it, gringoOutput.getMClause())
+		mClause.push_back(LongAndLiteral(it.first, symTab[it.second].lit));
 	foreach(const GringoOutputProcessor::LongAndSymbolTableKey& it, gringoOutput.getChosenChildTuple())
 		chosenChildTuple.push_back(LongAndLiteral(it.first, symTab[it.second].lit));
 }
@@ -52,9 +52,9 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	foreach(LongAndLiteral& it, mAtom)
 		if(s.isTrue(it.second))
 			newTuple.atoms.insert(it.first);
-	foreach(LongAndLiteral& it, mRule)
+	foreach(LongAndLiteral& it, mClause)
 		if(s.isTrue(it.second))
-			newTuple.rules.insert(it.first);
+			newTuple.clauses.insert(it.first);
 	foreach(LongAndLiteral& it, chosenChildTuple) {
 		if(s.isTrue(it.second)) {
 			assert(!oldTupleAndSolution);

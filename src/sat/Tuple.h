@@ -23,7 +23,7 @@ struct Tuple : public ::Tuple
 
 	typedef std::set<sharp::Vertex> VertexSet;
 	VertexSet atoms; // Atoms of the current bag that are true
-	VertexSet rules; // Rules of the current bag that are true
+	VertexSet clauses; // Clauses of the current bag that are true
 };
 
 } // namespace sat

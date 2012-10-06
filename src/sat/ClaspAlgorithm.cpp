@@ -49,38 +49,38 @@ void ClaspAlgorithm::printProgressLine(const sharp::ExtendedHypertree* node, siz
 	}
 	std::cout << std::setw(4) << std::right << (nodesProcessed+1) << ": ";
 
-	size_t numCurrentRules = 0;
+	size_t numCurrentClauses = 0;
 	size_t numCurrentAtoms = 0;
 	foreach(sharp::Vertex v, node->getVertices()) {
-		if(dynamic_cast<Problem&>(problem).vertexIsRule(v))
-			++numCurrentRules;
+		if(dynamic_cast<Problem&>(problem).vertexIsClause(v))
+			++numCurrentClauses;
 		else
 			++numCurrentAtoms;
 	}
-	size_t numRemovedRules = 0;
+	size_t numRemovedClauses = 0;
 	size_t numRemovedAtoms = 0;
 	foreach(sharp::Vertex v, node->getRemovedVertices()) {
-		if(dynamic_cast<Problem&>(problem).vertexIsRule(v))
-			++numRemovedRules;
+		if(dynamic_cast<Problem&>(problem).vertexIsClause(v))
+			++numRemovedClauses;
 		else
 			++numRemovedAtoms;
 	}
-	size_t numIntroducedRules = 0;
+	size_t numIntroducedClauses = 0;
 	size_t numIntroducedAtoms = 0;
 	foreach(sharp::Vertex v, node->getIntroducedVertices()) {
-		if(dynamic_cast<Problem&>(problem).vertexIsRule(v))
-			++numIntroducedRules;
+		if(dynamic_cast<Problem&>(problem).vertexIsClause(v))
+			++numIntroducedClauses;
 		else
 			++numIntroducedAtoms;
 	}
-	size_t numCommonRules = numCurrentRules - numIntroducedRules;
+	size_t numCommonClauses = numCurrentClauses - numIntroducedClauses;
 
-	std::cout << std::setw(2) << numCurrentAtoms << " A " << std::setw(2) << numCurrentRules << " R -> " << std::setw(2) << node->getVertices().size();
+	std::cout << std::setw(2) << numCurrentAtoms << " A " << std::setw(2) << numCurrentClauses << " R -> " << std::setw(2) << node->getVertices().size();
 
-	std::cout << ";  Int " << std::setw(2) << numIntroducedAtoms << " A " << std::setw(2) << numIntroducedRules << " R";
-	std::cout << ";  Rem " << std::setw(2) << numRemovedAtoms << " A " << std::setw(2) << numRemovedRules << " R";
+	std::cout << ";  Int " << std::setw(2) << numIntroducedAtoms << " A " << std::setw(2) << numIntroducedClauses << " R";
+	std::cout << ";  Rem " << std::setw(2) << numRemovedAtoms << " A " << std::setw(2) << numRemovedClauses << " R";
 
-	std::cout << ";  Com " << std::setw(2) << numCommonRules << " R";
+	std::cout << ";  Com " << std::setw(2) << numCommonClauses << " R";
 	
 	std::cout << ";  Child tuples " << std::setw(7) << numChildTuples;
 #ifndef WITH_NODE_TIMER
@@ -96,8 +96,8 @@ void ClaspAlgorithm::printBagContents(const sharp::VertexSet& vertices) const
 {
 	std::cout << "Bag contents:" << std::endl;
 	foreach(sharp::Vertex v, vertices) {
-		if(dynamic_cast<Problem&>(problem).vertexIsRule(v))
-			std::cout << "rule " << v << std::endl;
+		if(dynamic_cast<Problem&>(problem).vertexIsClause(v))
+			std::cout << "clause " << v << std::endl;
 		else
 			std::cout << "atom " << problem.getVertexName(v) << '[' << v << "]" << std::endl;
 	}

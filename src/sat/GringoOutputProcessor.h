@@ -12,12 +12,12 @@ public:
 	typedef std::pair<long, Clasp::SymbolTable::key_type> LongAndSymbolTableKey;
 	typedef std::vector<LongAndSymbolTableKey> LongAndSymbolTableKeyVec;
 	const LongAndSymbolTableKeyVec& getMAtom() const { return mAtom; }
-	const LongAndSymbolTableKeyVec& getMRule() const { return mRule; }
+	const LongAndSymbolTableKeyVec& getMClause() const { return mClause; }
 	const LongAndSymbolTableKeyVec& getChosenChildTuple() const { return chosenChildTuple; }
 
 private:
 	LongAndSymbolTableKeyVec mAtom; // Holds pairs of "arg" and the key in the symbol table which is mapped to the clasp variable corresponding to "mAtom(arg)" (different keys may be mapped to the same variables due to clasp internals)
-	LongAndSymbolTableKeyVec mRule;
+	LongAndSymbolTableKeyVec mClause;
 	LongAndSymbolTableKeyVec chosenChildTuple;
 };
 

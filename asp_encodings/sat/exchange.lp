@@ -1,40 +1,24 @@
-%introduced(X) :- current(X), not before(X).
-%removed(X) :- before(X), not current(X).
-before(X) :- removed(X).
-before(X) :- current(X), not introduced(X).
-
 % Which tuple to use?
 nonLeaf :- childTuple(X).
 1 {chosenChildTuple(I) : childTuple(I)} 1 :- nonLeaf.
 
-% Only atoms and rules that are not removed persist
+% Only atoms and clauses that are not removed persist
 mAtom(X) :- chosenChildTuple(M), oldMAtom(M,X), not removed(X).
-mRule(X) :- chosenChildTuple(M), oldMRule(M,X), not removed(X).
+mClause(X) :- chosenChildTuple(M), oldMClause(M,X), not removed(X).
 
-%%%%%%%%%%%%%%%%%%%%%
-% Atom introduction %
-%%%%%%%%%%%%%%%%%%%%%
 1 {true(A), false(A)} 1 :- atom(A), introduced(A).
 mAtom(A) :- true(A).
-mRule(R) :- head(R,A), current(R), true(A).
-mRule(R) :- neg(R,A), current(R), true(A).
-mRule(R) :- pos(R,A), current(R), false(A).
+mClause(C) :- pos(C,A), current(C), true(A).
+mClause(C) :- neg(C,A), current(C), false(A).
 
-%%%%%%%%%%%%%%%%%%%%%
-% Rule introduction %
-%%%%%%%%%%%%%%%%%%%%%
-mRule(R) :- introduced(R), head(R,A), mAtom(A).
-mRule(R) :- introduced(R), neg(R,A), mAtom(A).
-mRule(R) :- introduced(R), pos(R,A), current(A), not mAtom(A).
+mClause(C) :- introduced(C), pos(C,A), mAtom(A).
+mClause(C) :- introduced(C), neg(C,A), current(A), not mAtom(A).
 
-%%%%%%%%%%%%%%%%
-% Rule removal %
-%%%%%%%%%%%%%%%%
-:- rule(R), removed(R), chosenChildTuple(M), not oldMRule(M,R).
+:- clause(C), removed(C), chosenChildTuple(M), not oldMClause(M,C).
 
 
 
 #hide.
 #show mAtom/1.
-#show mRule/1.
+#show mClause/1.
 #show chosenChildTuple/1.

@@ -7,16 +7,9 @@ namespace sat {
 class Problem : public ::Problem
 {
 public:
-	typedef std::string Identifier;
-	typedef std::string Atom;
-	typedef std::pair<bool,Atom> Literal; // first is true iff negative
-	typedef std::vector<Atom> Head;
-	typedef std::vector<Literal> Body;
-	typedef std::pair<Head,Body> Rule;
-	typedef std::vector<Rule> Program;
+	typedef std::map<std::string, std::pair<std::set<std::string>,std::set<std::string> > > Instance; // Maps clauses to positive and negative atoms
 
-	struct VerticesInRule {
-		sharp::VertexSet head;
+	struct VerticesInClause {
 		sharp::VertexSet pos;
 		sharp::VertexSet neg;
 	};
@@ -24,13 +17,13 @@ public:
 	Problem(std::istream& input);
 	virtual ~Problem();
 
-	//! Returns the TD-vertices corresponding to atoms in the given rule represented by ruleVertex. If ruleVertex is invalid, you are fscked.
-	const VerticesInRule& getAtomsInRule(sharp::Vertex ruleVertex) const {
-		return atomsInRules[ruleVertex-1];
+	//! Returns the TD-vertices corresponding to atoms in the given clause represented by clauseVertex. If clauseVertex is invalid, you are fscked.
+	const VerticesInClause& getAtomsInClause(sharp::Vertex clauseVertex) const {
+		return atomsInClauses[clauseVertex-1];
 	}
 
-	bool vertexIsRule(sharp::Vertex v) const {
-		return v <= lastRule;
+	bool vertexIsClause(sharp::Vertex v) const {
+		return v <= lastClause;
 	}
 
 	virtual void declareVertex(std::ostream& out, sharp::Vertex v) const;
@@ -42,12 +35,12 @@ protected:
 
 private:
 	std::istream& input;
-	Program program;
+	Instance instance;
 
-	sharp::Vertex lastRule; // Vertices from 1 to this number correspond to rules, afterwards to atoms
+	sharp::Vertex lastClause; // Vertices from 1 to this number correspond to clauses, afterwards to atoms
 
-	// For each rule R, stores (H,P,N) where H are the vertices representing atoms which occur in the head of R, etc.
-	VerticesInRule* atomsInRules;
+	// For each clause C, stores (P,N) where P are the vertices representing atoms which occur positively in C, etc.
+	VerticesInClause* atomsInClauses;
 };
 
 } // namespace sat

@@ -3,41 +3,35 @@
 import random
 import sys
 
-if len(sys.argv) not in (4, 5):
-	sys.stderr.write("Usage: " + sys.argv[0] + " numClauses numVars 'lp'|'dimacs' [seed]\n")
+dimacs = len(sys.argv) == 5
+
+if len(sys.argv) not in (3, 4, 5) or (dimacs and sys.argv[4] != "--dimacs"):
+	sys.stderr.write("Usage: " + sys.argv[0] + " numClauses numVars [seed] [--dimacs]\n")
 	sys.exit(1)
 
 numClauses = int(sys.argv[1])
 numVars = int(sys.argv[2])
-outFormat = sys.argv[3]
 
-if len(sys.argv) == 5:
-	random.seed(int(sys.argv[4]))
+if len(sys.argv) >= 4:
+	random.seed(int(sys.argv[3]))
 
-if outFormat == "dimacs":
+if dimacs:
 	print("p cnf {} {}".format(numVars, numClauses))
-	for i in range(numClauses):
-		atoms = random.sample(range(numVars), random.randint(1,numVars))
 
-		for j in atoms:
-			if random.random() >= 0.5:
+for i in range(numClauses):
+	atoms = random.sample(range(numVars), random.randint(1,numVars))
+	negative = random.random() < 0.5
+
+	for j in atoms:
+		if dimacs:
+			if negative:
 				sys.stdout.write("-")
 			sys.stdout.write('{} '.format(j+1))
+		else:
+			if negative:
+				pred = "neg"
+			else:
+				pred = "pos"
+			print('{}(c{},a{}).'.format(pred,i,j))
+	if dimacs:
 		print("0")
-elif outFormat == "lp":
-	for i in range(numClauses):
-		sys.stdout.write(":-")
-
-		atoms = random.sample(range(numVars), random.randint(1,numVars))
-
-		sep = " "
-		for j in atoms:
-			sys.stdout.write(sep)
-			if random.random() < 0.5:
-				sys.stdout.write("not ")
-			sys.stdout.write('v{}'.format(j+1))
-			sep = ", "
-		print(".")
-else:
-	sys.stderr.write("Invalid output format\n")
-	sys.exit(2)
