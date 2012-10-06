@@ -1,8 +1,10 @@
 #!/bin/bash
 
 numInstances=100
-numNodes=10
-numEdges=20
+#numNodes=10
+#numEdges=20
+numNodes=6
+numEdges=12
 
 instanceGen=tools/3col/instance_generator.py
 gringo=../gringo

@@ -1,8 +1,9 @@
-node(X) :- edge(X,Y).
-node(Y) :- edge(X,Y).
+color(red;green;blue).
+node(X) :- edge(X,_).
+node(X) :- edge(_,X).
 
-1 { r(X), g(X), b(X) } 1 :- node(X).
+1 { map(X,C) : color(C) } 1 :- node(X).
+:- edge(X,Y), map(X,C), map(Y,C).
 
-:- edge(X,Y), r(X), r(Y).
-:- edge(X,Y), g(X), g(Y).
-:- edge(X,Y), b(X), b(Y).
+#hide.
+#show map/2.

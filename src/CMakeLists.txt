@@ -31,5 +31,5 @@ find_package(Boost COMPONENTS system filesystem timer REQUIRED)
 #add_executable(cyclic_ordering Algorithm.cpp ClaspAlgorithm.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp cyclic_ordering/Problem.cpp cyclic_ordering/ClaspAlgorithm.cpp cyclic_ordering/ClaspCallback.cpp cyclic_ordering/GringoOutputProcessor.cpp cyclic_ordering/Tuple.cpp cyclic_ordering/main.cpp)
 #target_link_libraries(cyclic_ordering libsharp.a gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})
 
-add_executable(asdp Algorithm.cpp ClaspAlgorithm.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp asdp/Problem.cpp asdp/GringoOutputProcessor.cpp asdp/ClaspCallback.cpp asdp/ClaspAlgorithm.cpp asdp/Tuple.cpp asdp/main.cpp)
+add_executable(asdp Algorithm.cpp ClaspAlgorithm.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp asdp/Problem.cpp asdp/GringoOutputProcessor.cpp asdp/ClaspCallback.cpp asdp/ClaspCallbackNP.cpp asdp/ClaspAlgorithm.cpp asdp/Tuple.cpp asdp/TupleNP.cpp asdp/main.cpp)
 target_link_libraries(asdp libsharp.a gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})

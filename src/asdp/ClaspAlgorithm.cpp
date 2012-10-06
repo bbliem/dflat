@@ -2,9 +2,7 @@
 #include "Problem.h"
 #include "GringoOutputProcessor.h"
 #include "ClaspCallback.h"
-#if PROGRESS_REPORT > 1
-#include <iomanip>
-#endif
+#include "ClaspCallbackNP.h"
 
 namespace asdp {
 
@@ -16,7 +14,10 @@ ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram
 
 std::auto_ptr<Clasp::ClaspFacade::Callback> ClaspAlgorithm::newClaspCallback(sharp::TupleSet& newTuples, const ::GringoOutputProcessor& gringoOutput, const sharp::VertexSet&) const
 {
-	return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallback(*this, newTuples, dynamic_cast<const GringoOutputProcessor&>(gringoOutput), level));
+	if(level == 0)
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTuples, dynamic_cast<const GringoOutputProcessor&>(gringoOutput)));
+	else
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallback(*this, newTuples, dynamic_cast<const GringoOutputProcessor&>(gringoOutput), level));
 }
 
 std::auto_ptr< ::GringoOutputProcessor> ClaspAlgorithm::newGringoOutputProcessor() const

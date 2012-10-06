@@ -8,7 +8,8 @@ class Problem;
 
 class ClaspAlgorithm : public ::ClaspAlgorithm
 {
-	friend class ClaspCallback; // FIXME: See note in ClaspCallback.cpp
+	friend class ClaspCallback; // FIXME: See ClaspCallback.cpp
+	friend class ClaspCallbackNP; // FIXME: See ClaspCallbackNP.cpp
 public:
 	ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram, const std::string& instanceFacts, sharp::NormalizationType normalizationType = sharp::SemiNormalization, unsigned int level = 0);
 

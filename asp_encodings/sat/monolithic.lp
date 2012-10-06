@@ -1,7 +1,7 @@
-clause(C) :- pos(C,A).
-clause(C) :- neg(C,A).
-atom(A) :- pos(C,A).
-atom(A) :- neg(C,A).
+clause(C) :- pos(C,_).
+clause(C) :- neg(C,_).
+atom(A) :- pos(_,A).
+atom(A) :- neg(_,A).
 
 1 { true(A), false(A) } 1 :- atom(A).
 
