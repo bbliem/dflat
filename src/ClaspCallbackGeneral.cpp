@@ -110,7 +110,7 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 
 #ifdef PRINT_MODELS
 	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
-	std::cout << "Model " << f.config()->ctx.enumerator()->enumerated << ": ";
+	std::cout << "Model " << f.config()->ctx.enumerator()->enumerated-1 << ": ";
 	for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
 		if(s.isTrue(it->second.lit) && !it->second.name.empty())
 			std::cout << it->second.name.c_str() << ' ';

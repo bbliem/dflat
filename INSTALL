@@ -1,14 +1,14 @@
 COMPILING
 
 To compile D-FLAT, the following dependencies are required:
-- CMake (http://cmake.org/), version 2.8.8 or later
-- Boost (http://boost.org/), version 1.49.0 or later
+- CMake (http://cmake.org/), version 2.8.9 or later
+- Boost (http://boost.org/), version 1.50.0 or later
 - Gringo (http://potassco.sourceforge.net/), version 3.0.4 or later -- in particular libgringo
 - Clasp (http://potassco.sourceforge.net/), version 2.0.5 or later -- in particular libclasp
-- GMP (http://gmplib.org/), version 5.0.4 or later -- make sure to also compile the C++ interface
+- GMP (http://gmplib.org/), version 5.0.5 or later -- make sure to also compile the C++ interface
 - SHARP (http://www.dbai.tuwien.ac.at/research/project/sharp/) with D-FLAT-specific modifications, for now provided only on the D-FLAT website, http://dbai.tuwien.ac.at/research/project/dynasp/dflat/
 
-Compilation was tested with the stated version numbers and GCC 4.7.0. Unless the developers of the dependencies introduce incompatible changes, later versions should work too. If you run into any problems with later releases, try compiling D-FLAT with the version specified above.
+Compilation was tested with the stated version numbers and GCC 4.7.1. Unless the developers of the dependencies introduce incompatible changes, later versions should work too. If you run into any problems with later releases, try compiling D-FLAT with the version specified above.
 
 You need to adjust the paths in D-FLAT's Makefile. In particular, the variables gringo_dir, clasp_dir and sharp_dir.
 

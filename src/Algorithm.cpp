@@ -195,7 +195,7 @@ std::auto_ptr<GringoOutputProcessor> Algorithm::newGringoOutputProcessor() const
 #ifdef PROGRESS_REPORT
 void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildRows) {
 	std::cout << '\r' << "Processing node ";
-	std::cout << std::setw(4) << std::left << (nodesProcessed+1) << " [";
+	std::cout << std::setw(4) << std::left << nodesProcessed << " [";
 	if(normalizationType == sharp::NoNormalization)
 		std::cout << node->getChildren()->size();
 	else {
