@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 #include <sharp/main>
@@ -10,12 +11,22 @@ namespace {
 	const int CONSISTENT = 0;
 	const int INCONSISTENT = 23;
 
-	void usage(const char* program) {
-		std::cerr << "Usage: " << program << " [-s seed] [-p problem_type]" << std::endl;
+	inline void usage(const char* program) {
+		std::cerr << "Usage: " << program << "[--only-decompose] [-p problem_type] [-s seed]" << std::endl;
+		std::cerr << "--only-decompose: Only perform decomposition and do not solve (useful with --stats)" << std::endl;
+		std::cerr << "-p problem_type: Either enumeration (default), counting or decision" << std::endl;
 		std::cerr << "-s seed: Initialize random number generator with <seed>" << std::endl;
-		std::cerr << "-t problem_type: Either enumeration (default), counting or decision" << std::endl;
+		std::cerr << "--stats: Print statistics" << std::endl;
 		std::cerr << "If \"problem_type\" is \"decision\", exit code " << CONSISTENT << " means consistent, " << INCONSISTENT << " means inconsistent" << std::endl;
 		exit(1);
+	}
+
+	inline void printDecompositionStats(sharp::ExtendedHypertree& d) {
+		const int w = 20;
+		std::cout << std::setw(w) << "Width: " << d.getTreeWidth() << std::endl;
+		std::cout << std::setw(w) << "Nodes: " << d.getNumberOfDescendants() << std::endl;
+		std::cout << std::setw(w) << "Join nodes: " << d.getNumberOfJoinNodes() << " (" << (100*d.getJoinNodePercentage()) << " %)" << std::endl;
+		std::cout << std::setw(w) << "Leafs: " << d.getNumberOfLeafNodes() << std::endl;
 	}
 }
 
@@ -23,6 +34,8 @@ int main(int argc, char** argv)
 {
 	Algorithm::ProblemType problemType = Algorithm::ENUMERATION;
 	time_t seed = time(0);
+	bool onlyDecompose = false;
+	bool stats = false;
 
 	for(int i = 1; i < argc; ++i) {
 		std::string arg = argv[i];
@@ -46,6 +59,10 @@ int main(int argc, char** argv)
 				usage(argv[0]);
 			}
 		}
+		else if(arg == "--only-decompose")
+			onlyDecompose = true;
+		else if(arg == "--stats")
+			stats = true;
 		else
 			usage(argv[0]);
 	}
@@ -55,7 +72,19 @@ int main(int argc, char** argv)
 	Problem problem(std::cin, true);
 	Algorithm algorithm(problem, problemType);
 
-	sharp::Solution* solution = problem.calculateSolution(&algorithm);
+	//sharp::Solution* solution = problem.calculateSolution(&algorithm);
+	sharp::ExtendedHypertree* decomposition = problem.calculateHypertreeDecomposition();
+
+	if(stats) {
+		std::cout << "Decomposition stats:" << std::endl;
+		printDecompositionStats(*decomposition);
+		std::cout << "Normalization stats:" << std::endl;
+		printDecompositionStats(*decomposition->normalize(sharp::SemiNormalization));
+	}
+	if(onlyDecompose)
+		return 0;
+
+	sharp::Solution* solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 
 	// Print solution
 	if(solution) {
