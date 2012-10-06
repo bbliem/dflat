@@ -19,7 +19,7 @@ void ModelProcessor::warning(const char* msg)
 
 void ModelProcessor::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 {
-	if(e != Clasp::ClaspFacade::event_state_exit || f.state() != Clasp::ClaspFacade::state_preprocess)
+	if(e != Clasp::ClaspFacade::event_state_enter || f.state() != Clasp::ClaspFacade::state_solve)
 		return;
 
 	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();

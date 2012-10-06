@@ -1,9 +1,11 @@
 gringo_dir=/home/bernhard/Informatik/gringo-3.0.3-source
 gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a
+gringo_lib_debug=$(gringo_dir)/build/debug/lib/libgringo.a
 gringo_lib_gprof=$(gringo_dir)/build/gprof/lib/libgringo.a
 
 clasp_dir=/home/bernhard/Informatik/clasp-2.0.3
 clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
+clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
 
 sharp_dir=$(PWD)/../sharp
@@ -27,8 +29,8 @@ debug:
 	cd build/debug && \
 	cmake ../.. \
 		-DCMAKE_BUILD_TYPE=debug \
-		-Dgringo_lib=$(gringo_lib) \
-		-Dclasp_lib=$(clasp_lib) \
+		-Dgringo_lib=$(gringo_lib_debug) \
+		-Dclasp_lib=$(clasp_lib_debug) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
 		-Dsharp_dir=$(sharp_dir) \

@@ -4,6 +4,7 @@ project(sat)
 add_definitions("-Wall -pedantic -ansi -DDISABLE_MULTI_THREADING")
 set(CMAKE_CXX_FLAGS_GPROF "-O3 -g -pg")
 set(CMAKE_LINKER_FLAGS_GPROF "-pg")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG") # Without -D_DEBUG there will be voodoo in libclasp's pod_vector.h, since then the size of our Clasp::PodVector is different than when we built clasp's debug release
 
 # Unfortunately libclasp does not compile with -pedantic.
 # Using -isystem instead of -I; then they are treated as system headers,
