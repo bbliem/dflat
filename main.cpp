@@ -7,10 +7,14 @@
 #include "Algorithm.h"
 
 namespace {
+	const int CONSISTENT = 0;
+	const int INCONSISTENT = 23;
+
 	void usage(const char* program) {
 		std::cerr << "Usage: " << program << " [-s seed] [-p problem_type]" << std::endl;
 		std::cerr << "-s seed: Initialize random number generator with <seed>" << std::endl;
 		std::cerr << "-t problem_type: Either enumeration (default), counting or decision" << std::endl;
+		std::cerr << "If \"problem_type\" is \"decision\", exit code " << CONSISTENT << " means consistent, " << INCONSISTENT << " means inconsistent" << std::endl;
 		exit(1);
 	}
 }
@@ -82,9 +86,12 @@ int main(int argc, char** argv)
 
 			case Algorithm::DECISION: {
 				sharp::ConsistencySolutionContent* content = dynamic_cast<sharp::ConsistencySolutionContent*>(solution->getContent(new sharp::GenericInstantiator<sharp::ConsistencySolutionContent>()));
-				if(content->consistent == false)
-					std::cout << "not ";
-				std::cout << "consistent" << std::endl;
+				if(content->consistent == false) {
+					std::cout << "INCONSISTENT";
+					return INCONSISTENT;
+				}
+				std::cout << "CONSISTENT" << std::endl;
+				return CONSISTENT;
 			} break;
 		}
 	}
