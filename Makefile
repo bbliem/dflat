@@ -13,7 +13,7 @@ clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
 
-sharp_dir=$(PWD)/../sharp
+sharp_dir=$(PWD)/sharp
 
 all: release
 
