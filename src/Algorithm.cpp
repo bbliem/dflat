@@ -123,6 +123,7 @@ Table* Algorithm::computeTable(const sharp::ExtendedHypertree& node, const std::
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
 	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor, childTables.size(), node.getVertices());
 	Clasp::ClaspConfig config;
+	config.master()->heuristic().name = "none";
 	config.enumerate.numModels = 0;
 	clasp.solve(inputReader, config, cb.get());
 

@@ -1,6 +1,6 @@
 # You probably need to adjust the *_dir variables before running "make"
 cxxflags_release="-DPROGRESS_REPORT -DDISABLE_ASSIGNMENT_CHECK"
-cxxflags_debug="-DPROGRESS_REPORT -DWITH_NODE_TIMER -DPRINT_COMPUTED_ROWS"
+cxxflags_debug="-DPROGRESS_REPORT -DWITH_NODE_TIMER -DPRINT_COMPUTED_ROWS -DPRINT_BAG_INPUT"
 cxxflags_gprof=$(cxxflags_debug)
 
 gringo_dir=/home/bernhard/Informatik/gringo-3.0.4-source
