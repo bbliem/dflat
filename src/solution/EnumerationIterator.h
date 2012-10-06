@@ -1,3 +1,4 @@
+
 /*
 Copyright 2012, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dynasp/dflat/>.
@@ -23,24 +24,35 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <sharp/main>
 
 #include "../Tuple.h"
+#include "EnumerationPlan.h"
 
 namespace solution {
 
-class OptEnumSolution : public sharp::Solution
+class EnumerationPlan;
+
+// TODO: Maybe make it a "proper" iterator? (E.g., use Boost Iterator?)
+class EnumerationIterator : public sharp::Solution
 {
 public:
-	static OptEnumSolution* leaf(const Tuple::Assignment& leafSolution, unsigned cost);
-	static OptEnumSolution* extend(OptEnumSolution* base, const Tuple::Assignment& extension, unsigned cost);
-	static OptEnumSolution* unify(OptEnumSolution* left, OptEnumSolution* right, unsigned cost);
-	static OptEnumSolution* join(OptEnumSolution* left, OptEnumSolution* right, unsigned cost);
+	EnumerationIterator();
+	explicit EnumerationIterator(const EnumerationPlan& p);
+	virtual ~EnumerationIterator();
 
-	unsigned getCost() const;
-	const std::set<Tuple::Assignment>& getSolutions() const;
+	//! @return true iff this iterator can be dereferenced, i.e., *this != plan->end()
+	bool valid() const;
+
+	const Tuple::Assignment& operator*() const; // dereference
+	EnumerationIterator& operator++();
 
 private:
-	OptEnumSolution();
-	unsigned cost;
-	std::set<Tuple::Assignment> assignments; // Contains (partial) solutions that have this cost
+	// Materialize what will be returned upon dereferencing
+	void materializeAssignment();
+
+	const EnumerationPlan* plan;
+	EnumerationIterator* left;
+	EnumerationIterator* right;
+
+	Tuple::Assignment assignment; // Materialized assignment returned when dereferencing
 };
 
 } // namespace solution

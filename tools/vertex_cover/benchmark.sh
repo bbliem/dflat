@@ -36,7 +36,7 @@ for f in $@; do
 	unset count
 
 	# OPT-VALUE
-	read curOptValue time exitCode <<< $(\time -f "TIME %U %S %x" bash -c "$dflat -p opt-value -e edge -x $exchangeEnc -s $seed < $f" 2>&1 | grep "^Minimum cost:\|^TIME" | awk 'BEGIN { cost = 0 } /^Minimum cost:/ { cost = $3 } /^TIME/ { time = $2+$3; code = $4 } END { printf("%s %s %s", cost, time, code) }')
+	read curOptValue time exitCode <<< $(\time -f "TIME %U %S %x" bash -c "$dflat -p opt-value -e edge -x $exchangeEnc -s $seed -n semi < $f" 2>&1 | grep "^Minimum cost:\|^TIME" | awk 'BEGIN { cost = 0 } /^Minimum cost:/ { cost = $3 } /^TIME/ { time = $2+$3; code = $4 } END { printf("%s %s %s", cost, time, code) }')
 	printTime $time $exitCode
 
 	if [[ $exitCode -eq 10 || $exitCode -eq 20 ]]; then
@@ -58,7 +58,7 @@ for f in $@; do
 	[ "$optValue" ] || (echo -n "?,?,?,?,?,?"; continue)
 
 	# OPT-COUNTING
-	read curCount time exitCode <<< $(\time -f "TIME %U %S %x" bash -c "$dflat -p opt-counting -e edge -x $exchangeEnc -s $seed < $f" 2>&1 | grep "^Optimal solutions:\|^TIME" | awk 'BEGIN { sol = 0 } /^Optimal solutions:/ { sol = $3 } /^TIME/ { time = $2+$3; code = $4 } END { printf("%s %s %s", sol, time, code) }')
+	read curCount time exitCode <<< $(\time -f "TIME %U %S %x" bash -c "$dflat -p opt-counting -e edge -x $exchangeEnc -s $seed -n semi < $f" 2>&1 | grep "^Optimal solutions:\|^TIME" | awk 'BEGIN { sol = 0 } /^Optimal solutions:/ { sol = $3 } /^TIME/ { time = $2+$3; code = $4 } END { printf("%s %s %s", sol, time, code) }')
 	printTime $time $exitCode
 
 	if [[ $exitCode -eq 10 || $exitCode -eq 20 ]]; then
@@ -81,7 +81,7 @@ for f in $@; do
 	fi
 
 	# OPT-ENUM
-	read curCount time exitCode <<< $(\time -f "TIME %U %S %x" bash -c "$dflat -p opt-enum -e edge -x $exchangeEnc -s $seed < $f" 2>&1 | grep "^Optimal solutions:\|^TIME" | awk 'BEGIN { sol = 0 } /^Optimal solutions:/ { sol = $3 } /^TIME/ { time = $2+$3; code = $4 } END { printf("%s %s %s", sol, time, code) }')
+	read curCount time exitCode <<< $(\time -f "TIME %U %S %x" bash -c "$dflat -p opt-enum -e edge -x $exchangeEnc -s $seed -n semi < $f" 2>&1 | grep "^Optimal solutions:\|^TIME" | awk 'BEGIN { sol = 0 } /^Optimal solutions:/ { sol = $3 } /^TIME/ { time = $2+$3; code = $4 } END { printf("%s %s %s", sol, time, code) }')
 	printTime $time $exitCode
 
 	if [[ $exitCode -eq 10 || $exitCode -eq 20 ]]; then

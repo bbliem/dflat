@@ -19,67 +19,59 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "EnumerationPlan.h"
-#include "EnumerationSolution.h"
+#include "EnumerationIterator.h"
 
 namespace solution {
 
-EnumerationPlan::EnumerationPlan(Operation operation, const Tuple::Assignment& assignment, const EnumerationPlan* left, const EnumerationPlan* right)
-	: Plan(operation), assignment(assignment), left(left), right(right)
+EnumerationPlan::EnumerationPlan(Operation operation, const Tuple& tuple, const EnumerationPlan* left, const EnumerationPlan* right)
+	: Plan(operation), cost(tuple.getCost()), assignment(tuple.getAssignment()), left(left), right(right)
 {
 }
 
 EnumerationPlan::EnumerationPlan(const EnumerationPlan* left, const EnumerationPlan* right)
-	: Plan(UNION), left(left), right(right)
+	: Plan(UNION), cost(left->getCost()), left(left), right(right)
 {
+	assert(left && right && left->getCost() == right->getCost());
 }
 
 EnumerationPlan* EnumerationPlan::leaf(const Tuple& tuple)
 {
-	return new EnumerationPlan(LEAF, tuple.getAssignment());
-}
-
-EnumerationPlan* EnumerationPlan::extend(const EnumerationPlan* base, const Tuple& extension)
-{
-	return new EnumerationPlan(EXTENSION, extension.getAssignment(), base);
+	return new EnumerationPlan(LEAF, tuple);
 }
 
 EnumerationPlan* EnumerationPlan::unify(const EnumerationPlan* left, const EnumerationPlan* right)
 {
-	return new EnumerationPlan(left, right);
+	assert(left && right);
+	// If either left or right is more expensive than the other, we can dispense with it
+	if(left->cost < right->cost)
+		return new EnumerationPlan(*left);
+	else if(right->cost < left->cost)
+		return new EnumerationPlan(*right);
+	else
+		return new EnumerationPlan(left, right);
 }
 
-EnumerationPlan* EnumerationPlan::join(const EnumerationPlan* left, const EnumerationPlan* right, const Tuple& joined)
+EnumerationPlan* EnumerationPlan::join(const Tuple& extension, const EnumerationPlan* left, const EnumerationPlan* right)
 {
-	return new EnumerationPlan(JOIN, joined.getAssignment(), left, right);
+	return new EnumerationPlan(JOIN, extension, left, right);
 }
 
 sharp::Solution* EnumerationPlan::materializeLeaf() const
 {
 	assert(operation == LEAF);
-	return EnumerationSolution::leaf(assignment);
-}
-
-sharp::Solution* EnumerationPlan::materializeExtension() const
-{
-	assert(operation == EXTENSION && left);
-	EnumerationSolution* baseSolution = dynamic_cast<EnumerationSolution*>(left->materialize());
-	return EnumerationSolution::extend(baseSolution, assignment);
+	return new EnumerationIterator(*this);
 }
 
 sharp::Solution* EnumerationPlan::materializeUnion() const
 {
 	assert(operation == UNION && left && right);
-	EnumerationSolution* baseSolution = dynamic_cast<EnumerationSolution*>(left->materialize());
-	EnumerationSolution* otherSolution = dynamic_cast<EnumerationSolution*>(right->materialize());
-	return EnumerationSolution::unify(baseSolution, otherSolution);
+	return new EnumerationIterator(*this);
 }
 
 sharp::Solution* EnumerationPlan::materializeJoin() const
 {
-	assert(operation == JOIN && left && right);
-	EnumerationSolution* leftSolution = dynamic_cast<EnumerationSolution*>(left->materialize());
-	EnumerationSolution* rightSolution = dynamic_cast<EnumerationSolution*>(right->materialize());
-	return EnumerationSolution::join(leftSolution, rightSolution);
+	assert(operation == JOIN && left);
+	return new EnumerationIterator(*this);
 }
 
 } // namespace solution

@@ -1,14 +1,14 @@
 COMPILING
 
 To compile D-FLAT, the following dependencies are required:
-- CMake (http://cmake.org/), version 2.8.7 or later
-- Boost (http://boost.org/), version 1.48.0 or later
+- CMake (http://cmake.org/), version 2.8.8 or later
+- Boost (http://boost.org/), version 1.49.0 or later
 - Gringo (http://potassco.sourceforge.net/), version 3.0.4 or later -- in particular libgringo
 - Clasp (http://potassco.sourceforge.net/), version 2.0.5 or later -- in particular libclasp
 - GMP (http://gmplib.org/), version 5.0.4 or later -- make sure to also compile the C++ interface
 - SHARP (http://www.dbai.tuwien.ac.at/research/project/sharp/) with D-FLAT-specific modifications, for now provided only on the D-FLAT website, http://dbai.tuwien.ac.at/research/project/dynasp/dflat/
 
-Compilation was tested with the stated version numbers and GCC 4.6.2. Unless the developers of the dependencies introduce incompatible changes, later versions should work too. If you run into any problems with later releases, try compiling D-FLAT with the version specified above.
+Compilation was tested with the stated version numbers and GCC 4.7.0. Unless the developers of the dependencies introduce incompatible changes, later versions should work too. If you run into any problems with later releases, try compiling D-FLAT with the version specified above.
 
 You need to adjust the paths in D-FLAT's Makefile. In particular, the variables gringo_dir, clasp_dir and sharp_dir.
 
@@ -43,9 +43,10 @@ COMPILATION FLAGS
 
 D-FLAT supports the following preprocessor defines:
 
-- VERBOSE: Print bag contents and generated tuples
 - PROGRESS_REPORT: Print a line of information when entering a tree decomposition node
 - WITH_NODE_TIMER: When processing of a node is finished, print the elapsed time
-- PRINT_CHILD_TUPLE_INPUT: Print input facts regarding child tuples that are passed to the user program
+- PRINT_BAG_INPUT: Print input facts regarding the current and previous bags that are passed to the user program
+- PRINT_CHILD_TABLE_INPUT: Print input facts regarding child tuples that are passed to the user program
 - PRINT_MODELS: Print all information in a model of the user program whenever one is found
+- PRINT_COMPUTED_TUPLES: Print tuples resulting from the user's program
 - DISABLE_ASSIGNMENT_CHECK: By default, D-FLAT checks if all current vertices were assigned exactly one value and no non-current vertex is assigned; this flag disables the check.

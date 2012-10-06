@@ -2,15 +2,13 @@
 
 numInstances=100
 gringo=../gringo
-clasp=../clasp-2.0.2-st-x86-linux
+clasp=../clasp
 dflat=build/release/dflat
 
-if [[ -z "$instanceGen" || -z "$monolithicEncoding" || -z "$exchangeEncoding" || -z "$edgeArguments" ]]; then
+if [[ -z "$instanceGen" || -z "$dflatArguments" || -z "$monolithicEncoding" ]]; then
 	echo "Environment variables not set"
 	exit 1
 fi
-
-[ -z "$joinEncoding" ] || joinEncodingArgument="-j $joinEncoding"
 
 for instance in $(seq 1 $numInstances); do
 	seed=$RANDOM
@@ -26,7 +24,7 @@ for instance in $(seq 1 $numInstances); do
 	claspExit=${PIPESTATUS[1]}
 	claspCount=$(<$claspCountFile)
 	
-	$dflat $edgeArguments -x $exchangeEncoding $joinEncodingArgument -p counting -s $seed < $instance | tail -n1 | awk '{ print $2 }' > $dflatCountFile
+	$dflat $dflatArguments -p counting -s $seed < $instance | tail -n1 | awk '{ print $2 }' > $dflatCountFile
 	dflatExit=${PIPESTATUS[0]}
 	dflatCount=$(<$dflatCountFile)
 
@@ -34,13 +32,15 @@ for instance in $(seq 1 $numInstances); do
 		cp $instance mismatch${seed}.lp
 		echo
 		echo "Exit code mismatch for seed $seed (dflat: ${dflatExit}, clasp: ${claspExit})"
+		exit 1
 	elif [ $claspCount -ne $dflatCount ]; then
 		cp $instance mismatch${seed}.lp
 		echo
 		echo "Count mismatch for seed $seed (dflat: ${dflatCount}, clasp: ${claspCount})"
+		exit 2
 	else
-#		echo -n .
-		echo -n "$dflatExit "
+#		echo -n "$dflatExit "
+		echo -n "$dflatCount "
 	fi
 
 	# remove temp file

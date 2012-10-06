@@ -19,11 +19,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <boost/foreach.hpp>
-#define foreach BOOST_FOREACH
+//#define foreach BOOST_FOREACH // XXX: Strange: After a Boost upgrade, this led to "error: 'boost::BOOST_FOREACH' has not been declared". Moving it down helps...
 
 #include "ClaspCallbackGeneral.h"
 #include "GringoOutputProcessor.h"
 #include "TupleGeneral.h"
+
+#define foreach BOOST_FOREACH
 
 void ClaspCallbackGeneral::warning(const char* msg)
 {
@@ -40,9 +42,9 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 				mapAtoms.push_back(MapAtom(it.level, it.vertex, it.value, symTab[it.symbolTableKey].lit));
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleAtoms())
 				chosenChildTupleAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleLAtoms())
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleLAtoms()) // XXX: Obsolete
 				chosenChildTupleLAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleRAtoms())
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleRAtoms()) // XXX: Obsolete
 				chosenChildTupleRAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;
@@ -72,50 +74,53 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	std::cout << std::endl;
 #endif
 
-	const sharp::TupleTable::value_type* oldTupleAndPlan = 0;
-	const sharp::TupleTable::value_type* leftTupleAndPlan = 0;
-	const sharp::TupleTable::value_type* rightTupleAndPlan = 0;
+	std::vector<const sharp::TupleTable::value_type*> childTuplesAndPlans;
+	childTuplesAndPlans.reserve(numChildNodes);
 	unsigned currentCost = 0;
 	unsigned cost = 0;
 
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleAtoms) {
 		if(s.isTrue(it.second)) {
-#ifndef DISABLE_ANSWER_SET_CHECKS
-			if(oldTupleAndPlan)
-				throw std::runtime_error("Multiple chosen child tuples");
-#endif
-			oldTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
-#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
-			break;
+			childTuplesAndPlans.push_back(reinterpret_cast<const sharp::TupleTable::value_type*>(it.first));
+#ifdef DISABLE_ANSWER_SET_CHECKS
+			if(childTuplesAndPlans.size() == numChildNodes)
+				break;
 #endif
 		}
 	}
 
+	// XXX: Obsolete
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleLAtoms) {
 		if(s.isTrue(it.second)) {
-#ifndef DISABLE_ANSWER_SET_CHECKS
-			if(leftTupleAndPlan)
-				throw std::runtime_error("Multiple chosen left child tuples");
-#endif
-			leftTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
-#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
-			break;
+			childTuplesAndPlans.push_back(reinterpret_cast<const sharp::TupleTable::value_type*>(it.first));
+#ifdef DISABLE_ANSWER_SET_CHECKS
+			if(childTuplesAndPlans.size() == numChildNodes)
+				break;
+#else
+			if(childTuplesAndPlans.size() != 1)
+				throw std::runtime_error("You may only use chosenChildTuple/1 if you use neither chosenChildTupleL/1 nor chosenChildTupleR/1.");
 #endif
 		}
 	}
 
+	// XXX: Obsolete
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleRAtoms) {
 		if(s.isTrue(it.second)) {
-#ifndef DISABLE_ANSWER_SET_CHECKS
-			if(rightTupleAndPlan)
-				throw std::runtime_error("Multiple chosen right child tuples");
-#endif
-			rightTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
-#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
-			break;
+			childTuplesAndPlans.push_back(reinterpret_cast<const sharp::TupleTable::value_type*>(it.first));
+#ifdef DISABLE_ANSWER_SET_CHECKS
+			if(childTuplesAndPlans.size() == numChildNodes)
+				break;
+#else
+			if(childTuplesAndPlans.size() != 2)
+				throw std::runtime_error("You may only use chosenChildTuple/1 if you use neither chosenChildTupleL/1 nor chosenChildTupleR/1.");
 #endif
 		}
 	}
+
+#ifndef DISABLE_ANSWER_SET_CHECKS
+	if(childTuplesAndPlans.size() > 0 && childTuplesAndPlans.size() != numChildNodes)
+		throw std::runtime_error("Number of chosen child tuples not equal to number of child nodes");
+#endif
 
 	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
 		if(s.isTrue(it.second)) {
@@ -143,12 +148,9 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 		}
 	}
 
-#ifndef DISABLE_ANSWER_SET_CHECKS
-	if((oldTupleAndPlan && (leftTupleAndPlan || rightTupleAndPlan))
-			|| (leftTupleAndPlan && !rightTupleAndPlan)
-			|| (!leftTupleAndPlan && rightTupleAndPlan))
-		throw std::runtime_error("Invalid use of chosenChildTuple(L/R)");
-#endif
+//#ifndef DISABLE_ANSWER_SET_CHECKS
+// TODO: Check if for each child node we have a chosenChildTuple (or none at all)
+//#endif
 
 	Path path(numLevels);
 	unsigned int highestLevel = 0; // Highest level of an assignment encountered so far
@@ -195,15 +197,13 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	}
 #endif
 
-	if(oldTupleAndPlan)
-		leftTupleAndPlan = oldTupleAndPlan;
-	pathCollection.insert(path, leftTupleAndPlan, rightTupleAndPlan, currentCost, cost);
+	pathCollection.insert(path, childTuplesAndPlans, currentCost, cost);
 }
 
-inline void ClaspCallbackGeneral::PathCollection::insert(const Path& path, const TableRow* leftPredecessor, const TableRow* rightPredecessor, unsigned currentCost, unsigned cost)
+inline void ClaspCallbackGeneral::PathCollection::insert(const Path& path, const std::vector<const TableRow*>& predecessors, unsigned currentCost, unsigned cost)
 {
 	assert(!path.empty());
-	TopLevelAssignmentToTupleData& tupleDataMap = predecessorData[TableRowPair(leftPredecessor, rightPredecessor)];
+	TopLevelAssignmentToTupleData& tupleDataMap = predecessorData[predecessors];
 	const Tuple::Assignment& topLevelAssignment = path.front();
 	TupleData& tupleData = tupleDataMap[topLevelAssignment];
 
@@ -222,7 +222,7 @@ inline void ClaspCallbackGeneral::PathCollection::fillTupleTable(sharp::TupleTab
 {
 	// For all (pairs of) predecessors, build new tuples from our collected paths
 	foreach(const PredecessorData::value_type& it, predecessorData) {
-		TableRowPair predecessors = it.first;
+		const TableRows& predecessors = it.first;
 		foreach(const TopLevelAssignmentToTupleData::value_type& it2, it.second) {
 			const TupleData& tupleData = it2.second;
 
@@ -236,20 +236,23 @@ inline void ClaspCallbackGeneral::PathCollection::fillTupleTable(sharp::TupleTab
 				assert(newTuple.tree.children.size() == 1); // each tuple may only have one top-level assignment
 			}
 
-			if(predecessors.second) {
-				// This is a join node
-				assert(predecessors.first);
-				algorithm.addRowToTupleTable(tupleTable, &newTuple,
-						algorithm.getPlanFactory().join(predecessors.first->second, predecessors.second->second, newTuple));
-			} else if(predecessors.first) {
-				// This is an exchange node
-				algorithm.addRowToTupleTable(tupleTable, &newTuple,
-						algorithm.getPlanFactory().extend(predecessors.first->second, newTuple));
-			} else {
-				// This is a leaf node (or we don't have chosenChildTuples because we only solve the decision problem)
-				algorithm.addRowToTupleTable(tupleTable, &newTuple,
-						algorithm.getPlanFactory().leaf(newTuple));
+//			std::vector<const sharp::Plan*> plans;
+//			plans.reserve(predecessors.size());
+//			foreach(const TableRow* row, predecessors)
+//				plans.push_back(row->second);
+//			algorithm.addRowToTupleTable(tupleTable, &newTuple, algorithm.getPlanFactory().join(newTuple, plans));
+
+			sharp::Plan* plan;
+			if(predecessors.empty())
+				plan = algorithm.getPlanFactory().leaf(newTuple);
+			else if(predecessors.size() == 1)
+				plan = algorithm.getPlanFactory().join(newTuple, predecessors[0]->second);
+			else {
+				plan = algorithm.getPlanFactory().join(newTuple, predecessors[0]->second, predecessors[1]->second);
+				for(unsigned i = 2; i < predecessors.size(); ++i)
+					plan = algorithm.getPlanFactory().join(newTuple, plan, predecessors[i]->second);
 			}
+			algorithm.addRowToTupleTable(tupleTable, &newTuple, plan);
 		}
 	}
 }

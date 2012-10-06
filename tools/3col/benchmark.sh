@@ -35,7 +35,7 @@ for f in $@; do
 	unset count
 
 	# ENUMERATION
-	read curCount time exitCode <<< $(\time -f "TIME %U %S %x" bash -c "$dflat -p enumeration -e edge -x $exchangeEnc -s $seed < $f" 2>&1 | grep "^Solutions:\|^TIME" | awk 'BEGIN { sol = 0 } /^Solutions:/ { sol = $2 } /^TIME/ { time = $2+$3; code = $4 } END { printf("%s %s %s", sol, time, code) }')
+	read curCount time exitCode <<< $(\time -f "TIME %U %S %x" bash -c "$dflat -p enumeration -e edge -x $exchangeEnc -s $seed -n semi < $f" 2>&1 | grep "^Solutions:\|^TIME" | awk 'BEGIN { sol = 0 } /^Solutions:/ { sol = $2 } /^TIME/ { time = $2+$3; code = $4 } END { printf("%s %s %s", sol, time, code) }')
 	printTime $time $exitCode
 
 	if [[ $exitCode -eq 10 || $exitCode -eq 20 ]]; then
@@ -54,7 +54,7 @@ for f in $@; do
 	fi
 
 	# COUNTING
-	read curCount time exitCode <<< $(\time -f "TIME %U %S %x" bash -c "$dflat -p counting -e edge -x $exchangeEnc -s $seed < $f" 2>&1 | grep "^Solutions:\|^TIME" | awk 'BEGIN { sol = 0 } /^Solutions:/ { sol = $2 } /^TIME/ { time = $2+$3; code = $4 } END { printf("%s %s %s", sol, time, code) }')
+	read curCount time exitCode <<< $(\time -f "TIME %U %S %x" bash -c "$dflat -p counting -e edge -x $exchangeEnc -s $seed -n semi < $f" 2>&1 | grep "^Solutions:\|^TIME" | awk 'BEGIN { sol = 0 } /^Solutions:/ { sol = $2 } /^TIME/ { time = $2+$3; code = $4 } END { printf("%s %s %s", sol, time, code) }')
 	printTime $time $exitCode
 
 	if [[ $exitCode -eq 10 || $exitCode -eq 20 ]]; then
@@ -77,7 +77,7 @@ for f in $@; do
 	fi
 
 	# DECISION
-	read time exitCode <<< $(\time -f "%U %S %x" bash -c "$dflat -p decision -e edge -x $exchangeDecEnc -s $seed < $f" 2>&1 | tail -n1 | awk '{printf("%s %s", $1+$2, $3)}')
+	read time exitCode <<< $(\time -f "%U %S %x" bash -c "$dflat -p decision -e edge -x $exchangeDecEnc -s $seed -n semi < $f" 2>&1 | tail -n1 | awk '{printf("%s %s", $1+$2, $3)}')
 	printTime $time $exitCode
 
 	read time exitCode <<< $(\time -f "%U %S %x" bash -c "$gringo $f $monolithicEnc 2>/dev/null | $clasp -q" 2>&1 | tail -n1 | awk '{printf("%s %s", $1+$2, $3)}')

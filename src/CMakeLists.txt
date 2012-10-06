@@ -22,5 +22,21 @@ find_library(gmpxx gmpxx)
 find_library(gmp gmp)
 find_package(Boost COMPONENTS system filesystem timer REQUIRED)
 
-add_executable(dflat Algorithm.cpp ClaspCallbackGeneral.cpp ClaspCallbackNP.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp Problem.cpp TupleGeneral.cpp TupleNP.cpp solution/DecisionPlan.cpp solution/CountingPlan.cpp solution/EnumerationPlan.cpp solution/EnumerationSolution.cpp solution/OptValuePlan.cpp solution/OptCountingPlan.cpp solution/OptEnumPlan.cpp solution/OptEnumSolution.cpp main.cpp)
+add_executable(dflat
+	Algorithm.cpp
+	NonNormalizedAlgorithm.cpp
+	SemiNormalizedAlgorithm.cpp
+	ClaspCallbackGeneral.cpp
+	ClaspCallbackNP.cpp
+	ClaspInputReader.cpp
+	GringoOutputProcessor.cpp
+	Problem.cpp
+	TupleGeneral.cpp
+	TupleNP.cpp
+	solution/DecisionPlan.cpp
+	solution/CountingPlan.cpp
+	solution/EnumerationPlan.cpp
+	solution/EnumerationIterator.cpp
+	main.cpp)
+
 target_link_libraries(dflat libsharp.a gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})

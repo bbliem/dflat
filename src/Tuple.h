@@ -37,10 +37,15 @@ struct Tuple : public sharp::Tuple
 	//! @return a new tuple resulting from this joining with the other
 	virtual Tuple* join(const Tuple& other) const = 0;
 
-	//! Declares this tuple in ASP.
+	//! Declares this tuple in ASP. Among other things, childTuple/2 will declare this tuple's name and the number of the child table containing it.
 	//! @param tupleAndSolution reference to the entry in the TupleTable that contains this tuple
-	//! @param predicateSuffix string that will be printed between "childTuple" and "("
-	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix = "") const = 0;
+	//! @param childNumber To which child node this tuple belongs; second argument of childTuple/2
+	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, unsigned childNumber) const = 0;
+
+	//! Declares this tuple in ASP. The number of the child table containing it will not be declared (can be used, e.g., on semi-normalized TDs) but the name of the predicate that should declare this tuple's name can be specified.
+	//! @param tupleAndSolution reference to the entry in the TupleTable that contains this tuple
+	//! @param predicateName name of the predicate that should be used to declare this tuple's name
+	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateName = "childTuple") const = 0;
 
 	typedef std::map<std::string, std::string> Assignment;
 	/**
@@ -62,7 +67,7 @@ struct Tuple : public sharp::Tuple
 	//! @return cost of the (partial) solution of this tuple, considering the current and all forgotten vertices
 	virtual unsigned int getCost() const { return 0; }
 
-#ifdef VERBOSE
+#ifdef PRINT_COMPUTED_TUPLES
 	virtual void print(std::ostream&) const = 0;
 #endif
 };

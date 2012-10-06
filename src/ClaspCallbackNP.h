@@ -31,12 +31,12 @@ class ClaspCallbackNP : public Clasp::ClaspFacade::Callback
 {
 public:
 #ifdef DISABLE_ANSWER_SET_CHECKS
-	ClaspCallbackNP(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput)
-		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput)
+	ClaspCallbackNP(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes)
+		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numChildNodes(numChildNodes)
 	{}
 #else
-	ClaspCallbackNP(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, const std::set<std::string>& currentVertices)
-		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), currentVertices(currentVertices)
+	ClaspCallbackNP(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes, const std::set<std::string>& currentVertices)
+		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numChildNodes(numChildNodes), currentVertices(currentVertices)
 	{}
 #endif
 
@@ -53,6 +53,7 @@ private:
 	const Algorithm& algorithm;
 	sharp::TupleTable& tupleTable;
 	const GringoOutputProcessor& gringoOutput;
+	const unsigned int numChildNodes;
 
 	// cf. GringoOutputProcessor.h
 	struct MapAtom {
@@ -66,8 +67,8 @@ private:
 	std::vector<MapAtom> mapAtoms;
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
 	LongToLiteral chosenChildTupleAtoms;
-	LongToLiteral chosenChildTupleLAtoms;
-	LongToLiteral chosenChildTupleRAtoms;
+	LongToLiteral chosenChildTupleLAtoms; // XXX: Obsolete
+	LongToLiteral chosenChildTupleRAtoms; // XXX: Obsolete
 	LongToLiteral currentCostAtoms;
 	LongToLiteral costAtoms;
 

@@ -43,10 +43,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <gringo/domain.h>
 #include <boost/lexical_cast.hpp>
 
-GringoOutputProcessor::GringoOutputProcessor()
-	: LparseConverter(0, false)
-	, b_(0)
-	, lastUnnamed_(0)
+GringoOutputProcessor::GringoOutputProcessor(bool ignoreOptimization)
+	: LparseConverter(0, false), b_(0), lastUnnamed_(0), ignoreOptimization(ignoreOptimization)
 #ifndef NDEBUG
 	, mapArity(0)
 #endif
@@ -183,18 +181,20 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 		storeChildTupleAtom(name, atom, chosenChildTupleAtoms);
 	}
 	else if(name == "chosenChildTupleL") {
+		// XXX: Obsolete
 		assert(arity == 1);
 		storeChildTupleAtom(name, atom, chosenChildTupleLAtoms);
 	}
 	else if(name == "chosenChildTupleR") {
+		// XXX: Obsolete
 		assert(arity == 1);
 		storeChildTupleAtom(name, atom, chosenChildTupleRAtoms);
 	}
-	else if(name == "currentCost") {
+	else if(!ignoreOptimization && name == "currentCost") {
 		assert(arity == 1);
 		storeCostAtom(name, atom, currentCostAtoms);
 	}
-	else if(name == "cost") {
+	else if(!ignoreOptimization && name == "cost") {
 		assert(arity == 1);
 		storeCostAtom(name, atom, costAtoms);
 	}

@@ -20,33 +20,41 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+
+#include <boost/foreach.hpp>
 #include <sharp/main>
 
 #include "../Tuple.h"
 
 namespace solution {
 
+// TODO: Deleting a plan does not delete recursively. This might be nasty since there are cycles.
 class EnumerationPlan : public sharp::Plan
 {
 public:
-	static EnumerationPlan* leaf(const Tuple& tuple);
-	static EnumerationPlan* extend(const EnumerationPlan* base, const Tuple& extension);
+	static EnumerationPlan* leaf(const Tuple&);
 	static EnumerationPlan* unify(const EnumerationPlan* left, const EnumerationPlan* right);
-	static EnumerationPlan* join(const EnumerationPlan* left, const EnumerationPlan* right, const Tuple& joined);
+	static EnumerationPlan* join(const Tuple& extension, const EnumerationPlan* left, const EnumerationPlan* right);
+
+	unsigned getCost() const { return cost; }
+	const Tuple::Assignment& getAssignment() const { return assignment; }
+	const EnumerationPlan* getLeft() const { return left; }
+	const EnumerationPlan* getRight() const { return right; }
 
 protected:
 	virtual sharp::Solution* materializeLeaf() const;
-	virtual sharp::Solution* materializeExtension() const;
 	virtual sharp::Solution* materializeUnion() const;
 	virtual sharp::Solution* materializeJoin() const;
 
 private:
-	EnumerationPlan(Operation operation, const Tuple::Assignment& assignment, const EnumerationPlan* left = 0, const EnumerationPlan* right = 0);
+	EnumerationPlan(Operation operation, const Tuple& tuple, const EnumerationPlan* left = 0, const EnumerationPlan* right = 0);
 	EnumerationPlan(const EnumerationPlan* left, const EnumerationPlan* right); // Union
 
+	unsigned cost;
 	Tuple::Assignment assignment;
 	const EnumerationPlan* left;
 	const EnumerationPlan* right;
 };
+
 
 } // namespace solution

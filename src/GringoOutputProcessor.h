@@ -29,7 +29,8 @@ class GringoOutputProcessor : public LparseConverter
 {
 	typedef std::vector<bool> BoolVec;
 public:
-	GringoOutputProcessor();
+	//! @param ignoreOptimization true iff the predicates responsible for optimization problems should be ignored (e.g., cost/1, currentCost/1)
+	GringoOutputProcessor(bool ignoreOptimization = false);
 
 	// Arguments of the map/3 predicate (Level, vertex and the string it is assigned)
 	struct MapAtom {
@@ -46,8 +47,9 @@ public:
 
 	typedef std::map<long, Clasp::SymbolTable::key_type> LongToSymbolTableKey;
 	const LongToSymbolTableKey& getChosenChildTupleAtoms() const { return chosenChildTupleAtoms; }
-	const LongToSymbolTableKey& getChosenChildTupleLAtoms() const { return chosenChildTupleLAtoms; }
-	const LongToSymbolTableKey& getChosenChildTupleRAtoms() const { return chosenChildTupleRAtoms; }
+	// XXX: chosenChildTupleL/1 and chosenChildTupleR/1 are obsolete
+	const LongToSymbolTableKey& getChosenChildTupleLAtoms() const { return chosenChildTupleLAtoms; } // XXX: Obsolete
+	const LongToSymbolTableKey& getChosenChildTupleRAtoms() const { return chosenChildTupleRAtoms; } // XXX: Obsolete
 	const LongToSymbolTableKey& getCurrentCostAtoms() const { return currentCostAtoms; }
 	const LongToSymbolTableKey& getCostAtoms() const { return costAtoms; }
 
@@ -74,10 +76,11 @@ protected:
 	uint32_t lastUnnamed_;
 
 private:
+	bool ignoreOptimization;
 	std::vector<MapAtom> mapAtoms; // Holds pairs of 1) pairs ("arg0","arg1","arg2") and 2) the key in the symbol table which is mapped to the clasp variable corresponding to "map(arg0,arg1,arg2)" (different keys may be mapped to the same variables due to clasp internals)
 	LongToSymbolTableKey chosenChildTupleAtoms; // Maps addresses of entries in the TupleSet corresponding to a child tuple (with solution) to the symbol table key of "chosenChildTuple(address)"
-	LongToSymbolTableKey chosenChildTupleLAtoms; // same for chosenChildTupleL(address)
-	LongToSymbolTableKey chosenChildTupleRAtoms; // same for chosenChildTupleR(address)
+	LongToSymbolTableKey chosenChildTupleLAtoms; // XXX: Obsolete
+	LongToSymbolTableKey chosenChildTupleRAtoms; // XXX: Obsolete
 	LongToSymbolTableKey currentCostAtoms;
 	LongToSymbolTableKey costAtoms;
 

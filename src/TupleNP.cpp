@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <sstream>
 #include <cassert>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
@@ -64,12 +65,20 @@ TupleNP* TupleNP::join(const Tuple& other) const
 	return t;
 }
 
-void TupleNP::declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix) const
+void TupleNP::declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, unsigned childNumber) const
 {
-	out << "childTuple" << predicateSuffix << "(t" << &tupleAndSolution << ")." << std::endl;
-	foreach(const Assignment::value_type& a, assignment)
-		out << "mapped(t" << &tupleAndSolution << ',' << a.first << ',' << a.second << ")." << std::endl;
-	out << "childCost(t" << &tupleAndSolution << ',' << cost << ")." << std::endl;
+	std::ostringstream tupleName;
+	tupleName << 't' << &tupleAndSolution;
+	out << "childTuple(" << tupleName.str() << ',' <<  childNumber << ")." << std::endl;
+	declareTupleExceptName(out, tupleName.str());
+}
+
+void TupleNP::declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateName) const
+{
+	std::ostringstream tupleName;
+	tupleName << 't' << &tupleAndSolution;
+	out << predicateName << '(' << tupleName.str() << ")." << std::endl;
+	declareTupleExceptName(out, tupleName.str());
 }
 
 const TupleNP::Assignment& TupleNP::getAssignment() const
@@ -87,7 +96,7 @@ unsigned int TupleNP::getCost() const
 	return cost;
 }
 
-#ifdef VERBOSE
+#ifdef PRINT_COMPUTED_TUPLES
 void TupleNP::print(std::ostream& str) const
 {
 	str << "Tuple: ";
@@ -96,3 +105,10 @@ void TupleNP::print(std::ostream& str) const
 	str << "(cost " << cost << ")" << std::endl;
 }
 #endif
+
+inline void TupleNP::declareTupleExceptName(std::ostream& out, const std::string& tupleName) const
+{
+	out << "childCost(" << tupleName << ',' << cost << ")." << std::endl;
+	foreach(const Assignment::value_type& a, assignment)
+		out << "mapped(" << tupleName << ',' << a.first << ',' << a.second << ")." << std::endl;
+}

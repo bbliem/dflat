@@ -2,15 +2,13 @@
 
 numInstances=100
 gringo=../gringo
-clasp=../clasp-2.0.2-st-x86-linux
+clasp=../clasp
 dflat=build/release/dflat
 
-if [[ -z "$instanceGen" || -z "$monolithicEncoding" || -z "$exchangeEncoding" || -z "$edgeArguments" ]]; then
+if [[ -z "$instanceGen" || -z "$dflatArguments" || -z "$monolithicEncoding" ]]; then
 	echo "Environment variables not set"
 	exit 1
 fi
-
-[ -z "$joinEncoding" ] || joinEncodingArgument="-j $joinEncoding"
 
 for instance in $(seq 1 $numInstances); do
 	seed=$RANDOM
@@ -22,13 +20,14 @@ for instance in $(seq 1 $numInstances); do
 
 	$gringo $monolithicEncoding $instance 2>/dev/null | $clasp -q >/dev/null
 	claspExit=$?
-	$dflat $edgeArguments -x $exchangeEncoding $joinEncodingArgument -p decision -s $seed < $instance &>/dev/null
+	$dflat $dflatArguments -p decision -s $seed < $instance >/dev/null
 	dflatExit=$?
 
 	if [ $claspExit -ne $dflatExit ]; then
 		cp $instance mismatch${seed}.lp
 		echo
 		echo "Mismatch for seed $seed (dflat: ${dflatExit}, clasp: ${claspExit})"
+		exit 1
 	else
 #		echo -n .
 		echo -n "$dflatExit "

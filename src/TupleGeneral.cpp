@@ -92,20 +92,20 @@ TupleGeneral* TupleGeneral::join(const Tuple& other) const
 	return t;
 }
 
-void TupleGeneral::declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix) const
+void TupleGeneral::declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, unsigned childNumber) const
 {
 	std::ostringstream tupleName;
 	tupleName << 't' << &tupleAndSolution;
-	out << "childTuple" << predicateSuffix << '(' << tupleName.str() << ")." << std::endl;
-	out << "childCost(" << tupleName.str() << ',' << cost << ")." << std::endl;
+	out << "childTuple(" << tupleName.str() << ',' << childNumber << ")." << std::endl;
+	declareTupleExceptName(out, tupleName.str());
+}
 
-	assert(tree.children.size() == 1);
-	Tree::Children::const_iterator root = tree.children.begin();
-	// Print the top-level assignment
-	foreach(const Assignment::value_type& mapping, root->first)
-		out << "mapped(" << tupleName.str() << ',' << mapping.first << ',' << mapping.second << ")." << std::endl;
-	// Print subsidiary assignments
-	declareTree(root->second, out, tupleName.str());
+void TupleGeneral::declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateName) const
+{
+	std::ostringstream tupleName;
+	tupleName << 't' << &tupleAndSolution;
+	out << predicateName << '(' << tupleName.str() << ")." << std::endl;
+	declareTupleExceptName(out, tupleName.str());
 }
 
 const Tuple::Assignment& TupleGeneral::getAssignment() const
@@ -124,7 +124,7 @@ unsigned int TupleGeneral::getCost() const
 	return cost;
 }
 
-#ifdef VERBOSE
+#ifdef PRINT_COMPUTED_TUPLES
 namespace {
 	void printTree(std::ostream& out, const TupleGeneral::Tree& tree, const std::string& indent = "") {
 		foreach(const TupleGeneral::Tree::Children::value_type& child, tree.children) {
@@ -144,3 +144,16 @@ void TupleGeneral::print(std::ostream& str) const
 	str << "(cost " << cost << ")" << std::endl;
 }
 #endif
+
+inline void TupleGeneral::declareTupleExceptName(std::ostream& out, const std::string& tupleName) const
+{
+	out << "childCost(" << tupleName << ',' << cost << ")." << std::endl;
+
+	assert(tree.children.size() == 1);
+	Tree::Children::const_iterator root = tree.children.begin();
+	// Print the top-level assignment
+	foreach(const Assignment::value_type& mapping, root->first)
+		out << "mapped(" << tupleName << ',' << mapping.first << ',' << mapping.second << ")." << std::endl;
+	// Print subsidiary assignments
+	declareTree(root->second, out, tupleName);
+}

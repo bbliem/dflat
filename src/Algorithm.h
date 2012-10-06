@@ -25,40 +25,39 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 class GringoOutputProcessor;
 
-class Algorithm : public sharp::AbstractSemiNormalizedHTDAlgorithm
+class Algorithm : public sharp::AbstractHTDAlgorithm
 {
 public:
-	//! @param normalizationType either sharp::SemiNormalization or sharp::DefaultNormalization
-	Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram = 0, sharp::NormalizationType normalizationType = sharp::SemiNormalization, unsigned int level = 0);
+	//! @param ignoreOptimization true iff the predicates responsible for optimization problems should be ignored (e.g., cost/1, currentCost/1)
+	Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, sharp::NormalizationType normalizationType, bool ignoreOptimization = false, unsigned int level = 0);
 
 protected:
+	//! Writes the facts describing node's bags to "out".
+	virtual void declareBag(std::ostream& out, const sharp::ExtendedHypertree& node) = 0;
+	//! Writes the facts describing the child tables to "out".
+	virtual void declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables) = 0;
+	//! @return the file name of the user program to compute node's table
+	virtual const char* getUserProgram(const sharp::ExtendedHypertree& node) = 0;
+
+	//! Calls declareBag() and declareChildTables() and runs the ASP solver to compute node's table.
+	virtual sharp::TupleTable* computeTable(const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables);
+
+	virtual sharp::TupleTable* evaluateNode(const sharp::ExtendedHypertree* node);
 	virtual sharp::Plan* selectPlan(sharp::TupleTable* table, const sharp::ExtendedHypertree* root);
 	virtual sharp::ExtendedHypertree* prepareHypertreeDecomposition(sharp::ExtendedHypertree* root);
 
-	// If you want to derive from this class, do not override evaluate*Node, but rather exchange*/join.
-	sharp::TupleTable* evaluatePermutationNode(const sharp::ExtendedHypertree* node);
-	sharp::TupleTable* evaluateBranchNode(const sharp::ExtendedHypertree* node);
-
-	virtual sharp::TupleTable* exchange(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed, const sharp::TupleTable& childTable, bool isRoot = false);
-	virtual sharp::TupleTable* join(const sharp::VertexSet& vertices, sharp::TupleTable& childTableLeft, sharp::TupleTable& childTableRight);
-
-	virtual std::auto_ptr<Clasp::ClaspFacade::Callback> newClaspCallback(sharp::TupleTable& newTable, const GringoOutputProcessor&, const sharp::VertexSet& currentVertices) const;
+	virtual std::auto_ptr<Clasp::ClaspFacade::Callback> newClaspCallback(sharp::TupleTable& newTable, const GringoOutputProcessor&, unsigned int numChildNodes, const sharp::VertexSet& currentVertices) const;
 	virtual std::auto_ptr<GringoOutputProcessor> newGringoOutputProcessor() const;
 
 	sharp::Problem& problem;
-	sharp::NormalizationType normalizationType;
 	const std::string& instanceFacts;
-	const char* exchangeNodeProgram;
-	const char* joinNodeProgram;
+	sharp::NormalizationType normalizationType;
+	bool ignoreOptimization;
 	unsigned int level;
 	Clasp::ClaspFacade clasp;
 
 #ifdef PROGRESS_REPORT
 	int nodesProcessed; // For progress report
 	virtual void printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildTuples = 0);
-	virtual sharp::TupleTable* evaluateNode(const sharp::ExtendedHypertree* node);
-#endif
-#ifdef VERBOSE
-	virtual void printBagContents(const sharp::VertexSet& vertices) const;
 #endif
 };

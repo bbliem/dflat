@@ -35,12 +35,13 @@ public:
 
 	virtual bool matches(const Tuple& other) const;
 	virtual TupleNP* join(const Tuple& other) const;
-	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix) const;
+	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, unsigned childNumber) const;
+	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateName = "childTuple") const;
 	virtual const Assignment& getAssignment() const;
 	virtual unsigned int getCurrentCost() const;
 	virtual unsigned int getCost() const;
 
-#ifdef VERBOSE
+#ifdef PRINT_COMPUTED_TUPLES
 	virtual void print(std::ostream&) const;
 #endif
 
@@ -48,4 +49,7 @@ public:
 	// TODO: We might distinguish tuples with cost information from those without, but OTOH the memory consumption should not be that critical
 	unsigned int currentCost;
 	unsigned int cost;
+	
+private:
+	void declareTupleExceptName(std::ostream& out, const std::string& tupleName) const;
 };

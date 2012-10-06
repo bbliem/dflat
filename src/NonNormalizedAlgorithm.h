@@ -20,25 +20,18 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <sharp/main>
+#include "Algorithm.h"
 
-#include "../Tuple.h"
-
-namespace solution {
-
-class EnumerationSolution : public sharp::Solution
+class NonNormalizedAlgorithm : public Algorithm
 {
 public:
-	static EnumerationSolution* leaf(const Tuple::Assignment& leafSolution);
-	static EnumerationSolution* extend(EnumerationSolution* base, const Tuple::Assignment& extension);
-	static EnumerationSolution* unify(EnumerationSolution* left, EnumerationSolution* right);
-	static EnumerationSolution* join(EnumerationSolution* left, EnumerationSolution* right);
+	NonNormalizedAlgorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, const char* program, sharp::NormalizationType normalizationType = sharp::NoNormalization, bool ignoreOptimization = false, unsigned int level = 0);
 
-	const std::set<Tuple::Assignment>& getSolutions() const;
+protected:
+	virtual void declareBag(std::ostream& out, const sharp::ExtendedHypertree& node);
+	virtual void declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables);
+	virtual const char* getUserProgram(const sharp::ExtendedHypertree& node);
 
 private:
-	EnumerationSolution();
-	std::set<Tuple::Assignment> assignments;
+	const char* program;
 };
-
-} // namespace solution

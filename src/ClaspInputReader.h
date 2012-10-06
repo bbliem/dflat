@@ -23,7 +23,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <clasp/reader.h>
 #include <gringo/inclit.h>
 
-//class GringoOutputProcessor;
 #include "GringoOutputProcessor.h"
 
 class ClaspInputReader : public Clasp::Input {

@@ -24,41 +24,40 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solution {
 
-CountingPlan::CountingPlan(const CountingSolution::CountType& count)
-	: Plan(LEAF), count(count)
+CountingPlan::CountingPlan(const CountingSolution::CountType& count, unsigned cost, unsigned currentCost)
+	: Plan(LEAF), count(count), cost(cost), currentCost(currentCost)
 {
 }
 
-CountingPlan* CountingPlan::leaf(const sharp::Tuple&)
+CountingPlan* CountingPlan::leaf(const Tuple& tuple)
 {
-	return new CountingPlan(1);
-}
-
-CountingPlan* CountingPlan::extend(const CountingPlan* base, const sharp::Tuple&)
-{
-	return new CountingPlan(base->count);
+	assert(!tuple.getCost() || tuple.getCurrentCost() == tuple.getCost());
+	return new CountingPlan(1, tuple.getCost(), tuple.getCurrentCost());
 }
 
 CountingPlan* CountingPlan::unify(const CountingPlan* left, const CountingPlan* right)
 {
-	return new CountingPlan(left->count + right->count);
+	assert(left->currentCost == right->currentCost);
+	// If either left or right is more expensive than the other, we can dispense with it
+	if(left->cost < right->cost)
+		return new CountingPlan(*left);
+	else if(right->cost < left->cost)
+		return new CountingPlan(*right);
+	else // left->cost == right->cost
+		return new CountingPlan(left->count + right->count, left->cost, left->currentCost);
 }
 
-CountingPlan* CountingPlan::join(const CountingPlan* left, const CountingPlan* right, const sharp::Tuple&)
+CountingPlan* CountingPlan::join(const Tuple& joined, const CountingPlan* left, const CountingPlan* right)
 {
-	return new CountingPlan(left->count * right->count);
+	if(right)
+		return new CountingPlan(left->count * right->count, joined.getCost(), joined.getCurrentCost());
+	return new CountingPlan(left->count, joined.getCost(), joined.getCurrentCost());
 }
 
 sharp::Solution* CountingPlan::materializeLeaf() const
 {
 	assert(operation == LEAF);
-	return new CountingSolution(count);
-}
-
-sharp::Solution* CountingPlan::materializeExtension() const
-{
-	assert(false);
-	return 0;
+	return new CountingSolution(count, cost);
 }
 
 sharp::Solution* CountingPlan::materializeUnion() const

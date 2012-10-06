@@ -23,43 +23,37 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "DecisionPlan.h"
 #include "DecisionSolution.h"
 
-
 namespace solution {
 
-DecisionPlan::DecisionPlan()
-	: sharp::Plan(LEAF)
+DecisionPlan::DecisionPlan(const Tuple& tuple)
+	: sharp::Plan(LEAF), cost(tuple.getCost()), currentCost(tuple.getCurrentCost())
 {
 }
 
-DecisionPlan* DecisionPlan::leaf(const sharp::Tuple&)
+DecisionPlan* DecisionPlan::leaf(const Tuple& tuple)
 {
-	return new DecisionPlan;
+	assert(!tuple.getCost() || tuple.getCurrentCost() == tuple.getCost());
+	return new DecisionPlan(tuple);
 }
 
-DecisionPlan* DecisionPlan::extend(const DecisionPlan*, const sharp::Tuple&)
+DecisionPlan* DecisionPlan::unify(const DecisionPlan* left, const DecisionPlan* right)
 {
-	return new DecisionPlan;
+	assert(left->currentCost == right->currentCost);
+	// If either left or right is more expensive than the other, we can dispense with it
+	if(left->cost < right->cost)
+		return new DecisionPlan(*left);
+	else // left->cost >= right->cost
+		return new DecisionPlan(*right);
 }
 
-DecisionPlan* DecisionPlan::unify(const DecisionPlan*, const DecisionPlan*)
+DecisionPlan* DecisionPlan::join(const Tuple& joined, const DecisionPlan* left, const DecisionPlan* right)
 {
-	return new DecisionPlan;
-}
-
-DecisionPlan* DecisionPlan::join(const DecisionPlan*, const DecisionPlan*, const sharp::Tuple&)
-{
-	return new DecisionPlan;
+	return new DecisionPlan(joined);
 }
 
 sharp::Solution* DecisionPlan::materializeLeaf() const
 {
-	return new DecisionSolution;
-}
-
-sharp::Solution* DecisionPlan::materializeExtension() const
-{
-	assert(false);
-	return 0;
+	return new DecisionSolution(cost);
 }
 
 sharp::Solution* DecisionPlan::materializeUnion() const
