@@ -11,9 +11,6 @@ reachesViaRemoved(S,X,Z) :- sub(_,S), reachesViaRemoved(S,X,Y), removed(Y), mapp
 % nextCurrent(S,X,Y): In "subtuple" S, Y is the next current vertex reachable from the removed X via "to" or "towards"
 nextCurrent(S,X,Y) :- reachesViaRemoved(S,X,Y), current(Y).
 
-% commonVertex(S0,S1,X): X is contained in both bags of the "subtuples" S0 and S1
-commonVertex(S0,S1,X) :- sub(T0,S0), sub(T1,S1), childTuple(T0,N0), childTuple(T1,N1), childBag(N0,X), childBag(N1,X).
-
 %%%
 
 1 { chosenChildTuple(T) : childTuple(T,N) } 1 :- childNode(N).
@@ -40,7 +37,8 @@ hadPredecessor(X) :- oldTowards(_,X).
 :- chosenSubTuple(S0;S1), S0 != S1, mapped(S0,X,towards(_)), mapped(S1,X,towards(_)).
 
 % When joining tuple T, corresponding to bag B, with tuple T', corresponding to bag B', it must hold: For each edge (x,y) in the subgraph induced by B \cap B': (x,y) is in T iff (x,y) is in T'.
-:- chosenSubTuple(S0;S1), S0 != S1, commonVertex(S0,S1,X;Y), mapped(S0,X,to(Y)), not mapped(S1,X,to(Y)).
+% Because of connectedness, this is equivalent to: For each child tuple and each pair of vertices in the current bag and the bag of the child tuple: There is an edge between these vertices in the current tuple iff this edge is also in the child tuple.
+:- map(1,X,to(Y)), chosenChildTuple(T), childTuple(T,N), childBag(N,X;Y), not mapped(T,X,to(Y)).
 
 % If X is removed, it occurs only in one child (by connectedness). We require that the tuple of this child fully integrates X into a path.
 :- removed(X), not hadPredecessor(X).
