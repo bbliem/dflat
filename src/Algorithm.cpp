@@ -142,7 +142,8 @@ sharp::TupleSet* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertr
 		delete childTuples;
 	} else {
 		assert(node->getType() == sharp::Leaf);
-		newTuples = exchangeLeaf(node->getVertices(), node->getIntroducedVertices(), node->getRemovedVertices());
+//		newTuples = exchangeLeaf(node->getVertices(), node->getIntroducedVertices(), node->getRemovedVertices());
+		newTuples = exchangeLeaf(node->getVertices(), node->getVertices(), node->getRemovedVertices());
 	}
 
 #ifdef VERBOSE

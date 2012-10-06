@@ -40,10 +40,10 @@ for f in $@; do
 		count=$count2
 	fi
 
-	read count3 time exitCode <<< $(\time -f "%U %S %x" bash -c "../gringo $f asp_encodings/3col/monolithic.lp 2>/dev/null | ../clasp-2.0.2-st-x86-linux -q 0" 2>&1 | tail -n4 | awk 'NR == 1 { printf("%s ", $3)} NR == 4 {printf("%s %s", $1+$2, $3)}')
+	read count3 time exitCode <<< $(\time -f "%U %S %x" bash -c "../gringo $f asp_encodings/3col/monolithic.lp 2>/dev/null | ../clasp-2.0.2-st-x86-linux -q 0" 2>&1 | tail -n5 | awk 'NR == 1 { if($0 ~ /^Models/) printf("%s ", $3); else printf("? ")} NR == 5 {printf("%s %s", $1+$2, $3)}')
 	printTime $time $exitCode
 
-	if [[ $exitCode -eq 0 ]]; then
+	if [[ $exitCode -eq 10 || $exitCode -eq 20 ]]; then
 		count=$count3
 	fi
 
