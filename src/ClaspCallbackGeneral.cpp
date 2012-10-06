@@ -73,11 +73,15 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 				else {
 					Row::ExtensionPointerTuple extensionPointers;
 					extensionPointers.reserve(predecessors.size());
-					for(unsigned int i = 0; i < predecessors.size(); ++i) {
-						const std::string& p = predecessors[i];
-						// Row number is after the first '_'
-						unsigned int rowNumber = boost::lexical_cast<unsigned int>(std::string(p, p.find('_') + 1));
-						extensionPointers.push_back(dynamic_cast<const Row*>(childTablesVec[i][rowNumber]));
+					foreach(const string& predecessor, predecessors) {
+						// Child table number is before, row number is after the first '_'
+						const unsigned int underscorePos = predecessor.find('_');
+						unsigned int tableNumber = boost::lexical_cast<unsigned int>(std::string(predecessor, 1, underscorePos-1)); // predecessor starts with 'r'
+						unsigned int rowNumber = boost::lexical_cast<unsigned int>(std::string(predecessor, underscorePos + 1));
+						// TODO: Instead of the following assertions, throw assertions if invalid extension pointers are given. Also, add a check that ensures that if extension pointers are given, exactly one is given for each child table.
+						assert(tableNumber < childTablesVec.size());
+						assert(rowNumber < childTablesVec[tableNumber].size());
+						extensionPointers.push_back(dynamic_cast<const Row*>(childTablesVec[tableNumber][rowNumber]));
 					}
 					row->addExtensionPointerTuple(extensionPointers);
 				}
@@ -134,7 +138,7 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 			if(atom.level >= numLevels)
 				throw std::runtime_error("'extend' atom with too high level");
 #endif
-			path[atom.level].first.push_back(atom.extended);
+			path[atom.level].first.insert(atom.extended);
 		}
 	}
 	foreach(ItemAtom& atom, itemAtoms) {

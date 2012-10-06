@@ -84,7 +84,7 @@ private:
 
 	// Because one table row can be constituted of multiple AS's, we cannot insert a new row upon arrival of a new AS but must rather collect all AS data until the solve state is finished.
 	// By "path" we denote a path from root to leaf in Row::Tree. Each AS characterizes exactly one path.
-	typedef std::vector<std::string> ExtendArguments;
+	typedef std::set<std::string> ExtendArguments;
 	typedef std::pair<ExtendArguments, Row::Items> ExtendArgumentsAndItems;
 	typedef std::vector<ExtendArgumentsAndItems> Path; // XXX: Check if vector isn't too inefficient because of reallocation when changing elements
 
