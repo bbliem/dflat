@@ -40,7 +40,7 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 
 			foreach(const GringoOutputProcessor::ItemAtom& it, gringoOutput.getItemAtoms())
 				itemAtoms.push_back(ItemAtom(it.level, it.value, symTab[it.symbolTableKey].lit));
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowAtoms())
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getExtendAtoms())
 				extendAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;

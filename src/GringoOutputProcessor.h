@@ -45,7 +45,7 @@ public:
 	const std::vector<ItemAtom>& getItemAtoms() const { return itemAtoms; }
 
 	typedef std::map<long, Clasp::SymbolTable::key_type> LongToSymbolTableKey;
-	const LongToSymbolTableKey& getChosenChildRowAtoms() const { return extendAtoms; }
+	const LongToSymbolTableKey& getExtendAtoms() const { return extendAtoms; }
 	const LongToSymbolTableKey& getCurrentCostAtoms() const { return currentCostAtoms; }
 	const LongToSymbolTableKey& getCostAtoms() const { return costAtoms; }
 

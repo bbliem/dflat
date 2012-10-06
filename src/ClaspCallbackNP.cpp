@@ -45,7 +45,7 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				itemAtoms.push_back(ItemAtom(it.value, symTab[it.symbolTableKey].lit));
 			}
 
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowAtoms())
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getExtendAtoms())
 				extendAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;
