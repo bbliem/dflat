@@ -27,12 +27,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Problem.h"
 
 Row::Row(const Row::Items& topLevelItems)
-	: tree(topLevelItems), count(0), currentCost(0), cost(0)
+	: tree(topLevelItems), count(0), currentCost(0), cost(0), index(0)
 {
 }
 
 Row::Row(const Row::Tree& tree)
-	: tree(tree), count(0), currentCost(0), cost(0)
+	: tree(tree), count(0), currentCost(0), cost(0), index(0)
 {
 }
 
