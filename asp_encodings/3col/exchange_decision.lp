@@ -1,11 +1,11 @@
 color(red;green;blue).
 
-1 { map(X,C) : color(C) } 1 :- current(X).
-:- edge(X,Y), map(X,C), map(Y,C).
+1 { item(col(X,C)) : color(C) } 1 :- current(X).
+:- edge(X,Y), item(col(X,C)), item(col(Y,C)).
 
-noMatch(I) :- childTuple(I), map(X,C), mapped(I,X,OldC), C != OldC.
-match :- childTuple(I), not noMatch(I).
+noMatch(R) :- childRow(R,_), item(col(X,C)), childItem(R,col(X,OldC)), C != OldC.
+match :- childRow(R,_), not noMatch(R).
 :- not match.
 
 #hide.
-#show map/2.
+#show item/1.

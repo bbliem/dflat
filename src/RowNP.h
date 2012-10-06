@@ -36,7 +36,6 @@ public:
 	virtual bool matches(const Row& other) const;
 	virtual RowNP* join(const Row& other) const;
 	virtual void declare(std::ostream& out, const sharp::Table::value_type& rowAndSolution, unsigned childNumber) const;
-	virtual void declare(std::ostream& out, const sharp::Table::value_type& rowAndSolution, const char* predicateName = "childRow") const;
 	virtual const Items& getItems() const;
 	virtual unsigned int getCurrentCost() const;
 	virtual unsigned int getCost() const;
@@ -49,7 +48,4 @@ public:
 	// TODO: We might distinguish rows with cost information from those without, but OTOH the memory consumption should not be that critical
 	unsigned int currentCost;
 	unsigned int cost;
-	
-private:
-	void declareRowExceptName(std::ostream& out, const std::string& rowName) const;
 };

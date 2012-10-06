@@ -1,16 +1,14 @@
-1 { chosenChildTuple(I) : childTuple(I) } 1.
-map(X,Y) :- current(X), chosenChildTuple(I), mapped(I,X,Y).
+1 { extend(R) : childRow(R,_) } 1.
+item(X) :- current(X), extend(R), childItem(R,X).
 
-1 { in(X), out(X) } 1 :- introduced(X).
-map(X,in) :- in(X).
-map(X,out) :- out(X).
-:- edge(X,Y), map(X,out), map(Y,out).
+{ item(X) : introduced(X) }.
+:- edge(X,Y), current(X;Y), not item(X;Y).
 
-currentCost(C) :- C = #count{ map(_,in) }. % Cost of current vertices
-cost(C) :- chosenChildTuple(I), childCost(I,CC), IC = #count{ in(_) }, C = CC + IC.
+currentCost(C) :- C = #count{ item(_) }. % Cost of current vertices
+cost(CC + IC) :- extend(R), childCost(R,CC), IC = #count{ item(X) : introduced(X) }.
 
 #hide.
-#show chosenChildTuple/1.
+#show extend/1.
 #show currentCost/1.
 #show cost/1.
-#show map/2.
+#show item/1.

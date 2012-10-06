@@ -46,34 +46,6 @@ SemiNormalizedAlgorithm::SemiNormalizedAlgorithm(sharp::Problem& problem, const 
 	assert(normalizationType == sharp::DefaultNormalization || normalizationType == sharp::SemiNormalization);
 }
 
-void SemiNormalizedAlgorithm::declareBag(std::ostream& out, const sharp::ExtendedHypertree& node)
-{
-	foreach(sharp::Vertex v, node.getVertices())
-		out << "current(" << problem.getVertexName(v) << ")." << std::endl;
-	foreach(sharp::Vertex v, node.getIntroducedVertices())
-		out << "introduced(" << problem.getVertexName(v) << ")." << std::endl;
-	foreach(sharp::Vertex v, node.getRemovedVertices())
-		out << "removed(" << problem.getVertexName(v) << ")." << std::endl;
-
-	if(node.isRoot())
-		out << "root." << std::endl;
-}
-
-void SemiNormalizedAlgorithm::declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<Table*>& childTables)
-{
-	if(node.getType() == sharp::Branch) {
-		assert(childTables.size() == 2);
-		foreach(const Table::value_type& rowAndSolution, *childTables[0])
-			dynamic_cast<Row*>(rowAndSolution.first)->declare(out, rowAndSolution, "childRowL");
-		foreach(const Table::value_type& rowAndSolution, *childTables[1])
-			dynamic_cast<Row*>(rowAndSolution.first)->declare(out, rowAndSolution, "childRowR");
-	} else {
-		assert(childTables.size() == 1);
-		foreach(const Table::value_type& rowAndSolution, *childTables[0])
-			dynamic_cast<Row*>(rowAndSolution.first)->declare(out, rowAndSolution);
-	}
-}
-
 const char* SemiNormalizedAlgorithm::getUserProgram(const sharp::ExtendedHypertree& node)
 {
 	return node.getType() == sharp::Branch ? joinNodeProgram : exchangeNodeProgram;

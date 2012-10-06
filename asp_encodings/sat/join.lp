@@ -1,15 +1,7 @@
-1 { chosenChildTupleL(I) : childTupleL(I) } 1.
-1 { chosenChildTupleR(I) : childTupleR(I) } 1.
-
-:- mapped(L,A,X), mapped(R,A,Y), atom(A), chosenChildTupleL(L), chosenChildTupleR(R), X != Y.
-
-map(X,true) :- chosenChildTupleL(I), mapped(I,X,true).
-map(X,true) :- chosenChildTupleR(I), mapped(I,X,true).
-map(X,false) :- current(X), not map(X,true).
-
-
+1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
+:- extend(A;B), childItem(A,I), not childItem(B,I), atom(I).
+item(I) :- extend(R), childItem(R,I).
 
 #hide.
-#show map/2.
-#show chosenChildTupleL/1.
-#show chosenChildTupleR/1.
+#show item/1.
+#show extend/1.

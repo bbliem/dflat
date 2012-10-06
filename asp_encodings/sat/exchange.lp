@@ -1,22 +1,16 @@
-% Which tuple to use?
-1 { chosenChildTuple(I) : childTuple(I) } 1.
-% Some child tuples cannot be used since they are killed
-:- clause(C), removed(C), chosenChildTuple(I), not mapped(I,C,true).
+1 { extend(R) : childRow(R,_) } 1.
+% Some child rows cannot be used since they are killed
+:- clause(C), removed(C), extend(R), not childItem(R,C).
 
 % True atoms and satisfied clauses remain so unless removed
-map(X,true) :- chosenChildTuple(I), mapped(I,X,true), current(X).
+item(X) :- extend(R), childItem(R,X), current(X).
 
 % Guess truth value of introduced atoms
-1 { map(A,true), map(A,false) } 1 :- atom(A), introduced(A).
+{ item(A) : atom(A) : introduced(A) }.
 % Through the guess, clauses may become satisfied
-map(C,true) :- pos(C,A), current(C), map(A,true).
-map(C,true) :- neg(C,A), current(C), map(A,false).
-
-% Make sure each vertex has an assignment: Anything not assigned yet is assumed to be false.
-map(X,false) :- current(X), not map(X,true).
-
-
+item(C) :- current(C;A), pos(C,A), item(A).
+item(C) :- current(C;A), neg(C,A), not item(A).
 
 #hide.
-#show map/2.
-#show chosenChildTuple/1.
+#show item/1.
+#show extend/1.

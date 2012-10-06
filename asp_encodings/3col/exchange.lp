@@ -1,11 +1,11 @@
 color(red;green;blue).
 
-1 { chosenChildTuple(I) : childTuple(I) } 1.
+1 { extend(R) : childRow(R,_) } 1.
 
-map(X,C) :- chosenChildTuple(I), mapped(I,X,C), current(X).
-1 { map(X,C) : color(C) } 1 :- introduced(X).
-:- edge(X,Y), map(X,C), map(Y,C).
+item(col(X,C)) :- extend(R), childItem(R,col(X,C)), current(X).
+1 { item(col(X,C)) : color(C) } 1 :- introduced(X).
+:- edge(X,Y), item(col(X,C)), item(col(Y,C)).
 
 #hide.
-#show map/2.
-#show chosenChildTuple/1.
+#show item/1.
+#show extend/1.

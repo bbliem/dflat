@@ -31,35 +31,6 @@ NonNormalizedAlgorithm::NonNormalizedAlgorithm(sharp::Problem& problem, const sh
 {
 }
 
-void NonNormalizedAlgorithm::declareBag(std::ostream& out, const sharp::ExtendedHypertree& node)
-{
-	for(unsigned i = 0; i < node.getChildren()->size(); ++i)
-		out << "childNode(" << i << ")." << std::endl;
-
-	foreach(sharp::Vertex v, node.getVertices())
-		out << "current(" << problem.getVertexName(v) << ")." << std::endl;
-
-	std::list<sharp::Hypertree*>::const_iterator it = node.getChildren()->begin();
-	for(unsigned i = 0; it != node.getChildren()->end(); ++i) {
-		foreach(sharp::Vertex v, dynamic_cast<sharp::ExtendedHypertree*>(*it)->getVertices())
-			out << "childBag(" << i << ',' << problem.getVertexName(v) << ")." << std::endl;
-		++it;
-	}
-	out << "-introduced(X) :- childBag(_,X)." << std::endl;
-	out << "introduced(X) :- current(X), not -introduced(X)." << std::endl;
-	out << "removed(X) :- childBag(_,X), not current(X)." << std::endl;
-
-	if(node.isRoot())
-		out << "root." << std::endl;
-}
-
-void NonNormalizedAlgorithm::declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<Table*>& childTables)
-{
-	for(unsigned i = 0; i < childTables.size(); ++i)
-		foreach(const Table::value_type& rowAndSolution, *childTables[i])
-			dynamic_cast<Row*>(rowAndSolution.first)->declare(out, rowAndSolution, i);
-}
-
 const char* NonNormalizedAlgorithm::getUserProgram(const sharp::ExtendedHypertree& node)
 {
 	return program;

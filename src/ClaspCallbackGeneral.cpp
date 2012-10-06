@@ -132,7 +132,7 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 				throw std::runtime_error(err.str());
 			}
 #endif
-			path[atom.level].push_back(atom.value);
+			path[atom.level].insert(atom.value);
 		}
 	}
 	// A path does not have to use all levels, but up to the highest used level it must be connected.

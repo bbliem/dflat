@@ -1,22 +1,20 @@
-1 { chosenChildTuple(T) : childTuple(T,N) } 1 :- childNode(N).
-:- chosenChildTuple(A), chosenChildTuple(B), mapped(A,X,VA), mapped(B,X,VB), VA != VB.
+1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
+:- extend(A;B), childItem(A,X), childRow(B,N), childBag(N,X), not childItem(B,X).
 
-map(X,Y) :- chosenChildTuple(I), mapped(I,X,Y), current(X).
+item(X) :- extend(R), childItem(R,X), current(X).
 
-1 { in(X), out(X) } 1 :- introduced(X).
-map(X,in) :- in(X).
-map(X,out) :- out(X).
-:- edge(X,Y), map(X,out), map(Y,out).
+{ item(X) : introduced(X) }.
+:- edge(X,Y), current(X;Y), not item(X;Y).
 
 % If a vertex is in more than one child node, it must be in the current node (connectedness).
 % If we add the costs of all predecessors, that which we count multiple times is due to vertices which are also in the current node.
 % Thus, add costs of all predecessors and subtract for each current vertex how often it was counted.
 
-currentCost(C) :- C = #count { map(_,in) }.
-sumCosts(S) :- S = #sum [ chosenChildTuple(I) : childCost(I,C) = C ].
+currentCost(C) :- C = #count { item(_) }.
+sumCosts(S) :- S = #sum [ extend(R) : childCost(R,C) = C ].
 
-inChosenChild(V,I) :- current(V), chosenChildTuple(I), mapped(I,V,in).
-numCounted(V,N) :- current(V), N = #count { inChosenChild(V,_) }.
+inExtendedRow(V,R) :- current(V), extend(R), childItem(R,V).
+numCounted(V,N) :- current(V), N = #count { inExtendedRow(V,_) }.
 subtract(C) :- C = #sum [ numCounted(_,N) = N ].
 
 cost(Sum - Sub + Cur) :- currentCost(Cur), sumCosts(Sum), subtract(Sub).
@@ -25,6 +23,6 @@ cost(Sum - Sub + Cur) :- currentCost(Cur), sumCosts(Sum), subtract(Sub).
 
 
 #hide.
-#show chosenChildTuple/1.
+#show extend/1.
 #show cost/1.
-#show map/2.
+#show item/1.

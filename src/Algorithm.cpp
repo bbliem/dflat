@@ -43,6 +43,40 @@ Algorithm::Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFact
 {
 }
 
+void Algorithm::declareBag(std::ostream& out, const sharp::ExtendedHypertree& node)
+{
+	for(unsigned i = 0; i < node.getChildren()->size(); ++i)
+		out << "childNode(" << i << ")." << std::endl;
+
+	foreach(sharp::Vertex v, node.getVertices())
+		out << "current(" << problem.getVertexName(v) << ")." << std::endl;
+
+	std::list<sharp::Hypertree*>::const_iterator it = node.getChildren()->begin();
+	for(unsigned i = 0; it != node.getChildren()->end(); ++i) {
+		foreach(sharp::Vertex v, dynamic_cast<sharp::ExtendedHypertree*>(*it)->getVertices())
+			out << "childBag(" << i << ',' << problem.getVertexName(v) << ")." << std::endl;
+		++it;
+	}
+
+	if(node.isRoot())
+		out << "root." << std::endl;
+}
+
+void Algorithm::declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<Table*>& childTables)
+{
+	for(unsigned i = 0; i < childTables.size(); ++i)
+		foreach(const Table::value_type& rowAndSolution, *childTables[i])
+			dynamic_cast<Row*>(rowAndSolution.first)->declare(out, rowAndSolution, i);
+}
+
+void Algorithm::printAuxiliaryRules(std::ostream& out)
+{
+	// For convenience...
+	out << "-introduced(X) :- childBag(_,X)." << std::endl;
+	out << "introduced(X) :- current(X), not -introduced(X)." << std::endl;
+	out << "removed(X) :- childBag(_,X), not current(X)." << std::endl;
+}
+
 Table* Algorithm::computeTable(const sharp::ExtendedHypertree& node, const std::vector<Table*>& childTables)
 {
 	assert((node.getChildren()->size() == 0 && childTables.size() == 1) || node.getChildren()->size() == childTables.size());
@@ -72,6 +106,9 @@ Table* Algorithm::computeTable(const sharp::ExtendedHypertree& node, const std::
 	std::cout << std::endl << "Child tables input:" << std::endl << childTableInput->str() << std::endl;
 #endif
 
+	std::stringstream* auxiliaryRulesInput = new std::stringstream;
+	printAuxiliaryRules(*auxiliaryRulesInput);
+
 	// Put these inputs together
 	Streams inputStreams;
 	inputStreams.addFile(getUserProgram(node), false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
@@ -79,6 +116,7 @@ Table* Algorithm::computeTable(const sharp::ExtendedHypertree& node, const std::
 	inputStreams.appendStream(Streams::StreamPtr(instance), "<instance>");
 	inputStreams.appendStream(Streams::StreamPtr(bag), "<bag>");
 	inputStreams.appendStream(Streams::StreamPtr(childTableInput), "<child_rows>");
+	inputStreams.appendStream(Streams::StreamPtr(auxiliaryRulesInput), "<aux_rules>");
 
 	// Call the ASP solver
 	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();

@@ -28,8 +28,6 @@ public:
 	NonNormalizedAlgorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, const char* program, sharp::NormalizationType normalizationType = sharp::NoNormalization, bool ignoreOptimization = false, unsigned int level = 0);
 
 protected:
-	virtual void declareBag(std::ostream& out, const sharp::ExtendedHypertree& node);
-	virtual void declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables);
 	virtual const char* getUserProgram(const sharp::ExtendedHypertree& node);
 
 private:

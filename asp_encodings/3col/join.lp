@@ -1,10 +1,8 @@
 % This is just for demonstration. Use the default implementation instead.
-1 { chosenChildTupleL(I) : childTupleL(I) } 1.
-1 { chosenChildTupleR(I) : childTupleR(I) } 1.
-:- chosenChildTupleL(L), chosenChildTupleR(R), mapped(L,X,A), not mapped(R,X,A).
-map(X,V) :- chosenChildTupleL(L), mapped(L,X,V).
+1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
+:- extend(A;B), childItem(A,I), not childItem(B,I).
+item(I) :- extend(R), childItem(R,I).
 
 #hide.
-#show map/2.
-#show chosenChildTupleL/1.
-#show chosenChildTupleR/1.
+#show item/1.
+#show extend/1.

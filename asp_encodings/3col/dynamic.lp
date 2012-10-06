@@ -1,15 +1,13 @@
 color(red;green;blue).
 
-1 { chosenChildTuple(T) : childTuple(T,N) } 1 :- childNode(N).
-:- chosenChildTuple(A), chosenChildTuple(B), mapped(A,X,VA), mapped(B,X,VB), VA != VB.
-% Or, equivalently... (which avoids the inequality but this probably does not matter since already the grounder can figure everything out)
-%:- chosenChildTuple(A), childTuple(A,NA), chosenChildTuple(B), childTuple(B,NB), childBag(NA,X), childBag(NB,X), mapped(A,X,V), not mapped(B,X,V).
+1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
+:- extend(A), extend(B), childItem(A,col(X,VA)), childItem(B,col(X,VB)), VA != VB.
 
-map(X,C) :- chosenChildTuple(I), mapped(I,X,C), current(X).
+item(col(X,C)) :- extend(I), childItem(I,col(X,C)), current(X).
 
-1 { map(X,C) : color(C) } 1 :- introduced(X).
-:- edge(X,Y), map(X,C), map(Y,C).
+1 { item(col(X,C)) : color(C) } 1 :- introduced(X).
+:- edge(X,Y), item(col(X,C)), item(col(Y,C)).
 
 #hide.
-#show map/2.
-#show chosenChildTuple/1.
+#show item/1.
+#show extend/1.

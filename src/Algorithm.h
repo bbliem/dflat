@@ -32,14 +32,17 @@ public:
 	Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, sharp::NormalizationType normalizationType, bool ignoreOptimization = false, unsigned int level = 0);
 
 protected:
-	//! Writes the facts describing node's bags to "out".
-	virtual void declareBag(std::ostream& out, const sharp::ExtendedHypertree& node) = 0;
-	//! Writes the facts describing the child tables to "out".
-	virtual void declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables) = 0;
 	//! @return the file name of the user program to compute node's table
 	virtual const char* getUserProgram(const sharp::ExtendedHypertree& node) = 0;
 
-	//! Calls declareBag() and declareChildTables() and runs the ASP solver to compute node's table.
+	//! Writes the facts describing node's bags to "out".
+	void declareBag(std::ostream& out, const sharp::ExtendedHypertree& node);
+	//! Writes the facts describing the child tables to "out".
+	void declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables);
+	//! Writes auxiliary rules to "out".
+	void printAuxiliaryRules(std::ostream& out);
+
+	//! Calls declareBag(), declareChildTables(), printAuxiliaryRules(), and runs the ASP solver to compute the node's table.
 	virtual sharp::Table* computeTable(const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables);
 
 	virtual sharp::Table* evaluateNode(const sharp::ExtendedHypertree* node);

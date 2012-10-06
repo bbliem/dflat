@@ -70,15 +70,9 @@ void RowNP::declare(std::ostream& out, const sharp::Table::value_type& rowAndSol
 	std::ostringstream rowName;
 	rowName << 'r' << &rowAndSolution;
 	out << "childRow(" << rowName.str() << ',' <<  childNumber << ")." << std::endl;
-	declareRowExceptName(out, rowName.str());
-}
-
-void RowNP::declare(std::ostream& out, const sharp::Table::value_type& rowAndSolution, const char* predicateName) const
-{
-	std::ostringstream rowName;
-	rowName << 't' << &rowAndSolution;
-	out << predicateName << '(' << rowName.str() << ")." << std::endl;
-	declareRowExceptName(out, rowName.str());
+	out << "childCost(" << rowName.str() << ',' << cost << ")." << std::endl;
+	foreach(const std::string& value, items)
+		out << "childItem(" << rowName.str() << ',' << value << ")." << std::endl;
 }
 
 const RowNP::Items& RowNP::getItems() const
@@ -105,10 +99,3 @@ void RowNP::print(std::ostream& str) const
 	str << "(cost " << cost << ")" << std::endl;
 }
 #endif
-
-inline void RowNP::declareRowExceptName(std::ostream& out, const std::string& rowName) const
-{
-	out << "childCost(" << rowName << ',' << cost << ")." << std::endl;
-	foreach(const std::string& value, items)
-		out << "childItem(" << rowName << ',' << value << ")." << std::endl;
-}

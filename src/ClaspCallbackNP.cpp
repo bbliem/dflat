@@ -120,7 +120,7 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 
 	foreach(ItemAtom& atom, itemAtoms) {
 		if(s.isTrue(atom.literal))
-			newRow.items.push_back(atom.value);
+			newRow.items.insert(atom.value);
 	}
 
 	sharp::Plan* plan;

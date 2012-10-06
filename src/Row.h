@@ -42,12 +42,7 @@ struct Row : public sharp::Row
 	//! @param childNumber To which child node this row belongs; second argument of childRow/2
 	virtual void declare(std::ostream& out, const sharp::Table::value_type& rowAndSolution, unsigned childNumber) const = 0;
 
-	//! Declares this row in ASP. The number of the child table containing it will not be declared (can be used, e.g., on semi-normalized TDs) but the name of the predicate that should declare this row's name can be specified.
-	//! @param rowAndSolution reference to the entry in the Table that contains this row
-	//! @param predicateName name of the predicate that should be used to declare this row's name
-	virtual void declare(std::ostream& out, const sharp::Table::value_type& rowAndSolution, const char* predicateName = "childRow") const = 0;
-
-	typedef std::vector<std::string> Items;
+	typedef std::set<std::string> Items; // Maybe a vector would be more efficient, but we need the sortedness for, e.g., the default join.
 	/**
 	 * Each row consists of a set of items (often assignments of values to
 	 * vertex names), and it might have additional information (e.g.

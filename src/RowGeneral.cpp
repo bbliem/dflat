@@ -97,15 +97,15 @@ void RowGeneral::declare(std::ostream& out, const sharp::Table::value_type& rowA
 	std::ostringstream rowName;
 	rowName << 'r' << &rowAndSolution;
 	out << "childRow(" << rowName.str() << ',' << childNumber << ")." << std::endl;
-	declareRowExceptName(out, rowName.str());
-}
+	out << "childCost(" << rowName.str() << ',' << cost << ")." << std::endl;
 
-void RowGeneral::declare(std::ostream& out, const sharp::Table::value_type& rowAndSolution, const char* predicateName) const
-{
-	std::ostringstream rowName;
-	rowName << 'r' << &rowAndSolution;
-	out << predicateName << '(' << rowName.str() << ")." << std::endl;
-	declareRowExceptName(out, rowName.str());
+	assert(tree.children.size() == 1);
+	Tree::Children::const_iterator root = tree.children.begin();
+	// Print the top-level row
+	foreach(const std::string& value, root->first)
+		out << "childItem(" << rowName.str() << ',' << value << ")." << std::endl;
+	// Print subsidiary rows
+	declareTree(root->second, out, rowName.str());
 }
 
 const Row::Items& RowGeneral::getItems() const
@@ -144,16 +144,3 @@ void RowGeneral::print(std::ostream& str) const
 	str << "(cost " << cost << ")" << std::endl;
 }
 #endif
-
-inline void RowGeneral::declareRowExceptName(std::ostream& out, const std::string& rowName) const
-{
-	out << "childCost(" << rowName << ',' << cost << ")." << std::endl;
-
-	assert(tree.children.size() == 1);
-	Tree::Children::const_iterator root = tree.children.begin();
-	// Print the top-level row
-	foreach(const std::string& value, root->first)
-		out << "childItem(" << rowName << ',' << value << ")." << std::endl;
-	// Print subsidiary rows
-	declareTree(root->second, out, rowName);
-}
