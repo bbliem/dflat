@@ -5,12 +5,13 @@
 satgen=tools/sat/instance_generator.py
 sat=build/release/sat
 
-minNumClauses=30
-maxNumClauses=60
+minNumClauses=6
+maxNumClauses=100
 stepNumClauses=2
-minNumVars=8
-maxNumVars=16
-stepNumVars=1
+
+minNumVars=6
+maxNumVars=30
+stepNumVars=2
 
 numInstances=4
 
@@ -32,6 +33,9 @@ for numClauses in $(seq $minNumClauses $stepNumClauses $maxNumClauses); do
 			$satgen $numClauses $numVars $seed > $instance
 
 			width=$($sat -s $seed --only-decompose --stats < $instance | awk '/Width:/ {print $2}' | head -n1)
+
+			[[ $width < 20 ]] || continue
+
 			directory=instances/sat/width${width}
 
 			# does an instance for this width/size already exist?
