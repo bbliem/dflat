@@ -32,8 +32,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "ClaspInputReader.h"
 #include "ClaspCallbackGeneral.h"
 #include "ClaspCallbackNP.h"
-#include "TupleGeneral.h"
-#include "TupleNP.h"
 
 using sharp::TupleTable;
 
@@ -101,29 +99,13 @@ TupleTable* Algorithm::evaluateNode(const sharp::ExtendedHypertree* node)
 	unsigned numChildTuples = 0;
 #endif
 
-	if(node->getType() == sharp::Leaf) {
-		// We pass an empty dummy child tuple to the actual leaf
-		childTables.push_back(new TupleTable);
-		Tuple* t;
-		if(level == 0)
-			t = new TupleNP;
-		else {
-			t = new TupleGeneral;
-			dynamic_cast<TupleGeneral*>(t)->tree.children[Tuple::Assignment()]; // Initialize to empty top-level assignment
-		}
-		(*childTables[0])[t] = planFactory.leaf(*t);
+	foreach(const sharp::Hypertree* child, *node->getChildren()) {
+		TupleTable* childTable = evaluateNode(dynamic_cast<const sharp::ExtendedHypertree*>(child));
+		childTables.push_back(childTable);
 #ifdef PROGRESS_REPORT
-		numChildTuples = 1;
+		numChildTuples += childTable->size();
+		++nodesProcessed;
 #endif
-	} else {
-		foreach(const sharp::Hypertree* child, *node->getChildren()) {
-			TupleTable* childTable = evaluateNode(dynamic_cast<const sharp::ExtendedHypertree*>(child));
-			childTables.push_back(childTable);
-#ifdef PROGRESS_REPORT
-			numChildTuples += childTable->size();
-			++nodesProcessed;
-#endif
-		}
 	}
 
 #ifdef PROGRESS_REPORT

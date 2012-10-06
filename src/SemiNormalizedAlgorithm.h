@@ -34,8 +34,11 @@ protected:
 	virtual const char* getUserProgram(const sharp::ExtendedHypertree& node);
 
 	virtual sharp::TupleTable* computeTable(const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables);
+	virtual sharp::ExtendedHypertree* prepareHypertreeDecomposition(sharp::ExtendedHypertree* root);
 
 private:
+	sharp::TupleTable* defaultJoin(const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables) const;
+
 	const char* exchangeNodeProgram;
 	const char* joinNodeProgram;
 };

@@ -33,18 +33,11 @@ NonNormalizedAlgorithm::NonNormalizedAlgorithm(sharp::Problem& problem, const sh
 
 void NonNormalizedAlgorithm::declareBag(std::ostream& out, const sharp::ExtendedHypertree& node)
 {
-	// If there are no child nodes (i.e., this is a leaf) we provide a dummy child.
-	out << "childNode(0)." << std::endl;
-	for(unsigned i = 1; i < node.getChildren()->size(); ++i)
+	for(unsigned i = 0; i < node.getChildren()->size(); ++i)
 		out << "childNode(" << i << ")." << std::endl;
 
 	foreach(sharp::Vertex v, node.getVertices())
 		out << "current(" << problem.getVertexName(v) << ")." << std::endl;
-	// TODO: Meaning of introduced and removed is not that clear with non-normalized TDs
-//	foreach(sharp::Vertex v, node.getIntroducedVertices())
-//		out << "introduced(" << problem.getVertexName(v) << ")." << std::endl;
-//	foreach(sharp::Vertex v, node.getRemovedVertices())
-//		out << "removed(" << problem.getVertexName(v) << ")." << std::endl;
 
 	std::list<sharp::Hypertree*>::const_iterator it = node.getChildren()->begin();
 	for(unsigned i = 0; it != node.getChildren()->end(); ++i) {
@@ -52,7 +45,6 @@ void NonNormalizedAlgorithm::declareBag(std::ostream& out, const sharp::Extended
 			out << "childBag(" << i << ',' << problem.getVertexName(v) << ")." << std::endl;
 		++it;
 	}
-	// XXX: Is this really necessary?
 	out << "-introduced(X) :- childBag(_,X)." << std::endl;
 	out << "introduced(X) :- current(X), not -introduced(X)." << std::endl;
 	out << "removed(X) :- childBag(_,X), not current(X)." << std::endl;

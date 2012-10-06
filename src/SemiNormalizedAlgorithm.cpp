@@ -23,8 +23,22 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "SemiNormalizedAlgorithm.h"
 #include "Tuple.h"
+#include "TupleGeneral.h"
+#include "TupleNP.h"
 
 using sharp::TupleTable;
+
+namespace {
+	void insertEmptyLeaves(sharp::Hypertree* root)
+	{
+		if(root->getChildren()->empty())
+			root->insChild(new sharp::ExtendedHypertree(sharp::VertexSet()));
+		else {
+			foreach(sharp::Hypertree* child, *root->getChildren())
+				insertEmptyLeaves(child);
+		}
+	}
+}
 
 SemiNormalizedAlgorithm::SemiNormalizedAlgorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram, sharp::NormalizationType normalizationType, bool ignoreOptimization, unsigned int level)
 	: Algorithm(problem, planFactory, instanceFacts, normalizationType, ignoreOptimization, level), exchangeNodeProgram(exchangeNodeProgram), joinNodeProgram(joinNodeProgram)
@@ -67,11 +81,51 @@ const char* SemiNormalizedAlgorithm::getUserProgram(const sharp::ExtendedHypertr
 
 TupleTable* SemiNormalizedAlgorithm::computeTable(const sharp::ExtendedHypertree& node, const std::vector<TupleTable*>& childTables)
 {
-	assert((node.getChildren()->size() == 0 && childTables.size() == 1) || node.getChildren()->size() == childTables.size());
+	assert(node.getChildren()->size() == childTables.size());
 
-	if(node.getType() != sharp::Branch || joinNodeProgram)
-		return Algorithm::computeTable(node, childTables);
+	switch(node.getType()) {
+		case sharp::Leaf:
+			{
+			assert(node.getVertices().empty());
+			// We pass an empty dummy child tuple to the actual leaf
+			TupleTable* table = new TupleTable;
+			Tuple* t;
+			if(level == 0)
+				t = new TupleNP;
+			else {
+				t = new TupleGeneral;
+				dynamic_cast<TupleGeneral*>(t)->tree.children[Tuple::Assignment()]; // Initialize to empty top-level assignment
+			}
+			(*table)[t] = planFactory.leaf(*t);
+			return table;
+			}
 
+		case sharp::Branch:
+			if(joinNodeProgram)
+				return Algorithm::computeTable(node, childTables);
+			else
+				return defaultJoin(node, childTables);
+
+		case sharp::Permutation:
+			return Algorithm::computeTable(node, childTables);
+
+		default:
+			break;
+	}
+	assert(false);
+	return 0;
+}
+
+sharp::ExtendedHypertree* SemiNormalizedAlgorithm::prepareHypertreeDecomposition(sharp::ExtendedHypertree* root)
+{
+	// Insert empty leaves
+	// FIXME: This is a workaround until SHARP lets us insert empty leaves in the normalization
+	insertEmptyLeaves(root);
+	return Algorithm::prepareHypertreeDecomposition(root);
+}
+
+TupleTable* SemiNormalizedAlgorithm::defaultJoin(const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables) const
+{
 	// Default join implementation (used when no join node program is specified)
 	TupleTable* newTable = new TupleTable;
 
