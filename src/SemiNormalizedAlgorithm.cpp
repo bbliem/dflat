@@ -70,6 +70,8 @@ Table* SemiNormalizedAlgorithm::computeTable(const sharp::ExtendedHypertree& nod
 				return defaultJoin(node, childTables);
 
 		case sharp::Permutation:
+		case sharp::Introduction:
+		case sharp::Removal:
 			return Algorithm::computeTable(node, childTables);
 
 		default:
