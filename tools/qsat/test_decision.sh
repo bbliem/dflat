@@ -2,7 +2,9 @@
 
 numInstances=100
 # Note that blocksqbf generates QBFs with \exists as innermost quantifier, so this will, for now, only work for an odd number of blocks
-instanceGen="../blocksqbf/blocksqbf -c 10 -b 3 -bs 2 -bs 2 -bs 2 -bc 1 -bc 1 -bc 1"
+#instanceGen="../blocksqbf/blocksqbf -c 10 -b 1 -bs 4 -bc 2"
+#instanceGen="../blocksqbf/blocksqbf -c 10 -b 3 -bs 2 -bs 2 -bs 2 -bc 1 -bc 1 -bc 1"
+instanceGen="../blocksqbf/blocksqbf -c 20 -b 5 -bs 1 -bs 2 -bs 1 -bs 2 -bs 1 -bc 1 -bc 1 -bc 1 -bc 1 -bc 1"
 qdimacs2lp=tools/qsat/qdimacs2lp.awk
 depqbf=../depqbf/depqbf
 dflat=build/release/dflat
