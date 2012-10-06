@@ -1,5 +1,5 @@
 % Which tuple to use?
-1 {chosenChildTuple(I) : childTuple(I)} 1.
+1 { chosenChildTuple(I) : childTuple(I) } 1.
 % Some child tuples cannot be used since they are killed
 :- clause(C), removed(C), chosenChildTuple(I), not mapped(I,C,true).
 
@@ -14,7 +14,6 @@ map(C,true) :- neg(C,A), current(C), map(A,false).
 
 % Make sure each vertex has an assignment: Anything not assigned yet is assumed to be false.
 map(X,false) :- current(X), not map(X,true).
-% TODO: Is it faster to use 1 {map(X,true), map(X,false)} 1 :- current(X).?
 
 
 

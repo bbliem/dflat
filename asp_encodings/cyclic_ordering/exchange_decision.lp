@@ -2,7 +2,6 @@
 :- map(V1,K), map(V2,K), V1 < V2.
 
 lt(V1,V2) :- map(V1,K1), map(V2,K2), K1 < K2.
-% TODO: Will using a predicate like relevantOrder/3 improve performance? relevantOrder(A,B,C) :- order(A,B,C), current(A;B;C).
 sat(A,B,C) :- order(A,B,C), lt(A,B), lt(B,C).
 sat(A,B,C) :- order(A,B,C), lt(B,C), lt(C,A).
 sat(A,B,C) :- order(A,B,C), lt(C,A), lt(A,B).

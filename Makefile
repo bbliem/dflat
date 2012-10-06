@@ -1,12 +1,13 @@
-cxxflags="-DPROGRESS_REPORT -DWITH_NODE_TIMER" # additional flags, like, e.g., -DVERBOSE
-#cxxflags="-DVERBOSE -DPROGRESS_REPORT" # additional flags, like, e.g., -DVERBOSE
+# You probably need to adjust the *_dir variables before running "make"
 
-gringo_dir=/home/bernhard/Informatik/gringo-3.0.4-source
+cxxflags="-DPROGRESS_REPORT -DWITH_NODE_TIMER"
+
+gringo_dir=$(PWD)/../../gringo-3.0.4-source
 gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a
 gringo_lib_debug=$(gringo_dir)/build/debug/lib/libgringo.a
 gringo_lib_gprof=$(gringo_dir)/build/gprof/lib/libgringo.a
 
-clasp_dir=/home/bernhard/Informatik/clasp-2.0.5
+clasp_dir=$(PWD)/../../clasp-2.0.5
 clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
