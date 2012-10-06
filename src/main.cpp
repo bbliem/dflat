@@ -59,7 +59,7 @@ namespace {
 		std::cerr << "  " << std::setw(w) << "program: " << "File name of the logic program executed in nodes (required for algorithm type \"non-normalized\")" << std::endl;
 		std::cerr << "  " << std::setw(w) << "instance: " << "File name of the set of facts representing an instance" << std::endl;
 		std::cerr << std::endl;
-		std::cerr << "Exit code " << CONSISTENT << " means consistent, " << INCONSISTENT << " means inconsistent." << std::endl;
+		std::cerr << "Exit code " << CONSISTENT << " means there is a solution, " << INCONSISTENT << " means there is none." << std::endl;
 		exit(1);
 	}
 
@@ -302,10 +302,10 @@ int main(int argc, char** argv)
 					if(problemType == OPT_VALUE)
 						std::cout << "Minimum cost: " << s->getCost() << std::endl;
 					else
-						std::cout << "CONSISTENT" << std::endl;
+						std::cout << "YES" << std::endl;
 					return CONSISTENT;
 				} else {
-					std::cout << "INCONSISTENT" << std::endl;
+					std::cout << "NO" << std::endl;
 					return INCONSISTENT;
 				}
 				break;
