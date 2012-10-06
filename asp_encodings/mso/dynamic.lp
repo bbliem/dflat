@@ -2,6 +2,7 @@
 
 % Predicates computed by the grounder...
 
+% XXX: Third argument never used. Remove?
 itemSet(R,0,N) :- childRow(R,N).
 itemSet(S,L+1,N) :- itemSet(R,L,N), sub(R,S).
 
@@ -14,6 +15,7 @@ removedValueOf(S,X) :- childItem(S,is(X,V)), removed(V).
 
 % The leaf nodes of a characteristic declare which clauses are satisfied.
 -leaf(N) :- root, sub(N,_).
+% XXX: What about if the root is the leaf?
 leaf(N) :- root, sub(_,N), not -leaf(N).
 
 % A node in the characteristic tree is invalid if it does not assign a variable
@@ -24,6 +26,7 @@ forallItemSet(R) :- root, childRow(R,_), not invalidItemSet(R).
 forallItemSet(S) :- existsItemSet(R), sub(R,S), not leaf(S), not invalidItemSet(S).
 existsItemSet(S) :- forallItemSet(R), sub(R,S), not leaf(S), not invalidItemSet(S).
 
+% XXX: Use leaf(S) insteaf of levels(L), itemSet(S,L-1,_)?
 bad(S) :- root, levels(L), itemSet(S,L-1,_), not invalidItemSet(S), clause(C), not childItem(S,satisfied(C)).
 -bad(S) :- existsItemSet(S), sub(S,T), not bad(T), not invalidItemSet(T).
 bad(S) :- existsItemSet(S), not -bad(S).
