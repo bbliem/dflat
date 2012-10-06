@@ -1,8 +1,8 @@
-gringo_dir=$(PWD)/../../gringo-3.0.3-source
+gringo_dir=/home/bernhard/Informatik/gringo-3.0.3-source
 gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a
 gringo_lib_gprof=$(gringo_dir)/build/gprof/lib/libgringo.a
 
-clasp_dir=$(PWD)/../../clasp-2.0.3
+clasp_dir=/home/bernhard/Informatik/clasp-2.0.3
 clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
 

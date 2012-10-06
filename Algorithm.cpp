@@ -101,8 +101,8 @@ namespace {
 	}
 }
 
-Algorithm::Algorithm(sharp::Problem& problem)
-	: AbstractSemiNormalizedHTDAlgorithm(&problem)
+Algorithm::Algorithm(sharp::Problem& problem, Algorithm::ProblemType problemType)
+	: AbstractSemiNormalizedHTDAlgorithm(&problem), problemType(problemType)
 {
 }
 
@@ -174,6 +174,9 @@ TupleSet* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 
 TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 {
+	// TODO: Make configurable
+	const char* program = problemType == DECISION ? "exchange_decision.lp" : "exchange.lp";
+
 	TupleSet* newTuples = new TupleSet;
 
 	// Build input for the exchange node program
@@ -182,35 +185,37 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 
 	if(node->getType() != sharp::Leaf) {
 		TupleSet* childTuples = evaluateNode(node->firstChild());
-		assert(!childTuples->empty());
-
-		std::stringstream* childTuplesInput = new std::stringstream;
-		describeChildTuples(*childTuplesInput, *childTuples);
+		// There might be no child tuples, consider as a child e.g. a join node without matches.
+		// If we were to run the program without child tuples, it would consider the current node as a leaf node and wrongly generate new tuples.
+		if(childTuples->empty() == false) {
+			std::stringstream* childTuplesInput = new std::stringstream;
+			describeChildTuples(*childTuplesInput, *childTuples);
 #ifndef NDEBUG
-		std::cout << "Exchange node; bag contents:" << std::endl;
-//		std::cout << bagContents->str() << std::endl;
-		foreach(Vertex v, node->getVertices()) {
-			if(dynamic_cast<Problem*>(problem())->vertexIsRule(v))
-				std::cout << 'r' << v << std::endl;
-			else
-				std::cout << problem()->getVertexName(v) << " (v" << v << ")" << std::endl;
-		}
-//		std::cout << "Child tuple input:" << std::endl << childTuplesInput->str() << std::endl;
+			std::cout << "Exchange node; bag contents:" << std::endl;
+			std::cout << bagContents->str() << std::endl;
+			foreach(Vertex v, node->getVertices()) {
+				if(dynamic_cast<Problem*>(problem())->vertexIsRule(v))
+					std::cout << 'r' << v << std::endl;
+				else
+					std::cout << problem()->getVertexName(v) << " (v" << v << ")" << std::endl;
+			}
+			std::cout << "Child tuple input:" << std::endl << childTuplesInput->str() << std::endl;
 #endif
 
-		Streams inputStreams;
-		inputStreams.addFile("exchange.lp", false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
-		// Remember: "Streams" deletes the appended streams -_-
-		inputStreams.appendStream(Streams::StreamPtr(bagContents), "<bag_contents>");
-		inputStreams.appendStream(Streams::StreamPtr(childTuplesInput), "<child_tuples>");
+			Streams inputStreams;
+			inputStreams.addFile(program, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
+			// Remember: "Streams" deletes the appended streams -_-
+			inputStreams.appendStream(Streams::StreamPtr(bagContents), "<bag_contents>");
+			inputStreams.appendStream(Streams::StreamPtr(childTuplesInput), "<child_tuples>");
 
-		GringoOutputProcessor outputProcessor;
-		ClaspInputReader inputReader(inputStreams, outputProcessor);
-		ModelProcessor cb(*this, *newTuples, outputProcessor);
-		Clasp::ClaspConfig config;
-		config.enumerate.numModels = 0;
-		// TODO: Projection
-		clasp.solve(inputReader, config, &cb);
+			GringoOutputProcessor outputProcessor;
+			ClaspInputReader inputReader(inputStreams, outputProcessor);
+			ModelProcessor cb(*this, *newTuples, outputProcessor);
+			Clasp::ClaspConfig config;
+			config.enumerate.numModels = 0;
+			// TODO: Projection
+			clasp.solve(inputReader, config, &cb);
+		}
 
 		delete childTuples;
 	}
@@ -218,7 +223,7 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 		// This is a leaf, run the program once
 #ifndef NDEBUG
 		std::cout << "Leaf node; bag contents:" << std::endl;
-//		std::cout << bagContents->str() << std::endl;
+		std::cout << bagContents->str() << std::endl;
 		foreach(Vertex v, node->getVertices()) {
 			if(dynamic_cast<Problem*>(problem())->vertexIsRule(v))
 				std::cout << 'r' << v << std::endl;
@@ -228,8 +233,7 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 #endif
 
 		Streams inputStreams;
-		// TODO: Make configurable
-		inputStreams.addFile("exchange.lp", false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
+		inputStreams.addFile(program, false);
 		inputStreams.appendStream(Streams::StreamPtr(bagContents), "<bag_contents>");
 
 		GringoOutputProcessor outputProcessor;

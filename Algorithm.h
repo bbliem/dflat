@@ -10,7 +10,13 @@ class Algorithm : public sharp::AbstractSemiNormalizedHTDAlgorithm
 	// XXX: IIRC this is just because there are protected methods in Algorithm's super class which do not belong there...
 	friend class ModelProcessor;
 public:
-	Algorithm(sharp::Problem& problem);
+	enum ProblemType {
+		ENUMERATION,
+		COUNTING,
+		DECISION
+	};
+
+	Algorithm(sharp::Problem& problem, ProblemType problemType = ENUMERATION);
 	virtual ~Algorithm();
 
 protected:
@@ -20,4 +26,5 @@ protected:
 
 private:
 	Clasp::ClaspFacade clasp;
+	ProblemType problemType;
 };
