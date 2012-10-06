@@ -2,14 +2,14 @@
 
 # generate SAT instances and put them into buckets according to width of tree decomposition
 
-satgen=../satgen.py
+satgen=./satgen.py
 sat=./build/release/sat
 
-minNumClauses=10
-maxNumClauses=30
+minNumClauses=30
+maxNumClauses=60
 stepNumClauses=2
-minNumVars=4
-maxNumVars=40
+minNumVars=20
+maxNumVars=80
 stepNumVars=4
 
 numInstances=4
@@ -31,7 +31,7 @@ for numClauses in $(seq $minNumClauses $stepNumClauses $maxNumClauses); do
 			# write instance to file
 			$satgen $numClauses $numVars lp $seed > $instance
 
-			width=$($sat -s $seed --only-decompose < $instance | awk '{print $3}')
+			width=$($sat -s $seed --only-decompose --stats < $instance | awk '/Width:/ {print $2}' | head -n1)
 			directory=instances/width${width}
 
 			# does an instance for this width/size already exist?

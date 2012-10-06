@@ -93,7 +93,7 @@ Algorithm::~Algorithm()
 Solution* Algorithm::selectSolution(TupleSet* tuples, const ExtendedHypertree* root)
 {
 #ifndef NO_PROGRESS_REPORT
-	std::cout << '\r' << std::setw(64) << std::left << "Done." << std::endl; // Clear/end progress line
+	std::cout << '\r' << std::setw(66) << std::left << "Done." << std::endl; // Clear/end progress line
 #endif
 
 	Solution* result = createEmptySolution();
@@ -293,9 +293,11 @@ void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node, size_t n
 			std::cout << '?';
 			break;
 	}
-	std::cout << "] " << std::setw(3) << std::right << node->getVertices().size() << " bag elements, "
-		<< std::setw(8) << numChildTuples << " child tuples";
-	std::cout << std::flush;
+	std::cout << "] " << std::setw(2) << std::right << node->getVertices().size() << " elements ["
+		<< std::setw(2) << node->getRemovedVertices().size() << "R"
+		<< std::setw(2) << node->getIntroducedVertices().size() << "I] "
+		<< std::setw(7) << numChildTuples << " child tuples"
+		<< std::flush;
 }
 #endif
 

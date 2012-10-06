@@ -5,7 +5,7 @@ numInstances=100
 numClauses=12
 numVars=8
 
-satgen=./satgen.py
+satgen=../satgen.py
 minisat=/home/bernhard/Informatik/MiniSat_v1.14_linux
 sat=./build/release/sat
 
@@ -21,10 +21,9 @@ for instance in $(seq 1 $numInstances); do
 	miniSatExitCode=$?
 
 	$satgen $numClauses $numVars lp $seed > $lpInstance 2>/dev/null || exit
-	$sat -p decision -s $seed $@ < $lpInstance &>/dev/null
-	satExitCode=$?
+	count=$($sat -p counting -s $seed $@ < $lpInstance | tail -n1 | awk '{print $2}')
 
-	if [[ ($miniSatExitCode -eq 10 && $satExitCode -ne 0) || ($miniSatExitCode -eq 20 && $satExitCode -ne 23) ]]; then
+	if [[ ($miniSatExitCode -eq 10 && $count -eq 0) || ($miniSatExitCode -eq 20 && $count -ne 0) ]]; then
 		cp $dimacsInstance mismatch${seed}.dimacs
 		cp $lpInstance mismatch${seed}.lp
 		echo
