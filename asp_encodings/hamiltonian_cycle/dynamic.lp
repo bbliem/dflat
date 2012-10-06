@@ -1,77 +1,34 @@
-% TODO: Update comments
-
-% Auxiliary predicates computed by the grounder
-
-toOrTowards(R,X,Y) :- childItem(R,to(X,Y)).
-toOrTowards(R,X,Y) :- childItem(R,towards(X,Y)).
-
-% reachesViaRemoved(S,X,Y): In "subtuple" S, there is a (possibly empty) "to"/"towards" path from X to Y s.t. X and all vertices between X and Y are removed. Reflexive.
-reachesViaRemoved(R,X,X) :- childRow(R,N), childBag(N,X), removed(X).
-reachesViaRemoved(R,X,Z) :- reachesViaRemoved(R,X,Y), removed(Y), childItem(R,to(Y,Z)).
-reachesViaRemoved(R,X,Z) :- reachesViaRemoved(R,X,Y), removed(Y), childItem(R,towards(Y,Z)).
-
-% nextCurrent(S,X,Y): In "subtuple" S, Y is the next current vertex reachable from the removed X via "to" or "towards"
-nextCurrent(R,X,Y) :- reachesViaRemoved(R,X,Y), current(Y).
-
-%%%
-
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
 
-oldTo(X,Y) :- extend(R), childItem(R,to(X,Y)).
-oldTowards(X,Y) :- extend(R), childItem(R,towards(X,Y)).
+:- extend(R;S), childItem(R,path(X,Y)), childItem(S,path(X,Z)), Y != Z.
 
-hadSuccessor(X) :- oldTo(X,_).
-hadSuccessor(X) :- oldTowards(X,_).
-hadPredecessor(X) :- oldTo(_,X).
-hadPredecessor(X) :- oldTowards(_,X).
+% If two different preceding rows have a non-direct path from X to Y, the immediate successors of X are different.
+:- extend(R;S), R != S, childItem(R;S,path(X,Y)), not childItem(R;S,to(X,Y)).
 
-%%%
-
-:- oldTo(X,Y;Z), Y != Z.
-:- oldTo(X;Y,Z), X != Y.
-
-:- oldTo(X,_), oldTowards(X,_).
-:- oldTo(_,X), oldTowards(_,X).
-
-% If two different preceding tuples have a towards-edge starting at X, the immediate successors of X are different.
-:- extend(R0;R1), R0 != R1, childItem(R0,towards(X,_)), childItem(R1,towards(X,_)).
-
-% When joining tuple T, corresponding to bag B, with tuple T', corresponding to bag B', it must hold: For each edge (x,y) in the subgraph induced by B \cap B': (x,y) is in T iff (x,y) is in T'.
-% Because of connectedness, this is equivalent to: For each child tuple and each pair of vertices in the current bag and the bag of the child tuple: There is an edge between these vertices in the current tuple iff this edge is also in the child tuple.
+% When joining row R, corresponding to bag B, with row S, corresponding to bag B', it must hold: For each edge (x,y) in the subgraph induced by B \cap B': (x,y) is in R iff (x,y) is in S.
+% Because of connectedness, this is equivalent to: For each child row and each pair of vertices in the current bag and the bag of the child row: There is an edge between these vertices in the current row iff this edge is also in the child row.
 :- item(to(X,Y)), extend(R), childRow(R,N), childBag(N,X;Y), not childItem(R,to(X,Y)).
 
-% If X is removed, it occurs only in one child (by connectedness). We require that the tuple of this child fully integrates X into a path.
-:- removed(X), not hadPredecessor(X).
-:- removed(X), not hadSuccessor(X).
+% If X is removed, it occurs only in one child (by connectedness). We require that the row of this child fully integrates X into a path.
+integrated(R,X) :- childItem(R,path(X,_)), childItem(R,path(_,X)).
+:- extend(R), childRow(R,N), childBag(N,X), removed(X), not integrated(R,X).
 
-%%%
-
-towards(X,Y) :- oldTowards(X,Y), current(X;Y).
-to(X,Y)      :- oldTo(X,Y),      current(X;Y).
-
-towards(X,Z) :- extend(R), toOrTowards(R,X,Y), current(X), removed(Y), nextCurrent(R,Y,Z).
+reachesViaRemoved(R,X,X) :- childRow(R,N), childBag(N,X).
+reachesViaRemoved(R,X,Z) :- reachesViaRemoved(R,X,Y), removed(Y), childItem(R,path(Y,Z)).
+item(path(X,Z)) :- extend(R), childItem(R,path(X,Y)), reachesViaRemoved(R,Y,Z), current(X;Z).
+item(to(X,Y)) :- extend(R), childItem(R,to(X,Y)), current(X;Y).
 
 % Edges can be added to the paths because of introduced vertices or by connecting ends to starts of paths in children
+{ item(to(X,Y)) : edge(X,Y) : current(X;Y) }.
+item(path(X,Y)) :- item(to(X,Y)).
 
-{ newEdge(X,Y) : edge(X,Y) : current(X;Y) }.
-to(X,Y) :- newEdge(X,Y).
-
-% A guessed edge is invalid if the bag of a preceding child tuple contains both endpoints
-:- newEdge(X,Y), extend(R), childRow(R,N), childBag(N,X;Y).
-% ... or if it would give a vertex more than one successor or predecessor.
-e(X,Y) :- to(X,Y).
-e(X,Y) :- towards(X,Y).
-:- e(X,Y;Z), Y != Z.
-:- e(X;Y,Z), X != Y.
-eTrans(X,Y) :- e(X,Y).
-eTrans(X,Z) :- eTrans(X,Y), e(Y,Z).
+% A guessed edge is invalid if it would give a vertex more than one successor or predecessor.
+:- item(path(X,Y;Z)), Y != Z.
+:- item(path(X;Y,Z)), X != Y.
+path(X,Y) :- item(path(X,Y)).
+path(X,Z) :- path(X,Y), item(path(Y,Z)).
 % Disallow cycles not encompassing all current vertices
-:- eTrans(X,X), current(Y), not eTrans(X,Y).
-
-%%%
-
-item(to(X,Y)) :- to(X,Y).
-item(towards(X,Y)) :- towards(X,Y).
+:- path(X,X), current(Y), not path(X,Y).
 
 
 
