@@ -48,7 +48,7 @@ protected:
 	virtual sharp::Table* evaluateNode(const sharp::ExtendedHypertree* node);
 	virtual sharp::ExtendedHypertree* prepareHypertreeDecomposition(sharp::ExtendedHypertree* root);
 
-	virtual std::auto_ptr<Clasp::ClaspFacade::Callback> newClaspCallback(sharp::Table& newTable, const GringoOutputProcessor&, unsigned int numChildNodes, const sharp::VertexSet& currentVertices) const;
+	virtual std::auto_ptr<Clasp::ClaspFacade::Callback> newClaspCallback(sharp::Table& newTable, const GringoOutputProcessor&, const std::vector<sharp::Table*>& childTables, const sharp::VertexSet& currentVertices) const;
 	virtual std::auto_ptr<GringoOutputProcessor> newGringoOutputProcessor() const;
 
 	sharp::Problem& problem;

@@ -49,23 +49,12 @@ public:
 	// Arguments of the extend/2 predicate (the level and predecessor item set / row)
 	struct ExtendAtom {
 		unsigned int level;
-		union {
-			// If level == 0, row is used, otherwise set.
-			const Row* row;
-			const Row::Tree* set;
-		} extended;
+		std::string extended;
 		Clasp::SymbolTable::key_type symbolTableKey;
 
-		ExtendAtom(unsigned int level, const Row* row, Clasp::SymbolTable::key_type symbolTableKey)
-			: level(level), symbolTableKey(symbolTableKey)
+		ExtendAtom(unsigned int level, const std::string& extended, Clasp::SymbolTable::key_type symbolTableKey)
+			: level(level), extended(extended), symbolTableKey(symbolTableKey)
 		{
-			extended.row = row;
-		}
-
-		ExtendAtom(unsigned int level, const Row::Tree* set, Clasp::SymbolTable::key_type symbolTableKey)
-			: level(level), symbolTableKey(symbolTableKey)
-		{
-			extended.set = set;
 		}
 	};
 	const std::vector<ExtendAtom>& getExtendAtoms() const { return extendAtoms; }

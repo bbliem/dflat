@@ -103,9 +103,10 @@ public:
 	//! Adds the given tuple to the extension pointers and adds the product of the extended rows' counts to this row's solution count
 	void addExtensionPointerTuple(const ExtensionPointerTuple&);
 
-#ifdef PRINT_COMPUTED_ROWS
 	void setIndex(unsigned int i) { index = i; }
 	unsigned int getIndex() const { return index; }
+
+#ifdef PRINT_COMPUTED_ROWS
 	void print(std::ostream&) const;
 #endif
 
@@ -118,7 +119,6 @@ private:
 	unsigned int cost;
 	ExtensionPointers extensionPointers;
 
-#ifdef PRINT_COMPUTED_ROWS
+	// XXX: It is kind of a waste of memory to store the index in each row.
 	unsigned int index; // Index in the table
-#endif 
 };

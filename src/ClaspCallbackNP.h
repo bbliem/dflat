@@ -31,8 +31,8 @@ class GringoOutputProcessor;
 class ClaspCallbackNP : public Clasp::ClaspFacade::Callback
 {
 public:
-	ClaspCallbackNP(const Algorithm& algorithm, sharp::Table& table, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes)
-		: algorithm(algorithm), table(table), gringoOutput(gringoOutput), numChildNodes(numChildNodes)
+	ClaspCallbackNP(const Algorithm& algorithm, sharp::Table& table, const GringoOutputProcessor& gringoOutput, const std::vector<sharp::Table*>& childTables)
+		: algorithm(algorithm), table(table), gringoOutput(gringoOutput), childTables(childTables)
 	{}
 
 	// Called if the current configuration contains unsafe/unreasonable options
@@ -48,7 +48,7 @@ private:
 	const Algorithm& algorithm;
 	sharp::Table& table;
 	const GringoOutputProcessor& gringoOutput;
-	const unsigned int numChildNodes;
+	const std::vector<sharp::Table*>& childTables;
 
 	// cf. GringoOutputProcessor.h
 	struct ItemAtom {
@@ -60,8 +60,8 @@ private:
 	};
 	std::vector<ItemAtom> itemAtoms;
 
-	typedef std::map<const Row*, Clasp::Literal> RowPointerToLiteral;
-	RowPointerToLiteral extendAtoms;
+	typedef std::map<std::string, Clasp::Literal> StringToLiteral;
+	StringToLiteral extendAtoms;
 
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
 	LongToLiteral countAtoms;

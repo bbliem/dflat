@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 //#define foreach BOOST_FOREACH // XXX: Strange: After a Boost upgrade, this led to "error: 'boost::BOOST_FOREACH' has not been declared". Moving it down helps...
 
@@ -40,12 +41,8 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 
 			foreach(const GringoOutputProcessor::ItemAtom& it, gringoOutput.getItemAtoms())
 				itemAtoms.push_back(ItemAtom(it.level, it.value, symTab[it.symbolTableKey].lit));
-			foreach(const GringoOutputProcessor::ExtendAtom& it, gringoOutput.getExtendAtoms()) {
-				if(it.level == 0)
-					extendAtoms.push_back(ExtendAtom(it.level, it.extended.row, symTab[it.symbolTableKey].lit));
-				else
-					extendAtoms.push_back(ExtendAtom(it.level, it.extended.set, symTab[it.symbolTableKey].lit));
-			}
+			foreach(const GringoOutputProcessor::ExtendAtom& it, gringoOutput.getExtendAtoms())
+				extendAtoms.push_back(ExtendAtom(it.level, it.extended, symTab[it.symbolTableKey].lit));
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCountAtoms())
 				countAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
@@ -57,6 +54,13 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 #endif
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit) {
+			// We need to associate rows to indices
+			// XXX: Unnecessarily inefficient
+			std::vector<std::vector<sharp::Row*> > childTablesVec;
+			childTablesVec.reserve(childTables.size());
+			foreach(sharp::Table* t, childTables)
+				childTablesVec.push_back(std::vector<sharp::Row*>(t->begin(), t->end()));
+
 			foreach(const Tree::Children::value_type& child, tree.children) {
 				const ExtendArguments& predecessors = child.first.first;
 				const Row::Items& topLevelItems = child.first.second;
@@ -65,12 +69,14 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 				if(predecessors.empty())
 					row->setCount(1);
 				else {
-					//row->addExtensionPointerTuple(reinterpret_cast<const Row::ExtensionPointerTuple&>(predecessors)); // I hope this cast does not blow up...
-					// Better safe than sorry
 					Row::ExtensionPointerTuple extensionPointers;
 					extensionPointers.reserve(predecessors.size());
-					foreach(const void* p, predecessors)
-						extensionPointers.push_back(reinterpret_cast<const Row*>(p));
+					for(unsigned int i = 0; i < predecessors.size(); ++i) {
+						const std::string& p = predecessors[i];
+						// Row number is after the first '_'
+						unsigned int rowNumber = boost::lexical_cast<unsigned int>(std::string(p, p.find('_') + 1));
+						extensionPointers.push_back(dynamic_cast<const Row*>(childTablesVec[i][rowNumber]));
+					}
 					row->addExtensionPointerTuple(extensionPointers);
 				}
 
@@ -83,12 +89,10 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 
 				algorithm.addRowToTable(table, row);
 			}
-#ifdef PRINT_COMPUTED_ROWS
 			// Tell each row its table index
 			unsigned int i = 0;
 			foreach(sharp::Row* row, table)
 				dynamic_cast<Row*>(row)->setIndex(i++);
-#endif
 		}
 	}
 }
@@ -121,12 +125,8 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	Path path(highestLevel+1);
 
 	foreach(ExtendAtom& atom, extendAtoms) {
-		if(s.isTrue(atom.literal)) {
-			if(atom.level == 0)
-				path[atom.level].first.push_back(atom.extended.row);
-			else
-				path[atom.level].first.push_back(atom.extended.set);
-		}
+		if(s.isTrue(atom.literal))
+			path[atom.level].first.push_back(atom.extended);
 	}
 	foreach(ItemAtom& atom, itemAtoms) {
 		if(s.isTrue(atom.literal))

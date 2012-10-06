@@ -121,7 +121,7 @@ Table* Algorithm::computeTable(const sharp::ExtendedHypertree& node, const std::
 	// Call the ASP solver
 	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
-	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor, childTables.size(), node.getVertices());
+	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor, childTables, node.getVertices());
 	Clasp::ClaspConfig config;
 	config.master()->heuristic().name = "none";
 	config.enumerate.numModels = 0;
@@ -179,12 +179,12 @@ sharp::ExtendedHypertree* Algorithm::prepareHypertreeDecomposition(sharp::Extend
 	return newRoot->normalize(normalizationType);
 }
 
-std::auto_ptr<Clasp::ClaspFacade::Callback> Algorithm::newClaspCallback(Table& newTable, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes, const sharp::VertexSet& currentVertices) const
+std::auto_ptr<Clasp::ClaspFacade::Callback> Algorithm::newClaspCallback(Table& newTable, const GringoOutputProcessor& gringoOutput, const std::vector<Table*>& childTables, const sharp::VertexSet& currentVertices) const
 {
 	if(multiLevel)
-		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackGeneral(*this, newTable, gringoOutput, numChildNodes));
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackGeneral(*this, newTable, gringoOutput, childTables));
 	else
-		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTable, gringoOutput, numChildNodes));
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTable, gringoOutput, childTables));
 }
 
 std::auto_ptr<GringoOutputProcessor> Algorithm::newGringoOutputProcessor() const

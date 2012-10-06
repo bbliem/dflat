@@ -184,17 +184,14 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 
 			unsigned int firstArgNum = boost::lexical_cast<unsigned int>(firstArg.str());
 
-			if(firstArgNum == 0)
-				extendAtoms.push_back(ExtendAtom(firstArgNum, reinterpret_cast<const Row*>(std::strtol(secondArg.str().c_str()+1, 0, 0)), atom.first));
-			else
-				extendAtoms.push_back(ExtendAtom(firstArgNum, reinterpret_cast<const Row::Tree*>(std::strtol(secondArg.str().c_str()+1, 0, 0)), atom.first));
+			extendAtoms.push_back(ExtendAtom(firstArgNum, secondArg.str(), atom.first));
 		}
 		else if(arity == 1) {
 			std::ostringstream arg;
 			ValVec::const_iterator k = vals_.begin() + atom.second;
 			k->print(s_, arg);
 
-			extendAtoms.push_back(ExtendAtom(0, reinterpret_cast<const Row*>(std::strtol(arg.str().c_str()+1, 0, 0)), atom.first));
+			extendAtoms.push_back(ExtendAtom(0, arg.str(), atom.first));
 		}
 	}
 	else if(name == "count") {

@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <boost/lexical_cast.hpp>
 #include <boost/foreach.hpp>
 //#define foreach BOOST_FOREACH // XXX: Strange: After a Boost upgrade, this led to "error: 'boost::BOOST_FOREACH' has not been declared". Moving it down helps...
 
@@ -48,7 +49,7 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 
 			foreach(const GringoOutputProcessor::ExtendAtom& it, gringoOutput.getExtendAtoms()) {
 				assert(it.level == 0);
-				extendAtoms[it.extended.row] = symTab[it.symbolTableKey].lit;
+				extendAtoms[it.extended] = symTab[it.symbolTableKey].lit;
 			}
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCountAtoms())
 				countAtoms[it.first] = symTab[it.second].lit;
@@ -76,6 +77,14 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	if(e != Clasp::ClaspFacade::event_model)
 		return;
 
+	// We need to associate rows to indices
+	// XXX: Unnecessarily inefficient.
+	// FIXME: If we really want to do it in this cumbersome way, at least do not build the vector for each model!
+	std::vector<std::vector<sharp::Row*> > childTablesVec;
+	childTablesVec.reserve(childTables.size());
+	foreach(sharp::Table* t, childTables)
+		childTablesVec.push_back(std::vector<sharp::Row*>(t->begin(), t->end()));
+
 #ifdef PRINT_MODELS
 	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
 	std::cout << "Model " << f.config()->ctx.enumerator()->enumerated << ": ";
@@ -93,20 +102,25 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	}
 
 	Row::ExtensionPointerTuple childRows;
-	childRows.reserve(numChildNodes);
+	childRows.reserve(childTables.size());
 
-	foreach(const RowPointerToLiteral::value_type& it, extendAtoms) {
+	foreach(const StringToLiteral::value_type& it, extendAtoms) {
 		if(s.isTrue(it.second)) {
-			childRows.push_back(it.first);
+			// Child node number is before the first '_' (and after the initial 'r')
+			// Row number is after the first '_'
+			unsigned int underscorePos = it.first.find('_');
+			unsigned int childNodeNumber = boost::lexical_cast<unsigned int>(std::string(it.first, 1, underscorePos));
+			unsigned int rowNumber = boost::lexical_cast<unsigned int>(std::string(it.first, underscorePos + 1));
+			childRows.push_back(dynamic_cast<const Row*>(childTablesVec[childNodeNumber][rowNumber]));
 #ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childRows.size() == numChildNodes)
+			if(childRows.size() == childTables.size())
 				break;
 #endif
 		}
 	}
 
 #ifndef DISABLE_ANSWER_SET_CHECKS
-	if(childRows.size() > 0 && childRows.size() != numChildNodes)
+	if(childRows.size() > 0 && childRows.size() != childTables.size())
 		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
 #endif
 

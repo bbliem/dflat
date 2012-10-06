@@ -32,8 +32,8 @@ class GringoOutputProcessor;
 class ClaspCallbackGeneral : public Clasp::ClaspFacade::Callback
 {
 public:
-	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::Table& table, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes)
-		: algorithm(algorithm), table(table), gringoOutput(gringoOutput), numChildNodes(numChildNodes)
+	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::Table& table, const GringoOutputProcessor& gringoOutput, const std::vector<sharp::Table*>& childTables)
+		: algorithm(algorithm), table(table), gringoOutput(gringoOutput), childTables(childTables)
 	{
 	}
 
@@ -50,7 +50,7 @@ private:
 	const Algorithm& algorithm;
 	sharp::Table& table;
 	const GringoOutputProcessor& gringoOutput;
-	const unsigned int numChildNodes;
+	const std::vector<sharp::Table*>& childTables;
 
 	// cf. GringoOutputProcessor.h
 	struct ItemAtom {
@@ -66,22 +66,12 @@ private:
 	// cf. GringoOutputProcessor.h
 	struct ExtendAtom {
 		unsigned int level;
-		union {
-			const Row* row;
-			const Row::Tree* set;
-		} extended;
+		std::string extended;
 		Clasp::Literal literal;
 
-		ExtendAtom(unsigned int level, const Row* row, Clasp::Literal literal)
-			: level(level), literal(literal)
+		ExtendAtom(unsigned int level, const std::string& extended, Clasp::Literal literal)
+			: level(level), extended(extended), literal(literal)
 		{
-			extended.row = row;
-		}
-
-		ExtendAtom(unsigned int level, const Row::Tree* set, Clasp::Literal literal)
-			: level(level), literal(literal)
-		{
-			extended.set = set;
 		}
 	};
 	std::vector<ExtendAtom> extendAtoms;
@@ -93,7 +83,7 @@ private:
 
 	// Because one table row can be constituted of multiple AS's, we cannot insert a new row upon arrival of a new AS but must rather collect all AS data until the solve state is finished.
 	// By "path" we denote a path from root to leaf in Row::Tree. Each AS characterizes exactly one path.
-	typedef std::vector<const void*> ExtendArguments; // XXX: We can't use a union like above because < is undefined for it :(
+	typedef std::vector<std::string> ExtendArguments;
 	typedef std::pair<ExtendArguments, Row::Items> ExtendArgumentsAndItems;
 	typedef std::vector<ExtendArgumentsAndItems> Path; // XXX: Check if vector isn't too inefficient because of reallocation when changing elements
 

@@ -65,6 +65,7 @@ void Row::unify(sharp::Row& other)
 	if(o.cost < cost) {
 		count = o.count;
 		cost = o.cost;
+		// XXX: I think swapping the trees is unnecessary since they must be equal when rows are joined?
 		tree.items.swap(o.tree.items);
 		tree.children.swap(o.tree.children);
 		extensionPointers.swap(o.extensionPointers);
@@ -99,7 +100,7 @@ Row* Row::join(const Row& other) const
 void Row::declare(std::ostream& out, unsigned childNumber) const
 {
 	std::ostringstream rowName;
-	rowName << 'r' << this;
+	rowName << 'r' << childNumber << '_' << index;
 	out << "childRow(" << rowName.str() << ',' << childNumber << ")." << std::endl;
 	out << "childCount(" << rowName.str() << ',' << count << ")." << std::endl;
 	out << "childCost(" << rowName.str() << ',' << cost << ")." << std::endl;
@@ -141,13 +142,15 @@ void Row::Tree::declare(std::ostream& out, const std::string& thisName) const
 {
 	foreach(const std::string& value, items)
 		out << "childItem(" << thisName << ',' << value << ")." << std::endl;
+	unsigned int i = 0;
 	foreach(const Tree& child, children) {
 		std::ostringstream childName;
-		childName << 's' << &child;
+		childName << thisName << '_' << i;
 		// Declare this subsidiary item set
 		out << "sub(" << thisName << ',' << childName.str() << ")." << std::endl;
 		// Print its children recursively
 		child.declare(out, childName.str());
+		++i;
 	}
 }
 
