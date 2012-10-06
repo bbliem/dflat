@@ -109,7 +109,7 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 			// Child node number is before the first '_' (and after the initial 'r')
 			// Row number is after the first '_'
 			unsigned int underscorePos = it.first.find('_');
-			unsigned int childNodeNumber = boost::lexical_cast<unsigned int>(std::string(it.first, 1, underscorePos));
+			unsigned int childNodeNumber = boost::lexical_cast<unsigned int>(std::string(it.first, 1, underscorePos-1));
 			unsigned int rowNumber = boost::lexical_cast<unsigned int>(std::string(it.first, underscorePos + 1));
 			childRows.push_back(dynamic_cast<const Row*>(childTablesVec[childNodeNumber][rowNumber]));
 #ifdef DISABLE_ANSWER_SET_CHECKS
