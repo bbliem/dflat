@@ -190,6 +190,13 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 		assert(arity == 1);
 		storeNumberAtom(atom, costAtoms);
 	}
+	else if(name == "group") {
+		assert(arity == 1);
+		std::stringstream firstArg; // First argument
+		ValVec::const_iterator k = vals_.begin() + atom.second;
+		k->print(s_, firstArg);
+		groupAtoms[firstArg.str()] = atom.first;
+	}
 }
 
 void GringoOutputProcessor::printExternalTableEntry(const AtomRef &atom, uint32_t arity, const std::string &name)

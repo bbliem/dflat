@@ -68,12 +68,15 @@ private:
 	LongToLiteral countAtoms;
 	LongToLiteral currentCostAtoms;
 	LongToLiteral costAtoms;
+	typedef std::map<std::string, Clasp::Literal> StringToLiteral;
+	StringToLiteral groupAtoms;
 
 	// Because one table row can be constituted of multiple AS's, we cannot insert a new row upon arrival of a new AS but must rather collect all AS data until the solve state is finished.
 	// By "path" we denote a path from root to leaf in Row::Tree. Each AS characterizes exactly one path.
 	typedef std::vector<Row::Items> Path;
 	typedef std::map<Row::Items, Row*> TopLevelItemsToRow; // Maps an item set to a row with that item set on the top level
-	typedef std::map<Row::ExtensionPointerTuple, TopLevelItemsToRow> PredecessorData;
+	typedef std::vector<std::string> GroupTerms;
+	typedef std::map<GroupTerms, TopLevelItemsToRow> GroupData;
 
-	PredecessorData predecessorData;
+	GroupData groupData;
 };

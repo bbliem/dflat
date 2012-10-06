@@ -48,12 +48,14 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 				currentCostAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
 				costAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::StringToSymbolTableKey::value_type& it, gringoOutput.getGroupAtoms())
+				groupAtoms[it.first] = symTab[it.second].lit;
 #ifdef PRINT_MODELS
 			std::cout << std::endl;
 #endif
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit) {
-			foreach(const PredecessorData::value_type& it, predecessorData) {
+			foreach(const GroupData::value_type& it, groupData) {
 				foreach(const TopLevelItemsToRow::value_type& it2, it.second) {
 					algorithm.addRowToTable(table, it2.second);
 				}
@@ -76,6 +78,14 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	}
 	std::cout << std::endl;
 #endif
+
+	GroupTerms groupTerms;
+	groupTerms.reserve(numChildNodes); // Usually, we use the same arguments as for extend/1 for group/1
+
+	foreach(const StringToLiteral::value_type& it, groupAtoms) {
+		if(s.isTrue(it.second))
+			groupTerms.push_back(it.first);
+	}
 
 	Row::ExtensionPointerTuple childRows;
 	childRows.reserve(numChildNodes);
@@ -114,7 +124,7 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	path.resize(highestLevel+1);
 
 	assert(!path.empty());
-	Row*& rowPtr = predecessorData[childRows][path.front()];
+	Row*& rowPtr = groupData[groupTerms][path.front()];
 	if(!rowPtr) {
 		rowPtr = new Row(path.front());
 

@@ -49,6 +49,8 @@ public:
 	const LongToSymbolTableKey& getCountAtoms() const { return countAtoms; }
 	const LongToSymbolTableKey& getCurrentCostAtoms() const { return currentCostAtoms; }
 	const LongToSymbolTableKey& getCostAtoms() const { return costAtoms; }
+	typedef std::map<std::string, Clasp::SymbolTable::key_type> StringToSymbolTableKey;
+	const StringToSymbolTableKey& getGroupAtoms() const { return groupAtoms; }
 
 	virtual void initialize();
 	virtual void setProgramBuilder(Clasp::ProgramBuilder* api) { b_ = api; }
@@ -79,6 +81,7 @@ private:
 	LongToSymbolTableKey countAtoms;
 	LongToSymbolTableKey currentCostAtoms;
 	LongToSymbolTableKey costAtoms;
+	StringToSymbolTableKey groupAtoms;
 
 	void storeChildRowAtom(const AtomRef& atom, LongToSymbolTableKey& store);
 	void storeNumberAtom(const AtomRef& atom, LongToSymbolTableKey& store);
