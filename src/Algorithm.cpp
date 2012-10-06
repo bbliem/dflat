@@ -35,8 +35,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 using sharp::Table;
 
-Algorithm::Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, sharp::NormalizationType normalizationType, bool ignoreOptimization, unsigned int level)
-	: AbstractHTDAlgorithm(&problem, planFactory), problem(problem), instanceFacts(instanceFacts), normalizationType(normalizationType), ignoreOptimization(ignoreOptimization), level(level)
+Algorithm::Algorithm(sharp::Problem& problem, const std::string& instanceFacts, sharp::NormalizationType normalizationType, bool ignoreOptimization, unsigned int level)
+	: AbstractHTDAlgorithm(&problem), problem(problem), instanceFacts(instanceFacts), normalizationType(normalizationType), ignoreOptimization(ignoreOptimization), level(level)
 #ifdef PROGRESS_REPORT
 	  , nodesProcessed(0)
 #endif
@@ -65,8 +65,8 @@ void Algorithm::declareBag(std::ostream& out, const sharp::ExtendedHypertree& no
 void Algorithm::declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<Table*>& childTables)
 {
 	for(unsigned i = 0; i < childTables.size(); ++i)
-		foreach(const Table::value_type& rowAndSolution, *childTables[i])
-			dynamic_cast<Row*>(rowAndSolution.first)->declare(out, rowAndSolution, i);
+		foreach(const sharp::Row* row, *childTables[i])
+			dynamic_cast<const Row*>(row)->declare(out, i);
 }
 
 void Algorithm::printAuxiliaryRules(std::ostream& out)
@@ -155,35 +155,18 @@ Table* Algorithm::evaluateNode(const sharp::ExtendedHypertree* node)
 
 	Table* newTable = computeTable(*node, childTables);
 
-	foreach(Table* childTable, childTables)
-		delete childTable;
+//	TODO: When to delete?
+//	foreach(Table* childTable, childTables)
+//		delete childTable;
 
 #ifdef PRINT_COMPUTED_ROWS
 	std::cout << std::endl << "Resulting rows:" << std::endl;
-	for(Table::const_iterator it = newTable->begin(); it != newTable->end(); ++it)
-		dynamic_cast<Row*>(it->first)->print(std::cout);
+	foreach(sharp::Row* row, *newTable)
+		dynamic_cast<const Row*>(row)->print(std::cout);
 	std::cout << std::endl;
 #endif
 
 	return newTable;
-}
-
-sharp::Plan* Algorithm::selectPlan(Table* table, const sharp::ExtendedHypertree* root)
-{
-#ifdef PROGRESS_REPORT
-	std::cout << '\r' << std::setw(66) << std::left << "Done." << std::endl; // Clear/end progress line
-#endif
-
-	if(table->empty())
-		return 0;
-
-	Table::const_iterator it = table->begin();
-	sharp::Plan* result = it->second;
-
-	for(++it; it != table->end(); ++it)
-		result = planFactory.unify(result, it->second);
-
-	return result;
 }
 
 sharp::ExtendedHypertree* Algorithm::prepareHypertreeDecomposition(sharp::ExtendedHypertree* root)

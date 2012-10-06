@@ -23,7 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ClaspCallbackNP.h"
 #include "GringoOutputProcessor.h"
-#include "RowNP.h"
+#include "Row.h"
 
 #define foreach BOOST_FOREACH
 
@@ -72,33 +72,42 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	std::cout << std::endl;
 #endif
 
-	RowNP& newRow = *new RowNP;
+	Row::Items items;
+	foreach(ItemAtom& atom, itemAtoms) {
+		if(s.isTrue(atom.literal))
+			items.insert(atom.value);
+	}
 
-	std::vector<const sharp::Table::value_type*> childRowsAndPlans;
-	childRowsAndPlans.reserve(numChildNodes);
+	Row::ExtensionPointerTuple childRows;
+	childRows.reserve(numChildNodes);
 
 	foreach(const LongToLiteral::value_type& it, extendAtoms) {
 		if(s.isTrue(it.second)) {
-			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
+			childRows.push_back(reinterpret_cast<const Row*>(it.first));
 #ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childRowsAndPlans.size() == numChildNodes)
+			if(childRows.size() == numChildNodes)
 				break;
 #endif
 		}
 	}
 
 #ifndef DISABLE_ANSWER_SET_CHECKS
-	if(childRowsAndPlans.size() > 0 && childRowsAndPlans.size() != numChildNodes)
+	if(childRows.size() > 0 && childRows.size() != numChildNodes)
 		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
 #endif
+
+	Row& newRow = *new Row(items, childRows.empty() ? 1 : 0);
+
+	if(!childRows.empty())
+		newRow.addExtensionPointerTuple(childRows);
 
 	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
 		if(s.isTrue(it.second)) {
 #ifndef DISABLE_ANSWER_SET_CHECKS
-			if(newRow.currentCost != 0)
+			if(newRow.getCost() != 0)
 				throw std::runtime_error("Multiple current costs");
 #endif
-			newRow.currentCost = it.first;
+			newRow.setCurrentCost(it.first);
 #ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
@@ -108,30 +117,15 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	foreach(const LongToLiteral::value_type& it, costAtoms) {
 		if(s.isTrue(it.second)) {
 #ifndef DISABLE_ANSWER_SET_CHECKS
-			if(newRow.cost != 0)
+			if(newRow.getCost() != 0)
 				throw std::runtime_error("Multiple costs");
 #endif
-			newRow.cost = it.first;
+			newRow.setCost(it.first);
 #ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
 	}
 
-	foreach(ItemAtom& atom, itemAtoms) {
-		if(s.isTrue(atom.literal))
-			newRow.items.insert(atom.value);
-	}
-
-	sharp::Plan* plan;
-	if(childRowsAndPlans.empty())
-		plan = algorithm.getPlanFactory().leaf(newRow);
-	else if(childRowsAndPlans.size() == 1)
-		plan = algorithm.getPlanFactory().join(newRow, childRowsAndPlans[0]->second);
-	else {
-		plan = algorithm.getPlanFactory().join(newRow, childRowsAndPlans[0]->second, childRowsAndPlans[1]->second);
-		for(unsigned i = 2; i < childRowsAndPlans.size(); ++i)
-			plan = algorithm.getPlanFactory().join(newRow, plan, childRowsAndPlans[i]->second);
-	}
-	algorithm.addRowToTable(table, &newRow, plan);
+	algorithm.addRowToTable(table, &newRow);
 }

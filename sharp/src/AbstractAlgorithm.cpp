@@ -15,7 +15,7 @@ namespace sharp
 	\*********************************/
 	Row::~Row() { }
 
-	void Row::unify(const Row&) { }
+	void Row::unify(Row&) { }
 
 	/*********************************\
 	|* CLASS: Solution
@@ -24,44 +24,11 @@ namespace sharp
 	{
 	}
 
-	/*********************************\
-	|* CLASS: Plan
-	\*********************************/
-	Plan::Plan(Operation operation)
-		: operation(operation)
-	{
-	}
-
-	Plan::~Plan()
-	{
-	}
-
-	Solution* Plan::materialize() const
-	{
-		switch(operation) {
-			case LEAF:
-				return materializeLeaf();
-			case UNION:
-				return materializeUnion();
-			case JOIN:
-				return materializeJoin();
-		}
-		PrintError("Invalid operation", "");
-		return 0;
-	}
-
-	/*********************************\
-	|* CLASS: PlanFactory
-	\*********************************/
-	PlanFactory::~PlanFactory()
-	{
-	}
-
 	/***********************************\
 	|* CLASS: AbstractHTDAlgorithm
 	\***********************************/
-	AbstractHTDAlgorithm::AbstractHTDAlgorithm(Problem *problem, const PlanFactory& planFactory)
-		: prob(problem), planFactory(planFactory)
+	AbstractHTDAlgorithm::AbstractHTDAlgorithm(Problem *problem)
+		: prob(problem)
 	{
 	}
 	
@@ -69,21 +36,21 @@ namespace sharp
 	{ 
 	}
 	
-	Plan *AbstractHTDAlgorithm::evaluate(ExtendedHypertree *origroot)
+	Table *AbstractHTDAlgorithm::evaluate(ExtendedHypertree *origroot)
 	{
 		ExtendedHypertree *root = this->prepareHypertreeDecomposition(origroot);
-		return selectPlan(evaluateNode(root), root);
+		return evaluateNode(root);
 	}
 
-	void AbstractHTDAlgorithm::addRowToTable(Table& table, Row* r, Plan* p) const
+	void AbstractHTDAlgorithm::addRowToTable(Table& table, Row* r) const
 	{
-		std::pair<Table::iterator, bool> result = table.insert(Table::value_type(r, p));
+		std::pair<Table::iterator, bool> result = table.insert(r);
 		if(!result.second) {
-			Row* origRow = result.first->first;
-			Plan* origPlan = result.first->second;
+			Row* origRow = *result.first;
 			table.erase(result.first);
 			r->unify(*origRow);
-			table.insert(Table::value_type(r, planFactory.unify(origPlan, p)));
+			delete origRow;
+			table.insert(r);
 		}
 	}
 	
@@ -102,8 +69,8 @@ namespace sharp
 	/*********************************************\
 	|* CLASS: AbstractSemiNormalizedHTDAlgorithm
 	\*********************************************/
-	AbstractSemiNormalizedHTDAlgorithm::AbstractSemiNormalizedHTDAlgorithm(Problem *problem, const PlanFactory& planFactory)
-		: AbstractHTDAlgorithm(problem, planFactory)
+	AbstractSemiNormalizedHTDAlgorithm::AbstractSemiNormalizedHTDAlgorithm(Problem *problem)
+		: AbstractHTDAlgorithm(problem)
 	{ }
 
 	AbstractSemiNormalizedHTDAlgorithm::~AbstractSemiNormalizedHTDAlgorithm() { }
@@ -133,8 +100,8 @@ namespace sharp
 	/*********************************************\
 	|* CLASS: AbstractNormalizedHTDAlgorithm
 	\*********************************************/
-	AbstractNormalizedHTDAlgorithm::AbstractNormalizedHTDAlgorithm(Problem *problem, const PlanFactory& planFactory)
-		: AbstractSemiNormalizedHTDAlgorithm(problem, planFactory)
+	AbstractNormalizedHTDAlgorithm::AbstractNormalizedHTDAlgorithm(Problem *problem)
+		: AbstractSemiNormalizedHTDAlgorithm(problem)
 	{ }
 
 	AbstractNormalizedHTDAlgorithm::~AbstractNormalizedHTDAlgorithm() { }

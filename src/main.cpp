@@ -30,12 +30,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Problem.h"
 #include "NonNormalizedAlgorithm.h"
 #include "SemiNormalizedAlgorithm.h"
-#include "solution/DecisionPlan.h"
-#include "solution/DecisionSolution.h"
-#include "solution/CountingPlan.h"
-#include "solution/CountingSolution.h"
-#include "solution/EnumerationPlan.h"
-#include "solution/EnumerationIterator.h"
+#include "EnumerationIterator.h"
 
 namespace {
 	const int CONSISTENT = 10;
@@ -208,22 +203,6 @@ int main(int argc, char** argv)
 		if(onlyDecompose)
 			return 0;
 
-		std::auto_ptr<sharp::PlanFactory> planFactory;
-		switch(problemType) {
-			case ENUMERATION:
-			case OPT_ENUM:
-				planFactory.reset(new sharp::GenericPlanFactory<solution::EnumerationPlan, Row>);
-				break;
-			case COUNTING:
-			case OPT_COUNTING:
-				planFactory.reset(new sharp::GenericPlanFactory<solution::CountingPlan, Row>);
-				break;
-			case DECISION:
-			case OPT_VALUE:
-				planFactory.reset(new sharp::GenericPlanFactory<solution::DecisionPlan, Row>);
-				break;
-		}
-
 		bool ignoreOptimization = false;
 		switch(problemType) {
 			case ENUMERATION:
@@ -238,75 +217,80 @@ int main(int argc, char** argv)
 		std::auto_ptr<Algorithm> algorithm;
 		switch(algorithmType) {
 			case NON_NORMALIZED:
-				algorithm.reset(new NonNormalizedAlgorithm(problem, *planFactory, inputString, program, normalizationType, ignoreOptimization, level));
+				algorithm.reset(new NonNormalizedAlgorithm(problem, inputString, program, normalizationType, ignoreOptimization, level));
 				break;
 
 			case SEMI_NORMALIZED:
-				algorithm.reset(new SemiNormalizedAlgorithm(problem, *planFactory, inputString, exchangeProgram, joinProgram, normalizationType, ignoreOptimization, level));
+				algorithm.reset(new SemiNormalizedAlgorithm(problem, inputString, exchangeProgram, joinProgram, normalizationType, ignoreOptimization, level));
 				break;
 		}
 		
-		std::auto_ptr<sharp::Plan> plan(problem.calculatePlanFromDecomposition(algorithm.get(), decomposition));
+		std::auto_ptr<sharp::Table> table(problem.calculateTableFromDecomposition(algorithm.get(), decomposition));
+
+#ifdef PROGRESS_REPORT
+		std::cout << '\r' << std::setw(66) << std::left << "Done." << std::endl; // Clear/end progress line
+#endif
+
+		assert(table.get());
+
+		if(table->empty()) {
+			if(problemType == DECISION || problemType == OPT_VALUE)
+				std::cout << "NO" << std::endl;
+			else
+				std::cout << "Solutions: 0" << std::endl;
+			return INCONSISTENT;
+		}
+		
+		if(table->size() != 1)
+			throw std::runtime_error("Root table must have 0 or 1 rows");
+
+		const Row& row = *dynamic_cast<const Row*>(*table->begin());
 
 		switch(problemType) {
 			case ENUMERATION:
 			case OPT_ENUM:
-				if(plan.get()) {
-					std::auto_ptr<solution::EnumerationIterator> it(dynamic_cast<solution::EnumerationIterator*>(plan->materialize()));
+				{
+					EnumerationIterator it(row);
 					mpz_class numSolutions = 0;
 
-					while(it->valid()) {
-						foreach(const std::string& item, **it)
+					while(it.isValid()) {
+						foreach(const std::string& item, *it)
 							std::cout << item << ' ';
 						std::cout << std::endl;
-						++(*it);
+						++it;
 						++numSolutions;
 					}
 
 					if(problemType == OPT_ENUM) {
-						std::cout << "Minimum cost: " << dynamic_cast<solution::EnumerationPlan*>(plan.get())->getCost() << std::endl;
+						std::cout << "Minimum cost: " << row.getCost() << std::endl;
 						std::cout << "Optimal solutions: " << numSolutions << std::endl;
 					} else
 						std::cout << "Solutions: " << numSolutions << std::endl;
 
 					return numSolutions == 0 ? INCONSISTENT : CONSISTENT;
-				} else {
-					std::cout << "Solutions: 0" << std::endl;
-					return INCONSISTENT;
 				}
 				break;
 
 			case COUNTING:
 			case OPT_COUNTING:
-				if(plan.get()) {
-					std::auto_ptr<solution::CountingSolution> s(dynamic_cast<solution::CountingSolution*>(plan->materialize()));
+				{
 					if(problemType == OPT_COUNTING) {
-						std::cout << "Minimum cost: " << s->getCost() << std::endl;
-						std::cout << "Optimal solutions: " << s->getCount() << std::endl;
+						std::cout << "Minimum cost: " << row.getCost() << std::endl;
+						std::cout << "Optimal solutions: " << row.getCount() << std::endl;
 					} else
-						std::cout << "Solutions: " << s->getCount() << std::endl;
-					return s->getCount() == 0 ? INCONSISTENT : CONSISTENT;
-				} else {
-					std::cout << "Solutions: 0" << std::endl;
-					return INCONSISTENT;
+						std::cout << "Solutions: " << row.getCount() << std::endl;
+					return row.getCount() == 0 ? INCONSISTENT : CONSISTENT;
 				}
 				break;
 
 			case DECISION:
 			case OPT_VALUE:
-				if(plan.get()) {
-					std::auto_ptr<solution::DecisionSolution> s(dynamic_cast<solution::DecisionSolution*>(plan->materialize()));
-					// Since there is a plan, there must also be a solution
-					assert(s.get());
-
+				{
 					if(problemType == OPT_VALUE)
-						std::cout << "Minimum cost: " << s->getCost() << std::endl;
+						std::cout << "Minimum cost: " << row.getCost() << std::endl;
 					else
 						std::cout << "YES" << std::endl;
 					return CONSISTENT;
-				} else {
-					std::cout << "NO" << std::endl;
-					return INCONSISTENT;
 				}
 				break;
 		}

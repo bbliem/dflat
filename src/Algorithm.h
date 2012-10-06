@@ -29,7 +29,7 @@ class Algorithm : public sharp::AbstractHTDAlgorithm
 {
 public:
 	//! @param ignoreOptimization true iff the predicates responsible for optimization problems should be ignored (e.g., cost/1, currentCost/1)
-	Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, sharp::NormalizationType normalizationType, bool ignoreOptimization = false, unsigned int level = 0);
+	Algorithm(sharp::Problem& problem, const std::string& instanceFacts, sharp::NormalizationType normalizationType, bool ignoreOptimization = false, unsigned int level = 0);
 
 protected:
 	//! @return the file name of the user program to compute node's table
@@ -46,7 +46,6 @@ protected:
 	virtual sharp::Table* computeTable(const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables);
 
 	virtual sharp::Table* evaluateNode(const sharp::ExtendedHypertree* node);
-	virtual sharp::Plan* selectPlan(sharp::Table* table, const sharp::ExtendedHypertree* root);
 	virtual sharp::ExtendedHypertree* prepareHypertreeDecomposition(sharp::ExtendedHypertree* root);
 
 	virtual std::auto_ptr<Clasp::ClaspFacade::Callback> newClaspCallback(sharp::Table& newTable, const GringoOutputProcessor&, unsigned int numChildNodes, const sharp::VertexSet& currentVertices) const;

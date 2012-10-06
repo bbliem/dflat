@@ -2,6 +2,7 @@
 #define PROBLEM_H_
 
 #include <sharp/Global.hpp>
+#include <sharp/AbstractAlgorithm.hpp>
 
 namespace sharp
 {
@@ -9,7 +10,6 @@ namespace sharp
 	class ExtendedHypertree;
 	class AbstractHTDAlgorithm;
 	class AbstractHypertreeDecompositionAlgorithm;
-	class Plan;
 	class Instantiator;
 
 	class Problem
@@ -20,15 +20,15 @@ namespace sharp
 		virtual ~Problem();
 		
 	public:
-		// gets the plan for the problem, that is:
+		// gets the root table for the problem, that is:
 		// - the input is parsed (parse method is called)
 		// - preprocessing is done (preprocess method is called)
 		// - the hypergraph representation is generated (buildHypergraphRepresentation)
 		// - a tree decomposition is generated
 		// - the actual algorithm is run (evaluate method of the Algorithm class)
-		// - the plan for the problem is returned
-		virtual Plan *calculatePlan(AbstractHTDAlgorithm *algorithm);
-		Plan *calculatePlanFromDecomposition(AbstractHTDAlgorithm *algorithm, ExtendedHypertree *hypertree);
+		// - the root table is returned
+		virtual Table *calculateTable(AbstractHTDAlgorithm *algorithm);
+		Table *calculateTableFromDecomposition(AbstractHTDAlgorithm *algorithm, ExtendedHypertree *hypertree);
 	
 		// calculates a tree decomposition from the input, that is:
 		// - input is parsed (parse method is called)
@@ -51,13 +51,13 @@ namespace sharp
 		void printVertexNames(std::ostream &out);
 	
 	protected: 
-		// called by calculatePlan if the problem has not yet been read
+		// called by calculateTable if the problem has not yet been read
 		virtual void parse() = 0;
 	
-		// called by the calculatePlan method, after preprocessing
+		// called by the calculateTable method, after preprocessing
 		virtual Hypergraph *buildHypergraphRepresentation() = 0;
 	
-		// called by the calculatePlan method, before hypergraph is built 
+		// called by the calculateTable method, before hypergraph is built 
 		virtual void preprocess();
 
 		// called by calculateHypertreeDecomposition, after tree decomposition is built

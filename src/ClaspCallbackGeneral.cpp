@@ -23,7 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ClaspCallbackGeneral.h"
 #include "GringoOutputProcessor.h"
-#include "RowGeneral.h"
+#include "Row.h"
 
 #define foreach BOOST_FOREACH
 
@@ -50,8 +50,13 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 			std::cout << std::endl;
 #endif
 		}
-		else if(e == Clasp::ClaspFacade::event_state_exit)
-			pathCollection.fillTable(table, algorithm);
+		else if(e == Clasp::ClaspFacade::event_state_exit) {
+			foreach(const PredecessorData::value_type& it, predecessorData) {
+				foreach(const TopLevelItemsToRow::value_type& it2, it.second) {
+					algorithm.addRowToTable(table, it2.second);
+				}
+			}
+		}
 	}
 }
 
@@ -70,55 +75,23 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	std::cout << std::endl;
 #endif
 
-	std::vector<const sharp::Table::value_type*> childRowsAndPlans;
-	childRowsAndPlans.reserve(numChildNodes);
-	unsigned currentCost = 0;
-	unsigned cost = 0;
+	Row::ExtensionPointerTuple childRows;
+	childRows.reserve(numChildNodes);
 
 	foreach(const LongToLiteral::value_type& it, extendAtoms) {
 		if(s.isTrue(it.second)) {
-			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
+			childRows.push_back(reinterpret_cast<const Row*>(it.first));
 #ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childRowsAndPlans.size() == numChildNodes)
+			if(childRows.size() == numChildNodes)
 				break;
 #endif
 		}
 	}
 
 #ifndef DISABLE_ANSWER_SET_CHECKS
-	if(childRowsAndPlans.size() > 0 && childRowsAndPlans.size() != numChildNodes)
+	if(childRows.size() > 0 && childRows.size() != numChildNodes)
 		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
 #endif
-
-	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
-		if(s.isTrue(it.second)) {
-#ifndef DISABLE_ANSWER_SET_CHECKS
-			if(currentCost != 0)
-				throw std::runtime_error("Multiple current costs");
-#endif
-			currentCost = it.first;
-#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
-			break;
-#endif
-		}
-	}
-
-	foreach(const LongToLiteral::value_type& it, costAtoms) {
-		if(s.isTrue(it.second)) {
-#ifndef DISABLE_ANSWER_SET_CHECKS
-			if(cost != 0)
-				throw std::runtime_error("Multiple costs");
-#endif
-			cost = it.first;
-#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
-			break;
-#endif
-		}
-	}
-
-//#ifndef DISABLE_ANSWER_SET_CHECKS
-// TODO: Check if for each child node we have an extended row (or none at all)
-//#endif
 
 	Path path(numLevels);
 	unsigned int highestLevel = 0; // Highest level of an item set encountered so far
@@ -137,56 +110,49 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	}
 	// A path does not have to use all levels, but up to the highest used level it must be connected.
 	path.resize(highestLevel+1);
-	pathCollection.insert(path, childRowsAndPlans, currentCost, cost);
-}
 
-inline void ClaspCallbackGeneral::PathCollection::insert(const Path& path, const std::vector<const TableRow*>& predecessors, unsigned currentCost, unsigned cost)
-{
 	assert(!path.empty());
-	TopLevelItemsToRowData& rowDataMap = predecessorData[predecessors];
-	const Row::Items& topLevelItems = path.front();
-	RowData& rowData = rowDataMap[topLevelItems];
-
-	rowData.paths.push_back(path);
-#ifndef DISABLE_ANSWER_SET_CHECKS
-	if(rowData.currentCost != 0 && rowData.currentCost != currentCost)
-		throw std::runtime_error("Different current cost for same top-level items");
-	if(rowData.cost != 0 && rowData.cost != cost)
-		throw std::runtime_error("Different cost for same top-level items");
-#endif
-	rowData.currentCost = currentCost;
-	rowData.cost = cost;
-}
-
-inline void ClaspCallbackGeneral::PathCollection::fillTable(sharp::Table& table, const Algorithm& algorithm) const
-{
-	// For all (pairs of) predecessors, build new rows from our collected paths
-	foreach(const PredecessorData::value_type& it, predecessorData) {
-		const TableRows& predecessors = it.first;
-		foreach(const TopLevelItemsToRowData::value_type& it2, it.second) {
-			const RowData& rowData = it2.second;
-
-			RowGeneral& newRow = *new RowGeneral;
-			newRow.currentCost = rowData.currentCost;
-			newRow.cost = rowData.cost;
-
-			foreach(const Path& path, rowData.paths) {
-				assert(path.front() == it2.first); // top-level items must coincide
-				newRow.tree.addPath(path.begin(), path.end());
-				assert(newRow.tree.children.size() == 1); // each row may only have one top-level item set
-			}
-
-			sharp::Plan* plan;
-			if(predecessors.empty())
-				plan = algorithm.getPlanFactory().leaf(newRow);
-			else if(predecessors.size() == 1)
-				plan = algorithm.getPlanFactory().join(newRow, predecessors[0]->second);
-			else {
-				plan = algorithm.getPlanFactory().join(newRow, predecessors[0]->second, predecessors[1]->second);
-				for(unsigned i = 2; i < predecessors.size(); ++i)
-					plan = algorithm.getPlanFactory().join(newRow, plan, predecessors[i]->second);
-			}
-			algorithm.addRowToTable(table, &newRow, plan);
+	Row*& rowPtr = predecessorData[childRows][path.front()];
+	if(!rowPtr) {
+		if(childRows.empty())
+			rowPtr = new Row(path.front(), 1);
+		else {
+			rowPtr = new Row(path.front());
+			rowPtr->addExtensionPointerTuple(childRows);
 		}
 	}
+	else
+		rowPtr->addSubItemsPath(path.begin(), path.end());
+
+	Row& row = *rowPtr;
+
+	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
+		if(s.isTrue(it.second)) {
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(row.getCurrentCost() != 0 && row.getCurrentCost() != it.first)
+				throw std::runtime_error("Different current cost for same top-level items");
+#endif
+			row.setCurrentCost(it.first);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			break;
+#endif
+		}
+	}
+
+	foreach(const LongToLiteral::value_type& it, costAtoms) {
+		if(s.isTrue(it.second)) {
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(row.getCost() != 0 && row.getCost() != it.first)
+				throw std::runtime_error("Different cost for same top-level items");
+#endif
+			row.setCost(it.first);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			break;
+#endif
+		}
+	}
+
+//#ifndef DISABLE_ANSWER_SET_CHECKS
+// TODO: Check if for each child node we have an extended row (or none at all)
+//#endif
 }

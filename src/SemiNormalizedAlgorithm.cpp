@@ -23,8 +23,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "SemiNormalizedAlgorithm.h"
 #include "Row.h"
-#include "RowGeneral.h"
-#include "RowNP.h"
 
 using sharp::Table;
 
@@ -40,8 +38,8 @@ namespace {
 	}
 }
 
-SemiNormalizedAlgorithm::SemiNormalizedAlgorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram, sharp::NormalizationType normalizationType, bool ignoreOptimization, unsigned int level)
-	: Algorithm(problem, planFactory, instanceFacts, normalizationType, ignoreOptimization, level), exchangeNodeProgram(exchangeNodeProgram), joinNodeProgram(joinNodeProgram)
+SemiNormalizedAlgorithm::SemiNormalizedAlgorithm(sharp::Problem& problem, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram, sharp::NormalizationType normalizationType, bool ignoreOptimization, unsigned int level)
+	: Algorithm(problem, instanceFacts, normalizationType, ignoreOptimization, level), exchangeNodeProgram(exchangeNodeProgram), joinNodeProgram(joinNodeProgram)
 {
 	assert(normalizationType == sharp::DefaultNormalization || normalizationType == sharp::SemiNormalization);
 }
@@ -61,14 +59,7 @@ Table* SemiNormalizedAlgorithm::computeTable(const sharp::ExtendedHypertree& nod
 			assert(node.getVertices().empty());
 			// We return an empty dummy child row
 			Table* table = new Table;
-			Row* r;
-			if(level == 0)
-				r = new RowNP;
-			else {
-				r = new RowGeneral;
-				dynamic_cast<RowGeneral*>(r)->tree.children[Row::Items()]; // Initialize to empty top-level assignment
-			}
-			(*table)[r] = planFactory.leaf(*r);
+			table->insert(new Row(Row::Items()));
 			return table;
 			}
 
@@ -108,7 +99,7 @@ Table* SemiNormalizedAlgorithm::defaultJoin(const sharp::ExtendedHypertree& node
 	// Tables are ordered, use sort merge join algorithm
 	Table::const_iterator lit = childTableLeft.begin();
 	Table::const_iterator rit = childTableRight.begin();
-#define ROW(X) (*dynamic_cast<const Row*>(X->first)) // FIXME: Think of something better
+#define ROW(X) (*dynamic_cast<const Row*>(*X)) // FIXME: Think of something better
 	while(lit != childTableLeft.end() && rit != childTableRight.end()) {
 		while(!ROW(lit).matches(ROW(rit))) {
 			// Advance iterator pointing to smaller value
@@ -129,8 +120,7 @@ Table* SemiNormalizedAlgorithm::defaultJoin(const sharp::ExtendedHypertree& node
 joinLitWithAllPartners:
 		do {
 			sharp::Row* r = ROW(lit).join(ROW(rit));
-			sharp::Plan* p = planFactory.join(*r, lit->second, rit->second);
-			addRowToTable(*newTable, r, p);
+			addRowToTable(*newTable, r);
 			++rit;
 		} while(rit != childTableRight.end() && ROW(lit).matches(ROW(rit)));
 

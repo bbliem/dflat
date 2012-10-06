@@ -42,12 +42,12 @@ namespace sharp
 	{
 	}
 	
-	Plan *Problem::calculatePlan(AbstractHTDAlgorithm *algorithm)
+	Table *Problem::calculateTable(AbstractHTDAlgorithm *algorithm)
 	{
-		return this->calculatePlanFromDecomposition(algorithm, this->calculateHypertreeDecomposition());
+		return this->calculateTableFromDecomposition(algorithm, this->calculateHypertreeDecomposition());
 	}
 
-	Plan *Problem::calculatePlanFromDecomposition(AbstractHTDAlgorithm *algorithm, ExtendedHypertree *root)
+	Table *Problem::calculateTableFromDecomposition(AbstractHTDAlgorithm *algorithm, ExtendedHypertree *root)
 	{
 		return algorithm->evaluate(root);
 	}

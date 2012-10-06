@@ -23,38 +23,34 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <sharp/main>
 
-#include "../Row.h"
-#include "EnumerationPlan.h"
-
-namespace solution {
-
-class EnumerationPlan;
+#include "Row.h"
 
 // TODO: Maybe make it a "proper" iterator? (E.g., use Boost Iterator?)
 class EnumerationIterator : public sharp::Solution
 {
 public:
-	EnumerationIterator();
-	explicit EnumerationIterator(const EnumerationPlan& p);
+	explicit EnumerationIterator(const Row&);
 	virtual ~EnumerationIterator();
 
-	//! @return true iff this iterator can be dereferenced, i.e., *this != plan->end()
-	bool valid() const;
+	//! @return true iff this iterator can be dereferenced
+	bool isValid() const { return valid; }
 
-	typedef std::set<std::string> Items;
-
-	const Items& operator*() const; // dereference
+	const Row::Items& operator*() const; // dereference
 	EnumerationIterator& operator++();
 
 private:
+	// Reset to initial state after construction
+	void reset();
+	void resetExtensionPointers();
+
 	// Materialize what will be returned upon dereferencing
 	void materializeItems();
 
-	const EnumerationPlan* plan;
-	EnumerationIterator* left;
-	EnumerationIterator* right;
+	void incrementExtensionIterator(unsigned int i);
 
-	Items items; // Materialized item set returned when dereferencing
+	Row::Items items;
+	const Row& row;
+	bool valid;
+	Row::ExtensionPointers::const_iterator curExtension; // current ExtensionPointerTuple in row
+	std::vector<EnumerationIterator*> extensionIts; // for each extended row in *eptIt one iterator
 };
-
-} // namespace solution

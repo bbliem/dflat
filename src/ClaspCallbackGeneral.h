@@ -69,32 +69,10 @@ private:
 	LongToLiteral costAtoms;
 
 	// Because one table row can be constituted of multiple AS's, we cannot insert a new row upon arrival of a new AS but must rather collect all AS data until the solve state is finished.
-	// By "path" we denote a path from root to leaf in RowGeneral::Tree. Each AS characterizes exactly one path.
+	// By "path" we denote a path from root to leaf in Row::Tree. Each AS characterizes exactly one path.
 	typedef std::vector<Row::Items> Path;
+	typedef std::map<Row::Items, Row*> TopLevelItemsToRow; // Maps an item set to a row with that item set on the top level
+	typedef std::map<Row::ExtensionPointerTuple, TopLevelItemsToRow> PredecessorData;
 
-	class PathCollection
-	{
-	public:
-		typedef sharp::Table::value_type TableRow;
-
-		void insert(const Path& path, const std::vector<const TableRow*>& predecessors = std::vector<const TableRow*>(), unsigned currentCost = 0, unsigned cost = 0);
-		void fillTable(sharp::Table& table, const Algorithm& algorithm) const;
-
-	private:
-		struct RowData
-		{
-			RowData() : currentCost(0), cost(0) {}
-			std::list<Path> paths;
-			unsigned int currentCost;
-			unsigned int cost;
-		};
-
-		typedef std::vector<const TableRow*> TableRows; // When using the join program, both are used; when using the exchange program, only the first is used, the other is 0.
-		typedef std::map<Row::Items, RowData> TopLevelItemsToRowData; // Maps an item set to data of rows starting with that item set
-		typedef std::map<TableRows, TopLevelItemsToRowData> PredecessorData;
-
-		PredecessorData predecessorData;
-	};
-
-	PathCollection pathCollection;
+	PredecessorData predecessorData;
 };
