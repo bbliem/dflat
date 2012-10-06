@@ -23,7 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <sharp/main>
 
-#include "../Tuple.h"
+#include "../Row.h"
 #include "EnumerationPlan.h"
 
 namespace solution {
@@ -41,18 +41,20 @@ public:
 	//! @return true iff this iterator can be dereferenced, i.e., *this != plan->end()
 	bool valid() const;
 
-	const Tuple::Assignment& operator*() const; // dereference
+	typedef std::set<std::string> Items;
+
+	const Items& operator*() const; // dereference
 	EnumerationIterator& operator++();
 
 private:
 	// Materialize what will be returned upon dereferencing
-	void materializeAssignment();
+	void materializeItems();
 
 	const EnumerationPlan* plan;
 	EnumerationIterator* left;
 	EnumerationIterator* right;
 
-	Tuple::Assignment assignment; // Materialized assignment returned when dereferencing
+	Items items; // Materialized item set returned when dereferencing
 };
 
 } // namespace solution

@@ -29,7 +29,7 @@ public:
 
 protected:
 	virtual void declareBag(std::ostream& out, const sharp::ExtendedHypertree& node);
-	virtual void declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables);
+	virtual void declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables);
 	virtual const char* getUserProgram(const sharp::ExtendedHypertree& node);
 
 private:

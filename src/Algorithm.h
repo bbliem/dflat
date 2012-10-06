@@ -35,18 +35,18 @@ protected:
 	//! Writes the facts describing node's bags to "out".
 	virtual void declareBag(std::ostream& out, const sharp::ExtendedHypertree& node) = 0;
 	//! Writes the facts describing the child tables to "out".
-	virtual void declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables) = 0;
+	virtual void declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables) = 0;
 	//! @return the file name of the user program to compute node's table
 	virtual const char* getUserProgram(const sharp::ExtendedHypertree& node) = 0;
 
 	//! Calls declareBag() and declareChildTables() and runs the ASP solver to compute node's table.
-	virtual sharp::TupleTable* computeTable(const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables);
+	virtual sharp::Table* computeTable(const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables);
 
-	virtual sharp::TupleTable* evaluateNode(const sharp::ExtendedHypertree* node);
-	virtual sharp::Plan* selectPlan(sharp::TupleTable* table, const sharp::ExtendedHypertree* root);
+	virtual sharp::Table* evaluateNode(const sharp::ExtendedHypertree* node);
+	virtual sharp::Plan* selectPlan(sharp::Table* table, const sharp::ExtendedHypertree* root);
 	virtual sharp::ExtendedHypertree* prepareHypertreeDecomposition(sharp::ExtendedHypertree* root);
 
-	virtual std::auto_ptr<Clasp::ClaspFacade::Callback> newClaspCallback(sharp::TupleTable& newTable, const GringoOutputProcessor&, unsigned int numChildNodes, const sharp::VertexSet& currentVertices) const;
+	virtual std::auto_ptr<Clasp::ClaspFacade::Callback> newClaspCallback(sharp::Table& newTable, const GringoOutputProcessor&, unsigned int numChildNodes, const sharp::VertexSet& currentVertices) const;
 	virtual std::auto_ptr<GringoOutputProcessor> newGringoOutputProcessor() const;
 
 	sharp::Problem& problem;
@@ -58,6 +58,6 @@ protected:
 
 #ifdef PROGRESS_REPORT
 	int nodesProcessed; // For progress report
-	virtual void printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildTuples = 0);
+	virtual void printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildRows = 0);
 #endif
 };

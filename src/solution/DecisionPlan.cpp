@@ -25,15 +25,15 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solution {
 
-DecisionPlan::DecisionPlan(const Tuple& tuple)
-	: sharp::Plan(LEAF), cost(tuple.getCost()), currentCost(tuple.getCurrentCost())
+DecisionPlan::DecisionPlan(const Row& row)
+	: sharp::Plan(LEAF), cost(row.getCost()), currentCost(row.getCurrentCost())
 {
 }
 
-DecisionPlan* DecisionPlan::leaf(const Tuple& tuple)
+DecisionPlan* DecisionPlan::leaf(const Row& row)
 {
-	assert(!tuple.getCost() || tuple.getCurrentCost() == tuple.getCost());
-	return new DecisionPlan(tuple);
+	assert(!row.getCost() || row.getCurrentCost() == row.getCost());
+	return new DecisionPlan(row);
 }
 
 DecisionPlan* DecisionPlan::unify(const DecisionPlan* left, const DecisionPlan* right)
@@ -46,7 +46,7 @@ DecisionPlan* DecisionPlan::unify(const DecisionPlan* left, const DecisionPlan* 
 		return new DecisionPlan(*right);
 }
 
-DecisionPlan* DecisionPlan::join(const Tuple& joined, const DecisionPlan* left, const DecisionPlan* right)
+DecisionPlan* DecisionPlan::join(const Row& joined, const DecisionPlan* left, const DecisionPlan* right)
 {
 	return new DecisionPlan(joined);
 }

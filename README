@@ -3,20 +3,20 @@ For instructions about compiling or installing, see the file INSTALL.
 ---
 
 Writing logic programs for the exchange node for problems beyond NP:
-Predicates provided by ASDP: current/1, introduced/1, removed/1, childTuple/1, mapped/3, sub/2, childCost/2
-Predicates expected by ASDP: map/3, chosenChildTuple/1 (for exchange), chosenChildTuple{L,R}/1 (for join), cost/1, currentCost/1.
-Additionally to the provided predicates you get the original problem instance.
+Predicates provided by D-FLAT: current/1, introduced/1, removed/1, childRow/1, childItem/2, sub/2, childCost/2
+Predicates expected by D-FLAT: item/2, chosenChildRow/1 (for exchange), chosenChildRow{L,R}/1 (for join), cost/1, currentCost/1.
+Additionally to the provided predicates you get the original problem instance and the current bag.
 You need to provide the command-line option "-l N" s.t. N is the number of levels you require.
 
-In the following, let the term "level L assignment" mean an assignment that maps to each vertex V exactly one value K, given by the output predicate map(L,V,K). Suppose the problem is on the n-th level of the polynomial hierarchy. In this case a tuple consists of
--) a level 0 assignment,
--) a set of level 1 assignments,
--) for each level 1 assignment, a set of level 2 assignments,
--) for each level 2 assignment, a set of level 3 assignments,
+In the following, let the term "level L item set" mean an item set given by the output predicate item(L,V). Suppose the problem is on the n-th level of the polynomial hierarchy. In this case a table row consists of
+-) a level 0 item set,
+-) a set of level 1 item sets,
+-) for each level 1 item set, a set of level 2 item sets,
+-) for each level 2 item set, a set of level 3 item sets,
 -) ...
--) for each level n-3 assignment, a set of level n-1 assignments.
+-) for each level n-3 item set, a set of level n-1 item sets.
 
-The structure of a tuple is therefore a tree like in the following example for a problem on the 3rd level of the PH, where a number n stands for a level n assignment:
+The structure of a table row is therefore a tree like in the following example for a problem on the 3rd level of the PH, where a number n stands for a level n item set:
 
        0
      / | \
@@ -24,15 +24,15 @@ The structure of a tuple is therefore a tree like in the following example for a
    / \    |
   2   2   2
 
-Since there are four leaves, there are four paths from the root to a leaf. Therefore four answer sets of your program are used to construct this tuple.For instance the followings answer sets could correspond to the paths, from left to right (assuming just a single vertex v):
-AS 0: map(0,v,red) map(1,v,red) map(2,v,red)
-AS 1: map(0,v,red) map(1,v,red) map(2,v,green)
-AS 2: map(0,v,red) map(1,v,green)
-AS 3: map(0,v,red) map(1,v,blue) map(2,v,red)
+Since there are four leaves, there are four paths from the root to a leaf. Therefore four answer sets of your program are used to construct this table row. For instance the followings answer sets could correspond to the paths, from left to right (assuming just a single vertex v):
+AS 0: item(0,col(v,red)) item(1,col(v,red)) item(2,col(v,red))
+AS 1: item(0,col(v,red)) item(1,col(v,red)) map(2,col(v,green))
+AS 2: item(0,col(v,red)) item(1,col(v,green))
+AS 3: item(0,col(v,red)) item(1,col(v,blue)) item(2,col(v,red))
 
-The provided predicate sub(I,J) declares that the assignment I is a parent of the assignment J in a tree like above. The provided predicate mapped(I,V,K) denotes that the assignment with the ID I maps K to V. I can either be a child tuple or some subsidiary assignment.
+The provided predicate sub(I,J) declares that the item set I is a parent of the item set J in a tree like above. The provided predicate childItem(I,V) denotes that the item set with the ID I contains an item with value V. I can either be a child row or some subsidiary item set.
 
 ---
 
 Writing exchange node programs for problems in NP:
-Conceptually this is just a special case where you have only level 0 assignments. For problems in NP, each answer set of the exchange node program therefore corresponds to exactly one tuple. Instead of map/3 you now must use map/2, which works the same as in the general case, but with the level parameter omitted. Obviously, there is no provided sub/2 predicate.
+Conceptually this is just a special case where you have only level 0 item sets. For problems in NP, each answer set of the exchange node program therefore corresponds to exactly one table row. Instead of item/2 you now must use item/1, which works the same as in the general case, but with the level parameter omitted. Obviously, there is no provided sub/2 predicate.

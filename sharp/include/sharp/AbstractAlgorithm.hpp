@@ -16,22 +16,22 @@ namespace sharp
 {
 	class Problem;
 
-	class Tuple
+	class Row
 	{
 	public:
-		virtual ~Tuple();
+		virtual ~Row();
 	
-		virtual bool operator<(const Tuple &other) const = 0;
-		virtual bool operator==(const Tuple &other) const = 0;
+		virtual bool operator<(const Row &other) const = 0;
+		virtual bool operator==(const Row &other) const = 0;
 
-		// When adding this Tuple into the TupleTable and it turns out there is
-		// already such a Tuple "old" (i.e. *this == old), the old row is
+		// When adding this Row into the Row and it turns out there is
+		// already such a Row "old" (i.e. *this == old), the old row is
 		// deleted, this->unify(old) is called, and then *this is added (with
 		// the corresponding Plan). In some cases it is required that the new
-		// tuple be updated depending on the one it replaces. In these cases,
+		// row be updated depending on the one it replaces. In these cases,
 		// one is to override this method. Of course, the changes to *this
 		// should leave the equality to old invariant.
-		virtual void unify(const Tuple& old);
+		virtual void unify(const Row& old);
 	};
 
 	class Solution
@@ -69,18 +69,18 @@ namespace sharp
 	{
 	public:
 		virtual ~PlanFactory();
-		virtual Plan* leaf(const Tuple&) const = 0; // Plan for a singleton solution
+		virtual Plan* leaf(const Row&) const = 0; // Plan for a singleton solution
 		virtual Plan* unify(const Plan* left, const Plan* right) const = 0; // "Adds" solutions
-		virtual Plan* join(const Tuple& extension, const Plan* left, const Plan* right = 0) const = 0; // "Multiplies" solutions by joining and extending them
+		virtual Plan* join(const Row& extension, const Plan* left, const Plan* right = 0) const = 0; // "Multiplies" solutions by joining and extending them
 	};
 
-	template <typename PlanT, typename TupleT = Tuple>
+	template <typename PlanT, typename RowT = Row>
 	class GenericPlanFactory : public PlanFactory
 	{
 	public:
-		virtual Plan* leaf(const Tuple& tuple) const
+		virtual Plan* leaf(const Row& row) const
 		{
-			return PlanT::leaf(dynamic_cast<const TupleT&>(tuple));
+			return PlanT::leaf(dynamic_cast<const RowT&>(row));
 		}
 
 		virtual Plan* unify(const Plan* left, const Plan* right) const
@@ -88,16 +88,16 @@ namespace sharp
 			return PlanT::unify(dynamic_cast<const PlanT*>(left), dynamic_cast<const PlanT*>(right));
 		}
 
-		virtual Plan* join(const Tuple& extension, const Plan* left, const Plan* right) const
+		virtual Plan* join(const Row& extension, const Plan* left, const Plan* right) const
 		{
-			return PlanT::join(dynamic_cast<const TupleT&>(extension), dynamic_cast<const PlanT*>(left), dynamic_cast<const PlanT*>(right));
+			return PlanT::join(dynamic_cast<const RowT&>(extension), dynamic_cast<const PlanT*>(left), dynamic_cast<const PlanT*>(right));
 		}
 	};
 
 
 	//FIXME: use a hash_map, hash_function, etc...
-	//typedef __gnu_cxx::hash_map<Tuple, Solution *> TupleTable;
-	typedef std::map<Tuple*, Plan*, std::less<Tuple *> > TupleTable;
+	//typedef __gnu_cxx::hash_map<Row, Solution *> Table;
+	typedef std::map<Row*, Plan*, std::less<Row *> > Table;
 
 	class AbstractHTDAlgorithm
 	{
@@ -114,13 +114,13 @@ namespace sharp
 	public:
 		Plan *evaluate(ExtendedHypertree *root);
 		const PlanFactory& getPlanFactory() const { return planFactory; }
-		void addRowToTupleTable(TupleTable&, Tuple*, Plan*) const;
+		void addRowToTable(Table&, Row*, Plan*) const;
 	
 	protected:
 		virtual Problem *problem();
 		const PlanFactory& planFactory;
-		virtual Plan *selectPlan(TupleTable *tuples, const ExtendedHypertree *root) = 0;
-		virtual TupleTable *evaluateNode(const ExtendedHypertree *node) = 0;
+		virtual Plan *selectPlan(Table *rows, const ExtendedHypertree *root) = 0;
+		virtual Table *evaluateNode(const ExtendedHypertree *node) = 0;
 	};
 	
 	class AbstractSemiNormalizedHTDAlgorithm : public AbstractHTDAlgorithm
@@ -133,9 +133,9 @@ namespace sharp
 		virtual ExtendedHypertree *prepareHypertreeDecomposition(ExtendedHypertree *root);
 
 	protected:
-		virtual TupleTable *evaluateNode(const ExtendedHypertree *node);	
-		virtual TupleTable *evaluateBranchNode(const ExtendedHypertree *node) = 0;
-		virtual TupleTable *evaluatePermutationNode(const ExtendedHypertree *node) = 0;
+		virtual Table *evaluateNode(const ExtendedHypertree *node);	
+		virtual Table *evaluateBranchNode(const ExtendedHypertree *node) = 0;
+		virtual Table *evaluatePermutationNode(const ExtendedHypertree *node) = 0;
 	};
 
 	class AbstractNormalizedHTDAlgorithm : public AbstractSemiNormalizedHTDAlgorithm
@@ -148,13 +148,13 @@ namespace sharp
 		virtual ExtendedHypertree *prepareHypertreeDecomposition(ExtendedHypertree *root);
 
 	protected:
-		virtual TupleTable *evaluatePermutationNode(const ExtendedHypertree *node);
-		virtual TupleTable *evaluateIntroductionNode(const ExtendedHypertree *node) = 0;
-		virtual TupleTable *evaluateRemovalNode(const ExtendedHypertree *node) = 0;
-		virtual TupleTable *evaluateLeafNode(const ExtendedHypertree *node) = 0;
+		virtual Table *evaluatePermutationNode(const ExtendedHypertree *node);
+		virtual Table *evaluateIntroductionNode(const ExtendedHypertree *node) = 0;
+		virtual Table *evaluateRemovalNode(const ExtendedHypertree *node) = 0;
+		virtual Table *evaluateLeafNode(const ExtendedHypertree *node) = 0;
 	};
 
-	template<class TTuple>
+	template<class TRow>
 	class AbstractStronglyNormalizedHTDAlgorithm: public AbstractNormalizedHTDAlgorithm
 	{
 	public:
@@ -165,18 +165,18 @@ namespace sharp
 		virtual ExtendedHypertree *prepareHypertreeDecomposition(ExtendedHypertree *root);
 
 	protected:
-		virtual Plan *selectPlan(TupleTable *tuples, const ExtendedHypertree *root);
-		virtual TupleTable *evaluateLeafNode(const ExtendedHypertree *node);
+		virtual Plan *selectPlan(Table *rows, const ExtendedHypertree *root);
+		virtual Table *evaluateLeafNode(const ExtendedHypertree *node);
 	};
 } // namespace sharp
 
 namespace std
 {
 	template<>
-	class less<sharp::Tuple *>
+	class less<sharp::Row *>
 	{
 	public:
-		bool operator()(const sharp::Tuple *t1, const sharp::Tuple *t2) { return *t1 < *t2; }
+		bool operator()(const sharp::Row *r1, const sharp::Row *r2) { return *r1 < *r2; }
 	};
 
 } // namespace std

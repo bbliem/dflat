@@ -31,8 +31,8 @@ add_executable(dflat
 	ClaspInputReader.cpp
 	GringoOutputProcessor.cpp
 	Problem.cpp
-	TupleGeneral.cpp
-	TupleNP.cpp
+	RowGeneral.cpp
+	RowNP.cpp
 	solution/DecisionPlan.cpp
 	solution/CountingPlan.cpp
 	solution/EnumerationPlan.cpp

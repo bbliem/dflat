@@ -29,10 +29,10 @@ CountingPlan::CountingPlan(const CountingSolution::CountType& count, unsigned co
 {
 }
 
-CountingPlan* CountingPlan::leaf(const Tuple& tuple)
+CountingPlan* CountingPlan::leaf(const Row& row)
 {
-	assert(!tuple.getCost() || tuple.getCurrentCost() == tuple.getCost());
-	return new CountingPlan(1, tuple.getCost(), tuple.getCurrentCost());
+	assert(!row.getCost() || row.getCurrentCost() == row.getCost());
+	return new CountingPlan(1, row.getCost(), row.getCurrentCost());
 }
 
 CountingPlan* CountingPlan::unify(const CountingPlan* left, const CountingPlan* right)
@@ -47,7 +47,7 @@ CountingPlan* CountingPlan::unify(const CountingPlan* left, const CountingPlan* 
 		return new CountingPlan(left->count + right->count, left->cost, left->currentCost);
 }
 
-CountingPlan* CountingPlan::join(const Tuple& joined, const CountingPlan* left, const CountingPlan* right)
+CountingPlan* CountingPlan::join(const Row& joined, const CountingPlan* left, const CountingPlan* right)
 {
 	if(right)
 		return new CountingPlan(left->count * right->count, joined.getCost(), joined.getCurrentCost());

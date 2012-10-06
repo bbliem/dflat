@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <boost/foreach.hpp>
 #include <sharp/main>
 
-#include "../Tuple.h"
+#include "../Row.h"
 
 namespace solution {
 
@@ -32,12 +32,12 @@ namespace solution {
 class EnumerationPlan : public sharp::Plan
 {
 public:
-	static EnumerationPlan* leaf(const Tuple&);
+	static EnumerationPlan* leaf(const Row&);
 	static EnumerationPlan* unify(const EnumerationPlan* left, const EnumerationPlan* right);
-	static EnumerationPlan* join(const Tuple& extension, const EnumerationPlan* left, const EnumerationPlan* right);
+	static EnumerationPlan* join(const Row& extension, const EnumerationPlan* left, const EnumerationPlan* right);
 
 	unsigned getCost() const { return cost; }
-	const Tuple::Assignment& getAssignment() const { return assignment; }
+	const Row::Items& getItems() const { return items; }
 	const EnumerationPlan* getLeft() const { return left; }
 	const EnumerationPlan* getRight() const { return right; }
 
@@ -47,11 +47,11 @@ protected:
 	virtual sharp::Solution* materializeJoin() const;
 
 private:
-	EnumerationPlan(Operation operation, const Tuple& tuple, const EnumerationPlan* left = 0, const EnumerationPlan* right = 0);
+	EnumerationPlan(Operation operation, const Row& row, const EnumerationPlan* left = 0, const EnumerationPlan* right = 0);
 	EnumerationPlan(const EnumerationPlan* left, const EnumerationPlan* right); // Union
 
 	unsigned cost;
-	Tuple::Assignment assignment;
+	Row::Items items;
 	const EnumerationPlan* left;
 	const EnumerationPlan* right;
 };

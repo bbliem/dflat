@@ -22,16 +22,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <sharp/main>
 
-#include "../Tuple.h"
+#include "../Row.h"
 
 namespace solution {
 
 class DecisionPlan : public sharp::Plan
 {
 public:
-	static DecisionPlan* leaf(const Tuple& tuple);
+	static DecisionPlan* leaf(const Row& row);
 	static DecisionPlan* unify(const DecisionPlan* left, const DecisionPlan* right);
-	static DecisionPlan* join(const Tuple&, const DecisionPlan* left, const DecisionPlan* right);
+	static DecisionPlan* join(const Row&, const DecisionPlan* left, const DecisionPlan* right);
 
 protected:
 	virtual sharp::Solution* materializeLeaf() const;
@@ -39,7 +39,7 @@ protected:
 	virtual sharp::Solution* materializeJoin() const;
 
 private:
-	DecisionPlan(const Tuple&);
+	DecisionPlan(const Row&);
 	unsigned cost;
 	unsigned currentCost;
 };

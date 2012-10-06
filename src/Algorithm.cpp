@@ -33,7 +33,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "ClaspCallbackGeneral.h"
 #include "ClaspCallbackNP.h"
 
-using sharp::TupleTable;
+using sharp::Table;
 
 Algorithm::Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, sharp::NormalizationType normalizationType, bool ignoreOptimization, unsigned int level)
 	: AbstractHTDAlgorithm(&problem, planFactory), problem(problem), instanceFacts(instanceFacts), normalizationType(normalizationType), ignoreOptimization(ignoreOptimization), level(level)
@@ -43,15 +43,15 @@ Algorithm::Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFact
 {
 }
 
-TupleTable* Algorithm::computeTable(const sharp::ExtendedHypertree& node, const std::vector<TupleTable*>& childTables)
+Table* Algorithm::computeTable(const sharp::ExtendedHypertree& node, const std::vector<Table*>& childTables)
 {
 	assert((node.getChildren()->size() == 0 && childTables.size() == 1) || node.getChildren()->size() == childTables.size());
 
-	TupleTable* newTable = new TupleTable;
+	Table* newTable = new Table;
 
-	// There might be a child table without tuples, consider as a child, e.g., a join node without matches.
-	foreach(TupleTable* t, childTables)
-		if(t->empty())
+	// There might be a child table without rows, consider as a child, e.g., a join node without matches.
+	foreach(Table* r, childTables)
+		if(r->empty())
 			return newTable;
 
 	// Input: Original problem instance
@@ -65,7 +65,7 @@ TupleTable* Algorithm::computeTable(const sharp::ExtendedHypertree& node, const 
 	std::cout << std::endl << "Bag input:" << std::endl << bag->str() << std::endl;
 #endif
 
-	// Input: Child tuples
+	// Input: Child rows
 	std::stringstream* childTableInput = new std::stringstream;
 	declareChildTables(*childTableInput, node, childTables);
 #ifdef PRINT_CHILD_TABLES_INPUT
@@ -78,7 +78,7 @@ TupleTable* Algorithm::computeTable(const sharp::ExtendedHypertree& node, const 
 	// Remember: "Streams" deletes the appended streams -_-
 	inputStreams.appendStream(Streams::StreamPtr(instance), "<instance>");
 	inputStreams.appendStream(Streams::StreamPtr(bag), "<bag>");
-	inputStreams.appendStream(Streams::StreamPtr(childTableInput), "<child_tuples>");
+	inputStreams.appendStream(Streams::StreamPtr(childTableInput), "<child_rows>");
 
 	// Call the ASP solver
 	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
@@ -91,46 +91,46 @@ TupleTable* Algorithm::computeTable(const sharp::ExtendedHypertree& node, const 
 	return newTable;
 }
 
-TupleTable* Algorithm::evaluateNode(const sharp::ExtendedHypertree* node)
+Table* Algorithm::evaluateNode(const sharp::ExtendedHypertree* node)
 {
-	std::vector<TupleTable*> childTables;
+	std::vector<Table*> childTables;
 	childTables.reserve(node->getChildren()->size());
 #ifdef PROGRESS_REPORT
-	unsigned numChildTuples = 0;
+	unsigned numChildRows = 0;
 #endif
 
 	foreach(const sharp::Hypertree* child, *node->getChildren()) {
-		TupleTable* childTable = evaluateNode(dynamic_cast<const sharp::ExtendedHypertree*>(child));
+		Table* childTable = evaluateNode(dynamic_cast<const sharp::ExtendedHypertree*>(child));
 		childTables.push_back(childTable);
 #ifdef PROGRESS_REPORT
-		numChildTuples += childTable->size();
+		numChildRows += childTable->size();
 		++nodesProcessed;
 #endif
 	}
 
 #ifdef PROGRESS_REPORT
-	printProgressLine(node, numChildTuples);
+	printProgressLine(node, numChildRows);
 #endif
 #ifdef WITH_NODE_TIMER
 	boost::timer::auto_cpu_timer timer(" %ts\n");
 #endif
 
-	TupleTable* newTable = computeTable(*node, childTables);
+	Table* newTable = computeTable(*node, childTables);
 
-	foreach(TupleTable* childTable, childTables)
+	foreach(Table* childTable, childTables)
 		delete childTable;
 
-#ifdef PRINT_COMPUTED_TUPLES
-	std::cout << std::endl << "Resulting tuples:" << std::endl;
-	for(TupleTable::const_iterator it = newTable->begin(); it != newTable->end(); ++it)
-		dynamic_cast<Tuple*>(it->first)->print(std::cout);
+#ifdef PRINT_COMPUTED_ROWS
+	std::cout << std::endl << "Resulting rows:" << std::endl;
+	for(Table::const_iterator it = newTable->begin(); it != newTable->end(); ++it)
+		dynamic_cast<Row*>(it->first)->print(std::cout);
 	std::cout << std::endl;
 #endif
 
 	return newTable;
 }
 
-sharp::Plan* Algorithm::selectPlan(TupleTable* table, const sharp::ExtendedHypertree* root)
+sharp::Plan* Algorithm::selectPlan(Table* table, const sharp::ExtendedHypertree* root)
 {
 #ifdef PROGRESS_REPORT
 	std::cout << '\r' << std::setw(66) << std::left << "Done." << std::endl; // Clear/end progress line
@@ -139,7 +139,7 @@ sharp::Plan* Algorithm::selectPlan(TupleTable* table, const sharp::ExtendedHyper
 	if(table->empty())
 		return 0;
 
-	TupleTable::const_iterator it = table->begin();
+	Table::const_iterator it = table->begin();
 	sharp::Plan* result = it->second;
 
 	for(++it; it != table->end(); ++it)
@@ -157,23 +157,12 @@ sharp::ExtendedHypertree* Algorithm::prepareHypertreeDecomposition(sharp::Extend
 	return newRoot->normalize(normalizationType);
 }
 
-std::auto_ptr<Clasp::ClaspFacade::Callback> Algorithm::newClaspCallback(TupleTable& newTable, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes, const sharp::VertexSet& currentVertices) const
+std::auto_ptr<Clasp::ClaspFacade::Callback> Algorithm::newClaspCallback(Table& newTable, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes, const sharp::VertexSet& currentVertices) const
 {
-#ifndef DISABLE_ANSWER_SET_CHECKS
-	std::set<std::string> currentVertexNames;
-	foreach(sharp::Vertex v, currentVertices)
-		currentVertexNames.insert(const_cast<sharp::Problem&>(problem).getVertexName(v));
-
-	if(level == 0)
-		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTable, gringoOutput, numChildNodes, currentVertexNames));
-	else
-		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackGeneral(*this, newTable, gringoOutput, numChildNodes, level, currentVertexNames));
-#else
 	if(level == 0)
 		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTable, gringoOutput, numChildNodes));
 	else
 		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackGeneral(*this, newTable, gringoOutput, numChildNodes, level));
-#endif
 }
 
 std::auto_ptr<GringoOutputProcessor> Algorithm::newGringoOutputProcessor() const
@@ -182,7 +171,7 @@ std::auto_ptr<GringoOutputProcessor> Algorithm::newGringoOutputProcessor() const
 }
 
 #ifdef PROGRESS_REPORT
-void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildTuples) {
+void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildRows) {
 	std::cout << '\r' << "Processing node ";
 	std::cout << std::setw(4) << std::left << (nodesProcessed+1) << " [";
 	if(normalizationType == sharp::NoNormalization)
@@ -213,7 +202,7 @@ void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node, size_t n
 	std::cout << "] " << std::setw(2) << std::right << node->getVertices().size() << " elements ["
 		<< std::setw(2) << node->getRemovedVertices().size() << "R"
 		<< std::setw(2) << node->getIntroducedVertices().size() << "I] "
-		<< std::setw(7) << numChildTuples << " child tuples"
+		<< std::setw(7) << numChildRows << " child rows"
 		<< std::flush;
 }
 #endif

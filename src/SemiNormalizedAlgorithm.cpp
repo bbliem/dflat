@@ -22,11 +22,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #define foreach BOOST_FOREACH
 
 #include "SemiNormalizedAlgorithm.h"
-#include "Tuple.h"
-#include "TupleGeneral.h"
-#include "TupleNP.h"
+#include "Row.h"
+#include "RowGeneral.h"
+#include "RowNP.h"
 
-using sharp::TupleTable;
+using sharp::Table;
 
 namespace {
 	void insertEmptyLeaves(sharp::Hypertree* root)
@@ -59,18 +59,18 @@ void SemiNormalizedAlgorithm::declareBag(std::ostream& out, const sharp::Extende
 		out << "root." << std::endl;
 }
 
-void SemiNormalizedAlgorithm::declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<TupleTable*>& childTables)
+void SemiNormalizedAlgorithm::declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<Table*>& childTables)
 {
 	if(node.getType() == sharp::Branch) {
 		assert(childTables.size() == 2);
-		foreach(const TupleTable::value_type& tupleAndSolution, *childTables[0])
-			dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(out, tupleAndSolution, "childTupleL");
-		foreach(const TupleTable::value_type& tupleAndSolution, *childTables[1])
-			dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(out, tupleAndSolution, "childTupleR");
+		foreach(const Table::value_type& rowAndSolution, *childTables[0])
+			dynamic_cast<Row*>(rowAndSolution.first)->declare(out, rowAndSolution, "childRowL");
+		foreach(const Table::value_type& rowAndSolution, *childTables[1])
+			dynamic_cast<Row*>(rowAndSolution.first)->declare(out, rowAndSolution, "childRowR");
 	} else {
 		assert(childTables.size() == 1);
-		foreach(const TupleTable::value_type& tupleAndSolution, *childTables[0])
-			dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(out, tupleAndSolution);
+		foreach(const Table::value_type& rowAndSolution, *childTables[0])
+			dynamic_cast<Row*>(rowAndSolution.first)->declare(out, rowAndSolution);
 	}
 }
 
@@ -79,7 +79,7 @@ const char* SemiNormalizedAlgorithm::getUserProgram(const sharp::ExtendedHypertr
 	return node.getType() == sharp::Branch ? joinNodeProgram : exchangeNodeProgram;
 }
 
-TupleTable* SemiNormalizedAlgorithm::computeTable(const sharp::ExtendedHypertree& node, const std::vector<TupleTable*>& childTables)
+Table* SemiNormalizedAlgorithm::computeTable(const sharp::ExtendedHypertree& node, const std::vector<Table*>& childTables)
 {
 	assert(node.getChildren()->size() == childTables.size());
 
@@ -87,16 +87,16 @@ TupleTable* SemiNormalizedAlgorithm::computeTable(const sharp::ExtendedHypertree
 		case sharp::Leaf:
 			{
 			assert(node.getVertices().empty());
-			// We pass an empty dummy child tuple to the actual leaf
-			TupleTable* table = new TupleTable;
-			Tuple* t;
+			// We return an empty dummy child row
+			Table* table = new Table;
+			Row* r;
 			if(level == 0)
-				t = new TupleNP;
+				r = new RowNP;
 			else {
-				t = new TupleGeneral;
-				dynamic_cast<TupleGeneral*>(t)->tree.children[Tuple::Assignment()]; // Initialize to empty top-level assignment
+				r = new RowGeneral;
+				dynamic_cast<RowGeneral*>(r)->tree.children[Row::Items()]; // Initialize to empty top-level assignment
 			}
-			(*table)[t] = planFactory.leaf(*t);
+			(*table)[r] = planFactory.leaf(*r);
 			return table;
 			}
 
@@ -124,23 +124,23 @@ sharp::ExtendedHypertree* SemiNormalizedAlgorithm::prepareHypertreeDecomposition
 	return Algorithm::prepareHypertreeDecomposition(root);
 }
 
-TupleTable* SemiNormalizedAlgorithm::defaultJoin(const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables) const
+Table* SemiNormalizedAlgorithm::defaultJoin(const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables) const
 {
 	// Default join implementation (used when no join node program is specified)
-	TupleTable* newTable = new TupleTable;
+	Table* newTable = new Table;
 
 	assert(node.getType() == sharp::Branch && node.getChildren()->size() == 2 && childTables.size() == 2);
-	const TupleTable& childTableLeft = *childTables[0];
-	const TupleTable& childTableRight = *childTables[1];
+	const Table& childTableLeft = *childTables[0];
+	const Table& childTableRight = *childTables[1];
 
-	// TupleTables are ordered, use sort merge join algorithm
-	TupleTable::const_iterator lit = childTableLeft.begin();
-	TupleTable::const_iterator rit = childTableRight.begin();
-#define TUP(X) (*dynamic_cast<const Tuple*>(X->first)) // FIXME: Think of something better
+	// Tables are ordered, use sort merge join algorithm
+	Table::const_iterator lit = childTableLeft.begin();
+	Table::const_iterator rit = childTableRight.begin();
+#define ROW(X) (*dynamic_cast<const Row*>(X->first)) // FIXME: Think of something better
 	while(lit != childTableLeft.end() && rit != childTableRight.end()) {
-		while(!TUP(lit).matches(TUP(rit))) {
+		while(!ROW(lit).matches(ROW(rit))) {
 			// Advance iterator pointing to smaller value
-			if(TUP(lit) < TUP(rit)) {
+			if(ROW(lit) < ROW(rit)) {
 				++lit;
 				if(lit == childTableLeft.end())
 					goto endJoin;
@@ -153,21 +153,21 @@ TupleTable* SemiNormalizedAlgorithm::defaultJoin(const sharp::ExtendedHypertree&
 
 		// Now lit and rit join
 		// Remember position of rit and advance rit until no more match
-		TupleTable::const_iterator mark = rit;
+		Table::const_iterator mark = rit;
 joinLitWithAllPartners:
 		do {
-			sharp::Tuple* t = TUP(lit).join(TUP(rit));
-			sharp::Plan* p = planFactory.join(*t, lit->second, rit->second);
-			addRowToTupleTable(*newTable, t, p);
+			sharp::Row* r = ROW(lit).join(ROW(rit));
+			sharp::Plan* p = planFactory.join(*r, lit->second, rit->second);
+			addRowToTable(*newTable, r, p);
 			++rit;
-		} while(rit != childTableRight.end() && TUP(lit).matches(TUP(rit)));
+		} while(rit != childTableRight.end() && ROW(lit).matches(ROW(rit)));
 
 		// lit and rit don't join anymore. Advance lit. If it joins with mark, reset rit to mark.
 		++lit;
 		if(lit == childTableLeft.end())
 			break;
 
-		if(TUP(lit).matches(TUP(mark))) {
+		if(ROW(lit).matches(ROW(mark))) {
 			rit = mark;
 			goto joinLitWithAllPartners; // Ha!
 		}

@@ -46,7 +46,7 @@ EnumerationIterator::EnumerationIterator(const EnumerationPlan& p)
 				right = new EnumerationIterator(*p.getRight());
 			break;
 	}
-	materializeAssignment();
+	materializeItems();
 }
 
 EnumerationIterator::~EnumerationIterator()
@@ -60,10 +60,11 @@ bool EnumerationIterator::valid() const
 	return plan != 0;
 }
 
-inline void EnumerationIterator::materializeAssignment()
+inline void EnumerationIterator::materializeItems()
 {
 	assert(plan);
-	assignment = plan->getAssignment();
+	items.clear();
+	items.insert(plan->getItems().begin(), plan->getItems().end());
 	switch(plan->getOperation()) {
 		case sharp::Plan::LEAF:
 			assert(!left && !right);
@@ -73,28 +74,28 @@ inline void EnumerationIterator::materializeAssignment()
 			assert(plan->getLeft() && plan->getRight());
 			assert(left->valid() || right->valid());
 			if(left->valid())
-				assignment.insert((**left).begin(), (**left).end());
+				items.insert((**left).begin(), (**left).end());
 			else
-				assignment.insert((**right).begin(), (**right).end());
+				items.insert((**right).begin(), (**right).end());
 			break;
 		case sharp::Plan::JOIN:
 			assert(left);
 			assert(plan->getLeft());
 			assert(left->valid());
-			assignment.insert((**left).begin(), (**left).end());
+			items.insert((**left).begin(), (**left).end());
 			if(right) { // Join
 				assert(plan->getRight());
 				assert(right->valid());
-				assignment.insert((**right).begin(), (**right).end());
+				items.insert((**right).begin(), (**right).end());
 			}
 			break;
 	}
 }
 
-const Tuple::Assignment& EnumerationIterator::operator*() const
+const EnumerationIterator::Items& EnumerationIterator::operator*() const
 {
 	assert(valid());
-	return assignment;
+	return items;
 }
 
 EnumerationIterator& EnumerationIterator::operator++()
@@ -148,7 +149,7 @@ EnumerationIterator& EnumerationIterator::operator++()
 			}
 			break;
 	}
-	materializeAssignment();
+	materializeItems();
 
 	return *this;
 }

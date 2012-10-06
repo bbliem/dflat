@@ -22,7 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <sharp/main>
 
-#include "../Tuple.h"
+#include "../Row.h"
 #include "CountingSolution.h"
 
 namespace solution {
@@ -30,9 +30,9 @@ namespace solution {
 class CountingPlan : public sharp::Plan
 {
 public:
-	static CountingPlan* leaf(const Tuple& tuple);
+	static CountingPlan* leaf(const Row& row);
 	static CountingPlan* unify(const CountingPlan* left, const CountingPlan* right);
-	static CountingPlan* join(const Tuple&, const CountingPlan* left, const CountingPlan* right);
+	static CountingPlan* join(const Row&, const CountingPlan* left, const CountingPlan* right);
 
 protected:
 	virtual sharp::Solution* materializeLeaf() const;

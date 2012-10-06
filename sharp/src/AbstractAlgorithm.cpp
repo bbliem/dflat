@@ -11,11 +11,11 @@ namespace sharp
 {
 
 	/*********************************\
-	|* CLASS: Tuple
+	|* CLASS: Row
 	\*********************************/
-	Tuple::~Tuple() { }
+	Row::~Row() { }
 
-	void Tuple::unify(const Tuple&) { }
+	void Row::unify(const Row&) { }
 
 	/*********************************\
 	|* CLASS: Solution
@@ -75,15 +75,15 @@ namespace sharp
 		return selectPlan(evaluateNode(root), root);
 	}
 
-	void AbstractHTDAlgorithm::addRowToTupleTable(TupleTable& table, Tuple* t, Plan* p) const
+	void AbstractHTDAlgorithm::addRowToTable(Table& table, Row* r, Plan* p) const
 	{
-		std::pair<TupleTable::iterator, bool> result = table.insert(TupleTable::value_type(t, p));
+		std::pair<Table::iterator, bool> result = table.insert(Table::value_type(r, p));
 		if(!result.second) {
-			Tuple* origTuple = result.first->first;
+			Row* origRow = result.first->first;
 			Plan* origPlan = result.first->second;
 			table.erase(result.first);
-			t->unify(*origTuple);
-			table.insert(TupleTable::value_type(t, planFactory.unify(origPlan, p)));
+			r->unify(*origRow);
+			table.insert(Table::value_type(r, planFactory.unify(origPlan, p)));
 		}
 	}
 	
@@ -113,7 +113,7 @@ namespace sharp
 		return root->normalize(SemiNormalization);
 	}
 	
-	TupleTable *AbstractSemiNormalizedHTDAlgorithm::evaluateNode(const ExtendedHypertree *node)
+	Table *AbstractSemiNormalizedHTDAlgorithm::evaluateNode(const ExtendedHypertree *node)
 	{
 		switch(node->getType())
 	        {
@@ -144,7 +144,7 @@ namespace sharp
 		return root->normalize(DefaultNormalization);
 	}
 
-	TupleTable *AbstractNormalizedHTDAlgorithm::evaluatePermutationNode(const ExtendedHypertree *node)
+	Table *AbstractNormalizedHTDAlgorithm::evaluatePermutationNode(const ExtendedHypertree *node)
 	{
 		switch(node->getType())
 		{

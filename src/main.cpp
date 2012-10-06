@@ -47,8 +47,8 @@ namespace {
 		std::cerr << std::endl << std::left;
 		std::cerr << "  " << std::setw(w) << "-a algorithm_type: " << "Either \"non-normalized\" (for all TDs) or \"semi\" (just for semi-normalized TDs). Default: \"semi\" iff \"-n semi\" or \"-n normalized\" present." << std::endl;
 		std::cerr << "  " << std::setw(w) << "-e hyperedge_pred: " << "Name of a predicate that declares hyperedges (must be specified at least once)" << std::endl;
-		std::cerr << "  " << std::setw(w) << "-j join_program: " << "File name of the logic program executed in join nodes (if omitted join equal tuples)" << std::endl;
-		std::cerr << "  " << std::setw(w) << "-l level: " << "Level on polynomial hierarchy; determines depth of tuple assignment tree. 0 (default) is like 1 but uses map/2, mapped/3 instead of map/3, mapped/4 and has a more efficient implementation." << std::endl;
+		std::cerr << "  " << std::setw(w) << "-j join_program: " << "File name of the logic program executed in join nodes (if omitted join equal rows)" << std::endl;
+		std::cerr << "  " << std::setw(w) << "-l level: " << "Level on polynomial hierarchy; determines depth of row tree. 0 (default) is like 1 but uses map/2, mapped/3 instead of map/3, mapped/4 and has a more efficient implementation." << std::endl;
 		std::cerr << "  " << std::setw(w) << "-n normalization: " << "Either \"none\" (default), \"semi\" or \"normalized\"" << std::endl;
 		std::cerr << "  " << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
 		// TODO: Add problem types "search" and "opt-search", ideally with incremental solving
@@ -72,36 +72,8 @@ namespace {
 	}
 }
 
-//#include "TupleNP.h" // TODO: Remove
 int main(int argc, char** argv)
 {
-//	TupleNP dummy;
-//	dummy.assignment["k"]="v";
-//	solution::EnumerationPlan* plan = solution::EnumerationPlan::join(
-//			dummy,
-//			solution::EnumerationPlan::join(
-//				dummy,
-//				solution::EnumerationPlan::unify(
-//					solution::EnumerationPlan::leaf(dummy),
-//					solution::EnumerationPlan::leaf(dummy)),
-//				solution::EnumerationPlan::unify(
-//					solution::EnumerationPlan::leaf(dummy),
-//					solution::EnumerationPlan::unify(
-//						solution::EnumerationPlan::leaf(dummy),
-//						solution::EnumerationPlan::leaf(dummy)))),
-//			0);
-//
-//	std::auto_ptr<solution::EnumerationIterator> it(dynamic_cast<solution::EnumerationIterator*>(plan->materialize()));
-//
-//	while(it->valid()) {
-//		foreach(const Tuple::Assignment::value_type& pair, **it)
-//			std::cout << pair.first << '=' << pair.second << ' ';
-//		std::cout << std::endl;
-//		++(*it);
-//	}
-//	delete plan;
-//	return 0;
-//#if 0
 	try {
 		unsigned int level = 0;
 		enum { ENUMERATION, COUNTING, DECISION, OPT_ENUM, OPT_COUNTING, OPT_VALUE } problemType = ENUMERATION;
@@ -240,15 +212,15 @@ int main(int argc, char** argv)
 		switch(problemType) {
 			case ENUMERATION:
 			case OPT_ENUM:
-				planFactory.reset(new sharp::GenericPlanFactory<solution::EnumerationPlan, Tuple>);
+				planFactory.reset(new sharp::GenericPlanFactory<solution::EnumerationPlan, Row>);
 				break;
 			case COUNTING:
 			case OPT_COUNTING:
-				planFactory.reset(new sharp::GenericPlanFactory<solution::CountingPlan, Tuple>);
+				planFactory.reset(new sharp::GenericPlanFactory<solution::CountingPlan, Row>);
 				break;
 			case DECISION:
 			case OPT_VALUE:
-				planFactory.reset(new sharp::GenericPlanFactory<solution::DecisionPlan, Tuple>);
+				planFactory.reset(new sharp::GenericPlanFactory<solution::DecisionPlan, Row>);
 				break;
 		}
 
@@ -284,8 +256,8 @@ int main(int argc, char** argv)
 					mpz_class numSolutions = 0;
 
 					while(it->valid()) {
-						foreach(const Tuple::Assignment::value_type& pair, **it)
-							std::cout << pair.first << '=' << pair.second << ' ';
+						foreach(const std::string& item, **it)
+							std::cout << item << ' ';
 						std::cout << std::endl;
 						++(*it);
 						++numSolutions;
@@ -345,5 +317,4 @@ int main(int argc, char** argv)
 
 	assert(false); // Should never reach this point
 	return INCONSISTENT;
-//#endif
 }

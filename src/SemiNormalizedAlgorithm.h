@@ -30,14 +30,14 @@ public:
 
 protected:
 	virtual void declareBag(std::ostream& out, const sharp::ExtendedHypertree& node);
-	virtual void declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables);
+	virtual void declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables);
 	virtual const char* getUserProgram(const sharp::ExtendedHypertree& node);
 
-	virtual sharp::TupleTable* computeTable(const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables);
+	virtual sharp::Table* computeTable(const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables);
 	virtual sharp::ExtendedHypertree* prepareHypertreeDecomposition(sharp::ExtendedHypertree* root);
 
 private:
-	sharp::TupleTable* defaultJoin(const sharp::ExtendedHypertree& node, const std::vector<sharp::TupleTable*>& childTables) const;
+	sharp::Table* defaultJoin(const sharp::ExtendedHypertree& node, const std::vector<sharp::Table*>& childTables) const;
 
 	const char* exchangeNodeProgram;
 	const char* joinNodeProgram;

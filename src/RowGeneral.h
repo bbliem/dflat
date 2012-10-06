@@ -23,36 +23,36 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <sharp/main>
 #include <boost/container/map.hpp>
 
-#include "Tuple.h"
+#include "Row.h"
 
-class TupleGeneral : public Tuple
+class RowGeneral : public Row
 {
 public:
-	// Note that after calling the constructor the tuple does NOT have a
-	// top-level row yet. You must first use tree.addPath() before
+	// Note that after calling the constructor the row does NOT have a
+	// top-level item set yet. You must first use tree.addPath() before
 	// getRow() may be used.
-	TupleGeneral();
+	RowGeneral();
 
-	virtual bool operator<(const sharp::Tuple&) const;
-	virtual bool operator==(const sharp::Tuple&) const;
-	virtual void unify(const sharp::Tuple& old);
+	virtual bool operator<(const sharp::Row&) const;
+	virtual bool operator==(const sharp::Row&) const;
+	virtual void unify(const sharp::Row& old);
 
-	virtual bool matches(const Tuple& other) const;
-	virtual TupleGeneral* join(const Tuple& other) const;
-	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, unsigned childNumber) const;
-	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateName = "childTuple") const;
-	virtual const Row& getRow() const;
+	virtual bool matches(const Row& other) const;
+	virtual RowGeneral* join(const Row& other) const;
+	virtual void declare(std::ostream& out, const sharp::Table::value_type& rowAndSolution, unsigned childNumber) const;
+	virtual void declare(std::ostream& out, const sharp::Table::value_type& rowAndSolution, const char* predicateName = "childRow") const;
+	virtual const Items& getItems() const;
 	virtual unsigned int getCurrentCost() const;
 	virtual unsigned int getCost() const;
 
-#ifdef PRINT_COMPUTED_TUPLES
+#ifdef PRINT_COMPUTED_ROWS
 	virtual void print(std::ostream&) const;
 #endif
 
-	// Each row has a set of subordinate rows
+	// Each row (more precisely, item set) has a set of subordinate rows
 	struct Tree
 	{
-		typedef boost::container::map<Row, Tree> Children; // The node data is stored as the keys
+		typedef boost::container::map<Items, Tree> Children; // The node data is stored as the keys
 		Children children;
 		// std::map won't work because Tree is an incomplete type at this time.
 		// Cf. http://stackoverflow.com/questions/6527917/how-can-i-emulate-a-recursive-type-definition-in-c
@@ -71,10 +71,10 @@ public:
 		}
 	} tree; // It is your responsibility that "tree" only has one child (viz. the actual root)
 
-	// TODO: We might distinguish tuples with cost information from those without, but OTOH the memory consumption should not be that critical
+	// TODO: We might distinguish rows with cost information from those without, but OTOH the memory consumption should not be that critical
 	unsigned int currentCost;
 	unsigned int cost;
 
 private:
-	void declareTupleExceptName(std::ostream& out, const std::string& tupleName) const;
+	void declareRowExceptName(std::ostream& out, const std::string& rowName) const;
 };

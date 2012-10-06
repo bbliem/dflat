@@ -23,7 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ClaspCallbackGeneral.h"
 #include "GringoOutputProcessor.h"
-#include "TupleGeneral.h"
+#include "RowGeneral.h"
 
 #define foreach BOOST_FOREACH
 
@@ -38,14 +38,14 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 		if(e == Clasp::ClaspFacade::event_state_enter) {
 			Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
 
-			foreach(const GringoOutputProcessor::MapAtom& it, gringoOutput.getMapAtoms())
-				mapAtoms.push_back(MapAtom(it.level, it.vertex, it.value, symTab[it.symbolTableKey].lit));
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleAtoms())
-				chosenChildTupleAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleLAtoms()) // XXX: Obsolete
-				chosenChildTupleLAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleRAtoms()) // XXX: Obsolete
-				chosenChildTupleRAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::ItemAtom& it, gringoOutput.getItemAtoms())
+				itemAtoms.push_back(ItemAtom(it.level, it.value, symTab[it.symbolTableKey].lit));
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowAtoms())
+				chosenChildRowAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowLAtoms()) // XXX: Obsolete
+				chosenChildRowLAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowRAtoms()) // XXX: Obsolete
+				chosenChildRowRAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
@@ -55,7 +55,7 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 #endif
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit)
-			pathCollection.fillTupleTable(tupleTable, algorithm);
+			pathCollection.fillTable(table, algorithm);
 	}
 }
 
@@ -74,52 +74,52 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	std::cout << std::endl;
 #endif
 
-	std::vector<const sharp::TupleTable::value_type*> childTuplesAndPlans;
-	childTuplesAndPlans.reserve(numChildNodes);
+	std::vector<const sharp::Table::value_type*> childRowsAndPlans;
+	childRowsAndPlans.reserve(numChildNodes);
 	unsigned currentCost = 0;
 	unsigned cost = 0;
 
-	foreach(const LongToLiteral::value_type& it, chosenChildTupleAtoms) {
+	foreach(const LongToLiteral::value_type& it, chosenChildRowAtoms) {
 		if(s.isTrue(it.second)) {
-			childTuplesAndPlans.push_back(reinterpret_cast<const sharp::TupleTable::value_type*>(it.first));
+			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
 #ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childTuplesAndPlans.size() == numChildNodes)
+			if(childRowsAndPlans.size() == numChildNodes)
 				break;
 #endif
 		}
 	}
 
 	// XXX: Obsolete
-	foreach(const LongToLiteral::value_type& it, chosenChildTupleLAtoms) {
+	foreach(const LongToLiteral::value_type& it, chosenChildRowLAtoms) {
 		if(s.isTrue(it.second)) {
-			childTuplesAndPlans.push_back(reinterpret_cast<const sharp::TupleTable::value_type*>(it.first));
+			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
 #ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childTuplesAndPlans.size() == numChildNodes)
+			if(childRowsAndPlans.size() == numChildNodes)
 				break;
 #else
-			if(childTuplesAndPlans.size() != 1)
-				throw std::runtime_error("You may only use chosenChildTuple/1 if you use neither chosenChildTupleL/1 nor chosenChildTupleR/1.");
+			if(childRowsAndPlans.size() != 1)
+				throw std::runtime_error("You may only use chosenChildRow/1 if you use neither chosenChildRowL/1 nor chosenChildRowR/1.");
 #endif
 		}
 	}
 
 	// XXX: Obsolete
-	foreach(const LongToLiteral::value_type& it, chosenChildTupleRAtoms) {
+	foreach(const LongToLiteral::value_type& it, chosenChildRowRAtoms) {
 		if(s.isTrue(it.second)) {
-			childTuplesAndPlans.push_back(reinterpret_cast<const sharp::TupleTable::value_type*>(it.first));
+			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
 #ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childTuplesAndPlans.size() == numChildNodes)
+			if(childRowsAndPlans.size() == numChildNodes)
 				break;
 #else
-			if(childTuplesAndPlans.size() != 2)
-				throw std::runtime_error("You may only use chosenChildTuple/1 if you use neither chosenChildTupleL/1 nor chosenChildTupleR/1.");
+			if(childRowsAndPlans.size() != 2)
+				throw std::runtime_error("You may only use chosenChildRow/1 if you use neither chosenChildRowL/1 nor chosenChildRowR/1.");
 #endif
 		}
 	}
 
 #ifndef DISABLE_ANSWER_SET_CHECKS
-	if(childTuplesAndPlans.size() > 0 && childTuplesAndPlans.size() != numChildNodes)
-		throw std::runtime_error("Number of chosen child tuples not equal to number of child nodes");
+	if(childRowsAndPlans.size() > 0 && childRowsAndPlans.size() != numChildNodes)
+		throw std::runtime_error("Number of chosen child rows not equal to number of child nodes");
 #endif
 
 	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
@@ -149,110 +149,82 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	}
 
 //#ifndef DISABLE_ANSWER_SET_CHECKS
-// TODO: Check if for each child node we have a chosenChildTuple (or none at all)
+// TODO: Check if for each child node we have a chosenChildRow (or none at all)
 //#endif
 
 	Path path(numLevels);
-	unsigned int highestLevel = 0; // Highest level of an assignment encountered so far
-	foreach(MapAtom& atom, mapAtoms) {
+	unsigned int highestLevel = 0; // Highest level of an item set encountered so far
+	foreach(ItemAtom& atom, itemAtoms) {
 		if(s.isTrue(atom.literal)) {
 			highestLevel = std::max(highestLevel, atom.level);
 #ifndef DISABLE_ANSWER_SET_CHECKS
 			if(atom.level >= numLevels) {
 				std::ostringstream err;
-				err << "map predicate uses invalid level " << atom.level;
-				throw std::runtime_error(err.str());
-			}
-
-			if(currentVertices.find(atom.vertex) == currentVertices.end()) {
-				std::ostringstream err;
-				err << "Attempted assigning non-current vertex " << atom.vertex << " on level " << atom.level;
-				throw std::runtime_error(err.str());
-			}
-
-			if(path[atom.level].find(atom.vertex) != path[atom.level].end()) {
-				std::ostringstream err;
-				err << "Multiple assignments to vertex " << atom.vertex << " on level " << atom.level;
+				err << "item predicate uses invalid level " << atom.level;
 				throw std::runtime_error(err.str());
 			}
 #endif
-			path[atom.level][atom.vertex] = atom.value;
+			path[atom.level].push_back(atom.value);
 		}
 	}
 	// A path does not have to use all levels, but up to the highest used level it must be connected.
 	path.resize(highestLevel+1);
-#ifndef DISABLE_ANSWER_SET_CHECKS
-	// On each assignment of the path, all current vertices must be assigned
-	unsigned int l = 0;
-	foreach(const Tuple::Assignment& levelAssignment, path) {
-		std::set<std::string> assigned;
-		foreach(const Tuple::Assignment::value_type& kv, levelAssignment)
-			assigned.insert(kv.first);
-		if(assigned != currentVertices) {
-			std::ostringstream err;
-			err << "Not all current vertices have been assigned on level " << l;
-			throw std::runtime_error(err.str());
-		}
-		++l;
-	}
-#endif
-
-	pathCollection.insert(path, childTuplesAndPlans, currentCost, cost);
+	pathCollection.insert(path, childRowsAndPlans, currentCost, cost);
 }
 
 inline void ClaspCallbackGeneral::PathCollection::insert(const Path& path, const std::vector<const TableRow*>& predecessors, unsigned currentCost, unsigned cost)
 {
 	assert(!path.empty());
-	TopLevelAssignmentToTupleData& tupleDataMap = predecessorData[predecessors];
-	const Tuple::Assignment& topLevelAssignment = path.front();
-	TupleData& tupleData = tupleDataMap[topLevelAssignment];
+	TopLevelItemsToRowData& rowDataMap = predecessorData[predecessors];
+	const Row::Items& topLevelItems = path.front();
+	RowData& rowData = rowDataMap[topLevelItems];
 
-	tupleData.paths.push_back(path);
+	rowData.paths.push_back(path);
 #ifndef DISABLE_ANSWER_SET_CHECKS
-	if(tupleData.currentCost != 0 && tupleData.currentCost != currentCost)
-		throw std::runtime_error("Different current cost for same top-level assignment");
-	if(tupleData.cost != 0 && tupleData.cost != cost)
-		throw std::runtime_error("Different cost for same top-level assignment");
+	if(rowData.currentCost != 0 && rowData.currentCost != currentCost)
+		throw std::runtime_error("Different current cost for same top-level items");
+	if(rowData.cost != 0 && rowData.cost != cost)
+		throw std::runtime_error("Different cost for same top-level items");
 #endif
-	tupleData.currentCost = currentCost;
-	tupleData.cost = cost;
+	rowData.currentCost = currentCost;
+	rowData.cost = cost;
 }
 
-inline void ClaspCallbackGeneral::PathCollection::fillTupleTable(sharp::TupleTable& tupleTable, const Algorithm& algorithm) const
+inline void ClaspCallbackGeneral::PathCollection::fillTable(sharp::Table& table, const Algorithm& algorithm) const
 {
-	// For all (pairs of) predecessors, build new tuples from our collected paths
+	// For all (pairs of) predecessors, build new rows from our collected paths
 	foreach(const PredecessorData::value_type& it, predecessorData) {
 		const TableRows& predecessors = it.first;
-		foreach(const TopLevelAssignmentToTupleData::value_type& it2, it.second) {
-			const TupleData& tupleData = it2.second;
+		foreach(const TopLevelItemsToRowData::value_type& it2, it.second) {
+			const RowData& rowData = it2.second;
 
-			TupleGeneral& newTuple = *new TupleGeneral;
-			newTuple.currentCost = tupleData.currentCost;
-			newTuple.cost = tupleData.cost;
+			RowGeneral& newRow = *new RowGeneral;
+			newRow.currentCost = rowData.currentCost;
+			newRow.cost = rowData.cost;
 
-			foreach(const Path& path, tupleData.paths) {
-				assert(path.front() == it2.first); // top-level assignment must coincide
-				newTuple.tree.addPath(path.begin(), path.end());
-				assert(newTuple.tree.children.size() == 1); // each tuple may only have one top-level assignment
+			foreach(const Path& path, rowData.paths) {
+				assert(path.front() == it2.first); // top-level items must coincide
+				newRow.tree.addPath(path.begin(), path.end());
+				assert(newRow.tree.children.size() == 1); // each row may only have one top-level item set
 			}
 
 //			std::vector<const sharp::Plan*> plans;
 //			plans.reserve(predecessors.size());
 //			foreach(const TableRow* row, predecessors)
 //				plans.push_back(row->second);
-//			algorithm.addRowToTupleTable(tupleTable, &newTuple, algorithm.getPlanFactory().join(newTuple, plans));
+//			algorithm.addRowToTable(table, &newRow, algorithm.getPlanFactory().join(newRow, plans));
 
 			sharp::Plan* plan;
 			if(predecessors.empty())
-				plan = algorithm.getPlanFactory().leaf(newTuple);
+				plan = algorithm.getPlanFactory().leaf(newRow);
 			else if(predecessors.size() == 1)
-				plan = algorithm.getPlanFactory().join(newTuple, predecessors[0]->second);
+				plan = algorithm.getPlanFactory().join(newRow, predecessors[0]->second);
 			else {
-				plan = algorithm.getPlanFactory().join(newTuple, predecessors[0]->second, predecessors[1]->second);
+				plan = algorithm.getPlanFactory().join(newRow, predecessors[0]->second, predecessors[1]->second);
 				for(unsigned i = 2; i < predecessors.size(); ++i)
-					plan = algorithm.getPlanFactory().join(newTuple, plan, predecessors[i]->second);
+					plan = algorithm.getPlanFactory().join(newRow, plan, predecessors[i]->second);
 			}
-			algorithm.addRowToTupleTable(tupleTable, &newTuple, plan);
+			algorithm.addRowToTable(table, &newRow, plan);
 		}
 	}
 }

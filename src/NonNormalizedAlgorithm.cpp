@@ -22,9 +22,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #define foreach BOOST_FOREACH
 
 #include "NonNormalizedAlgorithm.h"
-#include "Tuple.h"
+#include "Row.h"
 
-using sharp::TupleTable;
+using sharp::Table;
 
 NonNormalizedAlgorithm::NonNormalizedAlgorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, const char* program, sharp::NormalizationType normalizationType, bool ignoreOptimization, unsigned int level)
 	: Algorithm(problem, planFactory, instanceFacts, normalizationType, ignoreOptimization, level), program(program)
@@ -53,11 +53,11 @@ void NonNormalizedAlgorithm::declareBag(std::ostream& out, const sharp::Extended
 		out << "root." << std::endl;
 }
 
-void NonNormalizedAlgorithm::declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<TupleTable*>& childTables)
+void NonNormalizedAlgorithm::declareChildTables(std::ostream& out, const sharp::ExtendedHypertree& node, const std::vector<Table*>& childTables)
 {
 	for(unsigned i = 0; i < childTables.size(); ++i)
-		foreach(const TupleTable::value_type& tupleAndSolution, *childTables[i])
-			dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(out, tupleAndSolution, i);
+		foreach(const Table::value_type& rowAndSolution, *childTables[i])
+			dynamic_cast<Row*>(rowAndSolution.first)->declare(out, rowAndSolution, i);
 }
 
 const char* NonNormalizedAlgorithm::getUserProgram(const sharp::ExtendedHypertree& node)

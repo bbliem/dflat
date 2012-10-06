@@ -46,7 +46,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 GringoOutputProcessor::GringoOutputProcessor(bool ignoreOptimization)
 	: LparseConverter(0, false), b_(0), lastUnnamed_(0), ignoreOptimization(ignoreOptimization)
 #ifndef NDEBUG
-	, mapArity(0)
+	, itemArity(0)
 #endif
 {
 }
@@ -147,48 +147,46 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 	atomUnnamed_[atom.first - lastUnnamed_] = false;
 
 #ifndef NDEBUG
-	// Arity of map must be used consistently
-	if(name == "map") {
-		assert(!mapArity || mapArity == arity);
-		mapArity = arity;
+	// Arity of item must be used consistently
+	if(name == "item") {
+		assert(!itemArity || itemArity == arity);
+		itemArity = arity;
 	}
 #endif
 
-	if(name == "map") {
-		if(arity == 3) {
+	if(name == "item") {
+		if(arity == 2) {
 			std::stringstream firstArg; // First argument
-			std::ostringstream args[2]; // The last two arguments
+			std::ostringstream secondArg; // Second argument
 			ValVec::const_iterator k = vals_.begin() + atom.second;
 			(k++)->print(s_, firstArg);
-			(k++)->print(s_, args[0]);
-			k->print(s_, args[1]);
+			k->print(s_, secondArg);
 
 			unsigned int firstArgNum = boost::lexical_cast<unsigned int>(firstArg.str());
 
-			mapAtoms.push_back(MapAtom(firstArgNum, args[0].str(), args[1].str(), atom.first));
+			itemAtoms.push_back(ItemAtom(firstArgNum, secondArg.str(), atom.first));
 		}
-		else if(arity == 2) {
-			std::ostringstream args[2]; // The two arguments
+		else if(arity == 1) {
+			std::ostringstream arg;
 			ValVec::const_iterator k = vals_.begin() + atom.second;
-			(k++)->print(s_, args[0]);
-			k->print(s_, args[1]);
+			k->print(s_, arg);
 
-			mapAtoms.push_back(MapAtom(0, args[0].str(), args[1].str(), atom.first));
+			itemAtoms.push_back(ItemAtom(0, arg.str(), atom.first));
 		}
 	}
-	else if(name == "chosenChildTuple") {
+	else if(name == "chosenChildRow") {
 		assert(arity == 1);
-		storeChildTupleAtom(name, atom, chosenChildTupleAtoms);
+		storeChildRowAtom(name, atom, chosenChildRowAtoms);
 	}
-	else if(name == "chosenChildTupleL") {
+	else if(name == "chosenChildRowL") {
 		// XXX: Obsolete
 		assert(arity == 1);
-		storeChildTupleAtom(name, atom, chosenChildTupleLAtoms);
+		storeChildRowAtom(name, atom, chosenChildRowLAtoms);
 	}
-	else if(name == "chosenChildTupleR") {
+	else if(name == "chosenChildRowR") {
 		// XXX: Obsolete
 		assert(arity == 1);
-		storeChildTupleAtom(name, atom, chosenChildTupleRAtoms);
+		storeChildRowAtom(name, atom, chosenChildRowRAtoms);
 	}
 	else if(!ignoreOptimization && name == "currentCost") {
 		assert(arity == 1);
@@ -232,7 +230,7 @@ ValRng GringoOutputProcessor::vals(Domain *dom, uint32_t offset) const
 	return ValRng(vals_.begin() + offset, vals_.begin() + offset + dom->arity());
 }
 
-inline void GringoOutputProcessor::storeChildTupleAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store)
+inline void GringoOutputProcessor::storeChildRowAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store)
 {
 	std::stringstream firstArg; // First argument
 	ValVec::const_iterator k = vals_.begin() + atom.second;

@@ -30,15 +30,9 @@ class GringoOutputProcessor;
 class ClaspCallbackNP : public Clasp::ClaspFacade::Callback
 {
 public:
-#ifdef DISABLE_ANSWER_SET_CHECKS
-	ClaspCallbackNP(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes)
-		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numChildNodes(numChildNodes)
+	ClaspCallbackNP(const Algorithm& algorithm, sharp::Table& table, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes)
+		: algorithm(algorithm), table(table), gringoOutput(gringoOutput), numChildNodes(numChildNodes)
 	{}
-#else
-	ClaspCallbackNP(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes, const std::set<std::string>& currentVertices)
-		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numChildNodes(numChildNodes), currentVertices(currentVertices)
-	{}
-#endif
 
 	// Called if the current configuration contains unsafe/unreasonable options
 	virtual void warning(const char* msg);
@@ -51,28 +45,23 @@ public:
 
 private:
 	const Algorithm& algorithm;
-	sharp::TupleTable& tupleTable;
+	sharp::Table& table;
 	const GringoOutputProcessor& gringoOutput;
 	const unsigned int numChildNodes;
 
 	// cf. GringoOutputProcessor.h
-	struct MapAtom {
-		std::string vertex;
+	struct ItemAtom {
 		std::string value;
 		Clasp::Literal literal;
-		MapAtom(const std::string& vertex, const std::string& value, Clasp::Literal literal)
-			: vertex(vertex), value(value), literal(literal)
+		ItemAtom(const std::string& value, Clasp::Literal literal)
+			: value(value), literal(literal)
 		{}
 	};
-	std::vector<MapAtom> mapAtoms;
+	std::vector<ItemAtom> itemAtoms;
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
-	LongToLiteral chosenChildTupleAtoms;
-	LongToLiteral chosenChildTupleLAtoms; // XXX: Obsolete
-	LongToLiteral chosenChildTupleRAtoms; // XXX: Obsolete
+	LongToLiteral chosenChildRowAtoms;
+	LongToLiteral chosenChildRowLAtoms; // XXX: Obsolete
+	LongToLiteral chosenChildRowRAtoms; // XXX: Obsolete
 	LongToLiteral currentCostAtoms;
 	LongToLiteral costAtoms;
-
-#ifndef DISABLE_ANSWER_SET_CHECKS
-	std::set<std::string> currentVertices; // To check if all vertices are assigned
-#endif
 };

@@ -23,7 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ClaspCallbackNP.h"
 #include "GringoOutputProcessor.h"
-#include "TupleNP.h"
+#include "RowNP.h"
 
 #define foreach BOOST_FOREACH
 
@@ -37,20 +37,20 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 	if(f.state() == Clasp::ClaspFacade::state_solve && e == Clasp::ClaspFacade::event_state_enter) {
 			Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
 
-			foreach(const GringoOutputProcessor::MapAtom& it, gringoOutput.getMapAtoms()) {
+			foreach(const GringoOutputProcessor::ItemAtom& it, gringoOutput.getItemAtoms()) {
 #ifndef DISABLE_ANSWER_SET_CHECKS
 				if(it.level != 0)
-					throw std::runtime_error("map predicate uses invalid level");
+					throw std::runtime_error("item predicate uses invalid level");
 #endif
-				mapAtoms.push_back(MapAtom(it.vertex, it.value, symTab[it.symbolTableKey].lit));
+				itemAtoms.push_back(ItemAtom(it.value, symTab[it.symbolTableKey].lit));
 			}
 
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleAtoms())
-				chosenChildTupleAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleLAtoms()) // XXX: Obsolete
-				chosenChildTupleLAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleRAtoms()) // XXX: Obsolete
-				chosenChildTupleRAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowAtoms())
+				chosenChildRowAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowLAtoms()) // XXX: Obsolete
+				chosenChildRowLAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowRAtoms()) // XXX: Obsolete
+				chosenChildRowRAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
@@ -76,61 +76,61 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	std::cout << std::endl;
 #endif
 
-	TupleNP& newTuple = *new TupleNP;
+	RowNP& newRow = *new RowNP;
 
-	std::vector<const sharp::TupleTable::value_type*> childTuplesAndPlans;
-	childTuplesAndPlans.reserve(numChildNodes);
+	std::vector<const sharp::Table::value_type*> childRowsAndPlans;
+	childRowsAndPlans.reserve(numChildNodes);
 
-	foreach(const LongToLiteral::value_type& it, chosenChildTupleAtoms) {
+	foreach(const LongToLiteral::value_type& it, chosenChildRowAtoms) {
 		if(s.isTrue(it.second)) {
-			childTuplesAndPlans.push_back(reinterpret_cast<const sharp::TupleTable::value_type*>(it.first));
+			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
 #ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childTuplesAndPlans.size() == numChildNodes)
+			if(childRowsAndPlans.size() == numChildNodes)
 				break;
 #endif
 		}
 	}
 
 	// XXX: Obsolete
-	foreach(const LongToLiteral::value_type& it, chosenChildTupleLAtoms) {
+	foreach(const LongToLiteral::value_type& it, chosenChildRowLAtoms) {
 		if(s.isTrue(it.second)) {
-			childTuplesAndPlans.push_back(reinterpret_cast<const sharp::TupleTable::value_type*>(it.first));
+			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
 #ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childTuplesAndPlans.size() == numChildNodes)
+			if(childRowsAndPlans.size() == numChildNodes)
 				break;
 #else
-			if(childTuplesAndPlans.size() != 1)
-				throw std::runtime_error("You may only use chosenChildTuple/1 if you use neither chosenChildTupleL/1 nor chosenChildTupleR/1.");
+			if(childRowsAndPlans.size() != 1)
+				throw std::runtime_error("You may only use chosenChildRow/1 if you use neither chosenChildRowL/1 nor chosenChildRowR/1.");
 #endif
 		}
 	}
 
 	// XXX: Obsolete
-	foreach(const LongToLiteral::value_type& it, chosenChildTupleRAtoms) {
+	foreach(const LongToLiteral::value_type& it, chosenChildRowRAtoms) {
 		if(s.isTrue(it.second)) {
-			childTuplesAndPlans.push_back(reinterpret_cast<const sharp::TupleTable::value_type*>(it.first));
+			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
 #ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childTuplesAndPlans.size() == numChildNodes)
+			if(childRowsAndPlans.size() == numChildNodes)
 				break;
 #else
-			if(childTuplesAndPlans.size() != 2)
-				throw std::runtime_error("You may only use chosenChildTuple/1 if you use neither chosenChildTupleL/1 nor chosenChildTupleR/1.");
+			if(childRowsAndPlans.size() != 2)
+				throw std::runtime_error("You may only use chosenChildRow/1 if you use neither chosenChildRowL/1 nor chosenChildRowR/1.");
 #endif
 		}
 	}
 
 #ifndef DISABLE_ANSWER_SET_CHECKS
-	if(childTuplesAndPlans.size() > 0 && childTuplesAndPlans.size() != numChildNodes)
-		throw std::runtime_error("Number of chosen child tuples not equal to number of child nodes");
+	if(childRowsAndPlans.size() > 0 && childRowsAndPlans.size() != numChildNodes)
+		throw std::runtime_error("Number of chosen child rows not equal to number of child nodes");
 #endif
 
 	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
 		if(s.isTrue(it.second)) {
 #ifndef DISABLE_ANSWER_SET_CHECKS
-			if(newTuple.currentCost != 0)
+			if(newRow.currentCost != 0)
 				throw std::runtime_error("Multiple current costs");
 #endif
-			newTuple.currentCost = it.first;
+			newRow.currentCost = it.first;
 #ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
@@ -140,69 +140,45 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	foreach(const LongToLiteral::value_type& it, costAtoms) {
 		if(s.isTrue(it.second)) {
 #ifndef DISABLE_ANSWER_SET_CHECKS
-			if(newTuple.cost != 0)
+			if(newRow.cost != 0)
 				throw std::runtime_error("Multiple costs");
 #endif
-			newTuple.cost = it.first;
+			newRow.cost = it.first;
 #ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
 	}
 
-	foreach(MapAtom& atom, mapAtoms) {
-		if(s.isTrue(atom.literal)) {
-#ifndef DISABLE_ANSWER_SET_CHECKS
-			// Only current vertices may be assigned
-			if(currentVertices.find(atom.vertex) == currentVertices.end()) {
-				std::ostringstream err;
-				err << "Attempted assigning non-current vertex " << atom.vertex;
-				throw std::runtime_error(err.str());
-			}
-
-			// vertex must not be assigned yet
-			if(newTuple.assignment.find(atom.vertex) != newTuple.assignment.end()) {
-				std::ostringstream err;
-				err << "Multiple assignments to vertex " << atom.vertex;
-				throw std::runtime_error(err.str());
-			}
-#endif
-			newTuple.assignment[atom.vertex] = atom.value;
-		}
+	foreach(ItemAtom& atom, itemAtoms) {
+		if(s.isTrue(atom.literal))
+			newRow.items.push_back(atom.value);
 	}
-#ifndef DISABLE_ANSWER_SET_CHECKS
-	// All vertices must be assigned now
-	std::set<std::string> assigned;
-	foreach(const Tuple::Assignment::value_type& kv, newTuple.assignment)
-		assigned.insert(kv.first);
-	if(assigned != currentVertices)
-		throw std::runtime_error("Not all current vertices have been assigned");
-#endif
 
-//	if(oldTupleAndPlan) {
+//	if(oldRowAndPlan) {
 //		// This is an exchange node
-//		algorithm.addRowToTupleTable(tupleTable, &newTuple,
-//				algorithm.getPlanFactory().extend(oldTupleAndPlan->second, newTuple));
-//	} else if(leftTupleAndPlan && rightTupleAndPlan) {
+//		algorithm.addRowToTable(table, &newRow,
+//				algorithm.getPlanFactory().extend(oldRowAndPlan->second, newRow));
+//	} else if(leftRowAndPlan && rightRowAndPlan) {
 //		// This is a join node
-//		algorithm.addRowToTupleTable(tupleTable, &newTuple,
-//				algorithm.getPlanFactory().join(leftTupleAndPlan->second, rightTupleAndPlan->second, newTuple));
+//		algorithm.addRowToTable(table, &newRow,
+//				algorithm.getPlanFactory().join(leftRowAndPlan->second, rightRowAndPlan->second, newRow));
 //	} else {
-//		assert(!oldTupleAndPlan && !leftTupleAndPlan && !rightTupleAndPlan);
-//		// This is a leaf node (or we don't have chosenChildTuples because we only solve the decision problem)
-//		algorithm.addRowToTupleTable(tupleTable, &newTuple,
-//				algorithm.getPlanFactory().leaf(newTuple));
+//		assert(!oldRowAndPlan && !leftRowAndPlan && !rightRowAndPlan);
+//		// This is a leaf node (or we don't have chosenChildRows because we only solve the decision problem)
+//		algorithm.addRowToTable(table, &newRow,
+//				algorithm.getPlanFactory().leaf(newRow));
 //	}
 
 	sharp::Plan* plan;
-	if(childTuplesAndPlans.empty())
-		plan = algorithm.getPlanFactory().leaf(newTuple);
-	else if(childTuplesAndPlans.size() == 1)
-		plan = algorithm.getPlanFactory().join(newTuple, childTuplesAndPlans[0]->second);
+	if(childRowsAndPlans.empty())
+		plan = algorithm.getPlanFactory().leaf(newRow);
+	else if(childRowsAndPlans.size() == 1)
+		plan = algorithm.getPlanFactory().join(newRow, childRowsAndPlans[0]->second);
 	else {
-		plan = algorithm.getPlanFactory().join(newTuple, childTuplesAndPlans[0]->second, childTuplesAndPlans[1]->second);
-		for(unsigned i = 2; i < childTuplesAndPlans.size(); ++i)
-			plan = algorithm.getPlanFactory().join(newTuple, plan, childTuplesAndPlans[i]->second);
+		plan = algorithm.getPlanFactory().join(newRow, childRowsAndPlans[0]->second, childRowsAndPlans[1]->second);
+		for(unsigned i = 2; i < childRowsAndPlans.size(); ++i)
+			plan = algorithm.getPlanFactory().join(newRow, plan, childRowsAndPlans[i]->second);
 	}
-	algorithm.addRowToTupleTable(tupleTable, &newTuple, plan);
+	algorithm.addRowToTable(table, &newRow, plan);
 }

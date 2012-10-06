@@ -32,24 +32,23 @@ public:
 	//! @param ignoreOptimization true iff the predicates responsible for optimization problems should be ignored (e.g., cost/1, currentCost/1)
 	GringoOutputProcessor(bool ignoreOptimization = false);
 
-	// Arguments of the map/3 predicate (Level, vertex and the string it is assigned)
-	struct MapAtom {
+	// Arguments of the item/2 predicate (the item's level and value)
+	struct ItemAtom {
 		unsigned int level;
-		std::string vertex;
 		std::string value;
 		Clasp::SymbolTable::key_type symbolTableKey;
 
-		MapAtom(unsigned int level, const std::string& vertex, const std::string& value, Clasp::SymbolTable::key_type symbolTableKey)
-			: level(level), vertex(vertex), value(value), symbolTableKey(symbolTableKey)
+		ItemAtom(unsigned int level, const std::string& value, Clasp::SymbolTable::key_type symbolTableKey)
+			: level(level), value(value), symbolTableKey(symbolTableKey)
 		{}
 	};
-	const std::vector<MapAtom>& getMapAtoms() const { return mapAtoms; }
+	const std::vector<ItemAtom>& getItemAtoms() const { return itemAtoms; }
 
 	typedef std::map<long, Clasp::SymbolTable::key_type> LongToSymbolTableKey;
-	const LongToSymbolTableKey& getChosenChildTupleAtoms() const { return chosenChildTupleAtoms; }
-	// XXX: chosenChildTupleL/1 and chosenChildTupleR/1 are obsolete
-	const LongToSymbolTableKey& getChosenChildTupleLAtoms() const { return chosenChildTupleLAtoms; } // XXX: Obsolete
-	const LongToSymbolTableKey& getChosenChildTupleRAtoms() const { return chosenChildTupleRAtoms; } // XXX: Obsolete
+	const LongToSymbolTableKey& getChosenChildRowAtoms() const { return chosenChildRowAtoms; }
+	// XXX: chosenChildRowL/1 and chosenChildRowR/1 are obsolete
+	const LongToSymbolTableKey& getChosenChildRowLAtoms() const { return chosenChildRowLAtoms; } // XXX: Obsolete
+	const LongToSymbolTableKey& getChosenChildRowRAtoms() const { return chosenChildRowRAtoms; } // XXX: Obsolete
 	const LongToSymbolTableKey& getCurrentCostAtoms() const { return currentCostAtoms; }
 	const LongToSymbolTableKey& getCostAtoms() const { return costAtoms; }
 
@@ -77,18 +76,18 @@ protected:
 
 private:
 	bool ignoreOptimization;
-	std::vector<MapAtom> mapAtoms; // Holds pairs of 1) pairs ("arg0","arg1","arg2") and 2) the key in the symbol table which is mapped to the clasp variable corresponding to "map(arg0,arg1,arg2)" (different keys may be mapped to the same variables due to clasp internals)
-	LongToSymbolTableKey chosenChildTupleAtoms; // Maps addresses of entries in the TupleSet corresponding to a child tuple (with solution) to the symbol table key of "chosenChildTuple(address)"
-	LongToSymbolTableKey chosenChildTupleLAtoms; // XXX: Obsolete
-	LongToSymbolTableKey chosenChildTupleRAtoms; // XXX: Obsolete
+	std::vector<ItemAtom> itemAtoms; // Holds pairs of 1) pairs ("arg0","arg1") and 2) the key in the symbol table which is mapped to the clasp variable corresponding to "item(arg0,arg1)" (different keys may be mapped to the same variables due to clasp internals)
+	LongToSymbolTableKey chosenChildRowAtoms; // Maps addresses of rows in the Table corresponding to a child row (with solution) to the symbol table key of "chosenChildRow(address)"
+	LongToSymbolTableKey chosenChildRowLAtoms; // XXX: Obsolete
+	LongToSymbolTableKey chosenChildRowRAtoms; // XXX: Obsolete
 	LongToSymbolTableKey currentCostAtoms;
 	LongToSymbolTableKey costAtoms;
 
-	void storeChildTupleAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store);
+	void storeChildRowAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store);
 	void storeCostAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store);
 
 #ifndef NDEBUG
-	unsigned int mapArity;
+	unsigned int itemArity;
 #endif
 
 };

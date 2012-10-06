@@ -23,8 +23,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solution {
 
-EnumerationPlan::EnumerationPlan(Operation operation, const Tuple& tuple, const EnumerationPlan* left, const EnumerationPlan* right)
-	: Plan(operation), cost(tuple.getCost()), assignment(tuple.getAssignment()), left(left), right(right)
+EnumerationPlan::EnumerationPlan(Operation operation, const Row& row, const EnumerationPlan* left, const EnumerationPlan* right)
+	: Plan(operation), cost(row.getCost()), items(row.getItems()), left(left), right(right)
 {
 }
 
@@ -34,9 +34,9 @@ EnumerationPlan::EnumerationPlan(const EnumerationPlan* left, const EnumerationP
 	assert(left && right && left->getCost() == right->getCost());
 }
 
-EnumerationPlan* EnumerationPlan::leaf(const Tuple& tuple)
+EnumerationPlan* EnumerationPlan::leaf(const Row& row)
 {
-	return new EnumerationPlan(LEAF, tuple);
+	return new EnumerationPlan(LEAF, row);
 }
 
 EnumerationPlan* EnumerationPlan::unify(const EnumerationPlan* left, const EnumerationPlan* right)
@@ -51,7 +51,7 @@ EnumerationPlan* EnumerationPlan::unify(const EnumerationPlan* left, const Enume
 		return new EnumerationPlan(left, right);
 }
 
-EnumerationPlan* EnumerationPlan::join(const Tuple& extension, const EnumerationPlan* left, const EnumerationPlan* right)
+EnumerationPlan* EnumerationPlan::join(const Row& extension, const EnumerationPlan* left, const EnumerationPlan* right)
 {
 	return new EnumerationPlan(JOIN, extension, left, right);
 }

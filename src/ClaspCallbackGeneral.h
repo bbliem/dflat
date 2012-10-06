@@ -23,7 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <clasp/clasp_facade.h>
 
 #include "Algorithm.h"
-#include "Tuple.h"
+#include "Row.h"
 
 class GringoOutputProcessor;
 
@@ -31,13 +31,8 @@ class GringoOutputProcessor;
 class ClaspCallbackGeneral : public Clasp::ClaspFacade::Callback
 {
 public:
-#ifdef DISABLE_ANSWER_SET_CHECKS
-	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes, unsigned int level)
-		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numChildNodes(numChildNodes), numLevels(level)
-#else
-	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes, unsigned int level, const std::set<std::string>& currentVertices)
-		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numChildNodes(numChildNodes), numLevels(level), currentVertices(currentVertices)
-#endif
+	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::Table& table, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes, unsigned int level)
+		: algorithm(algorithm), table(table), gringoOutput(gringoOutput), numChildNodes(numChildNodes), numLevels(level)
 	{
 		assert(numLevels > 0);
 	}
@@ -53,60 +48,55 @@ public:
 
 private:
 	const Algorithm& algorithm;
-	sharp::TupleTable& tupleTable;
+	sharp::Table& table;
 	const GringoOutputProcessor& gringoOutput;
 	const unsigned int numChildNodes;
 	const unsigned int numLevels;
 
 	// cf. GringoOutputProcessor.h
-	struct MapAtom {
+	struct ItemAtom {
 		unsigned int level;
-		std::string vertex;
 		std::string value;
 		Clasp::Literal literal;
-		MapAtom(unsigned int level, const std::string& vertex, const std::string& value, Clasp::Literal literal)
-			: level(level), vertex(vertex), value(value), literal(literal)
+		ItemAtom(unsigned int level, const std::string& value, Clasp::Literal literal)
+			: level(level), value(value), literal(literal)
 		{}
 	};
-	std::vector<MapAtom> mapAtoms;
+	std::vector<ItemAtom> itemAtoms;
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
-	LongToLiteral chosenChildTupleAtoms;
-	LongToLiteral chosenChildTupleLAtoms; // XXX: Obsolete
-	LongToLiteral chosenChildTupleRAtoms; // XXX: Obsolete
+	LongToLiteral chosenChildRowAtoms;
+	LongToLiteral chosenChildRowLAtoms; // XXX: Obsolete
+	LongToLiteral chosenChildRowRAtoms; // XXX: Obsolete
 	LongToLiteral currentCostAtoms;
 	LongToLiteral costAtoms;
 
-	// Because one tuple can be constituted of multiple AS's, we cannot insert new tuples upon arrival of a new AS but must rather collect all AS data until the solve state is finished.
-	// By "path" we denote a path from root to leaf in Tuple::Tree. Each AS characterizes exactly one path.
-	typedef std::vector<Tuple::Assignment> Path;
+	// Because one table row can be constituted of multiple AS's, we cannot insert a new row upon arrival of a new AS but must rather collect all AS data until the solve state is finished.
+	// By "path" we denote a path from root to leaf in RowGeneral::Tree. Each AS characterizes exactly one path.
+	typedef std::vector<Row::Items> Path;
 
 	class PathCollection
 	{
 	public:
-		typedef sharp::TupleTable::value_type TableRow;
+		typedef sharp::Table::value_type TableRow;
 
 		void insert(const Path& path, const std::vector<const TableRow*>& predecessors = std::vector<const TableRow*>(), unsigned currentCost = 0, unsigned cost = 0);
-		void fillTupleTable(sharp::TupleTable& tupleTable, const Algorithm& algorithm) const;
+		void fillTable(sharp::Table& table, const Algorithm& algorithm) const;
 
 	private:
-		struct TupleData
+		struct RowData
 		{
-			TupleData() : currentCost(0), cost(0) {}
+			RowData() : currentCost(0), cost(0) {}
 			std::list<Path> paths;
 			unsigned int currentCost;
 			unsigned int cost;
 		};
 
 		typedef std::vector<const TableRow*> TableRows; // When using the join program, both are used; when using the exchange program, only the first is used, the other is 0.
-		typedef std::map<Tuple::Assignment, TupleData> TopLevelAssignmentToTupleData; // Maps an assignment to data of tuples starting with that assignment
-		typedef std::map<TableRows, TopLevelAssignmentToTupleData> PredecessorData;
+		typedef std::map<Row::Items, RowData> TopLevelItemsToRowData; // Maps an item set to data of rows starting with that item set
+		typedef std::map<TableRows, TopLevelItemsToRowData> PredecessorData;
 
 		PredecessorData predecessorData;
 	};
 
 	PathCollection pathCollection;
-
-#ifndef DISABLE_ANSWER_SET_CHECKS
-	std::set<std::string> currentVertices; // To check if all vertices are assigned
-#endif
 };
