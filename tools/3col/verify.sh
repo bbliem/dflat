@@ -5,11 +5,11 @@ numInstances=100
 numNodes=10
 numEdges=20
 
-threeColGen=./3colgen.py
+threeColGen=tools/3col/instance_generator.py
 gringo=../gringo
 clasp=../clasp-2.0.2-st-x86-linux
-monolithicEncoding=3col.lp
-threeCol=./build/release/3col
+monolithicEncoding=monolithic/3col.lp
+threeCol=build/release/3col
 
 for instance in $(seq 1 $numInstances); do
 	seed=$RANDOM

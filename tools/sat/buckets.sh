@@ -2,8 +2,8 @@
 
 # generate SAT instances and put them into buckets according to width of tree decomposition
 
-satgen=./satgen.py
-sat=./build/release/sat
+satgen=tools/sat/instance_generator.py
+sat=build/release/sat
 
 minNumClauses=30
 maxNumClauses=60

@@ -2,7 +2,7 @@
 
 gringo=../gringo
 clasp=../clasp-2.0.2-st-x86-linux
-exchangegen=./exchangegen.py
+exchangegen=tools/sat/exchange_generator.py
 
 numInstances=10
 
