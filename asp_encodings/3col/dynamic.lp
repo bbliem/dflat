@@ -1,7 +1,7 @@
 color(red;green;blue).
 
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
-item(map(X,C)) :- extend(I), childItem(I,map(X,C)), current(X).
+item(map(X,C)) :- extend(R), childItem(R,map(X,C)), current(X).
 % Only join matching colorings
 :- item(map(V,C0;C1)), C0 != C1.
 
