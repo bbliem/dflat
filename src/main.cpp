@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <iomanip>
 #include <sstream>
 #include <cassert>
+#include <limits>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 #include <gmpxx.h>
@@ -213,29 +214,35 @@ int main(int argc, char** argv)
 				std::cout << "Solutions: 0" << std::endl;
 			return INCONSISTENT;
 		}
-		
-		if(table->size() != 1)
-			throw std::runtime_error("Root table must have 0 or 1 rows");
 
-		const Row& row = *dynamic_cast<const Row*>(*table->begin());
+		unsigned int minCost = std::numeric_limits<unsigned int>::max();
+
+		foreach(const sharp::Row* r, *table)
+			minCost = std::min(minCost, dynamic_cast<const Row*>(r)->getCost());
 
 		switch(problemType) {
 			case ENUMERATION:
 			case OPT_ENUM:
 				{
-					EnumerationIterator it(row);
 					mpz_class numSolutions = 0;
 
-					while(it.isValid()) {
-						foreach(const std::string& item, *it)
-							std::cout << item << ' ';
-						std::cout << std::endl;
-						++it;
-						++numSolutions;
+					foreach(const sharp::Row* r, *table) {
+						const Row& row = *dynamic_cast<const Row*>(r);
+						if(row.getCost() == minCost) {
+							EnumerationIterator it(row);
+
+							while(it.isValid()) {
+								foreach(const std::string& item, *it)
+									std::cout << item << ' ';
+								std::cout << std::endl;
+								++it;
+								++numSolutions;
+							}
+						}
 					}
 
 					if(problemType == OPT_ENUM) {
-						std::cout << "Minimum cost: " << row.getCost() << std::endl;
+						std::cout << "Minimum cost: " << minCost << std::endl;
 						std::cout << "Optimal solutions: " << numSolutions << std::endl;
 					} else
 						std::cout << "Solutions: " << numSolutions << std::endl;
@@ -247,12 +254,20 @@ int main(int argc, char** argv)
 			case COUNTING:
 			case OPT_COUNTING:
 				{
+					mpz_class numSolutions = 0;
+
+					foreach(const sharp::Row* r, *table) {
+						const Row& row = *dynamic_cast<const Row*>(r);
+						if(row.getCost() == minCost)
+							numSolutions += row.getCount();
+					}
+
 					if(problemType == OPT_COUNTING) {
-						std::cout << "Minimum cost: " << row.getCost() << std::endl;
-						std::cout << "Optimal solutions: " << row.getCount() << std::endl;
+						std::cout << "Minimum cost: " << minCost << std::endl;
+						std::cout << "Optimal solutions: " << numSolutions << std::endl;
 					} else
-						std::cout << "Solutions: " << row.getCount() << std::endl;
-					return row.getCount() == 0 ? INCONSISTENT : CONSISTENT;
+						std::cout << "Solutions: " << numSolutions << std::endl;
+					return numSolutions == 0 ? INCONSISTENT : CONSISTENT;
 				}
 				break;
 
@@ -260,7 +275,7 @@ int main(int argc, char** argv)
 			case OPT_VALUE:
 				{
 					if(problemType == OPT_VALUE)
-						std::cout << "Minimum cost: " << row.getCost() << std::endl;
+						std::cout << "Minimum cost: " << minCost << std::endl;
 					else
 						std::cout << "YES" << std::endl;
 					return CONSISTENT;
