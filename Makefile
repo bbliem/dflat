@@ -3,7 +3,7 @@ gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a
 gringo_lib_debug=$(gringo_dir)/build/debug/lib/libgringo.a
 gringo_lib_gprof=$(gringo_dir)/build/gprof/lib/libgringo.a
 
-clasp_dir=/home/bernhard/Informatik/clasp-2.0.3
+clasp_dir=/home/bernhard/Informatik/clasp-2.0.4
 clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
@@ -29,7 +29,6 @@ debug:
 	cd build/debug && \
 	cmake ../.. \
 		-DCMAKE_BUILD_TYPE=debug \
-		-DCMAKE_CXX_FLAGS="-DVERBOSE" \
 		-Dgringo_lib=$(gringo_lib_debug) \
 		-Dclasp_lib=$(clasp_lib_debug) \
 		-Dgringo_dir=$(gringo_dir) \
