@@ -6,6 +6,7 @@ Writing logic programs for the exchange node for problems beyond NP:
 Predicates provided by ASDP: current/1, introduced/1, removed/1, childTuple/1, mapped/3, sub/2, childCost/2
 Predicates expected by ASDP: map/3, chosenChildTuple/1 (for exchange), chosenChildTuple{L,R}/1 (for join), cost/1, currentCost/1.
 Additionally to the provided predicates you get the original problem instance.
+You need to provide the command-line option "-l N" s.t. N is the number of levels you require.
 
 In the following, let the term "level L assignment" mean an assignment that maps to each vertex V exactly one value K, given by the output predicate map(L,V,K). Suppose the problem is on the n-th level of the polynomial hierarchy. In this case a tuple consists of
 -) a level 0 assignment,

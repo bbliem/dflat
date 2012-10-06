@@ -41,6 +41,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <clasp/shared_context.h>
 #include <gringo/storage.h>
 #include <gringo/domain.h>
+#include <boost/lexical_cast.hpp>
 
 GringoOutputProcessor::GringoOutputProcessor()
 	: LparseConverter(0, false)
@@ -164,8 +165,7 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 			(k++)->print(s_, args[0]);
 			k->print(s_, args[1]);
 
-			unsigned int firstArgNum;
-			firstArg >> firstArgNum;
+			unsigned int firstArgNum = boost::lexical_cast<unsigned int>(firstArg.str());
 
 			mapAtoms.push_back(MapAtom(firstArgNum, args[0].str(), args[1].str(), atom.first));
 		}

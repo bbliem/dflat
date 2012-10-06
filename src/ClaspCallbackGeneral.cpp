@@ -177,7 +177,7 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 			path[atom.level][atom.vertex] = atom.value;
 		}
 	}
-	// A path must not use all levels, but up to the highest used level it must be connected.
+	// A path does not have to use all levels, but up to the highest used level it must be connected.
 	path.resize(highestLevel+1);
 #ifndef DISABLE_ANSWER_SET_CHECKS
 	// On each assignment of the path, all current vertices must be assigned

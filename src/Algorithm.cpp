@@ -108,8 +108,10 @@ sharp::TupleTable* Algorithm::evaluatePermutationNode(const sharp::ExtendedHyper
 		Tuple* t;
 		if(level == 0)
 			t = new TupleNP;
-		else
+		else {
 			t = new TupleGeneral;
+			dynamic_cast<TupleGeneral*>(t)->tree.children[Tuple::Assignment()]; // Initialize to empty top-level assignment
+		}
 		(*childTable)[t] = planFactory.leaf(*t);
 	}
 

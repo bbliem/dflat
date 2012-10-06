@@ -28,6 +28,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 class TupleGeneral : public Tuple
 {
 public:
+	// Note that after calling the constructor the tuple does NOT have a
+	// top-level assignment yet. You must first use tree.addPath() before
+	// getAssignment() may be used.
 	TupleGeneral();
 
 	virtual bool operator<(const sharp::Tuple&) const;

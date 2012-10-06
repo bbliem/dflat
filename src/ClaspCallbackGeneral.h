@@ -90,6 +90,7 @@ private:
 	private:
 		struct TupleData
 		{
+			TupleData() : currentCost(0), cost(0) {}
 			std::list<Path> paths;
 			unsigned int currentCost;
 			unsigned int cost;
