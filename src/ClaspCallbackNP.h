@@ -59,9 +59,7 @@ private:
 	};
 	std::vector<ItemAtom> itemAtoms;
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
-	LongToLiteral chosenChildRowAtoms;
-	LongToLiteral chosenChildRowLAtoms; // XXX: Obsolete
-	LongToLiteral chosenChildRowRAtoms; // XXX: Obsolete
+	LongToLiteral extendAtoms;
 	LongToLiteral currentCostAtoms;
 	LongToLiteral costAtoms;
 };

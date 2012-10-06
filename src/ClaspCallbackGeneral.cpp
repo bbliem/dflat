@@ -41,11 +41,7 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 			foreach(const GringoOutputProcessor::ItemAtom& it, gringoOutput.getItemAtoms())
 				itemAtoms.push_back(ItemAtom(it.level, it.value, symTab[it.symbolTableKey].lit));
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowAtoms())
-				chosenChildRowAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowLAtoms()) // XXX: Obsolete
-				chosenChildRowLAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowRAtoms()) // XXX: Obsolete
-				chosenChildRowRAtoms[it.first] = symTab[it.second].lit;
+				extendAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
@@ -79,47 +75,19 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	unsigned currentCost = 0;
 	unsigned cost = 0;
 
-	foreach(const LongToLiteral::value_type& it, chosenChildRowAtoms) {
+	foreach(const LongToLiteral::value_type& it, extendAtoms) {
 		if(s.isTrue(it.second)) {
 			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
 #ifdef DISABLE_ANSWER_SET_CHECKS
 			if(childRowsAndPlans.size() == numChildNodes)
 				break;
-#endif
-		}
-	}
-
-	// XXX: Obsolete
-	foreach(const LongToLiteral::value_type& it, chosenChildRowLAtoms) {
-		if(s.isTrue(it.second)) {
-			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
-#ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childRowsAndPlans.size() == numChildNodes)
-				break;
-#else
-			if(childRowsAndPlans.size() != 1)
-				throw std::runtime_error("You may only use chosenChildRow/1 if you use neither chosenChildRowL/1 nor chosenChildRowR/1.");
-#endif
-		}
-	}
-
-	// XXX: Obsolete
-	foreach(const LongToLiteral::value_type& it, chosenChildRowRAtoms) {
-		if(s.isTrue(it.second)) {
-			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
-#ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childRowsAndPlans.size() == numChildNodes)
-				break;
-#else
-			if(childRowsAndPlans.size() != 2)
-				throw std::runtime_error("You may only use chosenChildRow/1 if you use neither chosenChildRowL/1 nor chosenChildRowR/1.");
 #endif
 		}
 	}
 
 #ifndef DISABLE_ANSWER_SET_CHECKS
 	if(childRowsAndPlans.size() > 0 && childRowsAndPlans.size() != numChildNodes)
-		throw std::runtime_error("Number of chosen child rows not equal to number of child nodes");
+		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
 #endif
 
 	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
@@ -149,7 +117,7 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	}
 
 //#ifndef DISABLE_ANSWER_SET_CHECKS
-// TODO: Check if for each child node we have a chosenChildRow (or none at all)
+// TODO: Check if for each child node we have an extended row (or none at all)
 //#endif
 
 	Path path(numLevels);
@@ -207,12 +175,6 @@ inline void ClaspCallbackGeneral::PathCollection::fillTable(sharp::Table& table,
 				newRow.tree.addPath(path.begin(), path.end());
 				assert(newRow.tree.children.size() == 1); // each row may only have one top-level item set
 			}
-
-//			std::vector<const sharp::Plan*> plans;
-//			plans.reserve(predecessors.size());
-//			foreach(const TableRow* row, predecessors)
-//				plans.push_back(row->second);
-//			algorithm.addRowToTable(table, &newRow, algorithm.getPlanFactory().join(newRow, plans));
 
 			sharp::Plan* plan;
 			if(predecessors.empty())

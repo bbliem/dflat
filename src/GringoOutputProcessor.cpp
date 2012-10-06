@@ -174,19 +174,9 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 			itemAtoms.push_back(ItemAtom(0, arg.str(), atom.first));
 		}
 	}
-	else if(name == "chosenChildRow") {
+	else if(name == "extend") {
 		assert(arity == 1);
-		storeChildRowAtom(name, atom, chosenChildRowAtoms);
-	}
-	else if(name == "chosenChildRowL") {
-		// XXX: Obsolete
-		assert(arity == 1);
-		storeChildRowAtom(name, atom, chosenChildRowLAtoms);
-	}
-	else if(name == "chosenChildRowR") {
-		// XXX: Obsolete
-		assert(arity == 1);
-		storeChildRowAtom(name, atom, chosenChildRowRAtoms);
+		storeChildRowAtom(name, atom, extendAtoms);
 	}
 	else if(!ignoreOptimization && name == "currentCost") {
 		assert(arity == 1);

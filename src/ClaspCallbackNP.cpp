@@ -46,11 +46,7 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 			}
 
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowAtoms())
-				chosenChildRowAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowLAtoms()) // XXX: Obsolete
-				chosenChildRowLAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildRowRAtoms()) // XXX: Obsolete
-				chosenChildRowRAtoms[it.first] = symTab[it.second].lit;
+				extendAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
@@ -81,47 +77,19 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	std::vector<const sharp::Table::value_type*> childRowsAndPlans;
 	childRowsAndPlans.reserve(numChildNodes);
 
-	foreach(const LongToLiteral::value_type& it, chosenChildRowAtoms) {
+	foreach(const LongToLiteral::value_type& it, extendAtoms) {
 		if(s.isTrue(it.second)) {
 			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
 #ifdef DISABLE_ANSWER_SET_CHECKS
 			if(childRowsAndPlans.size() == numChildNodes)
 				break;
-#endif
-		}
-	}
-
-	// XXX: Obsolete
-	foreach(const LongToLiteral::value_type& it, chosenChildRowLAtoms) {
-		if(s.isTrue(it.second)) {
-			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
-#ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childRowsAndPlans.size() == numChildNodes)
-				break;
-#else
-			if(childRowsAndPlans.size() != 1)
-				throw std::runtime_error("You may only use chosenChildRow/1 if you use neither chosenChildRowL/1 nor chosenChildRowR/1.");
-#endif
-		}
-	}
-
-	// XXX: Obsolete
-	foreach(const LongToLiteral::value_type& it, chosenChildRowRAtoms) {
-		if(s.isTrue(it.second)) {
-			childRowsAndPlans.push_back(reinterpret_cast<const sharp::Table::value_type*>(it.first));
-#ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childRowsAndPlans.size() == numChildNodes)
-				break;
-#else
-			if(childRowsAndPlans.size() != 2)
-				throw std::runtime_error("You may only use chosenChildRow/1 if you use neither chosenChildRowL/1 nor chosenChildRowR/1.");
 #endif
 		}
 	}
 
 #ifndef DISABLE_ANSWER_SET_CHECKS
 	if(childRowsAndPlans.size() > 0 && childRowsAndPlans.size() != numChildNodes)
-		throw std::runtime_error("Number of chosen child rows not equal to number of child nodes");
+		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
 #endif
 
 	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
@@ -154,21 +122,6 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 		if(s.isTrue(atom.literal))
 			newRow.items.push_back(atom.value);
 	}
-
-//	if(oldRowAndPlan) {
-//		// This is an exchange node
-//		algorithm.addRowToTable(table, &newRow,
-//				algorithm.getPlanFactory().extend(oldRowAndPlan->second, newRow));
-//	} else if(leftRowAndPlan && rightRowAndPlan) {
-//		// This is a join node
-//		algorithm.addRowToTable(table, &newRow,
-//				algorithm.getPlanFactory().join(leftRowAndPlan->second, rightRowAndPlan->second, newRow));
-//	} else {
-//		assert(!oldRowAndPlan && !leftRowAndPlan && !rightRowAndPlan);
-//		// This is a leaf node (or we don't have chosenChildRows because we only solve the decision problem)
-//		algorithm.addRowToTable(table, &newRow,
-//				algorithm.getPlanFactory().leaf(newRow));
-//	}
 
 	sharp::Plan* plan;
 	if(childRowsAndPlans.empty())
