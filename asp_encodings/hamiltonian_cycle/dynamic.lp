@@ -1,24 +1,26 @@
+levels(2).
+
 % Auxiliary predicates computed by the grounder
 
-toOrTowards(S,X,Y) :- sub(_,S), mapped(S,X,to(Y)).
-toOrTowards(S,X,Y) :- sub(_,S), mapped(S,X,towards(Y)).
+toOrTowards(S,X,Y) :- sub(_,S), childItem(S,to(X,Y)).
+toOrTowards(S,X,Y) :- sub(_,S), childItem(S,towards(X,Y)).
 
 % reachesViaRemoved(S,X,Y): In "subtuple" S, there is a (possibly empty) "to"/"towards" path from X to Y s.t. X and all vertices between X and Y are removed. Reflexive.
-reachesViaRemoved(S,X,X) :- childTuple(T,N), childBag(N,X), removed(X), sub(T,S).
-reachesViaRemoved(S,X,Z) :- sub(_,S), reachesViaRemoved(S,X,Y), removed(Y), mapped(S,Y,to(Z)).
-reachesViaRemoved(S,X,Z) :- sub(_,S), reachesViaRemoved(S,X,Y), removed(Y), mapped(S,Y,towards(Z)).
+reachesViaRemoved(S,X,X) :- childRow(R,N), childBag(N,X), removed(X), sub(R,S).
+reachesViaRemoved(S,X,Z) :- sub(_,S), reachesViaRemoved(S,X,Y), removed(Y), childItem(S,to(Y,Z)).
+reachesViaRemoved(S,X,Z) :- sub(_,S), reachesViaRemoved(S,X,Y), removed(Y), childItem(S,towards(Y,Z)).
 
 % nextCurrent(S,X,Y): In "subtuple" S, Y is the next current vertex reachable from the removed X via "to" or "towards"
 nextCurrent(S,X,Y) :- reachesViaRemoved(S,X,Y), current(Y).
 
 %%%
 
-1 { chosenChildTuple(T) : childTuple(T,N) } 1 :- childNode(N).
-1 { chosenSubTuple(S) : sub(T,S) } 1 :- chosenChildTuple(T), sub(T,_). % Last conjunct required because dummy leaf has no "subtuple"
+1 { extend(0,R) : childRow(R,N) } 1 :- childNode(N).
+1 { extend(1,S) : sub(R,S) } 1 :- extend(0,R), sub(R,_). % Last conjunct required because dummy leaf has no "subtuple"
 % XXX: Is there always exactly one subtuple (except in leafs)? If so, no need for the choice.
 
-oldTo(X,Y) :- chosenSubTuple(S), mapped(S,X,to(Y)).
-oldTowards(X,Y) :- chosenSubTuple(S), mapped(S,X,towards(Y)).
+oldTo(X,Y) :- extend(1,S), childItem(S,to(X,Y)).
+oldTowards(X,Y) :- extend(1,S), childItem(S,towards(X,Y)).
 
 hadSuccessor(X) :- oldTo(X,_).
 hadSuccessor(X) :- oldTowards(X,_).
@@ -34,11 +36,11 @@ hadPredecessor(X) :- oldTowards(_,X).
 :- oldTo(_,X), oldTowards(_,X).
 
 % If two different preceding tuples have a towards-edge starting at X, the immediate successors of X are different.
-:- chosenSubTuple(S0;S1), S0 != S1, mapped(S0,X,towards(_)), mapped(S1,X,towards(_)).
+:- extend(1,S0;S1), S0 != S1, childItem(S0,towards(X,_)), childItem(S1,towards(X,_)).
 
 % When joining tuple T, corresponding to bag B, with tuple T', corresponding to bag B', it must hold: For each edge (x,y) in the subgraph induced by B \cap B': (x,y) is in T iff (x,y) is in T'.
 % Because of connectedness, this is equivalent to: For each child tuple and each pair of vertices in the current bag and the bag of the child tuple: There is an edge between these vertices in the current tuple iff this edge is also in the child tuple.
-:- map(1,X,to(Y)), chosenChildTuple(T), childTuple(T,N), childBag(N,X;Y), not mapped(T,X,to(Y)).
+:- item(1,to(X,Y)), extend(0,R), childRow(R,N), childBag(N,X;Y), not childItem(R,to(X,Y)).
 
 % If X is removed, it occurs only in one child (by connectedness). We require that the tuple of this child fully integrates X into a path.
 :- removed(X), not hadPredecessor(X).
@@ -49,7 +51,7 @@ hadPredecessor(X) :- oldTowards(_,X).
 towards(X,Y) :- oldTowards(X,Y), current(X;Y).
 to(X,Y)      :- oldTo(X,Y),      current(X;Y).
 
-towards(X,Z) :- chosenSubTuple(S), toOrTowards(S,X,Y), current(X), removed(Y), nextCurrent(S,Y,Z).
+towards(X,Z) :- extend(1,S), toOrTowards(S,X,Y), current(X), removed(Y), nextCurrent(S,Y,Z).
 
 % Edges can be added to the paths because of introduced vertices or by connecting ends to starts of paths in children
 
@@ -57,7 +59,7 @@ towards(X,Z) :- chosenSubTuple(S), toOrTowards(S,X,Y), current(X), removed(Y), n
 to(X,Y) :- newEdge(X,Y).
 
 % A guessed edge is invalid if the bag of a preceding child tuple contains both endpoints
-:- newEdge(X,Y), chosenChildTuple(T), childTuple(T,N), childBag(N,X;Y).
+:- newEdge(X,Y), extend(0,R), childRow(R,N), childBag(N,X;Y).
 % ... or if it would give a vertex more than one successor or predecessor.
 e(X,Y) :- to(X,Y).
 e(X,Y) :- towards(X,Y).
@@ -70,22 +72,17 @@ eTrans(X,Z) :- eTrans(X,Y), e(Y,Z).
 
 %%%
 
-map(1,X,to(Y)) :- to(X,Y).
-map(1,X,towards(Y)) :- towards(X,Y).
-
-% XXX: Remove requirement to assign something to each vertex
-hasSuccessor(X) :- map(1,X,to(_)).
-hasSuccessor(X) :- map(1,X,towards(_)).
-map(1,X,null) :- current(X), not hasSuccessor(X).
+item(1,to(X,Y)) :- to(X,Y).
+item(1,towards(X,Y)) :- towards(X,Y).
 
 %%%
 
-map(0,X,to(Y)) :- newEdge(X,Y).
-map(0,X,to(Y)) :- chosenChildTuple(T), mapped(T,X,to(Y)), current(X).
-map(0,X,null) :- current(X), not hasSuccessor(X).
+item(0,to(X,Y)) :- newEdge(X,Y).
+item(0,to(X,Y)) :- extend(0,R), childItem(R,to(X,Y)), current(X).
 
 
 
 #hide.
-#show chosenChildTuple/1.
-#show map/3.
+#show extend/2.
+#show item/2.
+#show levels/1.
