@@ -46,6 +46,7 @@ public:
 
 	typedef std::map<long, Clasp::SymbolTable::key_type> LongToSymbolTableKey;
 	const LongToSymbolTableKey& getExtendAtoms() const { return extendAtoms; }
+	const LongToSymbolTableKey& getCountAtoms() const { return countAtoms; }
 	const LongToSymbolTableKey& getCurrentCostAtoms() const { return currentCostAtoms; }
 	const LongToSymbolTableKey& getCostAtoms() const { return costAtoms; }
 
@@ -75,11 +76,12 @@ private:
 	bool ignoreOptimization;
 	std::vector<ItemAtom> itemAtoms; // Holds pairs of 1) pairs ("arg0","arg1") and 2) the key in the symbol table which is mapped to the clasp variable corresponding to "item(arg0,arg1)" (different keys may be mapped to the same variables due to clasp internals)
 	LongToSymbolTableKey extendAtoms; // Maps addresses of rows in the Table corresponding to a child row (with solution) to the symbol table key of "extend(address)"
+	LongToSymbolTableKey countAtoms;
 	LongToSymbolTableKey currentCostAtoms;
 	LongToSymbolTableKey costAtoms;
 
-	void storeChildRowAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store);
-	void storeCostAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store);
+	void storeChildRowAtom(const AtomRef& atom, LongToSymbolTableKey& store);
+	void storeNumberAtom(const AtomRef& atom, LongToSymbolTableKey& store);
 
 #ifndef NDEBUG
 	unsigned int itemArity;

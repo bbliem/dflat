@@ -60,6 +60,7 @@ private:
 	std::vector<ItemAtom> itemAtoms;
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
 	LongToLiteral extendAtoms;
+	LongToLiteral countAtoms;
 	LongToLiteral currentCostAtoms;
 	LongToLiteral costAtoms;
 };

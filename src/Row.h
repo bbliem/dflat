@@ -32,8 +32,7 @@ public:
 	typedef std::vector<const Row*> ExtensionPointerTuple;
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
 
-	//! Use initialCount = 1 for leaf rows, otherwise the count will be increased in addExtensionPointerTuple()
-	Row(const Items& topLevelItems, unsigned int initialCount = 0);
+	Row(const Items& topLevelItems);
 
 	//! Must be asymmetric
 	virtual bool operator<(const sharp::Row&) const;
@@ -75,6 +74,7 @@ public:
 
 	// TODO: Let the user count if desired
 	const mpz_class& getCount() const { return count; }
+	void setCount(const mpz_class& c) { count = c; }
 
 	/**
 	 * If using the default join implementation, this method is used to calculate the total cost of joining two child rows.

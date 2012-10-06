@@ -176,15 +176,19 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 	}
 	else if(name == "extend") {
 		assert(arity == 1);
-		storeChildRowAtom(name, atom, extendAtoms);
+		storeChildRowAtom(atom, extendAtoms);
+	}
+	else if(name == "count") {
+		assert(arity == 1);
+		storeNumberAtom(atom, countAtoms);
 	}
 	else if(!ignoreOptimization && name == "currentCost") {
 		assert(arity == 1);
-		storeCostAtom(name, atom, currentCostAtoms);
+		storeNumberAtom(atom, currentCostAtoms);
 	}
 	else if(!ignoreOptimization && name == "cost") {
 		assert(arity == 1);
-		storeCostAtom(name, atom, costAtoms);
+		storeNumberAtom(atom, costAtoms);
 	}
 }
 
@@ -220,7 +224,7 @@ ValRng GringoOutputProcessor::vals(Domain *dom, uint32_t offset) const
 	return ValRng(vals_.begin() + offset, vals_.begin() + offset + dom->arity());
 }
 
-inline void GringoOutputProcessor::storeChildRowAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store)
+inline void GringoOutputProcessor::storeChildRowAtom(const AtomRef& atom, LongToSymbolTableKey& store)
 {
 	std::stringstream firstArg; // First argument
 	ValVec::const_iterator k = vals_.begin() + atom.second;
@@ -228,7 +232,7 @@ inline void GringoOutputProcessor::storeChildRowAtom(const std::string& name, co
 	store[std::strtol(firstArg.str().c_str()+1, 0, 0)] = atom.first;
 }
 
-inline void GringoOutputProcessor::storeCostAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store)
+inline void GringoOutputProcessor::storeNumberAtom(const AtomRef& atom, LongToSymbolTableKey& store)
 {
 	std::stringstream firstArg; // First argument
 	ValVec::const_iterator k = vals_.begin() + atom.second;

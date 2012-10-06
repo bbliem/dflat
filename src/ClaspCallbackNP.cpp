@@ -47,6 +47,8 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getExtendAtoms())
 				extendAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCountAtoms())
+				countAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
@@ -96,10 +98,25 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
 #endif
 
-	Row& newRow = *new Row(items, childRows.empty() ? 1 : 0);
+	Row& newRow = *new Row(items);
 
-	if(!childRows.empty())
+	if(childRows.empty())
+		newRow.setCount(1);
+	else
 		newRow.addExtensionPointerTuple(childRows);
+
+	foreach(const LongToLiteral::value_type& it, countAtoms) {
+		if(s.isTrue(it.second)) {
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(newRow.getCount() > 1)
+				throw std::runtime_error("Multiple counts");
+#endif
+			newRow.setCount(it.first);
+#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
+			break;
+#endif
+		}
+	}
 
 	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
 		if(s.isTrue(it.second)) {

@@ -42,6 +42,8 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 				itemAtoms.push_back(ItemAtom(it.level, it.value, symTab[it.symbolTableKey].lit));
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getExtendAtoms())
 				extendAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCountAtoms())
+				countAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
@@ -114,17 +116,30 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	assert(!path.empty());
 	Row*& rowPtr = predecessorData[childRows][path.front()];
 	if(!rowPtr) {
+		rowPtr = new Row(path.front());
+
 		if(childRows.empty())
-			rowPtr = new Row(path.front(), 1);
-		else {
-			rowPtr = new Row(path.front());
+			rowPtr->setCount(1);
+		else
 			rowPtr->addExtensionPointerTuple(childRows);
-		}
 	}
 	else
 		rowPtr->addSubItemsPath(path.begin(), path.end());
 
 	Row& row = *rowPtr;
+
+	foreach(const LongToLiteral::value_type& it, countAtoms) {
+		if(s.isTrue(it.second)) {
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(row.getCount() > 1 && row.getCount() != it.first)
+				throw std::runtime_error("Different count for same top-level items");
+#endif
+			row.setCount(it.first);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			break;
+#endif
+		}
+	}
 
 	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
 		if(s.isTrue(it.second)) {

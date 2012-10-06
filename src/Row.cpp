@@ -26,8 +26,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Row.h"
 #include "Problem.h"
 
-Row::Row(const Row::Items& topLevelItems, unsigned int initialCount)
-	: count(initialCount), currentCost(0), cost(0)
+Row::Row(const Row::Items& topLevelItems)
+	: count(0), currentCost(0), cost(0)
 {
 	tree.children[topLevelItems];
 }
@@ -77,15 +77,17 @@ bool Row::matches(const Row& other) const
 
 Row* Row::join(const Row& other) const
 {
+	const Row& o = dynamic_cast<const Row&>(other);
+
 	// Since according to matches() the trees must coincide, we suppose equal currentCost
-	assert(currentCost == dynamic_cast<const Row&>(other).currentCost);
+	assert(currentCost == o.currentCost);
 	assert(cost >= currentCost);
-	assert(dynamic_cast<const Row&>(other).cost >= dynamic_cast<const Row&>(other).currentCost);
+	assert(o.cost >= o.currentCost);
 
 	Row* t = new Row(*this);
 	// currentCost is contained in both this->cost and other.cost, so subtract it once
-	t->cost = (this->cost - currentCost) + dynamic_cast<const Row&>(other).cost;
-	// TODO: Test this; I'm sure there's something missing
+	t->cost = (this->cost - currentCost) + o.cost;
+	t->count = this->count * o.count;
 	return t;
 }
 
@@ -94,6 +96,7 @@ void Row::declare(std::ostream& out, unsigned childNumber) const
 	std::ostringstream rowName;
 	rowName << 'r' << this;
 	out << "childRow(" << rowName.str() << ',' << childNumber << ")." << std::endl;
+	out << "childCount(" << rowName.str() << ',' << count << ")." << std::endl;
 	out << "childCost(" << rowName.str() << ',' << cost << ")." << std::endl;
 
 	assert(tree.children.size() == 1);
@@ -118,9 +121,8 @@ void Row::Tree::print(std::ostream& out, const std::string& indent) const {
 
 void Row::print(std::ostream& str) const
 {
-	str << "Row:" << std::endl;
+	str << "Row (count " << count << "; cost " << cost << "): ";
 	tree.print(str);
-	str << "(cost " << cost << ")" << std::endl;
 }
 #endif
 
@@ -150,6 +152,5 @@ void Row::addExtensionPointerTuple(const ExtensionPointerTuple& ep)
 	mpz_class product = 1;
 	foreach(const Row* predecessor, ep)
 		product *= predecessor->getCount();
-	std::cout << "Add " << product << " to " << count << " because of " << ep.size() << " EPs " << '\n';
 	count += product;
 }
