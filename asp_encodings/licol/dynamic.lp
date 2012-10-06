@@ -1,10 +1,11 @@
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
-:- extend(A), extend(B), childItem(A,col(X,VA)), childItem(B,col(X,VB)), VA != VB.
+item(map(X,C)) :- extend(I), childItem(I,map(X,C)), current(X).
+:- item(map(V,C0;C1)), C0 != C1.
 
-item(col(X,C)) :- extend(I), childItem(I,col(X,C)), current(X).
+1 { item(map(X,C)) : color(X,C) } 1 :- introduced(X).
+:- edge(X,Y), item(map(X;Y,C)).
 
-1 { item(col(X,C)) : color(X,C) } 1 :- introduced(X).
-:- edge(X,Y), item(col(X,C)), item(col(Y,C)).
+
 
 #hide.
 #show item/1.

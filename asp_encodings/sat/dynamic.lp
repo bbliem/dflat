@@ -6,7 +6,7 @@ false(R,X) :- childRow(R,N), childBag(N,X), not childItem(R,X).
 % Only join rows that coincide on common atoms
 :- extend(X;Y), atom(A), childItem(X,A), false(Y,A).
 
-% Some child rows cannot be used since they are killed
+% Some child rows cannot be extended since they are killed
 :- clause(C), removed(C), extend(R), false(R,C).
 
 % True atoms and satisfied clauses remain so unless removed

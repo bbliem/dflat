@@ -8,11 +8,12 @@ sat(A,B,C) :- order(A,B,C), lt(C,A), lt(A,B).
 
 :- order(A,B,C), current(A;B;C), not sat(A,B,C).
 
+% Now check if we can find a compatible predecessor in each child table
 gtChild(R,V0,V1) :- childItem(R,map(V0,K0);map(V1,K1)), current(V0;V1), K0 > K1.
-noMatch(R) :- lt(V0,V1), gtChild(R,V0,V1).
-match :- childRow(R,_), not noMatch(R).
+incompatible(R) :- lt(V0,V1), gtChild(R,V0,V1).
+match(N) :- childRow(R,N), not incompatible(R).
 
-:- not match.
+:- childNode(N), not match(N).
 
 
 
