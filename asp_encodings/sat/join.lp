@@ -1,6 +1,3 @@
-atom(A) :- pos(_,A).
-atom(A) :- neg(_,A).
-
 1 { chosenChildTupleL(I) : childTupleL(I) } 1.
 1 { chosenChildTupleR(I) : childTupleR(I) } 1.
 

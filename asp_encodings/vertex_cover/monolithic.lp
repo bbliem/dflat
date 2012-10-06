@@ -1,6 +1,3 @@
-vertex(X) :- edge(X,_).
-vertex(X) :- edge(_,X).
-
 1 { map(X,in), map(X,out) } 1 :- vertex(X).
 :- edge(X,Y), map(X,out), map(Y,out).
 
@@ -10,3 +7,8 @@ cost(C) :- C = #count{ map(X,in) }.
 #hide.
 #show cost/1.
 #show map/2.
+
+error :- edge(X,_), not vertex(X).
+error :- edge(_,X), not vertex(X).
+
+#show error/0.

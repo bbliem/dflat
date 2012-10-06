@@ -15,6 +15,15 @@ if len(sys.argv) == 4:
 def order(a,b,c):
 	print("order(v{},v{},v{}).".format(a,b,c))
 
+def vertex(v):
+	print("vertex(v{}).".format(v))
+
+vertex(0)
+vertex(1)
+vertex(2)
+for i in range(3,n+2):
+	vertex(i)
+
 order(0,1,2)
 
 for i in range(1,n):

@@ -1,8 +1,3 @@
-clause(C) :- pos(C,_).
-clause(C) :- neg(C,_).
-atom(A) :- pos(_,A).
-atom(A) :- neg(_,A).
-
 % Guess truth value for each bag element except introduced clauses since these can only be true because they are enforced by the guess
 guessable(A) :- current(A), atom(A).
 guessable(C) :- current(C), clause(C), not introduced(C).

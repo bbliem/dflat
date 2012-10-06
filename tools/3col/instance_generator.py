@@ -18,6 +18,9 @@ if numEdges < numNodes:
 	sys.exit(1)
 
 for i in range(numNodes):
+	print('vertex(n{}).'.format(i+1))
+
+for i in range(numNodes):
 	to = random.randrange(numNodes-1)
 	if to >= i:
 		to = to+1

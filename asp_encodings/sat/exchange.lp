@@ -1,8 +1,3 @@
-clause(C) :- pos(C,_).
-clause(C) :- neg(C,_).
-atom(A) :- pos(_,A).
-atom(A) :- neg(_,A).
-
 % Which tuple to use?
 nonLeaf :- childTuple(I).
 1 {chosenChildTuple(I) : childTuple(I)} 1 :- nonLeaf.

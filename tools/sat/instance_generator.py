@@ -17,6 +17,12 @@ if len(sys.argv) >= 4:
 
 if dimacs:
 	print("p cnf {} {}".format(numVars, numClauses))
+else:
+	for i in range(numClauses):
+		print("clause(c{}).".format(i))
+	for i in range(numVars):
+		print("atom(a{}).".format(i))
+
 
 for i in range(numClauses):
 	atoms = random.sample(range(numVars), random.randint(1,numVars))

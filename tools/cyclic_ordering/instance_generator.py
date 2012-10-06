@@ -17,6 +17,9 @@ if o < n:
 # = 18
 
 for i in range(n):
+	print("vertex(v{}).".format(i))
+
+for i in range(n):
 	l = random.sample(range(n-1), 2)
 	if l[0] >= i:
 		l[0] = l[0] + 1
