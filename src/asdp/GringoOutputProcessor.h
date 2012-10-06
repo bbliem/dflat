@@ -30,6 +30,8 @@ public:
 	const LongToSymbolTableKey& getChosenChildTupleAtoms() const { return chosenChildTupleAtoms; }
 	const LongToSymbolTableKey& getChosenChildTupleLAtoms() const { return chosenChildTupleLAtoms; }
 	const LongToSymbolTableKey& getChosenChildTupleRAtoms() const { return chosenChildTupleRAtoms; }
+	const LongToSymbolTableKey& getCurrentCostAtoms() const { return currentCostAtoms; }
+	const LongToSymbolTableKey& getIntroducedCostAtoms() const { return introducedCostAtoms; }
 
 private:
 	const sharp::Problem& problem;
@@ -38,6 +40,11 @@ private:
 	LongToSymbolTableKey chosenChildTupleAtoms; // Maps addresses of entries in the TupleSet corresponding to a child tuple (with solution) to the symbol table key of "chosenChildTuple(address)"
 	LongToSymbolTableKey chosenChildTupleLAtoms; // same for chosenChildTupleL(address)
 	LongToSymbolTableKey chosenChildTupleRAtoms; // same for chosenChildTupleR(address)
+	LongToSymbolTableKey currentCostAtoms;
+	LongToSymbolTableKey introducedCostAtoms;
+
+	void storeChildTupleAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store);
+	void storeCostAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store);
 
 #ifndef NDEBUG
 	unsigned int mapArity;

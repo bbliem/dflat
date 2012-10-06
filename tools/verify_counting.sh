@@ -10,6 +10,8 @@ if [[ -z "$instanceGen" || -z "$monolithicEncoding" || -z "$exchangeEncoding" ||
 	exit 1
 fi
 
+[ -z "$joinEncoding" ] || joinEncodingArgument="-j $joinEncoding"
+
 for instance in $(seq 1 $numInstances); do
 	seed=$RANDOM
 
@@ -24,7 +26,7 @@ for instance in $(seq 1 $numInstances); do
 	claspExit=${PIPESTATUS[1]}
 	claspCount=$(<$claspCountFile)
 	
-	$asdp $edgeArguments $exchangeEncoding -p counting -s $seed < $instance | tail -n1 | awk '{ print $2 }' > $asdpCountFile
+	$asdp $edgeArguments -x $exchangeEncoding $joinEncodingArgument -p counting -s $seed < $instance | tail -n1 | awk '{ print $2 }' > $asdpCountFile
 	asdpExit=${PIPESTATUS[0]}
 	asdpCount=$(<$asdpCountFile)
 

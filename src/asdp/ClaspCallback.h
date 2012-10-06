@@ -13,8 +13,8 @@ class GringoOutputProcessor;
 class ClaspCallback : public Clasp::ClaspFacade::Callback
 {
 public:
-	ClaspCallback(const ClaspAlgorithm& algorithm, sharp::TupleSet& tupleSet, const GringoOutputProcessor& gringoOutput, unsigned int level)
-		: algorithm(algorithm), tupleSet(tupleSet), gringoOutput(gringoOutput), numLevels(level+1)
+	ClaspCallback(const ClaspAlgorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int level)
+		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numLevels(level+1)
 	{}
 
 	// Called if the current configuration contains unsafe/unreasonable options
@@ -28,7 +28,7 @@ public:
 
 private:
 	const ClaspAlgorithm& algorithm;
-	sharp::TupleSet& tupleSet;
+	sharp::TupleTable& tupleTable;
 	const GringoOutputProcessor& gringoOutput;
 	const unsigned int numLevels;
 
@@ -51,8 +51,9 @@ private:
 	// Because one tuple can be constituted of multiple AS's, we cannot insert new tuples upon arrival of a new AS but must rather collect all AS data until the solve state is finished.
 	typedef std::vector<Tuple::Assignment> Path; // By "path" we denote a path from root to leaf in Tuple::Tree. Each AS characterizes exactly one path.
 	typedef std::map<Tuple::Assignment, std::list<Path> > TopLevelAssignmentToPaths; // Maps an assignment to paths starting with that assignment
-	typedef std::map<const sharp::TupleSet::value_type*, TopLevelAssignmentToPaths> OldTuplesToPathsMap;
-	OldTuplesToPathsMap oldTuplesToPaths;
+	typedef std::pair<const sharp::TupleTable::value_type*, const sharp::TupleTable::value_type*> TableRowPair; // When using this object for the join program, both are used; when using it for the exchange program, only the first is used, the other is 0.
+	typedef std::map<TableRowPair, TopLevelAssignmentToPaths> PredecessorsToPathsMap;
+	PredecessorsToPathsMap predecessorsToPaths;
 };
 
 } // namespace asdp

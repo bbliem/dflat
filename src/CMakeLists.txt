@@ -22,5 +22,5 @@ find_library(gmpxx gmpxx)
 find_library(gmp gmp)
 find_package(Boost COMPONENTS system filesystem timer REQUIRED)
 
-add_executable(asdp Algorithm.cpp ClaspAlgorithm.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp asdp/Problem.cpp asdp/GringoOutputProcessor.cpp asdp/ClaspCallback.cpp asdp/ClaspCallbackNP.cpp asdp/ClaspAlgorithm.cpp asdp/Tuple.cpp asdp/TupleNP.cpp asdp/main.cpp)
+add_executable(asdp Algorithm.cpp ClaspAlgorithm.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp asdp/Problem.cpp asdp/GringoOutputProcessor.cpp asdp/ClaspCallback.cpp asdp/ClaspCallbackNP.cpp asdp/ClaspAlgorithm.cpp asdp/Tuple.cpp asdp/TupleNP.cpp asdp/main.cpp asdp/solution/DecisionPlan.cpp asdp/solution/CountingPlan.cpp asdp/solution/EnumerationPlan.cpp asdp/solution/EnumerationSolution.cpp asdp/solution/OptimizationPlan.cpp asdp/solution/OptimizationSolution.cpp)
 target_link_libraries(asdp libsharp.a gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})

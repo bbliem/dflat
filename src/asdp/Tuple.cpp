@@ -6,7 +6,7 @@
 #include "Problem.h"
 
 namespace {
-	void declareTree(const asdp::Tuple::Tree& node, std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution, unsigned int level)
+	void declareTree(const asdp::Tuple::Tree& node, std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, unsigned int level)
 	{
 		foreach(const asdp::Tuple::Tree::Children::value_type& child, node.children) {
 			foreach(const asdp::Tuple::Assignment::value_type& assignment, child.first)
@@ -17,6 +17,11 @@ namespace {
 }
 
 namespace asdp {
+
+Tuple::Tuple()
+	: currentCost(0), introducedCost(0)
+{
+}
 
 bool Tuple::Tree::operator==(const Tree& rhs) const
 {
@@ -48,10 +53,26 @@ Tuple* Tuple::join(const ::Tuple& other) const
 	return new Tuple(*this);
 }
 
-void Tuple::declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution, const char* predicateSuffix) const
+void Tuple::declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix) const
 {
 	out << "childTuple" << predicateSuffix << "(t" << &tupleAndSolution << ")." << std::endl;
 	declareTree(tree, out, tupleAndSolution, 0);
+}
+
+const Tuple::Assignment& Tuple::getAssignment() const
+{
+	assert(tree.children.size() == 1);
+	return tree.children.begin()->first;
+}
+
+unsigned int Tuple::getCurrentCost() const
+{
+	return currentCost;
+}
+
+unsigned int Tuple::getIntroducedCost() const
+{
+	return introducedCost;
 }
 
 #ifdef VERBOSE
@@ -67,7 +88,7 @@ namespace {
 	}
 }
 
-void Tuple::print(std::ostream& str, const sharp::Problem& problem) const
+void Tuple::print(std::ostream& str) const
 {
 	str << "Tuple:" << std::endl;
 	printTree(str, tree);

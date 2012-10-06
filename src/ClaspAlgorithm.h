@@ -9,14 +9,14 @@ class GringoOutputProcessor;
 class ClaspAlgorithm : public Algorithm
 {
 public:
-	ClaspAlgorithm(sharp::Problem& problem, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram = 0, sharp::NormalizationType normalizationType = sharp::SemiNormalization);
+	ClaspAlgorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram = 0, sharp::NormalizationType normalizationType = sharp::SemiNormalization);
 
 protected:
-	virtual sharp::TupleSet* exchangeLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed);
-	virtual sharp::TupleSet* exchangeNonLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed, const sharp::TupleSet& childTuples);
-	virtual sharp::TupleSet* join(const sharp::VertexSet& vertices, sharp::TupleSet& childTuplesLeft, sharp::TupleSet& childTuplesRight);
+	virtual sharp::TupleTable* exchangeLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed);
+	virtual sharp::TupleTable* exchangeNonLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed, const sharp::TupleTable& childTuples);
+	virtual sharp::TupleTable* join(const sharp::VertexSet& vertices, sharp::TupleTable& childTableLeft, sharp::TupleTable& childTableRight);
 	virtual void setClaspConfig(Clasp::ClaspConfig& config) const;
-	virtual std::auto_ptr<Clasp::ClaspFacade::Callback> newClaspCallback(sharp::TupleSet& newTuples, const GringoOutputProcessor&) const = 0;
+	virtual std::auto_ptr<Clasp::ClaspFacade::Callback> newClaspCallback(sharp::TupleTable& newTable, const GringoOutputProcessor&) const = 0;
 	virtual std::auto_ptr<GringoOutputProcessor> newGringoOutputProcessor() const;
 
 private:

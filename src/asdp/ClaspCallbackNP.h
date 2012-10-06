@@ -12,8 +12,8 @@ class GringoOutputProcessor;
 class ClaspCallbackNP : public Clasp::ClaspFacade::Callback
 {
 public:
-	ClaspCallbackNP(const ClaspAlgorithm& algorithm, sharp::TupleSet& tupleSet, const GringoOutputProcessor& gringoOutput)
-		: algorithm(algorithm), tupleSet(tupleSet), gringoOutput(gringoOutput)
+	ClaspCallbackNP(const ClaspAlgorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput)
+		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput)
 	{}
 
 	// Called if the current configuration contains unsafe/unreasonable options
@@ -27,7 +27,7 @@ public:
 
 private:
 	const ClaspAlgorithm& algorithm;
-	sharp::TupleSet& tupleSet;
+	sharp::TupleTable& tupleTable;
 	const GringoOutputProcessor& gringoOutput;
 
 	// cf. GringoOutputProcessor.h
@@ -44,6 +44,8 @@ private:
 	LongToLiteral chosenChildTupleAtoms;
 	LongToLiteral chosenChildTupleLAtoms;
 	LongToLiteral chosenChildTupleRAtoms;
+	LongToLiteral currentCostAtoms;
+	LongToLiteral introducedCostAtoms;
 
 #ifndef NDEBUG
 	std::set<std::string> vertices; // To check if all vertices are assigned

@@ -27,14 +27,9 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				chosenChildTupleRAtoms[it.first] = symTab[it.second].lit;
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit) {
-			// If oldTupleAndSolution is set, then left/rightTupleAndSolution are unset
-			assert(!oldTupleAndSolution || (!leftTupleAndSolution && !rightTupleAndSolution));
-			// If left/rightTupleAndSolution are set, then oldTupleAndSolution is unset
-			assert(!(leftTupleAndSolution && rightTupleAndSolution) || !oldTupleAndSolution);
-
-			// For each old tuple, build new tuples from our collected paths
-			foreach(const OldTuplesToPathsMap::value_type& it, oldTuplesToPaths) {
-				const sharp::TupleSet::value_type* oldTupleAndSolution = it.first;
+			// For all (pairs of) predecessors, build new tuples from our collected paths
+			foreach(const PredecessorsToPathsMap::value_type& it, predecessorsToPaths) {
+				TableRowPair predecessors = it.first;
 				foreach(const TopLevelAssignmentToPaths::value_type& it2, it.second) {
 					const std::list<Path>& paths = it2.second;
 
@@ -47,9 +42,15 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 						assert(newTuple.tree.children.size() == 1); // each tuple may only have one top-level assignment
 					}
 
-					sharp::VertexSet dummy; // TODO: Workaround since we only solve the decision problem at the moment
-					sharp::Solution* newSolution = const_cast<ClaspAlgorithm&>(algorithm).createLeafSolution(dummy);
-					const_cast<ClaspAlgorithm&>(algorithm).addToTupleSet(&newTuple, newSolution, &tupleSet);
+					if(predecessors.second) {
+						// This is a join node
+						algorithm.addRowToTupleTable(tupleTable, &newTuple,
+								algorithm.getPlanFactory().join(predecessors.first->second, predecessors.second->second));
+					} else {
+						// This is an exchange node
+						algorithm.addRowToTupleTable(tupleTable, &newTuple,
+								algorithm.getPlanFactory().extend(predecessors.first->second, newTuple));
+					}
 				}
 			}
 		}
@@ -71,13 +72,13 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 //	std::cout << std::endl;
 //#endif
 
-	const sharp::TupleSet::value_type* oldTupleAndSolution = 0;
-	const sharp::TupleSet::value_type* leftTupleAndSolution = 0;
-	const sharp::TupleSet::value_type* rightTupleAndSolution = 0;
+	const sharp::TupleTable::value_type* oldTupleAndPlan = 0;
+	const sharp::TupleTable::value_type* leftTupleAndPlan = 0;
+	const sharp::TupleTable::value_type* rightTupleAndPlan = 0;
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(!oldTupleAndSolution);
-			oldTupleAndSolution = reinterpret_cast<const sharp::TupleSet::value_type*>(it.first);
+			assert(!oldTupleAndPlan);
+			oldTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
 #ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
 			break;
 #endif
@@ -86,8 +87,8 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleLAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(!leftTupleAndSolution);
-			leftTupleAndSolution = reinterpret_cast<const sharp::TupleSet::value_type*>(it.first);
+			assert(!leftTupleAndPlan);
+			leftTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
 #ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
 			break;
 #endif
@@ -96,13 +97,18 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleRAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(!rightTupleAndSolution);
-			rightTupleAndSolution = reinterpret_cast<const sharp::TupleSet::value_type*>(it.first);
+			assert(!rightTupleAndPlan);
+			rightTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
 #ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
 			break;
 #endif
 		}
 	}
+
+	// If oldTupleAndPlan is set, then left/rightTupleAndPlan are unset
+	assert(!oldTupleAndPlan || (!leftTupleAndPlan && !rightTupleAndPlan));
+	// If left/rightTupleAndPlan are set, then oldTupleAndPlan is unset
+	assert(!(leftTupleAndPlan && rightTupleAndPlan) || !oldTupleAndPlan);
 
 	Path path(numLevels);
 	foreach(MapAtom& atom, mapAtoms) {
@@ -112,7 +118,10 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			path[atom.level][atom.vertex] = atom.value;
 		}
 	}
-	oldTuplesToPaths[oldTupleAndSolution][path[0]].push_back(path);
+	if(oldTupleAndPlan)
+		predecessorsToPaths[TableRowPair(oldTupleAndPlan,0)][path[0]].push_back(path);
+	else
+		predecessorsToPaths[TableRowPair(leftTupleAndPlan,rightTupleAndPlan)][path[0]].push_back(path);
 }
 
 } // namespace asdp

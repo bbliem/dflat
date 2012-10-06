@@ -9,14 +9,15 @@
 #include "Algorithm.h"
 #include "Tuple.h"
 
-using sharp::Solution;
-using sharp::TupleSet;
+using sharp::Plan;
+using sharp::PlanFactory;
+using sharp::TupleTable;
 using sharp::ExtendedHypertree;
 using sharp::VertexSet;
 using sharp::Vertex;
 
-Algorithm::Algorithm(sharp::Problem& problem, sharp::NormalizationType normalizationType)
-	: AbstractSemiNormalizedHTDAlgorithm(&problem), problem(problem), normalizationType(normalizationType)
+Algorithm::Algorithm(sharp::Problem& problem, const sharp::PlanFactory& planFactory, sharp::NormalizationType normalizationType)
+	: AbstractSemiNormalizedHTDAlgorithm(&problem, planFactory), problem(problem), normalizationType(normalizationType)
 #if PROGRESS_REPORT > 0
 	  , nodesProcessed(0)
 #endif
@@ -24,24 +25,28 @@ Algorithm::Algorithm(sharp::Problem& problem, sharp::NormalizationType normaliza
 	assert(normalizationType == sharp::DefaultNormalization || normalizationType == sharp::SemiNormalization);
 }
 
-Solution* Algorithm::selectSolution(TupleSet* tuples, const ExtendedHypertree* root)
+Plan* Algorithm::selectPlan(TupleTable* table, const ExtendedHypertree* root)
 {
 #if PROGRESS_REPORT > 0
 	std::cout << '\r' << std::setw(66) << std::left << "Done." << std::endl; // Clear/end progress line
 #endif
 
-	Solution* result = createEmptySolution();
+	if(table->empty())
+		return 0;
 
-	for(TupleSet::iterator it = tuples->begin(); it != tuples->end(); ++it)
-		result = combineSolutions(sharp::Union, result, it->second);
+	TupleTable::const_iterator it = table->begin();
+	Plan* result = it->second;
+
+	for(++it; it != table->end(); ++it)
+		result = planFactory.unify(result, it->second);
 
 	return result;
 }
 
-TupleSet* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
+TupleTable* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 {
-	TupleSet* left = evaluateNode(node->firstChild());
-	TupleSet* right = evaluateNode(node->secondChild());
+	TupleTable* left = evaluateNode(node->firstChild());
+	TupleTable* right = evaluateNode(node->secondChild());
 #ifdef VERBOSE
 	printBagContents(node->getVertices());
 #endif
@@ -52,67 +57,67 @@ TupleSet* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 	boost::timer::auto_cpu_timer timer(" %ts\n");
 #endif
 	assert(node->getIntroducedVertices().empty() && node->getRemovedVertices().empty());
-	TupleSet* newTuples = join(node->getVertices(), *left, *right);
+	TupleTable* newTable = join(node->getVertices(), *left, *right);
 
 	delete left;
 	delete right;
 
 #ifdef VERBOSE
 	std::cout << std::endl << "Resulting tuples of join node:" << std::endl;
-	for(TupleSet::const_iterator it = newTuples->begin(); it != newTuples->end(); ++it)
-		dynamic_cast<const Tuple*>(it->first)->print(std::cout, problem);
+	for(TupleTable::const_iterator it = newTable->begin(); it != newTable->end(); ++it)
+		dynamic_cast<const Tuple*>(it->first)->print(std::cout);
 	std::cout << std::endl;
 #endif
 
-	return newTuples;
+	return newTable;
 }
 
-sharp::TupleSet* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertree* node)
+sharp::TupleTable* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertree* node)
 {
-	TupleSet* childTuples = 0;
+	TupleTable* childTable = 0;
 
 	if(node->getType() != sharp::Leaf)
-		childTuples = evaluateNode(node->firstChild());
+		childTable = evaluateNode(node->firstChild());
 
 #ifdef VERBOSE
 	printBagContents(node->getVertices());
 #endif
 #if PROGRESS_REPORT > 0
-	printProgressLine(node, childTuples ? childTuples->size() : 0);
+	printProgressLine(node, childTable ? childTable->size() : 0);
 #endif
 #ifdef WITH_NODE_TIMER
 	boost::timer::auto_cpu_timer timer(" %ts\n");
 #endif
 
-	TupleSet* newTuples;
+	TupleTable* newTable;
 
-	if(childTuples) {
+	if(childTable) {
 		assert(node->getType() != sharp::Leaf);
-		newTuples = exchangeNonLeaf(node->getVertices(), node->getIntroducedVertices(), node->getRemovedVertices(), *childTuples);
-		delete childTuples;
+		newTable = exchangeNonLeaf(node->getVertices(), node->getIntroducedVertices(), node->getRemovedVertices(), *childTable);
+		delete childTable;
 	} else {
 		assert(node->getType() == sharp::Leaf);
-//		newTuples = exchangeLeaf(node->getVertices(), node->getIntroducedVertices(), node->getRemovedVertices());
-		newTuples = exchangeLeaf(node->getVertices(), node->getVertices(), node->getRemovedVertices());
+//		newTable = exchangeLeaf(node->getVertices(), node->getIntroducedVertices(), node->getRemovedVertices());
+		newTable = exchangeLeaf(node->getVertices(), node->getVertices(), node->getRemovedVertices());
 	}
 
 #ifdef VERBOSE
 	std::cout << std::endl << "Resulting tuples of exchange node:" << std::endl;
-	for(TupleSet::const_iterator it = newTuples->begin(); it != newTuples->end(); ++it)
-		dynamic_cast<Tuple*>(it->first)->print(std::cout, problem);
+	for(TupleTable::const_iterator it = newTable->begin(); it != newTable->end(); ++it)
+		dynamic_cast<Tuple*>(it->first)->print(std::cout);
 	std::cout << std::endl;
 #endif
 
-	return newTuples;
+	return newTable;
 }
 
-sharp::TupleSet* Algorithm::join(const sharp::VertexSet&, sharp::TupleSet& left, sharp::TupleSet& right)
+sharp::TupleTable* Algorithm::join(const sharp::VertexSet&, sharp::TupleTable& left, sharp::TupleTable& right)
 {
-	TupleSet* ts = new TupleSet;
+	TupleTable* tt = new TupleTable;
 
-	// TupleSets are ordered, use sort merge join algorithm
-	TupleSet::const_iterator lit = left.begin();
-	TupleSet::const_iterator rit = right.begin();
+	// TupleTables are ordered, use sort merge join algorithm
+	TupleTable::const_iterator lit = left.begin();
+	TupleTable::const_iterator rit = right.begin();
 #define TUP(X) (*dynamic_cast<const Tuple*>(X->first)) // FIXME: Think of something better
 	while(lit != left.end() && rit != right.end()) {
 		while(!TUP(lit).matches(TUP(rit))) {
@@ -130,18 +135,12 @@ sharp::TupleSet* Algorithm::join(const sharp::VertexSet&, sharp::TupleSet& left,
 
 		// Now lit and rit join
 		// Remember position of rit and advance rit until no more match
-		TupleSet::const_iterator mark = rit;
+		TupleTable::const_iterator mark = rit;
 joinLitWithAllPartners:
 		do {
 			sharp::Tuple* t = TUP(lit).join(TUP(rit));
-			Solution *s = combineSolutions(sharp::CrossJoin, lit->second, rit->second);
-			// FIXME: It seems this is the same as Algorithm::addToTupleSet. Use that instead?
-			std::pair<TupleSet::iterator, bool> result = ts->insert(TupleSet::value_type(t, s));
-			if(!result.second) {
-				Solution *orig = result.first->second;
-				ts->erase(result.first);
-				ts->insert(TupleSet::value_type(t, combineSolutions(sharp::Union, orig, s)));
-			}
+			Plan* p = planFactory.join(lit->second, rit->second);
+			addRowToTupleTable(*tt, t, p);
 			++rit;
 		} while(rit != right.end() && TUP(lit).matches(TUP(rit)));
 
@@ -156,7 +155,7 @@ joinLitWithAllPartners:
 		}
 	}
 endJoin:
-	return ts;
+	return tt;
 }
 
 sharp::ExtendedHypertree* Algorithm::prepareHypertreeDecomposition(sharp::ExtendedHypertree* root)
@@ -172,10 +171,10 @@ sharp::ExtendedHypertree* Algorithm::prepareHypertreeDecomposition(sharp::Extend
 }
 
 #if PROGRESS_REPORT > 0
-sharp::TupleSet* Algorithm::evaluateNode(const sharp::ExtendedHypertree* node) {
-	sharp::TupleSet* ts = sharp::AbstractSemiNormalizedHTDAlgorithm::evaluateNode(node);
+sharp::TupleTable* Algorithm::evaluateNode(const sharp::ExtendedHypertree* node) {
+	sharp::TupleTable* tt = sharp::AbstractSemiNormalizedHTDAlgorithm::evaluateNode(node);
 	++nodesProcessed;
-	return ts;
+	return tt;
 }
 
 void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildTuples) {

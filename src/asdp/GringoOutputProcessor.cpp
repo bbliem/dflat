@@ -47,25 +47,40 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 	}
 	else if(name == "chosenChildTuple") {
 		assert(arity == 1);
-		std::stringstream firstArg; // First argument
-		ValVec::const_iterator k = vals_.begin() + atom.second;
-		k->print(s_, firstArg);
-		chosenChildTupleAtoms[std::strtol(firstArg.str().c_str()+1, 0, 0)] = atom.first;
+		storeChildTupleAtom(name, atom, chosenChildTupleAtoms);
 	}
 	else if(name == "chosenChildTupleL") {
 		assert(arity == 1);
-		std::stringstream firstArg; // First argument
-		ValVec::const_iterator k = vals_.begin() + atom.second;
-		k->print(s_, firstArg);
-		chosenChildTupleLAtoms[std::strtol(firstArg.str().c_str()+1, 0, 0)] = atom.first;
+		storeChildTupleAtom(name, atom, chosenChildTupleLAtoms);
 	}
 	else if(name == "chosenChildTupleR") {
 		assert(arity == 1);
-		std::stringstream firstArg; // First argument
-		ValVec::const_iterator k = vals_.begin() + atom.second;
-		k->print(s_, firstArg);
-		chosenChildTupleRAtoms[std::strtol(firstArg.str().c_str()+1, 0, 0)] = atom.first;
+		storeChildTupleAtom(name, atom, chosenChildTupleRAtoms);
 	}
+	else if(name == "currentCost") {
+		assert(arity == 1);
+		storeCostAtom(name, atom, currentCostAtoms);
+	}
+	else if(name == "introducedCost") {
+		assert(arity == 1);
+		storeCostAtom(name, atom, introducedCostAtoms);
+	}
+}
+
+inline void GringoOutputProcessor::storeChildTupleAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store)
+{
+	std::stringstream firstArg; // First argument
+	ValVec::const_iterator k = vals_.begin() + atom.second;
+	k->print(s_, firstArg);
+	store[std::strtol(firstArg.str().c_str()+1, 0, 0)] = atom.first;
+}
+
+inline void GringoOutputProcessor::storeCostAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store)
+{
+	std::stringstream firstArg; // First argument
+	ValVec::const_iterator k = vals_.begin() + atom.second;
+	k->print(s_, firstArg);
+	store[std::strtol(firstArg.str().c_str(), 0, 0)] = atom.first;
 }
 
 } // namespace asdp

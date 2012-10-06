@@ -7,19 +7,24 @@
 
 namespace asdp {
 
+TupleNP::TupleNP()
+	: currentCost(0), introducedCost(0)
+{
+}
+
 bool TupleNP::operator<(const sharp::Tuple& rhs) const
 {
-	return assignments < dynamic_cast<const TupleNP&>(rhs).assignments;
+	return assignment < dynamic_cast<const TupleNP&>(rhs).assignment;
 }
 
 bool TupleNP::operator==(const sharp::Tuple& rhs) const
 {
-	return assignments == dynamic_cast<const TupleNP&>(rhs).assignments;
+	return assignment == dynamic_cast<const TupleNP&>(rhs).assignment;
 }
 
 bool TupleNP::matches(const ::Tuple& other) const
 {
-	return assignments == dynamic_cast<const TupleNP&>(other).assignments;
+	return assignment == dynamic_cast<const TupleNP&>(other).assignment;
 }
 
 TupleNP* TupleNP::join(const ::Tuple& other) const
@@ -27,18 +32,33 @@ TupleNP* TupleNP::join(const ::Tuple& other) const
 	return new TupleNP(*this);
 }
 
-void TupleNP::declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution, const char* predicateSuffix) const
+void TupleNP::declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix) const
 {
 	out << "childTuple" << predicateSuffix << "(t" << &tupleAndSolution << ")." << std::endl;
-	foreach(const Assignments::value_type& a, assignments)
+	foreach(const Assignment::value_type& a, assignment)
 		out << "mapped(t" << &tupleAndSolution << ',' << a.first << ',' << a.second << ")." << std::endl;
 }
 
+const TupleNP::Assignment& TupleNP::getAssignment() const
+{
+	return assignment;
+}
+
+unsigned int TupleNP::getCurrentCost() const
+{
+	return currentCost;
+}
+
+unsigned int TupleNP::getIntroducedCost() const
+{
+	return introducedCost;
+}
+
 #ifdef VERBOSE
-void TupleNP::print(std::ostream& str, const sharp::Problem& problem) const
+void TupleNP::print(std::ostream& str) const
 {
 	str << "Tuple: ";
-	foreach(const Assignments::value_type& a, assignments)
+	foreach(const Assignment::value_type& a, assignment)
 		str << a.first << '=' << a.second << ' ';
 	str << std::endl;
 }

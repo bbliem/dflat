@@ -6,21 +6,29 @@
 
 namespace asdp {
 
-struct TupleNP : public ::Tuple
+class TupleNP : public ::Tuple
 {
+public:
+	TupleNP();
+
 	virtual bool operator<(const sharp::Tuple&) const;
 	virtual bool operator==(const sharp::Tuple&) const;
 
 	virtual bool matches(const ::Tuple& other) const;
 	virtual TupleNP* join(const ::Tuple& other) const;
-	virtual void declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution, const char* predicateSuffix) const;
+	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix) const;
+	virtual const Assignment& getAssignment() const;
+	virtual unsigned int getCurrentCost() const;
+	virtual unsigned int getIntroducedCost() const;
 
 #ifdef VERBOSE
-	virtual void print(std::ostream&, const class sharp::Problem&) const;
+	virtual void print(std::ostream&) const;
 #endif
 
-	typedef std::map<std::string, std::string> Assignments; // Assigns values to vertex names
-	Assignments assignments;
+	Assignment assignment;
+	// TODO: We might distinguish tuples with cost information from those without, but OTOH the memory consumption should not be that critical
+	unsigned int currentCost;
+	unsigned int introducedCost;
 };
 
 } // namespace asdp

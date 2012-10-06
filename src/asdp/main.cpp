@@ -8,6 +8,13 @@
 
 #include "Problem.h"
 #include "ClaspAlgorithm.h"
+#include "solution/DecisionPlan.h"
+#include "solution/CountingPlan.h"
+#include "solution/CountingSolution.h"
+#include "solution/EnumerationPlan.h"
+#include "solution/EnumerationSolution.h"
+#include "solution/OptimizationPlan.h"
+#include "solution/OptimizationSolution.h"
 
 namespace {
 	const int CONSISTENT = 10;
@@ -22,7 +29,7 @@ namespace {
 		std::cerr << '\t' << std::setw(w) << "-l level: " << "Level on polynomial hierarchy; determines depth of tuple assignment tree. Default: 0" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
-		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\" or \"decision\"" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\", \"decision\" or \"optimization\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-s seed: " << "Initialize random number generator with <seed>" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--stats: " << "Print statistics" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-x exchange_program: " << "File name of the logic program executed in exchange nodes" << std::endl;
@@ -44,7 +51,7 @@ namespace {
 int main(int argc, char** argv)
 {
 	unsigned int level = 0;
-	enum { ENUMERATION, COUNTING, DECISION } problemType = ENUMERATION;
+	enum { ENUMERATION, COUNTING, DECISION, OPTIMIZATION } problemType = ENUMERATION;
 	time_t seed = time(0);
 	sharp::NormalizationType normalizationType = sharp::SemiNormalization;
 	bool onlyDecompose = false;
@@ -92,6 +99,8 @@ int main(int argc, char** argv)
 				problemType = COUNTING;
 			else if(typeArg == "decision")
 				problemType = DECISION;
+			else if(typeArg == "optimization")
+				problemType = OPTIMIZATION;
 			else
 				usage(argv[0]);
 		}
@@ -144,48 +153,88 @@ int main(int argc, char** argv)
 	if(onlyDecompose)
 		return 0;
 
-	asdp::ClaspAlgorithm algorithm(problem, inputString, exchangeProgram, joinProgram, normalizationType, level);
-	sharp::Solution* solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
+	std::auto_ptr<sharp::PlanFactory> planFactory;
+	switch(problemType) {
+		case ENUMERATION:
+			planFactory.reset(new sharp::GenericPlanFactory<asdp::solution::EnumerationPlan, Tuple>);
+			break;
+
+		case COUNTING:
+			planFactory.reset(new sharp::GenericPlanFactory<asdp::solution::CountingPlan>);
+			break;
+
+		case DECISION:
+			planFactory.reset(new sharp::GenericPlanFactory<asdp::solution::DecisionPlan>);
+			break;
+
+		case OPTIMIZATION:
+			planFactory.reset(new sharp::GenericPlanFactory<asdp::solution::OptimizationPlan, Tuple>);
+			break;
+	}
+
+	asdp::ClaspAlgorithm algorithm(problem, *planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+	sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
 
 	// Print solution
-	if(solution) {
+	if(plan) {
+		std::auto_ptr<sharp::Solution> solution(plan->materialize());
+		delete plan;
+
 		switch(problemType) {
 			case ENUMERATION: {
-				sharp::EnumerationSolutionContent* sol = dynamic_cast<sharp::EnumerationSolutionContent*>(solution->getContent(new sharp::GenericInstantiator<sharp::EnumerationSolutionContent>()));
+				// TODO: Actually an enumeration problem is just a special case of an optimization problem with all costs equal
+				asdp::solution::EnumerationSolution& s = *dynamic_cast<asdp::solution::EnumerationSolution*>(solution.get());
 
-				std::cout << "Solutions: " << sol->enumerations.size() << std::endl;
-				std::cout << "{";
-				std::string osep = "";
-				foreach(const sharp::VertexSet& o, sol->enumerations) {
-					std::cout << osep << "{";
-					std::string isep = "";
-					foreach(sharp::Vertex i, o) {
-						std::cout << isep << problem.getVertexName(i);
-						isep = ",";
-					}
-					std::cout << "}" << std::flush;
-					osep = ",";
+				std::cout << "Solutions: " << s.getSolutions().size() << std::endl;
+
+				foreach(const Tuple::Assignment& a, s.getSolutions()) {
+					foreach(const Tuple::Assignment::value_type& pair, a)
+						std::cout << pair.first << '=' << pair.second << ' ';
+					std::cout << std::endl;
 				}
-				std::cout << "}" << std::endl;
-				return sol->enumerations.empty() ? INCONSISTENT : CONSISTENT;
+
+				return s.getSolutions().empty() ? INCONSISTENT : CONSISTENT;
 			} break;
 
 			case COUNTING: {
-				sharp::CountingSolutionContent* content = dynamic_cast<sharp::CountingSolutionContent*>(solution->getContent(new sharp::GenericInstantiator<sharp::CountingSolutionContent>()));
-				std::cout << "Solutions: " << content->count << std::endl;
-				return content->count == 0 ? INCONSISTENT : CONSISTENT;
+				asdp::solution::CountingSolution& s = *dynamic_cast<asdp::solution::CountingSolution*>(solution.get());
+				std::cout << "Solutions: " << s.count << std::endl;
+				return s.count == 0 ? INCONSISTENT : CONSISTENT;
 			} break;
 
 			case DECISION: {
-				sharp::ConsistencySolutionContent* content = dynamic_cast<sharp::ConsistencySolutionContent*>(solution->getContent(new sharp::GenericInstantiator<sharp::ConsistencySolutionContent>()));
-				if(content->consistent == false) {
-					std::cout << "INCONSISTENT" << std::endl;
-					return INCONSISTENT;
-				}
+//				if(solution.get()) {
+//					std::cout << "CONSISTENT" << std::endl;
+//					return CONSISTENT;
+//				}
+//				std::cout << "INCONSISTENT" << std::endl;
+//				return INCONSISTENT;
+				// Actually since there is a plan, there must also be a solution
+				assert(solution.get());
 				std::cout << "CONSISTENT" << std::endl;
 				return CONSISTENT;
 			} break;
+
+			case OPTIMIZATION: {
+				asdp::solution::OptimizationSolution& s = *dynamic_cast<asdp::solution::OptimizationSolution*>(solution.get());
+
+				std::cout << "Minimum cost: " << s.getCost() << std::endl;
+				std::cout << "Solutions: " << s.getSolutions().size() << std::endl;
+
+				foreach(const Tuple::Assignment& a, s.getSolutions()) {
+					foreach(const Tuple::Assignment::value_type& pair, a)
+						std::cout << pair.first << '=' << pair.second << ' ';
+					std::cout << std::endl;
+				}
+
+				return s.getSolutions().empty() ? INCONSISTENT : CONSISTENT;
+		   } break;
+
 		}
 	}
-	return 0;
+	if(problemType == DECISION)
+		std::cout << "INCONSISTENT" << std::endl;
+	else
+		std::cout << "Solutions: 0" << std::endl;
+	return INCONSISTENT;
 }

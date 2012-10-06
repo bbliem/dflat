@@ -7,23 +7,26 @@
 
 namespace asdp {
 
-struct Tuple : public ::Tuple
+class Tuple : public ::Tuple
 {
+public:
+	Tuple();
+
 	virtual bool operator<(const sharp::Tuple&) const;
 	virtual bool operator==(const sharp::Tuple&) const;
 
 	virtual bool matches(const ::Tuple& other) const;
 	virtual Tuple* join(const ::Tuple& other) const;
-	virtual void declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution, const char* predicateSuffix = "") const;
+	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix = "") const;
+	virtual const Assignment& getAssignment() const;
+	virtual unsigned int getCurrentCost() const;
+	virtual unsigned int getIntroducedCost() const;
 
 #ifdef VERBOSE
-	virtual void print(std::ostream&, const class sharp::Problem&) const;
+	virtual void print(std::ostream&) const;
 #endif
 
-	// Each tuple has an assignment of values to vertex names
 	// Each assignment has a set of subordinate assignments
-	typedef std::map<std::string, std::string> Assignment;
-
 	struct Tree
 	{
 		typedef boost::container::map<Assignment, Tree> Children; // The node data is stored as the keys
@@ -44,6 +47,10 @@ struct Tuple : public ::Tuple
 			}
 		}
 	} tree; // It is your responsibility that "tree" only has one child (viz. the actual root)
+
+	// TODO: We might distinguish tuples with cost information from those without, but OTOH the memory consumption should not be that critical
+	unsigned int currentCost;
+	unsigned int introducedCost;
 };
 
 } // namespace asdp
