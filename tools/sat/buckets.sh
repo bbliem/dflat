@@ -29,7 +29,7 @@ for numClauses in $(seq $minNumClauses $stepNumClauses $maxNumClauses); do
 			trap "rm -f $instance" EXIT
 
 			# write instance to file
-			$satgen $numClauses $numVars lp $seed > $instance
+			$satgen $numClauses $numVars $seed > $instance
 
 			width=$($sat -s $seed --only-decompose --stats < $instance | awk '/Width:/ {print $2}' | head -n1)
 			directory=instances/sat/width${width}
@@ -41,7 +41,7 @@ for numClauses in $(seq $minNumClauses $stepNumClauses $maxNumClauses); do
 				mkdir -p $directory
 				basename=${directory}/${numClauses}_${numVars}_${seed}
 				mv $instance ${basename}.lp
-				$satgen $numClauses $numVars dimacs $seed > ${basename}.dimacs
+#				$satgen $numClauses $numVars $seed --dimacs > ${basename}.dimacs
 			fi
 
 			trap - EXIT

@@ -99,15 +99,6 @@ void Problem::parse()
 
 	if(!result || it != end)
 		throw std::runtime_error("Parse error");
-
-	foreach(const Instance::value_type& kv, instance) {
-		std::cout << kv.first << ": ";
-		foreach(const std::string& a, kv.second.first)
-			std::cout << a << " ";
-		foreach(const std::string& a, kv.second.second)
-			std::cout << '-' << a << " ";
-		std::cout << std::endl;
-	}
 }
 
 void Problem::preprocess()
