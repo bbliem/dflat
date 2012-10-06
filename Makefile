@@ -17,7 +17,7 @@ all: release
 release:
 	mkdir -p build/release
 	cd build/release && \
-	cmake ../.. \
+	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=release \
 		-DCMAKE_CXX_FLAGS=$(cxxflags) \
 		-Dgringo_lib=$(gringo_lib) \
@@ -30,7 +30,7 @@ release:
 debug:
 	mkdir -p build/debug
 	cd build/debug && \
-	cmake ../.. \
+	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=debug \
 		-DCMAKE_CXX_FLAGS=$(cxxflags) \
 		-Dgringo_lib=$(gringo_lib_debug) \
@@ -43,7 +43,7 @@ debug:
 gprof:
 	mkdir -p build/gprof
 	cd build/gprof && \
-	cmake ../.. \
+	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=gprof \
 		-DCMAKE_CXX_FLAGS=$(cxxflags) \
 		-Dgringo_lib=$(gringo_lib_gprof) \

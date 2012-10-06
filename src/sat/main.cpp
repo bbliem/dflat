@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 //		solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 	} else {
 		assert(normalizationType == sharp::SemiNormalization);
-		sat::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "sat/exchange_decision.lp" : "sat/exchange.lp");
+		sat::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "asp_encodings/sat/exchange_decision.lp" : "asp_encodings/sat/exchange.lp");
 		solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 	}
 

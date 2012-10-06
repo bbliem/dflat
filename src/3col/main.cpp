@@ -88,7 +88,7 @@ int main(int argc, char** argv)
 		return 0;
 
 	sharp::Solution* solution;
-	threeCol::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "3col/exchange_decision.lp" : "3col/exchange.lp");
+	threeCol::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "asp_encodings/3col/exchange_decision.lp" : "asp_encodings/3col/exchange.lp");
 	solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 
 	// Print solution
