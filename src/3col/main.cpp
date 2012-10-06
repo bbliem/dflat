@@ -8,8 +8,8 @@
 #include "ClaspAlgorithm.h"
 
 namespace {
-	const int CONSISTENT = 0;
-	const int INCONSISTENT = 23;
+	const int CONSISTENT = 10;
+	const int INCONSISTENT = 20;
 
 	void usage(const char* program) {
 		const int w = 20;

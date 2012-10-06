@@ -93,7 +93,7 @@ TupleSet* ClaspAlgorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, cons
 void ClaspAlgorithm::setClaspConfig(Clasp::ClaspConfig& config) const
 {
 	config.enumerate.numModels = 0;
-	config.master()->heuristic().name = "none";
+//	config.master()->heuristic().name = "none";
 }
 
 std::auto_ptr<GringoOutputProcessor> ClaspAlgorithm::newGringoOutputProcessor() const
