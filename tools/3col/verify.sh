@@ -1,15 +1,17 @@
 #!/bin/bash
-# Arguments to this script will be passed to $threeCol additionally
 
 numInstances=100
-numNodes=10
-numEdges=20
+#numNodes=10
+#numEdges=20
+numNodes=6
+numEdges=12
 
-threeColGen=tools/3col/instance_generator.py
+instanceGen=tools/3col/instance_generator.py
 gringo=../gringo
 clasp=../clasp-2.0.2-st-x86-linux
 monolithicEncoding=asp_encodings/3col/monolithic.lp
-threeCol=build/release/3col
+exchangeEncoding=asp_encodings/3col/exchange_decision.lp
+asdp="build/release/asdp -e edge $exchangeEncoding -p decision"
 
 for instance in $(seq 1 $numInstances); do
 	seed=$RANDOM
@@ -17,19 +19,20 @@ for instance in $(seq 1 $numInstances); do
 	instance=$(mktemp)
 	trap "rm -f $instance" EXIT
 
-	$threeColGen $numNodes $numEdges $seed > $instance 2>/dev/null || exit
+	$instanceGen $numNodes $numEdges $seed > $instance 2>/dev/null || exit
 
-	claspNum=$($gringo $monolithicEncoding $instance | $clasp -q 0 | awk '/^Models/ { print $3 }')
-	threeColNum=$($threeCol -p counting -s $seed $@ < $instance | awk '/^Solutions/ { print $2 }')
+	$gringo $monolithicEncoding $instance 2>/dev/null | $clasp -q >/dev/null
+	claspExit=$?
+	$asdp -s $seed $@ < $instance &>/dev/null
+	asdpExit=$?
 
-#	echo "monolithic: $claspNum; decomposed: $threeColNum"
-
-	if [ $threeColNum -ne $claspNum ]; then
+	if [ $claspExit -ne $asdpExit ]; then
 		cp $instance mismatch${seed}.lp
 		echo
-		echo "Mismatch for seed $seed (3col: ${threeColNum}, clasp: ${claspNum})"
+		echo "Mismatch for seed $seed (asdp: ${asdpExit}, clasp: ${claspExit})"
 	else
-		echo -n .
+#		echo -n .
+		echo -n "$asdpExit "
 	fi
 
 	# remove temp file
