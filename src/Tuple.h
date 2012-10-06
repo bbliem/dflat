@@ -9,8 +9,6 @@ struct Tuple : public sharp::Tuple
 	virtual bool operator<(const sharp::Tuple&) const = 0;
 	virtual bool operator==(const sharp::Tuple&) const = 0;
 
-	virtual int hash() const { assert(false); return 0; } // TODO
-
 	//! Only called by the default join algorithm
 	//! @return true iff this tuple is a join partner of the other
 	virtual bool matches(const Tuple& other) const = 0;

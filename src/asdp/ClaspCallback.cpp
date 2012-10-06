@@ -25,34 +25,13 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				chosenChildTupleLAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleRAtoms())
 				chosenChildTupleRAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
+				currentCostAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getIntroducedCostAtoms())
+				introducedCostAtoms[it.first] = symTab[it.second].lit;
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit) {
-			// For all (pairs of) predecessors, build new tuples from our collected paths
-			foreach(const PredecessorsToPathsMap::value_type& it, predecessorsToPaths) {
-				TableRowPair predecessors = it.first;
-				foreach(const TopLevelAssignmentToPaths::value_type& it2, it.second) {
-					const std::list<Path>& paths = it2.second;
-
-					Tuple& newTuple = *new Tuple;
-
-					foreach(const Path& path, paths) {
-						assert(path.size() == numLevels);
-						assert(path[0] == it2.first); // top-level assignment must coincide
-						newTuple.tree.addPath(path.begin(), path.end());
-						assert(newTuple.tree.children.size() == 1); // each tuple may only have one top-level assignment
-					}
-
-					if(predecessors.second) {
-						// This is a join node
-						algorithm.addRowToTupleTable(tupleTable, &newTuple,
-								algorithm.getPlanFactory().join(predecessors.first->second, predecessors.second->second));
-					} else {
-						// This is an exchange node
-						algorithm.addRowToTupleTable(tupleTable, &newTuple,
-								algorithm.getPlanFactory().extend(predecessors.first->second, newTuple));
-					}
-				}
-			}
+			pathCollection.fillTupleTable(tupleTable, algorithm);
 		}
 	}
 }
@@ -75,6 +54,9 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	const sharp::TupleTable::value_type* oldTupleAndPlan = 0;
 	const sharp::TupleTable::value_type* leftTupleAndPlan = 0;
 	const sharp::TupleTable::value_type* rightTupleAndPlan = 0;
+	unsigned currentCost = 0;
+	unsigned introducedCost = 0;
+
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleAtoms) {
 		if(s.isTrue(it.second)) {
 			assert(!oldTupleAndPlan);
@@ -105,6 +87,26 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		}
 	}
 
+	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
+		if(s.isTrue(it.second)) {
+			assert(currentCost == 0);
+			currentCost = it.first;
+#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+			break;
+#endif
+		}
+	}
+
+	foreach(const LongToLiteral::value_type& it, introducedCostAtoms) {
+		if(s.isTrue(it.second)) {
+			assert(introducedCost == 0);
+			introducedCost = it.first;
+#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+			break;
+#endif
+		}
+	}
+
 	// If oldTupleAndPlan is set, then left/rightTupleAndPlan are unset
 	assert(!oldTupleAndPlan || (!leftTupleAndPlan && !rightTupleAndPlan));
 	// If left/rightTupleAndPlan are set, then oldTupleAndPlan is unset
@@ -118,10 +120,61 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			path[atom.level][atom.vertex] = atom.value;
 		}
 	}
+	assert(path.size() == numLevels);
+
 	if(oldTupleAndPlan)
-		predecessorsToPaths[TableRowPair(oldTupleAndPlan,0)][path[0]].push_back(path);
-	else
-		predecessorsToPaths[TableRowPair(leftTupleAndPlan,rightTupleAndPlan)][path[0]].push_back(path);
+		leftTupleAndPlan = oldTupleAndPlan;
+	pathCollection.insert(path, leftTupleAndPlan, rightTupleAndPlan, currentCost, introducedCost);
+}
+
+inline void ClaspCallback::PathCollection::insert(const Path& path, const TableRow* leftPredecessor, const TableRow* rightPredecessor, unsigned currentCost, unsigned introducedCost)
+{
+	assert(!path.empty());
+	TopLevelAssignmentToTupleData& tupleDataMap = predecessorData[TableRowPair(leftPredecessor, rightPredecessor)];
+	const Tuple::Assignment& topLevelAssignment = path.front();
+	TupleData& tupleData = tupleDataMap[topLevelAssignment];
+
+	tupleData.paths.push_back(path);
+	assert(tupleData.currentCost == 0 || tupleData.currentCost == currentCost);
+	assert(tupleData.introducedCost == 0 || tupleData.introducedCost == introducedCost);
+	tupleData.currentCost = currentCost;
+	tupleData.introducedCost = introducedCost;
+}
+
+inline void ClaspCallback::PathCollection::fillTupleTable(sharp::TupleTable& tupleTable, const ClaspAlgorithm& algorithm) const
+{
+	// For all (pairs of) predecessors, build new tuples from our collected paths
+	foreach(const PredecessorData::value_type& it, predecessorData) {
+		TableRowPair predecessors = it.first;
+		foreach(const TopLevelAssignmentToTupleData::value_type& it2, it.second) {
+			const TupleData& tupleData = it2.second;
+
+			Tuple& newTuple = *new Tuple;
+			newTuple.currentCost = tupleData.currentCost;
+			newTuple.introducedCost = tupleData.introducedCost;
+
+			foreach(const Path& path, tupleData.paths) {
+				assert(path.front() == it2.first); // top-level assignment must coincide
+				newTuple.tree.addPath(path.begin(), path.end());
+				assert(newTuple.tree.children.size() == 1); // each tuple may only have one top-level assignment
+			}
+
+			if(predecessors.second) {
+				// This is a join node
+				assert(predecessors.first);
+				algorithm.addRowToTupleTable(tupleTable, &newTuple,
+						algorithm.getPlanFactory().join(predecessors.first->second, predecessors.second->second));
+			} else if(predecessors.first) {
+				// This is an exchange node
+				algorithm.addRowToTupleTable(tupleTable, &newTuple,
+						algorithm.getPlanFactory().extend(predecessors.first->second, newTuple));
+			} else {
+				// This is a leaf node (or we don't have chosenChildTuples because we only solve the decision problem)
+				algorithm.addRowToTupleTable(tupleTable, &newTuple,
+						algorithm.getPlanFactory().leaf(newTuple));
+			}
+		}
+	}
 }
 
 } // namespace asdp

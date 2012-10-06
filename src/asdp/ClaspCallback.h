@@ -47,13 +47,37 @@ private:
 	LongToLiteral chosenChildTupleAtoms;
 	LongToLiteral chosenChildTupleLAtoms;
 	LongToLiteral chosenChildTupleRAtoms;
+	LongToLiteral currentCostAtoms;
+	LongToLiteral introducedCostAtoms;
 
 	// Because one tuple can be constituted of multiple AS's, we cannot insert new tuples upon arrival of a new AS but must rather collect all AS data until the solve state is finished.
-	typedef std::vector<Tuple::Assignment> Path; // By "path" we denote a path from root to leaf in Tuple::Tree. Each AS characterizes exactly one path.
-	typedef std::map<Tuple::Assignment, std::list<Path> > TopLevelAssignmentToPaths; // Maps an assignment to paths starting with that assignment
-	typedef std::pair<const sharp::TupleTable::value_type*, const sharp::TupleTable::value_type*> TableRowPair; // When using this object for the join program, both are used; when using it for the exchange program, only the first is used, the other is 0.
-	typedef std::map<TableRowPair, TopLevelAssignmentToPaths> PredecessorsToPathsMap;
-	PredecessorsToPathsMap predecessorsToPaths;
+	// By "path" we denote a path from root to leaf in Tuple::Tree. Each AS characterizes exactly one path.
+	typedef std::vector<Tuple::Assignment> Path;
+
+	class PathCollection
+	{
+	public:
+		typedef sharp::TupleTable::value_type TableRow;
+
+		void insert(const Path& path, const TableRow* leftPredecessor = 0, const TableRow* rightPredecessor = 0, unsigned currentCost = 0, unsigned introducedCost = 0);
+		void fillTupleTable(sharp::TupleTable& tupleTable, const ClaspAlgorithm& algorithm) const;
+
+	private:
+		struct TupleData
+		{
+			std::list<Path> paths;
+			unsigned int currentCost;
+			unsigned int introducedCost;
+		};
+
+		typedef std::pair<const TableRow*, const TableRow*> TableRowPair; // When using the join program, both are used; when using the exchange program, only the first is used, the other is 0.
+		typedef std::map<Tuple::Assignment, TupleData> TopLevelAssignmentToTupleData; // Maps an assignment to data of tuples starting with that assignment
+		typedef std::map<TableRowPair, TopLevelAssignmentToTupleData> PredecessorData;
+
+		PredecessorData predecessorData;
+	};
+
+	PathCollection pathCollection;
 };
 
 } // namespace asdp
