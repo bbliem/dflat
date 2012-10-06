@@ -20,6 +20,9 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 			foreach(const GringoOutputProcessor::MapAtom& it, gringoOutput.getMapAtoms()) {
 				assert(it.level == 0);
 				mapAtoms.push_back(MapAtom(it.vertex, it.value, symTab[it.symbolTableKey].lit));
+#ifndef NDEBUG
+				vertices.insert(it.vertex);
+#endif
 			}
 
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleAtoms())
@@ -61,6 +64,10 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 			newTuple.assignments[atom.vertex] = atom.value;
 		}
 	}
+#ifndef NDEBUG
+	// All vertices must be assigned now
+	assert(vertices.size() == newTuple.assignments.size());
+#endif
 
 	sharp::VertexSet dummy; // TODO: Workaround since we only solve the decision problem at the moment
 	sharp::Solution* newSolution = const_cast<ClaspAlgorithm&>(algorithm).createLeafSolution(dummy);

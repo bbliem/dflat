@@ -42,6 +42,10 @@ private:
 	std::vector<MapAtom> mapAtoms;
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
 	LongToLiteral chosenChildTupleAtoms;
+
+#ifndef NDEBUG
+	std::set<std::string> vertices; // To check if all vertices are assigned
+#endif
 };
 
 } // namespace asdp
