@@ -17,7 +17,7 @@ namespace {
 		const int w = 20;
 		std::cerr << "Usage: " << program << " [-a algorithm] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats]" << std::endl;
 		std::cerr << std::endl << std::left;
-		std::cerr << '\t' << std::setw(w) << "-a algorithm: " << "Either \"semi\", \"semi-asp\" or \"normalized\" (default: argument of -n)" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-a algorithm: " << "Either \"semi\", \"semi-asp\" (default) or \"normalized\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\" or \"decision\"" << std::endl;
@@ -42,8 +42,7 @@ int main(int argc, char** argv)
 {
 	enum { ENUMERATION, COUNTING, DECISION } problemType = ENUMERATION;
 	time_t seed = time(0);
-	bool algorithmSpecified = false;
-	enum { SEMI, SEMI_ASP, NORMALIZED } algorithmType = SEMI;
+	enum { SEMI, SEMI_ASP, NORMALIZED } algorithmType = SEMI_ASP;
 	sharp::NormalizationType normalizationType = sharp::SemiNormalization;
 	bool onlyDecompose = false;
 	bool stats = false;
@@ -52,7 +51,6 @@ int main(int argc, char** argv)
 		std::string arg = argv[i];
 
 		if(arg == "-a") {
-			algorithmSpecified = true;
 			std::string typeArg = argv[++i];
 			if(typeArg == "semi")
 				algorithmType = SEMI;
@@ -99,11 +97,8 @@ int main(int argc, char** argv)
 			usage(argv[0]);
 	}
 
-	if(algorithmSpecified) {
-		if(algorithmType == NORMALIZED && normalizationType != sharp::DefaultNormalization)
-			usage(argv[0]);
-	} else
-		algorithmType = normalizationType == sharp::DefaultNormalization ? NORMALIZED : SEMI;
+	if(algorithmType == NORMALIZED && normalizationType != sharp::DefaultNormalization)
+		usage(argv[0]);
 
 	srand(seed);
 
@@ -127,15 +122,16 @@ int main(int argc, char** argv)
 		return 0;
 
 	sharp::Solution* solution;
-	if(normalizationType == sharp::DefaultNormalization) {
-		std::cerr << "not implemented" << std::endl;
-		return 1;
-//		CppAlgorithmNormalized algorithm(problem);
-//		solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
-	} else {
-		assert(normalizationType == sharp::SemiNormalization);
-		sat::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "asp_encodings/sat/exchange_decision.lp" : "asp_encodings/sat/exchange.lp");
-		solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
+	switch(algorithmType) {
+		case NORMALIZED:
+		case SEMI:
+			std::cerr << "not implemented" << std::endl;
+			return 1;
+
+		case SEMI_ASP:
+			sat::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "asp_encodings/sat/exchange_decision.lp" : "asp_encodings/sat/exchange.lp", normalizationType);
+			solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
+			break;
 	}
 
 	// Print solution

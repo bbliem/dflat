@@ -5,11 +5,12 @@
 generator=tools/3col/instance_generator.py
 solver=build/release/3col
 
+# Observation: If the number of edges is roughly 2.5 times the number of nodes, hardly any instance has 3-colorings anymore. Up to 2.25, most instances have 3-colorings.
+
 minNumNodes=30
-maxNumNodes=60
-stepNumNodes=2
-minNumEdges=60
-maxNumEdges=180
+maxNumNodes=100
+stepNumNodes=4
+maxEdgeFactor=3 # Produce up to numNodes * maxEdgeFactor edges
 stepNumEdges=10
 
 numInstances=4
@@ -18,7 +19,9 @@ seed=$(date +%s) # current time
 
 for numNodes in $(seq $minNumNodes $stepNumNodes $maxNumNodes); do
 	echo $numNodes nodes:
-	for numEdges in $(seq $minNumEdges $stepNumEdges $maxNumEdges); do
+#	maxNumEdges=$(echo "($numNodes * $maxEdgeFactor)/1" | bc) # if maxEdgeFactor were fractional...
+	maxNumEdges=$(($numNodes * $maxEdgeFactor))
+	for numEdges in $(seq $numNodes $stepNumEdges $maxNumEdges); do
 		echo -n "	${numEdges} edges"
 		for instanceNumber in $(seq 1 $numInstances); do
 			echo -n "." # progress marker

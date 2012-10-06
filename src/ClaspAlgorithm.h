@@ -10,7 +10,7 @@ class Problem;
 class ClaspAlgorithm : public Algorithm
 {
 public:
-	ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram);
+	ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram, sharp::NormalizationType normalizationType = sharp::SemiNormalization);
 
 protected:
 	virtual sharp::TupleSet* exchangeLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed);

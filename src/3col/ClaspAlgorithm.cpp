@@ -5,8 +5,8 @@
 
 namespace threeCol {
 
-ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram)
-	: ::ClaspAlgorithm(problem, exchangeNodeProgram)
+ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram, sharp::NormalizationType normalizationType)
+	: ::ClaspAlgorithm(problem, exchangeNodeProgram, normalizationType)
 {
 }
 

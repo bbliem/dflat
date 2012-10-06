@@ -18,12 +18,13 @@ using sharp::ExtendedHypertree;
 using sharp::VertexSet;
 using sharp::Vertex;
 
-Algorithm::Algorithm(sharp::Problem& problem)
-	: AbstractSemiNormalizedHTDAlgorithm(&problem), problem(problem)
+Algorithm::Algorithm(sharp::Problem& problem, sharp::NormalizationType normalizationType)
+	: AbstractSemiNormalizedHTDAlgorithm(&problem), problem(problem), normalizationType(normalizationType)
 #if PROGRESS_REPORT > 0
 	  , nodesProcessed(0)
 #endif
 {
+	assert(normalizationType == sharp::DefaultNormalization || normalizationType == sharp::SemiNormalization);
 }
 
 Solution* Algorithm::selectSolution(TupleSet* tuples, const ExtendedHypertree* root)
@@ -116,7 +117,8 @@ endJoin:
 	return ts;
 }
 
-sharp::TupleSet* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertree* node) {
+sharp::TupleSet* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertree* node)
+{
 	TupleSet* childTuples = 0;
 
 	if(node->getType() != sharp::Leaf)
@@ -151,6 +153,12 @@ sharp::TupleSet* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertr
 #endif
 
 	return newTuples;
+}
+
+sharp::ExtendedHypertree* Algorithm::prepareHypertreeDecomposition(sharp::ExtendedHypertree* root)
+{
+	assert(normalizationType == sharp::DefaultNormalization || normalizationType == sharp::SemiNormalization);
+	return root->normalize(normalizationType);
 }
 
 #if PROGRESS_REPORT > 0

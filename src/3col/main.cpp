@@ -17,7 +17,7 @@ namespace {
 		std::cerr << "Usage: " << program << " [--only-decompose] [-s seed] [--stats]" << std::endl;
 		std::cerr << std::endl << std::left;
 //		std::cerr << '\t' << std::setw(w) << "-a algorithm: " << "Either \"semi\", \"semi-asp\" or \"normalized\" (default: argument of -n)" << std::endl;
-//		std::cerr << '\t' << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"counting\" (default) or \"decision\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-s seed: " << "Initialize random number generator with <seed>" << std::endl;
@@ -39,6 +39,7 @@ namespace {
 
 int main(int argc, char** argv)
 {
+	sharp::NormalizationType normalizationType = sharp::SemiNormalization;
 	enum { COUNTING, DECISION } problemType = COUNTING;
 	time_t seed = time(0);
 	bool onlyDecompose = false;
@@ -47,7 +48,16 @@ int main(int argc, char** argv)
 	for(int i = 1; i < argc; ++i) {
 		std::string arg = argv[i];
 
-		if(arg == "--only-decompose")
+		if(arg == "-n") {
+			std::string typeArg = argv[++i];
+			if(typeArg == "semi")
+				normalizationType = sharp::SemiNormalization;
+			else if(typeArg == "normalized")
+				normalizationType = sharp::DefaultNormalization;
+			else
+				usage(argv[0]);
+		}
+		else if(arg == "--only-decompose")
 			onlyDecompose = true;
 		else if(arg == "-p") {
 			std::string typeArg = argv[++i];
@@ -81,14 +91,20 @@ int main(int argc, char** argv)
 	if(stats) {
 		std::cout << "Decomposition stats:" << std::endl;
 		printDecompositionStats(*decomposition);
-		std::cout << "Semi-normalization stats:" << std::endl;
-		printDecompositionStats(*decomposition->normalize(sharp::SemiNormalization));
+		if(normalizationType == sharp::DefaultNormalization) {
+			std::cout << "Normalization stats:" << std::endl;
+			printDecompositionStats(*decomposition->normalize(sharp::DefaultNormalization));
+		} else {
+			assert(normalizationType == sharp::SemiNormalization);
+			std::cout << "Semi-normalization stats:" << std::endl;
+			printDecompositionStats(*decomposition->normalize(sharp::SemiNormalization));
+		}
 	}
 	if(onlyDecompose)
 		return 0;
 
 	sharp::Solution* solution;
-	threeCol::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "asp_encodings/3col/exchange_decision.lp" : "asp_encodings/3col/exchange.lp");
+	threeCol::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "asp_encodings/3col/exchange_decision.lp" : "asp_encodings/3col/exchange.lp", normalizationType);
 	solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 
 	// Print solution

@@ -28,8 +28,8 @@ namespace {
 	}
 }
 
-ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram)
-	: Algorithm(problem), exchangeNodeProgram(exchangeNodeProgram)
+ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram, sharp::NormalizationType normalizationType)
+	: Algorithm(problem, normalizationType), exchangeNodeProgram(exchangeNodeProgram)
 {
 }
 

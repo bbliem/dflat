@@ -5,7 +5,8 @@
 class Algorithm : public sharp::AbstractSemiNormalizedHTDAlgorithm
 {
 public:
-	Algorithm(sharp::Problem& problem);
+	//! @param normalizationType either sharp::SemiNormalization or sharp::DefaultNormalization
+	Algorithm(sharp::Problem& problem, sharp::NormalizationType normalizationType = sharp::SemiNormalization);
 
 protected:
 	virtual sharp::Solution* selectSolution(sharp::TupleSet* tuples, const sharp::ExtendedHypertree* root);
@@ -22,9 +23,11 @@ protected:
 	virtual sharp::TupleSet* exchangeLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed) = 0;
 	virtual sharp::TupleSet* exchangeNonLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed, const sharp::TupleSet& childTuples) = 0;
 
-	sharp::Problem& problem;
+	virtual sharp::ExtendedHypertree* prepareHypertreeDecomposition(sharp::ExtendedHypertree* root);
 
-protected:
+	sharp::Problem& problem;
+	sharp::NormalizationType normalizationType;
+
 #if PROGRESS_REPORT > 0
 	int nodesProcessed; // For progress report
 	virtual void printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildTuples = 0);

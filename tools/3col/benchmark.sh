@@ -1,19 +1,55 @@
 #!/bin/bash
 
+echo "width,nodes,edges,seed,3col_semi,3col_norm,monolithic,colorings"
+
+function printTime {
+time=$1
+exitCode=$2
+case "$exitCode" in
+	134)
+		echo -n "memout,"
+		;;
+	137)
+		echo -n "timeout,"
+		;;
+	*)
+		echo -n "$time,"
+		;;
+esac
+}
+
 for f in $@; do
-	echo $f
-	suffix=${f##*_}
-	seed=${suffix%%.lp}
+	suffix=${f##*width}
+	instance_data=${suffix%%.lp}
+	IFS="_/" read width nodes edges seed <<< "$instance_data"
+	echo -n "$width,$nodes,$edges,$seed,"
 
-	echo -en "\t3col: "
-	result=$(\time -f "%U %S" build/release/3col -s $seed < $f | awk '/^Solutions/ {print $2}')
-	echo -en "\tmono: "
-	monolithicResult=$(\time -f "%U %S" bash -c "../gringo $f asp_encodings/3col/monolithic.lp 2>/dev/null | ../clasp-2.0.2-st-x86-linux -q 0 | awk '/^Models/ {print \$3}'")
+	unset count
 
-	if [[ $result ]] && [[ $monolithicResult ]]; then
-		if [[ $result -ne $monolithicResult ]]; then
-			echo -e "\tMismatch (3col: ${result}, clasp: ${monolithicResult})"
-		fi
+	read count1 time exitCode <<< $(\time -f "%U %S %x" bash -c "build/release/3col -s $seed < $f" 2>&1 | tail -n2 | awk 'NR == 1 { printf("%s ", $2)} NR == 2 {printf("%s %s", $1+$2, $3)}')
+	printTime $time $exitCode
+
+	if [[ $exitCode -eq 0 ]]; then
+		count=$count1
 	fi
-	echo -e "\tresults 3col: ${result} mono: ${monolithicResult}"
+
+	read count2 time exitCode <<< $(\time -f "%U %S %x" bash -c "build/release/3col -n normalized -s $seed < $f" 2>&1 | tail -n2 | awk 'NR == 1 { printf("%s ", $2)} NR == 2 {printf("%s %s", $1+$2, $3)}')
+	printTime $time $exitCode
+
+	if [[ $exitCode -eq 0 ]]; then
+		count=$count2
+	fi
+
+	read count3 time exitCode <<< $(\time -f "%U %S %x" bash -c "../gringo $f asp_encodings/3col/monolithic.lp 2>/dev/null | ../clasp-2.0.2-st-x86-linux -q 0" 2>&1 | tail -n4 | awk 'NR == 1 { printf("%s ", $3)} NR == 4 {printf("%s %s", $1+$2, $3)}')
+	printTime $time $exitCode
+
+	if [[ $exitCode -eq 0 ]]; then
+		count=$count3
+	fi
+
+	if [[ "$count" ]]; then
+		echo "$count"
+	else
+		echo unknown
+	fi
 done
