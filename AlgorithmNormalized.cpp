@@ -41,6 +41,8 @@ TupleSet* AlgorithmNormalized::evaluatePermutationNode(const ExtendedHypertree* 
 					return 0;
 			}
 	}
+	assert(false);
+	return 0;
 }
 
 TupleSet* AlgorithmNormalized::evaluateIntroductionNode(const ExtendedHypertree* node)

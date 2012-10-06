@@ -198,8 +198,8 @@ endJoin:
 TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 {
 	// TODO: Make configurable
-	const char* aspProgram;
-	std::stringstream* bagContents;
+	const char* aspProgram = 0;
+	std::stringstream* bagContents = 0;
 
 	if(algorithmType == SEMI_ASP) {
 		aspProgram = problemType == DECISION ? "exchange_decision.lp" : "exchange.lp";
