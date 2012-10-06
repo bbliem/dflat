@@ -38,9 +38,8 @@ namespace {
 
 	void usage(const char* program) {
 		const int w = 22;
-		std::cerr << "Usage: " << program << " [-a algorithm_type] -e hyperedge_pred [...] [-j join_program] [--multi-level] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats] [-x exchange_program] [program] < instance" << std::endl;
+		std::cerr << "Usage: " << program << " -e hyperedge_pred [...] [-j join_program] [--multi-level] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats] [-x exchange_program] [program] < instance" << std::endl;
 		std::cerr << std::endl << std::left;
-		std::cerr << "  " << std::setw(w) << "-a algorithm_type: " << "Either \"non-normalized\" (for all TDs) or \"semi\" (just for semi-normalized TDs). Default: \"semi\" iff \"-n semi\" or \"-n normalized\" present." << std::endl;
 		std::cerr << "  " << std::setw(w) << "-e hyperedge_pred: " << "Name of a predicate that declares hyperedges (must be specified at least once)" << std::endl;
 		std::cerr << "  " << std::setw(w) << "-j join_program: " << "File name of the logic program executed in join nodes (if omitted join equal rows)" << std::endl;
 		std::cerr << "  " << std::setw(w) << "--multi-level: " << "Use multi-level item sets" << std::endl;
@@ -50,8 +49,8 @@ namespace {
 		std::cerr << "  " << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\", \"decision\", \"opt-enum\", \"opt-counting\" or \"opt-value\"" << std::endl;
 		std::cerr << "  " << std::setw(w) << "-s seed: " << "Initialize random number generator with <seed>" << std::endl;
 		std::cerr << "  " << std::setw(w) << "--stats: " << "Print statistics" << std::endl;
-		std::cerr << "  " << std::setw(w) << "-x exchange_program: " << "File name of the logic program executed in exchange nodes (required for algorithm type \"semi\")" << std::endl;
-		std::cerr << "  " << std::setw(w) << "program: " << "File name of the logic program executed in nodes (required for algorithm type \"non-normalized\")" << std::endl;
+		std::cerr << "  " << std::setw(w) << "-x exchange_program: " << "File name of the logic program executed in exchange nodes (only for semi-normalized decompositions)" << std::endl;
+		std::cerr << "  " << std::setw(w) << "program: " << "File name of the logic program executed in nodes (only for semi-normalized decompositions)" << std::endl;
 		std::cerr << "  " << std::setw(w) << "instance: " << "File name of the set of facts representing an instance" << std::endl;
 		std::cerr << std::endl;
 		std::cerr << "Exit code " << CONSISTENT << " means there is a solution, " << INCONSISTENT << " means there is none." << std::endl;
@@ -73,8 +72,6 @@ int main(int argc, char** argv)
 		bool multiLevel = false;
 		enum { ENUMERATION, COUNTING, DECISION, OPT_ENUM, OPT_COUNTING, OPT_VALUE } problemType = ENUMERATION;
 		time_t seed = time(0);
-		bool algorithmTypeSpecified = false;
-		enum { NON_NORMALIZED, SEMI_NORMALIZED } algorithmType = NON_NORMALIZED;
 		sharp::NormalizationType normalizationType = sharp::NoNormalization;
 		bool onlyDecompose = false;
 		bool stats = false;
@@ -87,17 +84,7 @@ int main(int argc, char** argv)
 			bool hasArg = i+1 < argc;
 			std::string arg = argv[i];
 
-			if(arg == "-a" && hasArg) {
-				std::string typeArg = argv[++i];
-				if(typeArg == "semi")
-					algorithmType = SEMI_NORMALIZED;
-				else if(typeArg == "non-normalized")
-					algorithmType = NON_NORMALIZED;
-				else
-					usage(argv[0]);
-				algorithmTypeSpecified = true;
-			}
-			else if(arg == "-e" && hasArg)
+			if(arg == "-e" && hasArg)
 				hyperedgePredicateNames.insert(argv[++i]);
 			else if(arg == "-n" && hasArg) {
 				std::string typeArg = argv[++i];
@@ -109,9 +96,6 @@ int main(int argc, char** argv)
 					normalizationType = sharp::DefaultNormalization;
 				else
 					usage(argv[0]);
-
-				if(!algorithmTypeSpecified)
-					algorithmType = normalizationType == sharp::NoNormalization ? NON_NORMALIZED : SEMI_NORMALIZED;
 			}
 			else if(arg == "-j" && hasArg) {
 				if(joinProgram)
@@ -164,12 +148,12 @@ int main(int argc, char** argv)
 			}
 		}
 
-		if((!exchangeProgram && !program && !onlyDecompose) || hyperedgePredicateNames.empty() ||
-				(algorithmType == SEMI_NORMALIZED && normalizationType == sharp::NoNormalization) ||
-				(program && exchangeProgram) || (program && joinProgram) ||
-				(algorithmType == SEMI_NORMALIZED && !exchangeProgram && !onlyDecompose) ||
-				(algorithmType == NON_NORMALIZED && !program && !onlyDecompose))
-			usage(argv[0]);
+		if(!onlyDecompose) {
+			if((!exchangeProgram && !program) || (program && exchangeProgram) || 
+					(program && joinProgram) || hyperedgePredicateNames.empty() ||
+					(exchangeProgram && normalizationType == sharp::NoNormalization))
+				usage(argv[0]);
+		}
 
 		srand(seed);
 
@@ -209,16 +193,11 @@ int main(int argc, char** argv)
 		}
 
 		std::auto_ptr<Algorithm> algorithm;
-		switch(algorithmType) {
-			case NON_NORMALIZED:
-				algorithm.reset(new NonNormalizedAlgorithm(problem, inputString, program, normalizationType, ignoreOptimization, multiLevel));
-				break;
+		if(exchangeProgram)
+			algorithm.reset(new SemiNormalizedAlgorithm(problem, inputString, exchangeProgram, joinProgram, normalizationType, ignoreOptimization, multiLevel));
+		else
+			algorithm.reset(new NonNormalizedAlgorithm(problem, inputString, program, normalizationType, ignoreOptimization, multiLevel));
 
-			case SEMI_NORMALIZED:
-				algorithm.reset(new SemiNormalizedAlgorithm(problem, inputString, exchangeProgram, joinProgram, normalizationType, ignoreOptimization, multiLevel));
-				break;
-		}
-		
 		std::auto_ptr<sharp::Table> table(problem.calculateTableFromDecomposition(algorithm.get(), decomposition));
 
 #ifdef PROGRESS_REPORT
