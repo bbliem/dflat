@@ -19,7 +19,7 @@ add_library(clasp STATIC IMPORTED)
 set_target_properties(clasp PROPERTIES IMPORTED_LOCATION ${clasp_lib})
 
 find_library(gmpxx gmpxx)
-find_package(Boost COMPONENTS system filesystem REQUIRED)
+find_package(Boost COMPONENTS system filesystem timer REQUIRED)
 
 add_executable(sat main.cpp Problem.cpp Algorithm.cpp AlgorithmNormalized.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp ModelProcessor.cpp Tuple.cpp)
-target_link_libraries(sat libsharp.a gringo clasp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+target_link_libraries(sat libsharp.a gringo clasp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})

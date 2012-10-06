@@ -13,10 +13,10 @@ numInstances=10
 
 # Für 35 35 0 3000 ist bottom-up schon deutlich langsamer
 
-bagSize=15
-childBagSize=15
-numIntroduced=8
-numChildTuples=5000
+bagSize=32
+childBagSize=32
+numIntroduced=1
+numChildTuples=100
 
 for i in $(seq 1 $numInstances); do
 	instance=$(mktemp)

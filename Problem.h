@@ -14,9 +14,9 @@ public:
 	typedef std::vector<Rule> Program;
 
 	struct VerticesInRule {
-		std::vector<sharp::Vertex> head;
-		std::vector<sharp::Vertex> pos;
-		std::vector<sharp::Vertex> neg;
+		sharp::VertexSet head;
+		sharp::VertexSet pos;
+		sharp::VertexSet neg;
 	};
 
 	Problem(std::istream& input, bool printBenchmarkInformation = false);

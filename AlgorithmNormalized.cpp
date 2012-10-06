@@ -8,8 +8,8 @@
 using sharp::TupleSet;
 using sharp::ExtendedHypertree;
 
-AlgorithmNormalized::AlgorithmNormalized(Problem& problem, AlgorithmNormalized::ProblemType problemType, bool useSemiNormalizedAlgorithm)
-	: Algorithm(problem, problemType), useSemiNormalizedAlgorithm(useSemiNormalizedAlgorithm)
+AlgorithmNormalized::AlgorithmNormalized(Problem& problem, AlgorithmNormalized::ProblemType problemType, AlgorithmType algorithmType)
+	: Algorithm(problem, problemType, algorithmType)
 {
 }
 
@@ -24,27 +24,29 @@ ExtendedHypertree* AlgorithmNormalized::prepareHypertreeDecomposition(ExtendedHy
 
 TupleSet* AlgorithmNormalized::evaluatePermutationNode(const ExtendedHypertree* node)
 {
-	if(useSemiNormalizedAlgorithm)
-		return Algorithm::evaluatePermutationNode(node);
-
-	switch(node->getType()) {
-		case sharp::Introduction:
-			return evaluateIntroductionNode(node);
-		case sharp::Removal:
-			return evaluateRemovalNode(node);
-		case sharp::Leaf:
-			// XXX: Using permutation node ASP program of the semi-normalized Algorithm. Maybe implement it in C++?
+	switch(algorithmType) {
+		case SEMI: case SEMI_ASP:
 			return Algorithm::evaluatePermutationNode(node);
-		default:
-			assert(false);
-			return 0;
+		case NORMALIZED:
+			switch(node->getType()) {
+				case sharp::Introduction:
+					return evaluateIntroductionNode(node);
+				case sharp::Removal:
+					return evaluateRemovalNode(node);
+				case sharp::Leaf:
+					// XXX: Using permutation node ASP program of the semi-normalized Algorithm. Maybe implement it in C++?
+					return Algorithm::evaluatePermutationNode(node);
+				default:
+					assert(false);
+					return 0;
+			}
 	}
 }
 
 TupleSet* AlgorithmNormalized::evaluateIntroductionNode(const ExtendedHypertree* node)
 {
 	TupleSet* childTuples = evaluateNode(node->firstChild());
-#ifndef NO_PROGRESS_REPORT
+#if PROGRESS_REPORT> 0
 	printProgressLine(node, childTuples->size());
 #endif
 #ifdef VERBOSE
@@ -141,7 +143,7 @@ TupleSet* AlgorithmNormalized::evaluateIntroductionNode(const ExtendedHypertree*
 TupleSet* AlgorithmNormalized::evaluateRemovalNode(const ExtendedHypertree* node)
 {
 	TupleSet* childTuples = evaluateNode(node->firstChild());
-#ifndef NO_PROGRESS_REPORT
+#if NO_PROGRESS_REPORT > 0
 	printProgressLine(node, childTuples->size());
 #endif
 #ifdef VERBOSE

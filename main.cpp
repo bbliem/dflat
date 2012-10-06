@@ -16,7 +16,7 @@ namespace {
 		const int w = 20;
 		std::cerr << "Usage: " << program << " [-a algorithm] [-n normalization] [--only-decompose] [-p problem_type] [-s seed]" << std::endl;
 		std::cerr << std::endl << std::left;
-		std::cerr << '\t' << std::setw(w) << "-a algorithm: " << "Either \"semi\" or \"normalized\" (default: argument of -n)" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-a algorithm: " << "Either \"semi\", \"semi-asp\" or \"normalized\" (default: argument of -n)" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\" or \"decision\"" << std::endl;
@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 	Algorithm::ProblemType problemType = Algorithm::ENUMERATION;
 	time_t seed = time(0);
 	bool algorithmSpecified = false;
-	sharp::NormalizationType algorithmType = sharp::SemiNormalization;
+	Algorithm::AlgorithmType algorithmType = Algorithm::SEMI;
 	sharp::NormalizationType normalizationType = sharp::SemiNormalization;
 	bool onlyDecompose = false;
 	bool stats = false;
@@ -54,9 +54,11 @@ int main(int argc, char** argv)
 			algorithmSpecified = true;
 			std::string typeArg = argv[++i];
 			if(typeArg == "semi")
-				algorithmType = sharp::SemiNormalization;
+				algorithmType = Algorithm::SEMI;
+			else if(typeArg == "semi-asp")
+				algorithmType = Algorithm::SEMI_ASP;
 			else if(typeArg == "normalized")
-				algorithmType = sharp::DefaultNormalization;
+				algorithmType = Algorithm::NORMALIZED;
 			else
 				usage(argv[0]);
 		}
@@ -97,10 +99,10 @@ int main(int argc, char** argv)
 	}
 
 	if(algorithmSpecified) {
-		if(algorithmType == sharp::DefaultNormalization && normalizationType == sharp::SemiNormalization)
+		if(algorithmType == Algorithm::NORMALIZED && normalizationType != sharp::DefaultNormalization)
 			usage(argv[0]);
 	} else
-		algorithmType = normalizationType;
+		algorithmType = normalizationType == sharp::DefaultNormalization ? Algorithm::NORMALIZED : Algorithm::SEMI;
 
 	srand(seed);
 
@@ -125,11 +127,11 @@ int main(int argc, char** argv)
 
 	sharp::Solution* solution;
 	if(normalizationType == sharp::DefaultNormalization) {
-		AlgorithmNormalized algorithm(problem, problemType, algorithmType == sharp::SemiNormalization);
+		AlgorithmNormalized algorithm(problem, problemType, algorithmType);
 		solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 	} else {
 		assert(normalizationType == sharp::SemiNormalization);
-		Algorithm algorithm(problem, problemType);
+		Algorithm algorithm(problem, problemType, algorithmType);
 		solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 	}
 

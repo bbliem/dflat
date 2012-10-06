@@ -1,4 +1,4 @@
-cxxflags="" # additional flags, like, e.g., -DVERBOSE
+cxxflags="-DPROGRESS_REPORT=1" # additional flags, like, e.g., -DVERBOSE
 
 gringo_dir=/home/bernhard/Informatik/gringo-3.0.3-source
 gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a

@@ -17,7 +17,13 @@ public:
 		DECISION
 	};
 
-	Algorithm(Problem& problem, ProblemType problemType = ENUMERATION);
+	enum AlgorithmType { // XXX: This should not be here, but the class hierarchy is crap anyway...
+		SEMI,
+		SEMI_ASP,
+		NORMALIZED
+	};
+
+	Algorithm(Problem& problem, ProblemType problemType = ENUMERATION, AlgorithmType = SEMI);
 	virtual ~Algorithm();
 
 protected:
@@ -32,7 +38,9 @@ private:
 	ProblemType problemType;
 
 protected:
-#ifndef NO_PROGRESS_REPORT
+	AlgorithmType algorithmType;
+
+#if PROGRESS_REPORT > 0
 	int nodesProcessed; // For progress report
 	void printProgressLine(const sharp::ExtendedHypertree* node, size_t numChildTuples = 0);
 	virtual sharp::TupleSet* evaluateNode(const sharp::ExtendedHypertree* node);

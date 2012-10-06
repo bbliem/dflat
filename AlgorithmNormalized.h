@@ -6,8 +6,7 @@
 class AlgorithmNormalized : public Algorithm
 {
 public:
-	//! If useSemiNormalizedAlgorithm is true, the algorithm for semi-normalized TDs is run on the normalized TD.
-	AlgorithmNormalized(Problem& problem, ProblemType problemType = ENUMERATION, bool useSemiNormalizedAlgorithm = false);
+	AlgorithmNormalized(Problem& problem, ProblemType problemType = ENUMERATION, AlgorithmType algorithmType = NORMALIZED);
 	virtual ~AlgorithmNormalized();
 
 protected:

@@ -76,6 +76,7 @@ namespace {
 
 Problem::Problem(std::istream& input, bool printBenchmarkInformation)
 	: sharp::Problem(printBenchmarkInformation), input(input), lastRule(0), atomsInRules(0)
+//	: sharp::Problem(new sharp::BucketEliminationAlgorithm(new sharp::MaximumCardinalitySearchOrdering())), input(input), lastRule(0), atomsInRules(0)
 {
 }
 
@@ -159,7 +160,7 @@ sharp::Hypergraph* Problem::buildHypergraphRepresentation()
 			atomVertices.insert(v);
 			edges.insert(std::make_pair(vRule, v));
 
-			verticesInThisRule.head.push_back(v);
+			verticesInThisRule.head.insert(v);
 		}
 		foreach(const Literal& l, rule.second) {
 			sharp::Vertex v = storeVertexName(l.second);
@@ -167,9 +168,9 @@ sharp::Hypergraph* Problem::buildHypergraphRepresentation()
 			edges.insert(std::make_pair(vRule, v));
 
 			if(l.first == true)
-				verticesInThisRule.neg.push_back(v);
+				verticesInThisRule.neg.insert(v);
 			else
-				verticesInThisRule.pos.push_back(v);
+				verticesInThisRule.pos.insert(v);
 		}
 	}
 

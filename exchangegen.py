@@ -3,38 +3,35 @@
 import random
 import sys
 
-if len(sys.argv) != 5:
-	sys.stderr.write("Usage: " + sys.argv[0] + " bagSize childBagSize numIntroduced numChildTuples\n")
+if len(sys.argv) != 8:
+	sys.stderr.write("Usage: " + sys.argv[0] + " currentAtoms currentRules introducedAtoms introducedRules removedAtoms removedRules childTuples\n")
 	sys.exit(1)
 
-bagSize = int(sys.argv[1])
-childBagSize = int(sys.argv[2])
-numIntroduced = int(sys.argv[3])
-numChildTuples = int(sys.argv[4])
-numCommon = bagSize - numIntroduced
-numRemoved = childBagSize - numCommon
-numTotal = bagSize + numRemoved
-numRules = random.randrange(numTotal)
-numAtoms = numTotal - numRules
+numCurrentAtoms = int(sys.argv[1])
+numCurrentRules = int(sys.argv[2])
+numIntroducedAtoms = int(sys.argv[3])
+numIntroducedRules = int(sys.argv[4])
+numRemovedAtoms = int(sys.argv[5])
+numRemovedRules = int(sys.argv[6])
+numChildTuples = int(sys.argv[7])
 
-#print(numCommon)
-#print(numRemoved)
-#print(numTotal)
-#print(numRules)
-#print(numAtoms)
+bagSize = numCurrentAtoms + numCurrentRules
+numChildAtoms = numCurrentAtoms - numIntroducedAtoms + numRemovedAtoms
+numChildRules = numCurrentRules - numIntroducedRules + numRemovedRules
 
-if numIntroduced > bagSize or numRemoved > childBagSize or numCommon > bagSize or numCommon > childBagSize:
+if numIntroducedAtoms > numCurrentAtoms or numIntroducedRules > numCurrentRules:
 	sys.stderr.write("Invalid parameters\n")
 	sys.exit(2)
 
-atoms = [({'name': "a"+str(v)}) for v in range(numAtoms)]
+atoms = [({'name': "a"+str(v)}) for v in range(numCurrentAtoms + numRemovedAtoms)]
 rules = []
 
+# Declare all atoms and rules
 for a in atoms:
 	print("atom("+a['name']+").")
 
-for i in range(numRules):
-	ruleAtoms = random.sample(atoms, random.randint(1,numAtoms))
+for i in range(numCurrentRules + numRemovedRules):
+	ruleAtoms = random.sample(atoms, random.randint(1,numCurrentAtoms + numRemovedAtoms))
 	random.shuffle(ruleAtoms)
 	sep = random.randrange(len(ruleAtoms)+1)
 	rule = {'name': "r"+str(i), 'pos': ruleAtoms[:sep], 'neg': ruleAtoms[sep:]}
@@ -45,19 +42,21 @@ for i in range(numRules):
 	for n in rule['neg']:
 		print("neg({},{}).".format(rule['name'], n['name']))
 
-vertices = atoms + rules
-random.shuffle(vertices)
+random.shuffle(atoms)
+random.shuffle(rules)
 
 # Print current/1 and before/1 predicates
-for v in vertices[:childBagSize]:
+for v in atoms[:numChildAtoms]:
 	print("before("+v['name']+").")
-sep = childBagSize-numCommon
-for v in vertices[sep:sep+bagSize]:
+for v in rules[:numChildRules]:
+	print("before("+v['name']+").")
+
+for v in atoms[numRemovedAtoms:]:
+	print("current("+v['name']+").")
+for v in rules[numRemovedRules:]:
 	print("current("+v['name']+").")
 
 # Print child tuples
-#random.shuffle(atoms)
-#random.shuffle(rules)
 for m in range(numChildTuples):
 	mName = "m"+str(m)
 	print("oldMi("+mName+").")
