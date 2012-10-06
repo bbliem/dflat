@@ -1,8 +1,7 @@
 1 { chosenChildTupleL(I) : childTupleL(I) } 1.
 1 { chosenChildTupleR(I) : childTupleR(I) } 1.
 
-:- mapped(L,A,true), mapped(R,A,false), atom(A), chosenChildTupleL(L), chosenChildTupleR(R).
-:- mapped(L,A,false), mapped(R,A,true), atom(A), chosenChildTupleL(L), chosenChildTupleR(R).
+:- mapped(L,A,X), mapped(R,A,Y), atom(A), chosenChildTupleL(L), chosenChildTupleR(R), X != Y.
 
 map(X,true) :- chosenChildTupleL(I), mapped(I,X,true).
 map(X,true) :- chosenChildTupleR(I), mapped(I,X,true).
