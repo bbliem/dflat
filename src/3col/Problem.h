@@ -12,7 +12,8 @@ class Problem : public ::Problem
 public:
 	Problem(std::istream& input);
 
-	virtual void declareVertex(std::ostream& out, sharp::Vertex v) const;
+	//! If v is in the current bag, prints edges to adjacent vertices that are also in the current bag
+	virtual void declareVertex(std::ostream& out, sharp::Vertex v, const sharp::VertexSet& currentVertices) const;
 
 	// XXX: As of now, we only accept graphs where each node has at least one neighbor, since the tree decomposition heuristic only works this way. Isolated nodes extend the 3col solutions only in a trivial way anyway.
 	typedef std::string Node;

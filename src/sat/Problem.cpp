@@ -67,7 +67,7 @@ Problem::~Problem()
 	delete[] atomsInClauses;
 }
 
-void Problem::declareVertex(std::ostream& out, Vertex v) const
+void Problem::declareVertex(std::ostream& out, Vertex v, const sharp::VertexSet& currentVertices) const
 {
 	if(vertexIsClause(v)) {
 		out << "clause(v" << v << ")." << std::endl;

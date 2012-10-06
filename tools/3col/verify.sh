@@ -8,7 +8,7 @@ numEdges=20
 threeColGen=tools/3col/instance_generator.py
 gringo=../gringo
 clasp=../clasp-2.0.2-st-x86-linux
-monolithicEncoding=monolithic/3col.lp
+monolithicEncoding=asp_encodings/3col/monolithic.lp
 threeCol=build/release/3col
 
 for instance in $(seq 1 $numInstances); do

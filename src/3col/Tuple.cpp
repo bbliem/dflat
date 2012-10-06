@@ -35,7 +35,7 @@ Tuple* Tuple::join(const ::Tuple& other) const
 	return new Tuple(*this);
 }
 
-void Tuple::declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution) const
+void Tuple::declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution, const sharp::VertexSet& currentVertices) const
 {
 	out << "childTuple(t" << &tupleAndSolution << ")." << std::endl;
 	foreach(sharp::Vertex v, red)

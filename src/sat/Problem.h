@@ -26,7 +26,7 @@ public:
 		return v <= lastClause;
 	}
 
-	virtual void declareVertex(std::ostream& out, sharp::Vertex v) const;
+	virtual void declareVertex(std::ostream& out, sharp::Vertex v, const sharp::VertexSet& currentVertices) const;
 
 protected:
 	virtual void parse();

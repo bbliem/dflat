@@ -26,3 +26,6 @@ target_link_libraries(sat libsharp.a gringo clasp gmpxx ${Boost_FILESYSTEM_LIBRA
 
 add_executable(3col Algorithm.cpp ClaspAlgorithm.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp 3col/Problem.cpp 3col/ClaspAlgorithm.cpp 3col/ClaspCallback.cpp 3col/GringoOutputProcessor.cpp 3col/Tuple.cpp 3col/main.cpp)
 target_link_libraries(3col libsharp.a gringo clasp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})
+
+add_executable(cyclic_ordering Algorithm.cpp ClaspAlgorithm.cpp ClaspInputReader.cpp GringoOutputProcessor.cpp cyclic_ordering/Problem.cpp cyclic_ordering/ClaspAlgorithm.cpp cyclic_ordering/ClaspCallback.cpp cyclic_ordering/GringoOutputProcessor.cpp cyclic_ordering/Tuple.cpp cyclic_ordering/main.cpp)
+target_link_libraries(cyclic_ordering libsharp.a gringo clasp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})

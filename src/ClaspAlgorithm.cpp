@@ -15,9 +15,11 @@ namespace {
 	inline void declareBagContents(std::ostream& bagContents, const Problem& problem, const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed)
 	{
 		foreach(sharp::Vertex v, vertices)
-			problem.declareVertex(bagContents, v);
+			problem.declareVertex(bagContents, v, vertices);
+		foreach(sharp::Vertex v, introduced)
+			problem.declareVertex(bagContents, v, vertices);
 		foreach(sharp::Vertex v, removed)
-			problem.declareVertex(bagContents, v);
+			problem.declareVertex(bagContents, v, vertices);
 
 		foreach(sharp::Vertex v, vertices)
 			bagContents << "current(v" << v << ")." << std::endl;
@@ -69,7 +71,7 @@ TupleSet* ClaspAlgorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, cons
 	std::stringstream* childTuplesInput = new std::stringstream;
 	// Declare child tuples
 	foreach(const TupleSet::value_type& tupleAndSolution, childTuples)
-		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTuplesInput, tupleAndSolution);
+		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTuplesInput, tupleAndSolution, vertices);
 //#ifdef VERBOSE
 //	std::cout << "Child tuple input:" << std::endl << childTuplesInput->str() << std::endl;
 //#endif

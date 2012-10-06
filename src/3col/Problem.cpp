@@ -67,13 +67,16 @@ Problem::Problem(std::istream& input)
 {
 }
 
-void Problem::declareVertex(std::ostream& out, Vertex v) const
+void Problem::declareVertex(std::ostream& out, Vertex v, const sharp::VertexSet& currentVertices) const
 {
-	// Need to declare adjacent edges
+	if(currentVertices.find(v) == currentVertices.end())
+		return;
+
+	// Need to declare adjacent edges to vertices also in the current bag
 	assert(adjacent.find(v) != adjacent.end()); // Since we only allow vertices with neighbors
 	const std::set<sharp::Vertex>& neighbors = adjacent.find(v)->second;
-	foreach(sharp::Vertex neighbor, neighbors) {
-		if(v <= neighbor) // Edges are undirected
+	foreach(sharp::Vertex neighbor, currentVertices) {
+		if(v < neighbor && neighbors.find(neighbor) != neighbors.end()) // "<" because edges are undirected)
 			out << "edge(v" << v << ",v" << neighbor << ")." << std::endl;
 	}
 }
