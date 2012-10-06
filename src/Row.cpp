@@ -43,7 +43,7 @@ bool Row::Tree::operator==(const Tree& rhs) const
 
 bool Row::Tree::operator<(const Tree& rhs) const
 {
-	return items < rhs.items || children < rhs.children;
+	return items < rhs.items || (items == rhs.items && children < rhs.children);
 }
 
 bool Row::operator<(const sharp::Row& rhs) const
