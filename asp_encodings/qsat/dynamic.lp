@@ -1,15 +1,15 @@
 % Suppose that the top level quantifier is \exists
-itemSet(S,0,N) :- childRow(S,N).
-itemSet(S,L+1,N) :- itemSet(R,L,N), sub(R,S).
+itemSet(0,S,N)   :- childRow(S,N).
+itemSet(L+1,S,N) :- itemSet(L,R,N), sub(R,S).
 
-false(S,A) :- atom(L,A), itemSet(S,L,N), childBag(N,A), not childItem(S,A).
+false(S,A) :- atom(L,A), itemSet(L,S,N), childBag(N,A), not childItem(S,A).
 
 forallItemSet(S) :- childRow(S,_),              sub(S,_).
 forallItemSet(S) :- existsItemSet(R), sub(R,S), sub(S,_).
 existsItemSet(S) :- forallItemSet(R), sub(R,S), sub(S,_).
 
-bad(S) :- childItem(S,bad). % Has already been bad
-bad(S) :- clause(C), removed(C), levels(L), itemSet(S,L-1,N), childBag(N,C), not childItem(S,C). % Becomes bad due to clause removal
+bad(S)  :- childItem(S,bad). % Has already been bad
+bad(S)  :- clause(C), removed(C), levels(L), itemSet(L-1,S,N), childBag(N,C), not childItem(S,C). % Becomes bad due to clause removal
 bad(S)  :- forallItemSet(S), sub(S,T),     bad(T).
 -bad(S) :- existsItemSet(S), sub(S,T), not bad(T).
 bad(S)  :- existsItemSet(S), not -bad(S).
@@ -17,13 +17,13 @@ bad(S)  :- existsItemSet(S), not -bad(S).
 % Actual solving part...
 
 % Guess a path
-1 { extend(L-1,S) : itemSet(S,L-1,N) } 1 :- childNode(N), levels(L).
+1 { extend(L-1,S) : itemSet(L-1,S,N) } 1 :- childNode(N), levels(L).
 extend(L-1,R) :- extend(L,S), sub(R,S).
-
-item(L,X) :- extend(L,S), childItem(S,X), not removed(X).
 
 % Only join root-to-leaf paths that coincide on common atoms
 :- extend(L,X;Y), atom(L,A), childItem(X,A), false(Y,A).
+
+item(L,X) :- extend(L,S), childItem(S,X), not removed(X).
 
 % The leaves (and only they) can contain "bad"
 item(L,bad) :- levels(L+1), extend(L,S), bad(S).
