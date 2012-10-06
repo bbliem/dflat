@@ -39,8 +39,7 @@ protected:
 	sharp::TupleTable* evaluatePermutationNode(const sharp::ExtendedHypertree* node);
 	sharp::TupleTable* evaluateBranchNode(const sharp::ExtendedHypertree* node);
 
-	virtual sharp::TupleTable* exchangeLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed);
-	virtual sharp::TupleTable* exchangeNonLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed, const sharp::TupleTable& childTable);
+	virtual sharp::TupleTable* exchange(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed, const sharp::TupleTable& childTable, bool isRoot = false);
 	virtual sharp::TupleTable* join(const sharp::VertexSet& vertices, sharp::TupleTable& childTableLeft, sharp::TupleTable& childTableRight);
 
 	virtual std::auto_ptr<Clasp::ClaspFacade::Callback> newClaspCallback(sharp::TupleTable& newTable, const GringoOutputProcessor&, const sharp::VertexSet& currentVertices) const;

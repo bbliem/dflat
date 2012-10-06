@@ -14,9 +14,8 @@ map(X,false) :- current(X), not map(X,true).
 noMatch(I) :- childTuple(I), mapped(I,C,false), removed(C), clause(C). % Killed tuples do not match
 noMatch(I) :- childTuple(I), mapped(I,X,V1), guess(X,V2), V1 != V2.
 
-nonLeaf :- childTuple(_).
 match :- childTuple(I), not noMatch(I).
-:- nonLeaf, not match.
+:- not match.
 
 
 

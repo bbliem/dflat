@@ -76,8 +76,7 @@ c(R) :- introduced(R), pos(R,A), current(A), not c(A), cExists.
 %%%%%%%%
 % Root %
 %%%%%%%%
-nonRoot :- current(X).
-:- not nonRoot, chosenChildTuple(M), sub(M,C), not killedOldC(C).
+:- root, chosenChildTuple(M), sub(M,C), not killedOldC(C).
 
 
 #hide.

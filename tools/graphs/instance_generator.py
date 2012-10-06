@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Generates more or less random 3col problems
+# Generates more or less random problem instances consisting of graphs (vertex/1, edge/2)
 import random
 import sys
 
@@ -18,17 +18,17 @@ if numEdges < numNodes:
 	sys.exit(1)
 
 for i in range(numNodes):
-	print('vertex(n{}).'.format(i+1))
+	print('vertex({}).'.format(i))
 
 for i in range(numNodes):
 	to = random.randrange(numNodes-1)
 	if to >= i:
 		to = to+1
-	print('edge(n{},n{}).'.format(i+1, to+1))
+	print('edge({},{}).'.format(i, to))
 
 for i in range(numEdges - numNodes):
 	source = random.randrange(numNodes)
 	target = random.randrange(numNodes-1)
 	if target >= source:
 		target = target+1
-	print('edge(n{},n{}).'.format(source+1, target+1))
+	print('edge({},{}).'.format(source, target))

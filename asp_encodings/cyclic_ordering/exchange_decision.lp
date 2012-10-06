@@ -13,8 +13,7 @@ gtChild(I,V1,V2) :- mapped(I,V1,K1), mapped(I,V2,K2), current(V1;V2), K1 > K2.
 noMatch(I) :- lt(V1,V2), gtChild(I,V1,V2).
 match :- childTuple(I), not noMatch(I).
 
-nonLeaf :- childTuple(I).
-:- nonLeaf, not match.
+:- not match.
 
 
 

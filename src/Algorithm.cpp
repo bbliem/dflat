@@ -29,7 +29,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include "Algorithm.h"
-#include "Tuple.h"
+#include "TupleNP.h"
+#include "TupleGeneral.h"
 #include "ClaspInputReader.h"
 #include "ClaspCallbackGeneral.h"
 #include "ClaspCallbackNP.h"
@@ -97,10 +98,20 @@ sharp::ExtendedHypertree* Algorithm::prepareHypertreeDecomposition(sharp::Extend
 
 sharp::TupleTable* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertree* node)
 {
-	TupleTable* childTable = 0;
+	TupleTable* childTable;
 
 	if(node->getType() != sharp::Leaf)
 		childTable = evaluateNode(node->firstChild());
+	else {
+		// We pass an empty dummy child tuple to the actual leaf
+		childTable = new TupleTable;
+		Tuple* t;
+		if(level == 0)
+			t = new TupleNP;
+		else
+			t = new TupleGeneral;
+		(*childTable)[t] = planFactory.leaf(*t);
+	}
 
 #ifdef VERBOSE
 	printBagContents(node->getVertices());
@@ -112,16 +123,8 @@ sharp::TupleTable* Algorithm::evaluatePermutationNode(const sharp::ExtendedHyper
 	boost::timer::auto_cpu_timer timer(" %ts\n");
 #endif
 
-	TupleTable* newTable;
-
-	if(childTable) {
-		assert(node->getType() != sharp::Leaf);
-		newTable = exchangeNonLeaf(node->getVertices(), node->getIntroducedVertices(), node->getRemovedVertices(), *childTable);
-		delete childTable;
-	} else {
-		assert(node->getType() == sharp::Leaf);
-		newTable = exchangeLeaf(node->getVertices(), node->getVertices(), node->getRemovedVertices());
-	}
+	TupleTable* newTable = exchange(node->getVertices(), node->getIntroducedVertices(), node->getRemovedVertices(), *childTable, node->isRoot());
+	delete childTable;
 
 #ifdef VERBOSE
 	std::cout << std::endl << "Resulting tuples of exchange node:" << std::endl;
@@ -162,29 +165,7 @@ TupleTable* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 	return newTable;
 }
 
-TupleTable* Algorithm::exchangeLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed)
-{
-	std::stringstream* bagContents = new std::stringstream;
-	declareBagContents(*bagContents, problem, instanceFacts, vertices, introduced, removed);
-
-	Streams inputStreams;
-	inputStreams.addFile(exchangeNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
-	// Remember: "Streams" deletes the appended streams -_-
-	inputStreams.appendStream(Streams::StreamPtr(bagContents), "<bag_contents>");
-
-	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
-	ClaspInputReader inputReader(inputStreams, *outputProcessor);
-
-	TupleTable* newTable = new TupleTable;
-	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor, vertices);
-	Clasp::ClaspConfig config;
-	config.enumerate.numModels = 0;
-	clasp.solve(inputReader, config, cb.get());
-
-	return newTable;
-}
-
-TupleTable* Algorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed, const sharp::TupleTable& childTable)
+TupleTable* Algorithm::exchange(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed, const sharp::TupleTable& childTable, bool isRoot)
 {
 	TupleTable* newTable = new TupleTable;
 	// There might be no child tuples, consider as a child e.g. a join node without matches.
@@ -194,6 +175,9 @@ TupleTable* Algorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, const s
 
 	std::stringstream* bagContents = new std::stringstream;
 	declareBagContents(*bagContents, problem, instanceFacts, vertices, introduced, removed);
+
+	if(isRoot)
+		*bagContents << "root." << std::endl;
 
 	std::stringstream* childTableInput = new std::stringstream;
 	// Declare child tuples

@@ -1,6 +1,5 @@
 % Which tuple to use?
-nonLeaf :- childTuple(I).
-1 {chosenChildTuple(I) : childTuple(I)} 1 :- nonLeaf.
+1 {chosenChildTuple(I) : childTuple(I)} 1.
 % Some child tuples cannot be used since they are killed
 :- clause(C), removed(C), chosenChildTuple(I), not mapped(I,C,true).
 
