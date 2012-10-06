@@ -118,7 +118,6 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 			path[atom.level].insert(atom.value);
 	}
 
-	assert(!path.empty());
 	Row*& rowPtr = groupData[groupTerms][path.front()];
 	if(!rowPtr) {
 		rowPtr = new Row(path.front());
@@ -128,10 +127,9 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 		else
 			rowPtr->addExtensionPointerTuple(childRows);
 	}
-	else
-		rowPtr->addSubItemsPath(path.begin(), path.end());
 
 	Row& row = *rowPtr;
+	row.addSubItemsPath(path.begin(), path.end());
 
 	foreach(const LongToLiteral::value_type& it, countAtoms) {
 		if(s.isTrue(it.second)) {
