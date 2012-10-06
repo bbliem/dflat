@@ -47,20 +47,21 @@ struct Tuple : public sharp::Tuple
 	//! @param predicateName name of the predicate that should be used to declare this tuple's name
 	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateName = "childTuple") const = 0;
 
-	typedef std::map<std::string, std::string> Assignment;
+	typedef std::vector<std::string> Row;
 	/**
-	 * Each tuple has an assignment of values to vertex names, and it might
-	 * have additional information (e.g. "certificates") that are revelant to
-	 * whether an assignment is valid or not.
+	 * Each tuple consists of a row (a set of elements/items, often assignments
+	 * of values to vertex names), and it might have additional information
+	 * (e.g.  "certificates" that can be revelant to whether a tuple is valid
+	 * or not).
 	 *
-	 * @return the assignment on the vertices (without any additional
-	 * information on levels higher than 0 like, e.g., certificates.
+	 * @return this tuple's row (without any additional information on levels
+	 * higher than 0 like, e.g., certificates)
 	 */
-	virtual const Assignment& getAssignment() const = 0;
+	virtual const Row& getRow() const = 0;
 
 	/**
 	 * If using the default join implementation, this method is used to calculate the total cost of joining two child tuples.
-	 * @return cost of the (partial) assignment considering only the current vertices
+	 * @return cost of the row considering only the current vertices
 	 */
 	virtual unsigned int getCurrentCost() const { return 0; }
 

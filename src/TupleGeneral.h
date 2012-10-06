@@ -29,8 +29,8 @@ class TupleGeneral : public Tuple
 {
 public:
 	// Note that after calling the constructor the tuple does NOT have a
-	// top-level assignment yet. You must first use tree.addPath() before
-	// getAssignment() may be used.
+	// top-level row yet. You must first use tree.addPath() before
+	// getRow() may be used.
 	TupleGeneral();
 
 	virtual bool operator<(const sharp::Tuple&) const;
@@ -41,7 +41,7 @@ public:
 	virtual TupleGeneral* join(const Tuple& other) const;
 	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, unsigned childNumber) const;
 	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateName = "childTuple") const;
-	virtual const Assignment& getAssignment() const;
+	virtual const Row& getRow() const;
 	virtual unsigned int getCurrentCost() const;
 	virtual unsigned int getCost() const;
 
@@ -49,10 +49,10 @@ public:
 	virtual void print(std::ostream&) const;
 #endif
 
-	// Each assignment has a set of subordinate assignments
+	// Each row has a set of subordinate rows
 	struct Tree
 	{
-		typedef boost::container::map<Assignment, Tree> Children; // The node data is stored as the keys
+		typedef boost::container::map<Row, Tree> Children; // The node data is stored as the keys
 		Children children;
 		// std::map won't work because Tree is an incomplete type at this time.
 		// Cf. http://stackoverflow.com/questions/6527917/how-can-i-emulate-a-recursive-type-definition-in-c
@@ -61,7 +61,7 @@ public:
 		bool operator==(const Tree& rhs) const;
 		bool operator<(const Tree& rhs) const;
 
-		//! Adds the given path of assignments as descendants to this tree
+		//! Adds the given path of rows as descendants to this tree
 		template <class Iterator> void addPath(Iterator begin, Iterator end)
 		{
 			if(begin != end) {

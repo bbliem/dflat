@@ -37,7 +37,7 @@ public:
 	virtual TupleNP* join(const Tuple& other) const;
 	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, unsigned childNumber) const;
 	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateName = "childTuple") const;
-	virtual const Assignment& getAssignment() const;
+	virtual const Row& getRow() const;
 	virtual unsigned int getCurrentCost() const;
 	virtual unsigned int getCost() const;
 
@@ -45,7 +45,7 @@ public:
 	virtual void print(std::ostream&) const;
 #endif
 
-	Assignment assignment;
+	Row Row;
 	// TODO: We might distinguish tuples with cost information from those without, but OTOH the memory consumption should not be that critical
 	unsigned int currentCost;
 	unsigned int cost;

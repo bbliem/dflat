@@ -33,12 +33,12 @@ TupleNP::TupleNP()
 
 bool TupleNP::operator<(const sharp::Tuple& rhs) const
 {
-	return assignment < dynamic_cast<const TupleNP&>(rhs).assignment;
+	return row < dynamic_cast<const TupleNP&>(rhs).row;
 }
 
 bool TupleNP::operator==(const sharp::Tuple& rhs) const
 {
-	return assignment == dynamic_cast<const TupleNP&>(rhs).assignment;
+	return row == dynamic_cast<const TupleNP&>(rhs).row;
 }
 
 void TupleNP::unify(const sharp::Tuple& old)
@@ -49,12 +49,12 @@ void TupleNP::unify(const sharp::Tuple& old)
 
 bool TupleNP::matches(const Tuple& other) const
 {
-	return assignment == dynamic_cast<const TupleNP&>(other).assignment;
+	return row == dynamic_cast<const TupleNP&>(other).row;
 }
 
 TupleNP* TupleNP::join(const Tuple& other) const
 {
-	// Since according to matches() the assignments must coincide, we suppose equal currentCost
+	// Since according to matches() the rows must coincide, we suppose equal currentCost
 	assert(currentCost == dynamic_cast<const TupleNP&>(other).currentCost);
 	assert(cost >= currentCost);
 	assert(dynamic_cast<const TupleNP&>(other).cost >= dynamic_cast<const TupleNP&>(other).currentCost);
@@ -81,9 +81,9 @@ void TupleNP::declare(std::ostream& out, const sharp::TupleTable::value_type& tu
 	declareTupleExceptName(out, tupleName.str());
 }
 
-const TupleNP::Assignment& TupleNP::getAssignment() const
+const TupleNP::Row& TupleNP::getRow() const
 {
-	return assignment;
+	return row;
 }
 
 unsigned int TupleNP::getCurrentCost() const
@@ -100,7 +100,7 @@ unsigned int TupleNP::getCost() const
 void TupleNP::print(std::ostream& str) const
 {
 	str << "Tuple: ";
-	foreach(const Assignment::value_type& a, assignment)
+	foreach(const Row::value_type& a, row)
 		str << a.first << '=' << a.second << ' ';
 	str << "(cost " << cost << ")" << std::endl;
 }
@@ -109,6 +109,6 @@ void TupleNP::print(std::ostream& str) const
 inline void TupleNP::declareTupleExceptName(std::ostream& out, const std::string& tupleName) const
 {
 	out << "childCost(" << tupleName << ',' << cost << ")." << std::endl;
-	foreach(const Assignment::value_type& a, assignment)
+	foreach(const Row::value_type& a, row)
 		out << "mapped(" << tupleName << ',' << a.first << ',' << a.second << ")." << std::endl;
 }

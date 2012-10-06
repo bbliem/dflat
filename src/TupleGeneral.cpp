@@ -30,14 +30,14 @@ namespace {
 	void declareTree(const TupleGeneral::Tree& node, std::ostream& out, const std::string& parent)
 	{
 		foreach(const TupleGeneral::Tree::Children::value_type& child, node.children) {
-			// Declare this subsidiary assignment
+			// Declare this subsidiary row
 			std::ostringstream thisName;
 			thisName << 'a' << &child;
 			out << "sub(" << parent << ',' << thisName.str() << ")." << std::endl;
-			// Print the assignment
-			foreach(const TupleGeneral::Assignment::value_type& mapping, child.first)
+			// Print the row
+			foreach(const TupleGeneral::Row::value_type& mapping, child.first)
 				out << "mapped(" << thisName.str() << ',' << mapping.first << ',' << mapping.second << ")." << std::endl;
-			// Print its child assignments
+			// Print its child rows
 			declareTree(child.second, out, thisName.str());
 		}
 	}
@@ -108,7 +108,7 @@ void TupleGeneral::declare(std::ostream& out, const sharp::TupleTable::value_typ
 	declareTupleExceptName(out, tupleName.str());
 }
 
-const Tuple::Assignment& TupleGeneral::getAssignment() const
+const Tuple::Row& TupleGeneral::getRow() const
 {
 	assert(tree.children.size() == 1);
 	return tree.children.begin()->first;
@@ -129,7 +129,7 @@ namespace {
 	void printTree(std::ostream& out, const TupleGeneral::Tree& tree, const std::string& indent = "") {
 		foreach(const TupleGeneral::Tree::Children::value_type& child, tree.children) {
 			out << indent;
-			foreach(const Tuple::Assignment::value_type& pair, child.first)
+			foreach(const Tuple::Row::value_type& pair, child.first)
 				out << pair.first << '=' << pair.second << ' ';
 			out << std::endl;
 			printTree(out, child.second, indent + "  ");
@@ -151,9 +151,9 @@ inline void TupleGeneral::declareTupleExceptName(std::ostream& out, const std::s
 
 	assert(tree.children.size() == 1);
 	Tree::Children::const_iterator root = tree.children.begin();
-	// Print the top-level assignment
-	foreach(const Assignment::value_type& mapping, root->first)
+	// Print the top-level row
+	foreach(const Row::value_type& mapping, root->first)
 		out << "mapped(" << tupleName << ',' << mapping.first << ',' << mapping.second << ")." << std::endl;
-	// Print subsidiary assignments
+	// Print subsidiary rows
 	declareTree(root->second, out, tupleName);
 }
