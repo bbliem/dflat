@@ -17,8 +17,7 @@ vertex(V) :- order(V,_,_).
 vertex(V) :- order(_,V,_).
 vertex(V) :- order(_,_,V).
 
-n(N) :- N = #count { vertex(V) }.
-1 { map(V,1..N) } 1 :- vertex(V), n(N).
+1 { map(V,1..N) } 1 :- vertex(V), N = #count { vertex(_) }.
 :- map(V1,K), map(V2,K), V1 < V2. % 1-to-1 mapping
 
 lt(V1,V2) :- map(V1,K1), map(V2,K2), K1 < K2.

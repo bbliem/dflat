@@ -1,17 +1,20 @@
-1 {r(X), g(X), b(X)} 1 :- current(X).
+color(red;green;blue).
+1 {map(X,C) : color(C)} 1 :- current(X).
+:- edge(X,Y), map(X,C), map(Y,C).
+
 nonLeaf :- childTuple(I).
 
-noMatch(I) :- childTuple(I), r(X), oldG(I,X).
-noMatch(I) :- childTuple(I), r(X), oldB(I,X).
-noMatch(I) :- childTuple(I), g(X), oldR(I,X).
-noMatch(I) :- childTuple(I), g(X), oldB(I,X).
-noMatch(I) :- childTuple(I), b(X), oldR(I,X).
-noMatch(I) :- childTuple(I), b(X), oldG(I,X).
+noMatch(I) :- childTuple(I), map(X,C), mapped(I,X,OldC), C != OldC.
+noMatch(I) :- childTuple(I), map(X,C), mapped(I,X,OldC), C != OldC.
+noMatch(I) :- childTuple(I), map(X,C), mapped(I,X,OldC), C != OldC.
 
 match :- childTuple(I), not noMatch(I).
 :- nonLeaf, not match.
 
+% TODO: These are auxiliary predicates until the first-order interface is done
+mapped(I,X,C) :- mapped(I,0,X,C).
+error :- mapped(_,L,_,_), L != 0.
+:- error.
+map(0,X,C) :- map(X,C).
 #hide.
-#show r/1.
-#show g/1.
-#show b/1.
+#show map/3.

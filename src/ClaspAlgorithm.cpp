@@ -15,12 +15,6 @@ namespace {
 	{
 		bagContents << instanceFacts << std::endl;
 
-//		foreach(sharp::Vertex v, vertices)
-//			bagContents << "current(v" << v << ")." << std::endl;
-//		foreach(sharp::Vertex v, introduced)
-//			bagContents << "introduced(v" << v << ")." << std::endl;
-//		foreach(sharp::Vertex v, removed)
-//			bagContents << "removed(v" << v << ")." << std::endl;
 		foreach(sharp::Vertex v, vertices)
 			bagContents << "current(" << const_cast<sharp::Problem&>(problem).getVertexName(v) << ")." << std::endl;
 		foreach(sharp::Vertex v, introduced)
@@ -73,7 +67,7 @@ TupleSet* ClaspAlgorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, cons
 	std::stringstream* childTuplesInput = new std::stringstream;
 	// Declare child tuples
 	foreach(const TupleSet::value_type& tupleAndSolution, childTuples)
-		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTuplesInput, tupleAndSolution, vertices);
+		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTuplesInput, tupleAndSolution);
 #ifdef VERBOSE
 	std::cout << std::endl << "Child tuple input:" << std::endl << childTuplesInput->str() << std::endl;
 #endif

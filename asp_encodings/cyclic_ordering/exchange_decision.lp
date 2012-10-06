@@ -1,5 +1,4 @@
-n(N) :- N = #count { current(V) }.
-1 { map(V,1..N) } 1 :- current(V), n(N).
+1 { map(V,1..N) } 1 :- current(V), N = #count { current(_) }.
 :- map(V1,K), map(V2,K), V1 != V2. % TODO: Use < instead (symmetry)?
 
 lt(V1,V2) :- map(V1,K1), map(V2,K2), K1 < K2.
@@ -17,5 +16,10 @@ match :- childTuple(I), not noMatch(I).
 nonLeaf :- childTuple(I).
 :- nonLeaf, not match.
 
+% TODO: These are auxiliary predicates until the first-order interface is done
+mapped(I,X,C) :- mapped(I,0,X,C).
+error :- mapped(_,L,_,_), L != 0.
+:- error.
+map(0,X,C) :- map(X,C).
 #hide.
-#show map/2.
+#show map/3.

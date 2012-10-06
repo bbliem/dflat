@@ -15,9 +15,10 @@ namespace {
 
 	void usage(const char* program) {
 		const int w = 20;
-		std::cerr << "Usage: " << program << " -e hyperedge_pred [...] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats] exchange_program < instance" << std::endl;
+		std::cerr << "Usage: " << program << " -e hyperedge_pred [...] [-l level] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats] exchange_program < instance" << std::endl;
 		std::cerr << std::endl << std::left;
 		std::cerr << '\t' << std::setw(w) << "-e hyperedge_pred: " << "Name of a predicate that declares hyperedges (must be specified at least once)" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-l level: " << "Level on polynomial hierarchy; determines depth of tuple assignment tree. Default: 0" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\" or \"decision\"" << std::endl;
@@ -41,6 +42,7 @@ namespace {
 
 int main(int argc, char** argv)
 {
+	unsigned int level = 0;
 	enum { ENUMERATION, COUNTING, DECISION } problemType = ENUMERATION;
 	time_t seed = time(0);
 	sharp::NormalizationType normalizationType = sharp::SemiNormalization;
@@ -63,6 +65,14 @@ int main(int argc, char** argv)
 				normalizationType = sharp::DefaultNormalization;
 			else
 				usage(argv[0]);
+		}
+		else if(arg == "-l" && hasArg) {
+			char* endptr;
+			level = strtol(argv[++i], &endptr, 0);
+			if(*endptr) {
+				std::cerr << "Invalid level" << std::endl;
+				usage(argv[0]);
+			}
 		}
 		else if(arg == "--only-decompose")
 			onlyDecompose = true;
@@ -124,7 +134,7 @@ int main(int argc, char** argv)
 	if(onlyDecompose)
 		return 0;
 
-	asdp::ClaspAlgorithm algorithm(problem, exchangeProgram, inputString, normalizationType);
+	asdp::ClaspAlgorithm algorithm(problem, exchangeProgram, inputString, normalizationType, level);
 	sharp::Solution* solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 
 	// Print solution
