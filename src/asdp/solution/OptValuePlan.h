@@ -12,7 +12,7 @@ public:
 	static OptValuePlan* leaf(const Tuple& tuple);
 	static OptValuePlan* extend(const OptValuePlan* base, const Tuple& extension);
 	static OptValuePlan* unify(const OptValuePlan* left, const OptValuePlan* right);
-	static OptValuePlan* join(const OptValuePlan* left, const OptValuePlan* right);
+	static OptValuePlan* join(const OptValuePlan* left, const OptValuePlan* right, const Tuple& joined);
 
 protected:
 	virtual sharp::Solution* materializeLeaf() const;

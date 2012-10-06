@@ -33,11 +33,14 @@ struct Tuple : public sharp::Tuple
 	 */
 	virtual const Assignment& getAssignment() const = 0;
 
-	//! @return cost of the (partial) assignment considering only the current vertices
+	/**
+	 * If using the default join implementation, this method is used to calculate the total cost of joining two child tuples.
+	 * @return cost of the (partial) assignment considering only the current vertices
+	 */
 	virtual unsigned int getCurrentCost() const { return 0; }
 
-	//! @return cost that was added to the total cost of the current assignment by this tuple
-	virtual unsigned int getIntroducedCost() const { return 0; }
+	//! @return cost of the (partial) solution of this tuple, considering the current and all forgotten vertices
+	virtual unsigned int getCost() const { return 0; }
 
 #ifdef VERBOSE
 	virtual void print(std::ostream&) const = 0;

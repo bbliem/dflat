@@ -13,13 +13,13 @@ OptValuePlan::OptValuePlan(unsigned cost, unsigned currentCost)
 
 OptValuePlan* OptValuePlan::leaf(const Tuple& tuple)
 {
-	assert(tuple.getCurrentCost() == tuple.getIntroducedCost());
-	return new OptValuePlan(tuple.getCurrentCost(), tuple.getCurrentCost());
+	assert(!tuple.getCost() || tuple.getCurrentCost() == tuple.getCost());
+	return new OptValuePlan(tuple.getCost(), tuple.getCurrentCost());
 }
 
 OptValuePlan* OptValuePlan::extend(const OptValuePlan* base, const Tuple& extension)
 {
-	return new OptValuePlan(base->cost + extension.getIntroducedCost(), extension.getCurrentCost());
+	return new OptValuePlan(extension.getCost(), extension.getCurrentCost());
 }
 
 OptValuePlan* OptValuePlan::unify(const OptValuePlan* left, const OptValuePlan* right)
@@ -32,11 +32,9 @@ OptValuePlan* OptValuePlan::unify(const OptValuePlan* left, const OptValuePlan* 
 		return new OptValuePlan(*right);
 }
 
-OptValuePlan* OptValuePlan::join(const OptValuePlan* left, const OptValuePlan* right)
+OptValuePlan* OptValuePlan::join(const OptValuePlan* left, const OptValuePlan* right, const Tuple& joined)
 {
-	assert(left->currentCost == right->currentCost);
-	// currentCost is contained in both left->cost and right->cost, so subtract it once
-	return new OptValuePlan(left->cost + right->cost - left->currentCost, left->currentCost);
+	return new OptValuePlan(joined.getCost(), joined.getCurrentCost());
 }
 
 sharp::Solution* OptValuePlan::materializeLeaf() const

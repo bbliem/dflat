@@ -139,7 +139,7 @@ sharp::TupleTable* Algorithm::join(const sharp::VertexSet&, sharp::TupleTable& l
 joinLitWithAllPartners:
 		do {
 			sharp::Tuple* t = TUP(lit).join(TUP(rit));
-			Plan* p = planFactory.join(lit->second, rit->second);
+			Plan* p = planFactory.join(lit->second, rit->second, *t);
 			addRowToTupleTable(*tt, t, p);
 			++rit;
 		} while(rit != right.end() && TUP(lit).matches(TUP(rit)));

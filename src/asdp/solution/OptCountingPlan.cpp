@@ -11,13 +11,13 @@ OptCountingPlan::OptCountingPlan(const OptCountingSolution::CountType& count, un
 
 OptCountingPlan* OptCountingPlan::leaf(const Tuple& tuple)
 {
-	assert(tuple.getCurrentCost() == tuple.getIntroducedCost());
-	return new OptCountingPlan(1, tuple.getCurrentCost(), tuple.getCurrentCost());
+	assert(!tuple.getCost() || tuple.getCurrentCost() == tuple.getCost());
+	return new OptCountingPlan(1, tuple.getCost(), tuple.getCurrentCost());
 }
 
 OptCountingPlan* OptCountingPlan::extend(const OptCountingPlan* base, const Tuple& extension)
 {
-	return new OptCountingPlan(base->count, base->cost + extension.getIntroducedCost(), extension.getCurrentCost());
+	return new OptCountingPlan(base->count, extension.getCost(), extension.getCurrentCost());
 }
 
 OptCountingPlan* OptCountingPlan::unify(const OptCountingPlan* left, const OptCountingPlan* right)
@@ -32,11 +32,9 @@ OptCountingPlan* OptCountingPlan::unify(const OptCountingPlan* left, const OptCo
 		return new OptCountingPlan(left->count + right->count, left->cost, left->currentCost);
 }
 
-OptCountingPlan* OptCountingPlan::join(const OptCountingPlan* left, const OptCountingPlan* right)
+OptCountingPlan* OptCountingPlan::join(const OptCountingPlan* left, const OptCountingPlan* right, const Tuple& joined)
 {
-	assert(left->currentCost == right->currentCost);
-	// currentCost is contained in both left->cost and right->cost, so subtract it once
-	return new OptCountingPlan(left->count * right->count, left->cost + right->cost - left->currentCost, left->currentCost);
+	return new OptCountingPlan(left->count * right->count, joined.getCost(), joined.getCurrentCost());
 }
 
 sharp::Solution* OptCountingPlan::materializeLeaf() const

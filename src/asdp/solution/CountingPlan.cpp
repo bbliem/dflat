@@ -24,7 +24,7 @@ CountingPlan* CountingPlan::unify(const CountingPlan* left, const CountingPlan* 
 	return new CountingPlan(left->count + right->count);
 }
 
-CountingPlan* CountingPlan::join(const CountingPlan* left, const CountingPlan* right)
+CountingPlan* CountingPlan::join(const CountingPlan* left, const CountingPlan* right, const sharp::Tuple&)
 {
 	return new CountingPlan(left->count * right->count);
 }

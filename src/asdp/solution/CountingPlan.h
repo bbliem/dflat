@@ -12,7 +12,7 @@ public:
 	static CountingPlan* leaf(const sharp::Tuple&);
 	static CountingPlan* extend(const CountingPlan* base, const sharp::Tuple&);
 	static CountingPlan* unify(const CountingPlan* left, const CountingPlan* right);
-	static CountingPlan* join(const CountingPlan* left, const CountingPlan* right);
+	static CountingPlan* join(const CountingPlan* left, const CountingPlan* right, const sharp::Tuple&);
 
 protected:
 	virtual sharp::Solution* materializeLeaf() const;

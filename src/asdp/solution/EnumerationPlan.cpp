@@ -3,13 +3,13 @@
 
 namespace asdp { namespace solution {
 
-EnumerationPlan::EnumerationPlan(Operation operation, const Tuple::Assignment& extension, const EnumerationPlan* left, const EnumerationPlan* right)
-	: Plan(operation), extension(extension), left(left), right(right)
+EnumerationPlan::EnumerationPlan(Operation operation, const Tuple::Assignment& assignment, const EnumerationPlan* left, const EnumerationPlan* right)
+	: Plan(operation), assignment(assignment), left(left), right(right)
 {
 }
 
-EnumerationPlan::EnumerationPlan(Operation operation, const EnumerationPlan* left, const EnumerationPlan* right)
-	: Plan(operation), left(left), right(right)
+EnumerationPlan::EnumerationPlan(const EnumerationPlan* left, const EnumerationPlan* right)
+	: Plan(UNION), left(left), right(right)
 {
 }
 
@@ -25,25 +25,25 @@ EnumerationPlan* EnumerationPlan::extend(const EnumerationPlan* base, const Tupl
 
 EnumerationPlan* EnumerationPlan::unify(const EnumerationPlan* left, const EnumerationPlan* right)
 {
-	return new EnumerationPlan(UNION, left, right);
+	return new EnumerationPlan(left, right);
 }
 
-EnumerationPlan* EnumerationPlan::join(const EnumerationPlan* left, const EnumerationPlan* right)
+EnumerationPlan* EnumerationPlan::join(const EnumerationPlan* left, const EnumerationPlan* right, const Tuple& joined)
 {
-	return new EnumerationPlan(JOIN, left, right);
+	return new EnumerationPlan(JOIN, joined.getAssignment(), left, right);
 }
 
 sharp::Solution* EnumerationPlan::materializeLeaf() const
 {
 	assert(operation == LEAF);
-	return EnumerationSolution::leaf(extension);
+	return EnumerationSolution::leaf(assignment);
 }
 
 sharp::Solution* EnumerationPlan::materializeExtension() const
 {
 	assert(operation == EXTENSION && left);
 	EnumerationSolution* baseSolution = dynamic_cast<EnumerationSolution*>(left->materialize());
-	return EnumerationSolution::extend(baseSolution, extension);
+	return EnumerationSolution::extend(baseSolution, assignment);
 }
 
 sharp::Solution* EnumerationPlan::materializeUnion() const

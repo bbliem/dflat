@@ -66,9 +66,9 @@ TupleTable* ClaspAlgorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, co
 	// Declare child tuples
 	foreach(const TupleTable::value_type& tupleAndSolution, childTable)
 		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTableInput, tupleAndSolution);
-#ifdef VERBOSE
-	std::cout << std::endl << "Child tuple input:" << std::endl << childTableInput->str() << std::endl;
-#endif
+//#ifdef VERBOSE
+//	std::cout << std::endl << "Child tuple input:" << std::endl << childTableInput->str() << std::endl;
+//#endif
 
 	Streams inputStreams;
 	inputStreams.addFile(exchangeNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
@@ -100,9 +100,9 @@ TupleTable* ClaspAlgorithm::join(const sharp::VertexSet& vertices, sharp::TupleT
 		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTableInput, tupleAndSolution, "L");
 	foreach(const TupleTable::value_type& tupleAndSolution, childTableRight)
 		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTableInput, tupleAndSolution, "R");
-#ifdef VERBOSE
-	std::cout << std::endl << "Child tuple input:" << std::endl << childTableInput->str() << std::endl;
-#endif
+//#ifdef VERBOSE
+//	std::cout << std::endl << "Child tuple input:" << std::endl << childTableInput->str() << std::endl;
+//#endif
 
 	Streams inputStreams;
 	inputStreams.addFile(joinNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet

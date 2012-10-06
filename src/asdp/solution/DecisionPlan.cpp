@@ -26,7 +26,7 @@ DecisionPlan* DecisionPlan::unify(const DecisionPlan*, const DecisionPlan*)
 	return new DecisionPlan;
 }
 
-DecisionPlan* DecisionPlan::join(const DecisionPlan*, const DecisionPlan*)
+DecisionPlan* DecisionPlan::join(const DecisionPlan*, const DecisionPlan*, const sharp::Tuple&)
 {
 	return new DecisionPlan;
 }

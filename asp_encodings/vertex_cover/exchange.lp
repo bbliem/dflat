@@ -8,10 +8,11 @@ map(X,out) :- out(X).
 :- edge(X,Y), map(X,out), map(Y,out).
 
 currentCost(C) :- C = #count{ map(_,in) }. % Cost of current vertices
-introducedCost(C) :- C = #count{ in(_) }. % Additional cost added to that of the child tuple
+cost(C) :- currentCost(C), not nonLeaf.
+cost(C) :- chosenChildTuple(I), childCost(I,CC), IC = #count{ in(_) }, C = CC + IC.
 
 #hide.
 #show chosenChildTuple/1.
 #show currentCost/1.
-#show introducedCost/1.
+#show cost/1.
 #show map/2.

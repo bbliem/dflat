@@ -31,7 +31,7 @@ public:
 	const LongToSymbolTableKey& getChosenChildTupleLAtoms() const { return chosenChildTupleLAtoms; }
 	const LongToSymbolTableKey& getChosenChildTupleRAtoms() const { return chosenChildTupleRAtoms; }
 	const LongToSymbolTableKey& getCurrentCostAtoms() const { return currentCostAtoms; }
-	const LongToSymbolTableKey& getIntroducedCostAtoms() const { return introducedCostAtoms; }
+	const LongToSymbolTableKey& getCostAtoms() const { return costAtoms; }
 
 private:
 	const sharp::Problem& problem;
@@ -41,7 +41,7 @@ private:
 	LongToSymbolTableKey chosenChildTupleLAtoms; // same for chosenChildTupleL(address)
 	LongToSymbolTableKey chosenChildTupleRAtoms; // same for chosenChildTupleR(address)
 	LongToSymbolTableKey currentCostAtoms;
-	LongToSymbolTableKey introducedCostAtoms;
+	LongToSymbolTableKey costAtoms;
 
 	void storeChildTupleAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store);
 	void storeCostAtom(const std::string& name, const AtomRef& atom, LongToSymbolTableKey& store);

@@ -27,12 +27,11 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				chosenChildTupleRAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getIntroducedCostAtoms())
-				introducedCostAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
+				costAtoms[it.first] = symTab[it.second].lit;
 		}
-		else if(e == Clasp::ClaspFacade::event_state_exit) {
+		else if(e == Clasp::ClaspFacade::event_state_exit)
 			pathCollection.fillTupleTable(tupleTable, algorithm);
-		}
 	}
 }
 
@@ -55,7 +54,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	const sharp::TupleTable::value_type* leftTupleAndPlan = 0;
 	const sharp::TupleTable::value_type* rightTupleAndPlan = 0;
 	unsigned currentCost = 0;
-	unsigned introducedCost = 0;
+	unsigned cost = 0;
 
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleAtoms) {
 		if(s.isTrue(it.second)) {
@@ -97,10 +96,10 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		}
 	}
 
-	foreach(const LongToLiteral::value_type& it, introducedCostAtoms) {
+	foreach(const LongToLiteral::value_type& it, costAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(introducedCost == 0);
-			introducedCost = it.first;
+			assert(cost == 0);
+			cost = it.first;
 #ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
 			break;
 #endif
@@ -124,10 +123,10 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 
 	if(oldTupleAndPlan)
 		leftTupleAndPlan = oldTupleAndPlan;
-	pathCollection.insert(path, leftTupleAndPlan, rightTupleAndPlan, currentCost, introducedCost);
+	pathCollection.insert(path, leftTupleAndPlan, rightTupleAndPlan, currentCost, cost);
 }
 
-inline void ClaspCallback::PathCollection::insert(const Path& path, const TableRow* leftPredecessor, const TableRow* rightPredecessor, unsigned currentCost, unsigned introducedCost)
+inline void ClaspCallback::PathCollection::insert(const Path& path, const TableRow* leftPredecessor, const TableRow* rightPredecessor, unsigned currentCost, unsigned cost)
 {
 	assert(!path.empty());
 	TopLevelAssignmentToTupleData& tupleDataMap = predecessorData[TableRowPair(leftPredecessor, rightPredecessor)];
@@ -136,9 +135,9 @@ inline void ClaspCallback::PathCollection::insert(const Path& path, const TableR
 
 	tupleData.paths.push_back(path);
 	assert(tupleData.currentCost == 0 || tupleData.currentCost == currentCost);
-	assert(tupleData.introducedCost == 0 || tupleData.introducedCost == introducedCost);
+	assert(tupleData.cost == 0 || tupleData.cost == cost);
 	tupleData.currentCost = currentCost;
-	tupleData.introducedCost = introducedCost;
+	tupleData.cost = cost;
 }
 
 inline void ClaspCallback::PathCollection::fillTupleTable(sharp::TupleTable& tupleTable, const ClaspAlgorithm& algorithm) const
@@ -151,7 +150,7 @@ inline void ClaspCallback::PathCollection::fillTupleTable(sharp::TupleTable& tup
 
 			Tuple& newTuple = *new Tuple;
 			newTuple.currentCost = tupleData.currentCost;
-			newTuple.introducedCost = tupleData.introducedCost;
+			newTuple.cost = tupleData.cost;
 
 			foreach(const Path& path, tupleData.paths) {
 				assert(path.front() == it2.first); // top-level assignment must coincide
@@ -163,7 +162,7 @@ inline void ClaspCallback::PathCollection::fillTupleTable(sharp::TupleTable& tup
 				// This is a join node
 				assert(predecessors.first);
 				algorithm.addRowToTupleTable(tupleTable, &newTuple,
-						algorithm.getPlanFactory().join(predecessors.first->second, predecessors.second->second));
+						algorithm.getPlanFactory().join(predecessors.first->second, predecessors.second->second, newTuple));
 			} else if(predecessors.first) {
 				// This is an exchange node
 				algorithm.addRowToTupleTable(tupleTable, &newTuple,

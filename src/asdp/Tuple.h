@@ -14,13 +14,14 @@ public:
 
 	virtual bool operator<(const sharp::Tuple&) const;
 	virtual bool operator==(const sharp::Tuple&) const;
+	virtual void unify(const sharp::Tuple& old);
 
 	virtual bool matches(const ::Tuple& other) const;
 	virtual Tuple* join(const ::Tuple& other) const;
 	virtual void declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix = "") const;
 	virtual const Assignment& getAssignment() const;
 	virtual unsigned int getCurrentCost() const;
-	virtual unsigned int getIntroducedCost() const;
+	virtual unsigned int getCost() const;
 
 #ifdef VERBOSE
 	virtual void print(std::ostream&) const;
@@ -50,7 +51,7 @@ public:
 
 	// TODO: We might distinguish tuples with cost information from those without, but OTOH the memory consumption should not be that critical
 	unsigned int currentCost;
-	unsigned int introducedCost;
+	unsigned int cost;
 };
 
 } // namespace asdp

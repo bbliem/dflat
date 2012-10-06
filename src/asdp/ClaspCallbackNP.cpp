@@ -33,8 +33,8 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				chosenChildTupleRAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getIntroducedCostAtoms())
-				introducedCostAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
+				costAtoms[it.first] = symTab[it.second].lit;
 	}
 }
 
@@ -99,10 +99,10 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 		}
 	}
 
-	foreach(const LongToLiteral::value_type& it, introducedCostAtoms) {
+	foreach(const LongToLiteral::value_type& it, costAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(newTuple.introducedCost == 0);
-			newTuple.introducedCost = it.first;
+			assert(newTuple.cost == 0);
+			newTuple.cost = it.first;
 #ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
 			break;
 #endif
@@ -132,7 +132,7 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	} else if(leftTupleAndPlan && rightTupleAndPlan) {
 		// This is a join node
 		algorithm.addRowToTupleTable(tupleTable, &newTuple,
-				algorithm.getPlanFactory().join(leftTupleAndPlan->second, rightTupleAndPlan->second));
+				algorithm.getPlanFactory().join(leftTupleAndPlan->second, rightTupleAndPlan->second, newTuple));
 	} else {
 		assert(!oldTupleAndPlan && !leftTupleAndPlan && !rightTupleAndPlan);
 		// This is a leaf node (or we don't have chosenChildTuples because we only solve the decision problem)

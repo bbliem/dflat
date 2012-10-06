@@ -61,9 +61,9 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 		assert(arity == 1);
 		storeCostAtom(name, atom, currentCostAtoms);
 	}
-	else if(name == "introducedCost") {
+	else if(name == "cost") {
 		assert(arity == 1);
-		storeCostAtom(name, atom, introducedCostAtoms);
+		storeCostAtom(name, atom, costAtoms);
 	}
 }
 

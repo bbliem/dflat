@@ -19,7 +19,7 @@ namespace {
 namespace asdp {
 
 Tuple::Tuple()
-	: currentCost(0), introducedCost(0)
+	: currentCost(0), cost(0)
 {
 }
 
@@ -43,6 +43,12 @@ bool Tuple::operator==(const sharp::Tuple& rhs) const
 	return tree == dynamic_cast<const Tuple&>(rhs).tree;
 }
 
+void Tuple::unify(const sharp::Tuple& old)
+{
+	assert(currentCost == dynamic_cast<const Tuple&>(old).currentCost);
+	cost = std::min(cost, dynamic_cast<const Tuple&>(old).cost);
+}
+
 bool Tuple::matches(const ::Tuple& other) const
 {
 	return tree == dynamic_cast<const Tuple&>(other).tree;
@@ -50,13 +56,22 @@ bool Tuple::matches(const ::Tuple& other) const
 
 Tuple* Tuple::join(const ::Tuple& other) const
 {
-	return new Tuple(*this);
+	// Since according to matches() the trees must coincide, we suppose equal currentCost
+	assert(currentCost == dynamic_cast<const Tuple&>(other).currentCost);
+	assert(cost >= currentCost);
+	assert(dynamic_cast<const Tuple&>(other).cost >= dynamic_cast<const Tuple&>(other).currentCost);
+
+	Tuple* t = new Tuple(*this);
+	// currentCost is contained in both this->cost and other.cost, so subtract it once
+	t->cost = (this->cost - currentCost) + dynamic_cast<const Tuple&>(other).cost;
+	return t;
 }
 
 void Tuple::declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix) const
 {
 	out << "childTuple" << predicateSuffix << "(t" << &tupleAndSolution << ")." << std::endl;
 	declareTree(tree, out, tupleAndSolution, 0);
+	out << "childCost(t" << &tupleAndSolution << ',' << cost << ")." << std::endl;
 }
 
 const Tuple::Assignment& Tuple::getAssignment() const
@@ -70,9 +85,9 @@ unsigned int Tuple::getCurrentCost() const
 	return currentCost;
 }
 
-unsigned int Tuple::getIntroducedCost() const
+unsigned int Tuple::getCost() const
 {
-	return introducedCost;
+	return cost;
 }
 
 #ifdef VERBOSE
@@ -92,6 +107,7 @@ void Tuple::print(std::ostream& str) const
 {
 	str << "Tuple:" << std::endl;
 	printTree(str, tree);
+	str << "(cost " << cost << ")" << std::endl;
 }
 #endif
 

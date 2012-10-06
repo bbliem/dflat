@@ -13,7 +13,7 @@ public:
 	static OptCountingPlan* leaf(const Tuple& tuple);
 	static OptCountingPlan* extend(const OptCountingPlan* base, const Tuple& extension);
 	static OptCountingPlan* unify(const OptCountingPlan* left, const OptCountingPlan* right);
-	static OptCountingPlan* join(const OptCountingPlan* left, const OptCountingPlan* right);
+	static OptCountingPlan* join(const OptCountingPlan* left, const OptCountingPlan* right, const Tuple& joined);
 
 protected:
 	virtual sharp::Solution* materializeLeaf() const;

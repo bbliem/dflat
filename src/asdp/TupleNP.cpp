@@ -8,7 +8,7 @@
 namespace asdp {
 
 TupleNP::TupleNP()
-	: currentCost(0), introducedCost(0)
+	: currentCost(0), cost(0)
 {
 }
 
@@ -22,6 +22,12 @@ bool TupleNP::operator==(const sharp::Tuple& rhs) const
 	return assignment == dynamic_cast<const TupleNP&>(rhs).assignment;
 }
 
+void TupleNP::unify(const sharp::Tuple& old)
+{
+	assert(currentCost == dynamic_cast<const TupleNP&>(old).currentCost);
+	cost = std::min(cost, dynamic_cast<const TupleNP&>(old).cost);
+}
+
 bool TupleNP::matches(const ::Tuple& other) const
 {
 	return assignment == dynamic_cast<const TupleNP&>(other).assignment;
@@ -29,7 +35,15 @@ bool TupleNP::matches(const ::Tuple& other) const
 
 TupleNP* TupleNP::join(const ::Tuple& other) const
 {
-	return new TupleNP(*this);
+	// Since according to matches() the assignments must coincide, we suppose equal currentCost
+	assert(currentCost == dynamic_cast<const TupleNP&>(other).currentCost);
+	assert(cost >= currentCost);
+	assert(dynamic_cast<const TupleNP&>(other).cost >= dynamic_cast<const TupleNP&>(other).currentCost);
+
+	TupleNP* t = new TupleNP(*this);
+	// currentCost is contained in both left->cost and right->cost, so subtract it once
+	t->cost = (this->cost - currentCost) + dynamic_cast<const TupleNP&>(other).cost;
+	return t;
 }
 
 void TupleNP::declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix) const
@@ -37,6 +51,7 @@ void TupleNP::declare(std::ostream& out, const sharp::TupleTable::value_type& tu
 	out << "childTuple" << predicateSuffix << "(t" << &tupleAndSolution << ")." << std::endl;
 	foreach(const Assignment::value_type& a, assignment)
 		out << "mapped(t" << &tupleAndSolution << ',' << a.first << ',' << a.second << ")." << std::endl;
+	out << "childCost(t" << &tupleAndSolution << ',' << cost << ")." << std::endl;
 }
 
 const TupleNP::Assignment& TupleNP::getAssignment() const
@@ -49,9 +64,9 @@ unsigned int TupleNP::getCurrentCost() const
 	return currentCost;
 }
 
-unsigned int TupleNP::getIntroducedCost() const
+unsigned int TupleNP::getCost() const
 {
-	return introducedCost;
+	return cost;
 }
 
 #ifdef VERBOSE
@@ -60,7 +75,7 @@ void TupleNP::print(std::ostream& str) const
 	str << "Tuple: ";
 	foreach(const Assignment::value_type& a, assignment)
 		str << a.first << '=' << a.second << ' ';
-	str << std::endl;
+	str << "(cost " << cost << ")" << std::endl;
 }
 #endif
 

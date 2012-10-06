@@ -45,7 +45,7 @@ private:
 	LongToLiteral chosenChildTupleLAtoms;
 	LongToLiteral chosenChildTupleRAtoms;
 	LongToLiteral currentCostAtoms;
-	LongToLiteral introducedCostAtoms;
+	LongToLiteral costAtoms;
 
 #ifndef NDEBUG
 	std::set<std::string> vertices; // To check if all vertices are assigned
