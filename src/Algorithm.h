@@ -10,7 +10,6 @@ public:
 
 protected:
 	virtual sharp::Solution* selectSolution(sharp::TupleSet* tuples, const sharp::ExtendedHypertree* root);
-	virtual sharp::TupleSet* evaluateBranchNode(const sharp::ExtendedHypertree* node);
 
 	/**
 	 * Do not override this! Rather override exchangeLeaf() and
@@ -18,10 +17,14 @@ protected:
 	 * afterwards, and optionally outputs debug information.
 	 */
 	sharp::TupleSet* evaluatePermutationNode(const sharp::ExtendedHypertree* node);
+	//! The same goes for this method.
+	sharp::TupleSet* evaluateBranchNode(const sharp::ExtendedHypertree* node);
 
 	// Override these methods to process exchange nodes. Potential child tuples are passed to exchangeNonLeaf().
 	virtual sharp::TupleSet* exchangeLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed) = 0;
 	virtual sharp::TupleSet* exchangeNonLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed, const sharp::TupleSet& childTuples) = 0;
+	// Override this method to process join nodes. If you don't, there's a default implementation.
+	virtual sharp::TupleSet* join(const sharp::VertexSet& vertices, sharp::TupleSet& childTuplesLeft, sharp::TupleSet& childTuplesRight);
 
 	virtual sharp::ExtendedHypertree* prepareHypertreeDecomposition(sharp::ExtendedHypertree* root);
 

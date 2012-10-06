@@ -45,6 +45,8 @@ private:
 	std::vector<MapAtom> mapAtoms;
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
 	LongToLiteral chosenChildTupleAtoms;
+	LongToLiteral chosenChildTupleLAtoms;
+	LongToLiteral chosenChildTupleRAtoms;
 
 	// Because one tuple can be constituted of multiple AS's, we cannot insert new tuples upon arrival of a new AS but must rather collect all AS data until the solve state is finished.
 	typedef std::vector<Tuple::Assignment> Path; // By "path" we denote a path from root to leaf in Tuple::Tree. Each AS characterizes exactly one path.

@@ -15,16 +15,17 @@ namespace {
 
 	void usage(const char* program) {
 		const int w = 20;
-		std::cerr << "Usage: " << program << " -e hyperedge_pred [...] [-l level] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats] exchange_program < instance" << std::endl;
+		std::cerr << "Usage: " << program << " -e hyperedge_pred [...] [-j join_program] [-l level] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats] -x exchange_program < instance" << std::endl;
 		std::cerr << std::endl << std::left;
 		std::cerr << '\t' << std::setw(w) << "-e hyperedge_pred: " << "Name of a predicate that declares hyperedges (must be specified at least once)" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-j join_program: " << "File name of the logic program executed in join nodes (if omitted join equal tuples)" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-l level: " << "Level on polynomial hierarchy; determines depth of tuple assignment tree. Default: 0" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\" or \"decision\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-s seed: " << "Initialize random number generator with <seed>" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--stats: " << "Print statistics" << std::endl;
-		std::cerr << '\t' << std::setw(w) << "exchange_program: " << "File name of the logic program executed in exchange nodes" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-x exchange_program: " << "File name of the logic program executed in exchange nodes" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "instance: " << "File name of the set of facts representing an instance" << std::endl;
 		std::cerr << std::endl;
 		std::cerr << "Exit code " << CONSISTENT << " means consistent, " << INCONSISTENT << " means inconsistent." << std::endl;
@@ -49,6 +50,7 @@ int main(int argc, char** argv)
 	bool onlyDecompose = false;
 	bool stats = false;
 	const char* exchangeProgram = 0;
+	const char* joinProgram = 0;
 	std::set<std::string> hyperedgePredicateNames;
 
 	for(int i = 1; i < argc; ++i) {
@@ -65,6 +67,12 @@ int main(int argc, char** argv)
 				normalizationType = sharp::DefaultNormalization;
 			else
 				usage(argv[0]);
+		}
+		else if(arg == "-j" && hasArg) {
+			if(joinProgram)
+				usage(argv[0]);
+			else
+				joinProgram = argv[++i];
 		}
 		else if(arg == "-l" && hasArg) {
 			char* endptr;
@@ -97,12 +105,14 @@ int main(int argc, char** argv)
 		}
 		else if(arg == "--stats")
 			stats = true;
-		else {
+		else if(arg == "-x" && hasArg) {
 			if(exchangeProgram)
 				usage(argv[0]);
 			else
-				exchangeProgram = argv[i];
+				exchangeProgram = argv[++i];
 		}
+		else
+			usage(argv[0]);
 	}
 
 	if(!exchangeProgram || hyperedgePredicateNames.empty())
@@ -134,7 +144,7 @@ int main(int argc, char** argv)
 	if(onlyDecompose)
 		return 0;
 
-	asdp::ClaspAlgorithm algorithm(problem, exchangeProgram, inputString, normalizationType, level);
+	asdp::ClaspAlgorithm algorithm(problem, inputString, exchangeProgram, joinProgram, normalizationType, level);
 	sharp::Solution* solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 
 	// Print solution

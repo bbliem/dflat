@@ -27,17 +27,11 @@ TupleNP* TupleNP::join(const ::Tuple& other) const
 	return new TupleNP(*this);
 }
 
-void TupleNP::declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution) const
+void TupleNP::declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution, const char* predicateSuffix) const
 {
-	out << "childTuple(t" << &tupleAndSolution << ")." << std::endl;
+	out << "childTuple" << predicateSuffix << "(t" << &tupleAndSolution << ")." << std::endl;
 	foreach(const Assignments::value_type& a, assignments)
 		out << "mapped(t" << &tupleAndSolution << ',' << a.first << ',' << a.second << ")." << std::endl;
-}
-
-bool TupleNP::isValid(const sharp::Problem& problem, const sharp::ExtendedHypertree& root) const
-{
-	// TODO
-	return true;
 }
 
 #ifdef VERBOSE

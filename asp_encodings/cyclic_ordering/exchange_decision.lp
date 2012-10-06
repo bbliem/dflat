@@ -19,4 +19,4 @@ nonLeaf :- childTuple(I).
 
 
 #hide.
-#show map/3.
+#show map/2.

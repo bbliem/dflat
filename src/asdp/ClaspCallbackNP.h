@@ -42,6 +42,8 @@ private:
 	std::vector<MapAtom> mapAtoms;
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
 	LongToLiteral chosenChildTupleAtoms;
+	LongToLiteral chosenChildTupleLAtoms;
+	LongToLiteral chosenChildTupleRAtoms;
 
 #ifndef NDEBUG
 	std::set<std::string> vertices; // To check if all vertices are assigned

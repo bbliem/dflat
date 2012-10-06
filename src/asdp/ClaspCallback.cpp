@@ -19,11 +19,19 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 
 			foreach(const GringoOutputProcessor::MapAtom& it, gringoOutput.getMapAtoms())
 				mapAtoms.push_back(MapAtom(it.level, it.vertex, it.value, symTab[it.symbolTableKey].lit));
-
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleAtoms())
 				chosenChildTupleAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleLAtoms())
+				chosenChildTupleLAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleRAtoms())
+				chosenChildTupleRAtoms[it.first] = symTab[it.second].lit;
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit) {
+			// If oldTupleAndSolution is set, then left/rightTupleAndSolution are unset
+			assert(!oldTupleAndSolution || (!leftTupleAndSolution && !rightTupleAndSolution));
+			// If left/rightTupleAndSolution are set, then oldTupleAndSolution is unset
+			assert(!(leftTupleAndSolution && rightTupleAndSolution) || !oldTupleAndSolution);
+
 			// For each old tuple, build new tuples from our collected paths
 			foreach(const OldTuplesToPathsMap::value_type& it, oldTuplesToPaths) {
 				const sharp::TupleSet::value_type* oldTupleAndSolution = it.first;
@@ -64,10 +72,32 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 //#endif
 
 	const sharp::TupleSet::value_type* oldTupleAndSolution = 0;
+	const sharp::TupleSet::value_type* leftTupleAndSolution = 0;
+	const sharp::TupleSet::value_type* rightTupleAndSolution = 0;
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleAtoms) {
 		if(s.isTrue(it.second)) {
 			assert(!oldTupleAndSolution);
 			oldTupleAndSolution = reinterpret_cast<const sharp::TupleSet::value_type*>(it.first);
+#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+			break;
+#endif
+		}
+	}
+
+	foreach(const LongToLiteral::value_type& it, chosenChildTupleLAtoms) {
+		if(s.isTrue(it.second)) {
+			assert(!leftTupleAndSolution);
+			leftTupleAndSolution = reinterpret_cast<const sharp::TupleSet::value_type*>(it.first);
+#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+			break;
+#endif
+		}
+	}
+
+	foreach(const LongToLiteral::value_type& it, chosenChildTupleRAtoms) {
+		if(s.isTrue(it.second)) {
+			assert(!rightTupleAndSolution);
+			rightTupleAndSolution = reinterpret_cast<const sharp::TupleSet::value_type*>(it.first);
 #ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
 			break;
 #endif

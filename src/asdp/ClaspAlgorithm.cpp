@@ -6,13 +6,13 @@
 
 namespace asdp {
 
-ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram, const std::string& instanceFacts, sharp::NormalizationType normalizationType, unsigned int level)
-	: ::ClaspAlgorithm(problem, exchangeNodeProgram, instanceFacts, normalizationType), level(level)
+ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram, sharp::NormalizationType normalizationType, unsigned int level)
+	: ::ClaspAlgorithm(problem, instanceFacts, exchangeNodeProgram, joinNodeProgram, normalizationType), level(level)
 {
 }
 
 
-std::auto_ptr<Clasp::ClaspFacade::Callback> ClaspAlgorithm::newClaspCallback(sharp::TupleSet& newTuples, const ::GringoOutputProcessor& gringoOutput, const sharp::VertexSet&) const
+std::auto_ptr<Clasp::ClaspFacade::Callback> ClaspAlgorithm::newClaspCallback(sharp::TupleSet& newTuples, const ::GringoOutputProcessor& gringoOutput) const
 {
 	if(level == 0)
 		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTuples, dynamic_cast<const GringoOutputProcessor&>(gringoOutput)));

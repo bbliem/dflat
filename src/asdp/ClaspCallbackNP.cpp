@@ -27,6 +27,10 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleAtoms())
 				chosenChildTupleAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleLAtoms())
+				chosenChildTupleLAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getChosenChildTupleRAtoms())
+				chosenChildTupleRAtoms[it.first] = symTab[it.second].lit;
 	}
 }
 
@@ -35,23 +39,46 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	if(e != Clasp::ClaspFacade::event_model)
 		return;
 
-#ifdef VERBOSE
-	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
-	std::cout << "Model " << f.config()->ctx.enumerator()->enumerated << ": ";
-	for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
-		if(s.isTrue(it->second.lit) && !it->second.name.empty())
-			std::cout << it->second.name.c_str() << ' ';
-	}
-	std::cout << std::endl;
-#endif
+//#ifdef VERBOSE
+//	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
+//	std::cout << "Model " << f.config()->ctx.enumerator()->enumerated << ": ";
+//	for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
+//		if(s.isTrue(it->second.lit) && !it->second.name.empty())
+//			std::cout << it->second.name.c_str() << ' ';
+//	}
+//	std::cout << std::endl;
+//#endif
 
 	TupleNP& newTuple = *new TupleNP;
 
 	const sharp::TupleSet::value_type* oldTupleAndSolution = 0;
+	const sharp::TupleSet::value_type* leftTupleAndSolution = 0;
+	const sharp::TupleSet::value_type* rightTupleAndSolution = 0;
+
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleAtoms) {
 		if(s.isTrue(it.second)) {
 			assert(!oldTupleAndSolution);
 			oldTupleAndSolution = reinterpret_cast<const sharp::TupleSet::value_type*>(it.first);
+#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+			break;
+#endif
+		}
+	}
+
+	foreach(const LongToLiteral::value_type& it, chosenChildTupleLAtoms) {
+		if(s.isTrue(it.second)) {
+			assert(!leftTupleAndSolution);
+			leftTupleAndSolution = reinterpret_cast<const sharp::TupleSet::value_type*>(it.first);
+#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+			break;
+#endif
+		}
+	}
+
+	foreach(const LongToLiteral::value_type& it, chosenChildTupleRAtoms) {
+		if(s.isTrue(it.second)) {
+			assert(!rightTupleAndSolution);
+			rightTupleAndSolution = reinterpret_cast<const sharp::TupleSet::value_type*>(it.first);
 #ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
 			break;
 #endif
@@ -68,6 +95,11 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	// All vertices must be assigned now
 	assert(vertices.size() == newTuple.assignments.size());
 #endif
+
+	// If oldTupleAndSolution is set, then left/rightTupleAndSolution are unset
+	assert(!oldTupleAndSolution || (!leftTupleAndSolution && !rightTupleAndSolution));
+	// If left/rightTupleAndSolution are set, then oldTupleAndSolution is unset
+	assert(!(leftTupleAndSolution && rightTupleAndSolution) || !oldTupleAndSolution);
 
 	sharp::VertexSet dummy; // TODO: Workaround since we only solve the decision problem at the moment
 	sharp::Solution* newSolution = const_cast<ClaspAlgorithm&>(algorithm).createLeafSolution(dummy);

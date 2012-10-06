@@ -14,8 +14,7 @@ struct Tuple : public ::Tuple
 
 	virtual bool matches(const ::Tuple& other) const;
 	virtual Tuple* join(const ::Tuple& other) const;
-	virtual void declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution) const;
-	virtual bool isValid(const sharp::Problem&, const sharp::ExtendedHypertree& root) const;
+	virtual void declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution, const char* predicateSuffix = "") const;
 
 #ifdef VERBOSE
 	virtual void print(std::ostream&, const class sharp::Problem&) const;

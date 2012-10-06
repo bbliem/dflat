@@ -52,6 +52,20 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 		k->print(s_, firstArg);
 		chosenChildTupleAtoms[std::strtol(firstArg.str().c_str()+1, 0, 0)] = atom.first;
 	}
+	else if(name == "chosenChildTupleL") {
+		assert(arity == 1);
+		std::stringstream firstArg; // First argument
+		ValVec::const_iterator k = vals_.begin() + atom.second;
+		k->print(s_, firstArg);
+		chosenChildTupleLAtoms[std::strtol(firstArg.str().c_str()+1, 0, 0)] = atom.first;
+	}
+	else if(name == "chosenChildTupleR") {
+		assert(arity == 1);
+		std::stringstream firstArg; // First argument
+		ValVec::const_iterator k = vals_.begin() + atom.second;
+		k->print(s_, firstArg);
+		chosenChildTupleRAtoms[std::strtol(firstArg.str().c_str()+1, 0, 0)] = atom.first;
+	}
 }
 
 } // namespace asdp

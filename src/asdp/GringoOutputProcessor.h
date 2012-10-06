@@ -28,12 +28,16 @@ public:
 
 	typedef std::map<long, Clasp::SymbolTable::key_type> LongToSymbolTableKey;
 	const LongToSymbolTableKey& getChosenChildTupleAtoms() const { return chosenChildTupleAtoms; }
+	const LongToSymbolTableKey& getChosenChildTupleLAtoms() const { return chosenChildTupleLAtoms; }
+	const LongToSymbolTableKey& getChosenChildTupleRAtoms() const { return chosenChildTupleRAtoms; }
 
 private:
 	const sharp::Problem& problem;
 
 	std::vector<MapAtom> mapAtoms; // Holds pairs of 1) pairs ("arg0","arg1","arg2") and 2) the key in the symbol table which is mapped to the clasp variable corresponding to "map(arg0,arg1,arg2)" (different keys may be mapped to the same variables due to clasp internals)
 	LongToSymbolTableKey chosenChildTupleAtoms; // Maps addresses of entries in the TupleSet corresponding to a child tuple (with solution) to the symbol table key of "chosenChildTuple(address)"
+	LongToSymbolTableKey chosenChildTupleLAtoms; // same for chosenChildTupleL(address)
+	LongToSymbolTableKey chosenChildTupleRAtoms; // same for chosenChildTupleR(address)
 
 #ifndef NDEBUG
 	unsigned int mapArity;

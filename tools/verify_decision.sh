@@ -10,6 +10,8 @@ if [[ -z "$instanceGen" || -z "$monolithicEncoding" || -z "$exchangeEncoding" ||
 	exit 1
 fi
 
+[ -z "$joinEncoding" ] || joinEncodingArgument="-j $joinEncoding"
+
 for instance in $(seq 1 $numInstances); do
 	seed=$RANDOM
 
@@ -20,7 +22,7 @@ for instance in $(seq 1 $numInstances); do
 
 	$gringo $monolithicEncoding $instance 2>/dev/null | $clasp -q >/dev/null
 	claspExit=$?
-	$asdp $edgeArguments $exchangeEncoding -p decision -s $seed < $instance &>/dev/null
+	$asdp $edgeArguments -x $exchangeEncoding $joinEncodingArgument -p decision -s $seed < $instance &>/dev/null
 	asdpExit=$?
 
 	if [ $claspExit -ne $asdpExit ]; then

@@ -32,12 +32,8 @@ Solution* Algorithm::selectSolution(TupleSet* tuples, const ExtendedHypertree* r
 
 	Solution* result = createEmptySolution();
 
-	for(TupleSet::iterator it = tuples->begin(); it != tuples->end(); ++it) {
-		const Tuple& t = *dynamic_cast<Tuple*>(it->first);
-
-		if(t.isValid(problem, *root))
-			result = combineSolutions(sharp::Union, result, it->second);
-	}
+	for(TupleSet::iterator it = tuples->begin(); it != tuples->end(); ++it)
+		result = combineSolutions(sharp::Union, result, it->second);
 
 	return result;
 }
@@ -46,72 +42,29 @@ TupleSet* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 {
 	TupleSet* left = evaluateNode(node->firstChild());
 	TupleSet* right = evaluateNode(node->secondChild());
+#ifdef VERBOSE
+	printBagContents(node->getVertices());
+#endif
 #if PROGRESS_REPORT > 0
 	printProgressLine(node, left->size()+right->size());
 #endif
 #ifdef WITH_NODE_TIMER
 	boost::timer::auto_cpu_timer timer(" %ts\n");
 #endif
-	TupleSet* ts = new TupleSet;
-
-	// TupleSets are ordered, use sort merge join algorithm
-	TupleSet::const_iterator lit = left->begin();
-	TupleSet::const_iterator rit = right->begin();
-#define TUP(X) (*dynamic_cast<const Tuple*>(X->first)) // FIXME: Think of something better
-	while(lit != left->end() && rit != right->end()) {
-		while(!TUP(lit).matches(TUP(rit))) {
-			// Advance iterator pointing to smaller value
-			if(TUP(lit) < TUP(rit)) {
-				++lit;
-				if(lit == left->end())
-					goto endJoin;
-			} else {
-				++rit;
-				if(rit == right->end())
-					goto endJoin;
-			}
-		}
-
-		// Now lit and rit join
-		// Remember position of rit and advance rit until no more match
-		TupleSet::const_iterator mark = rit;
-joinLitWithAllPartners:
-		do {
-			sharp::Tuple* t = TUP(lit).join(TUP(rit));
-			Solution *s = combineSolutions(sharp::CrossJoin, lit->second, rit->second);
-			// FIXME: It seems this is the same as Algorithm::addToTupleSet. Use that instead?
-			std::pair<TupleSet::iterator, bool> result = ts->insert(TupleSet::value_type(t, s));
-			if(!result.second) {
-				Solution *orig = result.first->second;
-				ts->erase(result.first);
-				ts->insert(TupleSet::value_type(t, combineSolutions(sharp::Union, orig, s)));
-			}
-			++rit;
-		} while(rit != right->end() && TUP(lit).matches(TUP(rit)));
-
-		// lit and rit don't join anymore. Advance lit. If it joins with mark, reset rit to mark.
-		++lit;
-		if(lit == left->end())
-			break;
-
-		if(TUP(lit).matches(TUP(mark))) {
-			rit = mark;
-			goto joinLitWithAllPartners; // Ha!
-		}
-	}
-endJoin:
+	assert(node->getIntroducedVertices().empty() && node->getRemovedVertices().empty());
+	TupleSet* newTuples = join(node->getVertices(), *left, *right);
 
 	delete left;
 	delete right;
 
 #ifdef VERBOSE
-	std::cout << "Join node result:" << std::endl;
-	for(TupleSet::const_iterator it = ts->begin(); it != ts->end(); ++it)
-		TUP(it).print(std::cout, problem);
+	std::cout << std::endl << "Resulting tuples of join node:" << std::endl;
+	for(TupleSet::const_iterator it = newTuples->begin(); it != newTuples->end(); ++it)
+		dynamic_cast<const Tuple*>(it->first)->print(std::cout, problem);
 	std::cout << std::endl;
 #endif
 
-	return ts;
+	return newTuples;
 }
 
 sharp::TupleSet* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertree* node)
@@ -144,7 +97,7 @@ sharp::TupleSet* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertr
 	}
 
 #ifdef VERBOSE
-	std::cout << std::endl << "Resulting tuples:" << std::endl;
+	std::cout << std::endl << "Resulting tuples of exchange node:" << std::endl;
 	for(TupleSet::const_iterator it = newTuples->begin(); it != newTuples->end(); ++it)
 		dynamic_cast<Tuple*>(it->first)->print(std::cout, problem);
 	std::cout << std::endl;
@@ -153,10 +106,69 @@ sharp::TupleSet* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertr
 	return newTuples;
 }
 
+sharp::TupleSet* Algorithm::join(const sharp::VertexSet&, sharp::TupleSet& left, sharp::TupleSet& right)
+{
+	TupleSet* ts = new TupleSet;
+
+	// TupleSets are ordered, use sort merge join algorithm
+	TupleSet::const_iterator lit = left.begin();
+	TupleSet::const_iterator rit = right.begin();
+#define TUP(X) (*dynamic_cast<const Tuple*>(X->first)) // FIXME: Think of something better
+	while(lit != left.end() && rit != right.end()) {
+		while(!TUP(lit).matches(TUP(rit))) {
+			// Advance iterator pointing to smaller value
+			if(TUP(lit) < TUP(rit)) {
+				++lit;
+				if(lit == left.end())
+					goto endJoin;
+			} else {
+				++rit;
+				if(rit == right.end())
+					goto endJoin;
+			}
+		}
+
+		// Now lit and rit join
+		// Remember position of rit and advance rit until no more match
+		TupleSet::const_iterator mark = rit;
+joinLitWithAllPartners:
+		do {
+			sharp::Tuple* t = TUP(lit).join(TUP(rit));
+			Solution *s = combineSolutions(sharp::CrossJoin, lit->second, rit->second);
+			// FIXME: It seems this is the same as Algorithm::addToTupleSet. Use that instead?
+			std::pair<TupleSet::iterator, bool> result = ts->insert(TupleSet::value_type(t, s));
+			if(!result.second) {
+				Solution *orig = result.first->second;
+				ts->erase(result.first);
+				ts->insert(TupleSet::value_type(t, combineSolutions(sharp::Union, orig, s)));
+			}
+			++rit;
+		} while(rit != right.end() && TUP(lit).matches(TUP(rit)));
+
+		// lit and rit don't join anymore. Advance lit. If it joins with mark, reset rit to mark.
+		++lit;
+		if(lit == left.end())
+			break;
+
+		if(TUP(lit).matches(TUP(mark))) {
+			rit = mark;
+			goto joinLitWithAllPartners; // Ha!
+		}
+	}
+endJoin:
+	return ts;
+}
+
 sharp::ExtendedHypertree* Algorithm::prepareHypertreeDecomposition(sharp::ExtendedHypertree* root)
 {
 	assert(normalizationType == sharp::DefaultNormalization || normalizationType == sharp::SemiNormalization);
-	return root->normalize(normalizationType);
+	//return root->normalize(normalizationType);
+
+	// FIXME: This is a workaround until SHARP lets us insert an empty root in the normalization
+	sharp::ExtendedHypertree* newRoot = new sharp::ExtendedHypertree(sharp::VertexSet());
+	newRoot->insChild(root);
+
+	return newRoot->normalize(normalizationType);
 }
 
 #if PROGRESS_REPORT > 0

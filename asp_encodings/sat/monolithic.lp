@@ -3,12 +3,12 @@ clause(C) :- neg(C,_).
 atom(A) :- pos(_,A).
 atom(A) :- neg(_,A).
 
-1 { true(A), false(A) } 1 :- atom(A).
+1 { map(A,true), map(A,false) } 1 :- atom(A).
 
-sat(C) :- pos(C,A), true(A).
-sat(C) :- neg(C,A), false(A).
+sat(C) :- pos(C,A), map(A,true).
+sat(C) :- neg(C,A), map(A,false).
 
 :- clause(C), not sat(C).
 
 #hide.
-#show true/1.
+#show map/2.

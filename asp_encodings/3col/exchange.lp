@@ -1,7 +1,7 @@
 color(red;green;blue).
 
 % Which tuple to use?
-nonLeaf :- childTuple(X).
+nonLeaf :- childTuple(_).
 1 {chosenChildTuple(I) : childTuple(I)} 1 :- nonLeaf.
 
 map(X,C) :- chosenChildTuple(I), mapped(I,X,C), current(X).

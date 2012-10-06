@@ -24,8 +24,8 @@ namespace {
 	}
 }
 
-ClaspAlgorithm::ClaspAlgorithm(sharp::Problem& problem, const char* exchangeNodeProgram, const std::string& instanceFacts, sharp::NormalizationType normalizationType)
-	: Algorithm(problem, normalizationType), exchangeNodeProgram(exchangeNodeProgram), instanceFacts(instanceFacts)
+ClaspAlgorithm::ClaspAlgorithm(sharp::Problem& problem, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram, sharp::NormalizationType normalizationType)
+	: Algorithm(problem, normalizationType), instanceFacts(instanceFacts), exchangeNodeProgram(exchangeNodeProgram), joinNodeProgram(joinNodeProgram)
 {
 }
 
@@ -38,13 +38,12 @@ TupleSet* ClaspAlgorithm::exchangeLeaf(const sharp::VertexSet& vertices, const s
 	inputStreams.addFile(exchangeNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
 	// Remember: "Streams" deletes the appended streams -_-
 	inputStreams.appendStream(Streams::StreamPtr(bagContents), "<bag_contents>");
-//	std::cout << "Bag " << bagContents->str() << '\n';
 
 	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
 
 	TupleSet* newTuples = new TupleSet;
-	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTuples, *outputProcessor, vertices);
+	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTuples, *outputProcessor);
 	Clasp::ClaspConfig config;
 	setClaspConfig(config);
 	clasp.solve(inputReader, config, cb.get());
@@ -62,7 +61,6 @@ TupleSet* ClaspAlgorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, cons
 
 	std::stringstream* bagContents = new std::stringstream;
 	declareBagContents(*bagContents, problem, instanceFacts, vertices, introduced, removed);
-//	std::cout << "Bag " << bagContents->str() << '\n';
 
 	std::stringstream* childTuplesInput = new std::stringstream;
 	// Declare child tuples
@@ -80,7 +78,43 @@ TupleSet* ClaspAlgorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, cons
 
 	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
-	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTuples, *outputProcessor, vertices);
+	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTuples, *outputProcessor);
+	Clasp::ClaspConfig config;
+	setClaspConfig(config);
+	clasp.solve(inputReader, config, cb.get());
+
+	return newTuples;
+}
+
+TupleSet* ClaspAlgorithm::join(const sharp::VertexSet& vertices, sharp::TupleSet& childTuplesLeft, sharp::TupleSet& childTuplesRight)
+{
+	if(!joinNodeProgram)
+		return Algorithm::join(vertices, childTuplesLeft, childTuplesRight);
+
+	std::stringstream* bagContents = new std::stringstream;
+	declareBagContents(*bagContents, problem, instanceFacts, vertices, sharp::VertexSet(), sharp::VertexSet());
+
+	std::stringstream* childTuplesInput = new std::stringstream;
+	// Declare child tuples
+	foreach(const TupleSet::value_type& tupleAndSolution, childTuplesLeft)
+		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTuplesInput, tupleAndSolution, "L");
+	foreach(const TupleSet::value_type& tupleAndSolution, childTuplesRight)
+		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTuplesInput, tupleAndSolution, "R");
+#ifdef VERBOSE
+	std::cout << std::endl << "Child tuple input:" << std::endl << childTuplesInput->str() << std::endl;
+#endif
+
+	Streams inputStreams;
+	inputStreams.addFile(joinNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
+	// Remember: "Streams" deletes the appended streams -_-
+	inputStreams.appendStream(Streams::StreamPtr(bagContents), "<bag_contents>");
+	inputStreams.appendStream(Streams::StreamPtr(childTuplesInput), "<child_tuples>");
+
+	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
+	ClaspInputReader inputReader(inputStreams, *outputProcessor);
+
+	TupleSet* newTuples = new TupleSet;
+	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTuples, *outputProcessor);
 	Clasp::ClaspConfig config;
 	setClaspConfig(config);
 	clasp.solve(inputReader, config, cb.get());

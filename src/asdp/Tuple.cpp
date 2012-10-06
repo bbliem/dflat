@@ -48,16 +48,10 @@ Tuple* Tuple::join(const ::Tuple& other) const
 	return new Tuple(*this);
 }
 
-void Tuple::declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution) const
+void Tuple::declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution, const char* predicateSuffix) const
 {
-	out << "childTuple(t" << &tupleAndSolution << ")." << std::endl;
+	out << "childTuple" << predicateSuffix << "(t" << &tupleAndSolution << ")." << std::endl;
 	declareTree(tree, out, tupleAndSolution, 0);
-}
-
-bool Tuple::isValid(const sharp::Problem& problem, const sharp::ExtendedHypertree& root) const
-{
-	// TODO
-	return true;
 }
 
 #ifdef VERBOSE
