@@ -35,8 +35,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 using sharp::Table;
 
-Algorithm::Algorithm(sharp::Problem& problem, const std::string& instanceFacts, sharp::NormalizationType normalizationType, bool ignoreOptimization, unsigned int level)
-	: AbstractHTDAlgorithm(&problem), problem(problem), instanceFacts(instanceFacts), normalizationType(normalizationType), ignoreOptimization(ignoreOptimization), level(level)
+Algorithm::Algorithm(sharp::Problem& problem, const std::string& instanceFacts, sharp::NormalizationType normalizationType, bool ignoreOptimization, bool multiLevel)
+	: AbstractHTDAlgorithm(&problem), problem(problem), instanceFacts(instanceFacts), normalizationType(normalizationType), ignoreOptimization(ignoreOptimization), multiLevel(multiLevel)
 #ifdef PROGRESS_REPORT
 	  , nodesProcessed(0)
 #endif
@@ -180,10 +180,10 @@ sharp::ExtendedHypertree* Algorithm::prepareHypertreeDecomposition(sharp::Extend
 
 std::auto_ptr<Clasp::ClaspFacade::Callback> Algorithm::newClaspCallback(Table& newTable, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes, const sharp::VertexSet& currentVertices) const
 {
-	if(level == 0)
-		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTable, gringoOutput, numChildNodes));
+	if(multiLevel)
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackGeneral(*this, newTable, gringoOutput, numChildNodes));
 	else
-		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackGeneral(*this, newTable, gringoOutput, numChildNodes, level));
+		return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallbackNP(*this, newTable, gringoOutput, numChildNodes));
 }
 
 std::auto_ptr<GringoOutputProcessor> Algorithm::newGringoOutputProcessor() const

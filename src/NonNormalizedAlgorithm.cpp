@@ -26,8 +26,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 using sharp::Table;
 
-NonNormalizedAlgorithm::NonNormalizedAlgorithm(sharp::Problem& problem, const std::string& instanceFacts, const char* program, sharp::NormalizationType normalizationType, bool ignoreOptimization, unsigned int level)
-	: Algorithm(problem, instanceFacts, normalizationType, ignoreOptimization, level), program(program)
+NonNormalizedAlgorithm::NonNormalizedAlgorithm(sharp::Problem& problem, const std::string& instanceFacts, const char* program, sharp::NormalizationType normalizationType, bool ignoreOptimization, bool multiLevel)
+	: Algorithm(problem, instanceFacts, normalizationType, ignoreOptimization, multiLevel), program(program)
 {
 }
 

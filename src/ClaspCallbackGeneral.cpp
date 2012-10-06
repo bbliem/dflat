@@ -105,23 +105,18 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
 #endif
 
-	Path path(numLevels);
-	unsigned int highestLevel = 0; // Highest level of an item set encountered so far
+	unsigned int highestLevel = 0; // Highest level of an item set encountered
 	foreach(ItemAtom& atom, itemAtoms) {
-		if(s.isTrue(atom.literal)) {
+		if(s.isTrue(atom.literal))
 			highestLevel = std::max(highestLevel, atom.level);
-#ifndef DISABLE_ANSWER_SET_CHECKS
-			if(atom.level >= numLevels) {
-				std::ostringstream err;
-				err << "item predicate uses invalid level " << atom.level;
-				throw std::runtime_error(err.str());
-			}
-#endif
-			path[atom.level].insert(atom.value);
-		}
 	}
-	// A path does not have to use all levels, but up to the highest used level it must be connected.
-	path.resize(highestLevel+1);
+	// A path does not have to use as many levels as its siblings, but up to the highest used level it must be connected.
+	Path path(highestLevel+1);
+
+	foreach(ItemAtom& atom, itemAtoms) {
+		if(s.isTrue(atom.literal))
+			path[atom.level].insert(atom.value);
+	}
 
 	assert(!path.empty());
 	Row*& rowPtr = groupData[groupTerms][path.front()];

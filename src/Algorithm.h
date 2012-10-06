@@ -29,7 +29,7 @@ class Algorithm : public sharp::AbstractHTDAlgorithm
 {
 public:
 	//! @param ignoreOptimization true iff the predicates responsible for optimization problems should be ignored (e.g., cost/1, currentCost/1)
-	Algorithm(sharp::Problem& problem, const std::string& instanceFacts, sharp::NormalizationType normalizationType, bool ignoreOptimization = false, unsigned int level = 0);
+	Algorithm(sharp::Problem& problem, const std::string& instanceFacts, sharp::NormalizationType normalizationType, bool ignoreOptimization = false, bool multiLevel = false);
 
 protected:
 	//! @return the file name of the user program to compute node's table
@@ -55,7 +55,7 @@ protected:
 	const std::string& instanceFacts;
 	sharp::NormalizationType normalizationType;
 	bool ignoreOptimization;
-	unsigned int level;
+	bool multiLevel;
 	Clasp::ClaspFacade clasp;
 
 #ifdef PROGRESS_REPORT

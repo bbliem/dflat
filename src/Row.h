@@ -88,6 +88,7 @@ public:
 	void setCost(unsigned int c) { cost = c; }
 
 	const ExtensionPointers& getExtensionPointers() const { return extensionPointers; }
+	//! Adds the given tuple to the extension pointers and adds the product of the extended rows' counts to this row's solution count
 	void addExtensionPointerTuple(const ExtensionPointerTuple&);
 
 #ifdef PRINT_COMPUTED_ROWS

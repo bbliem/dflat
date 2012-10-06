@@ -38,12 +38,12 @@ namespace {
 
 	void usage(const char* program) {
 		const int w = 22;
-		std::cerr << "Usage: " << program << " [-a algorithm_type] -e hyperedge_pred [...] [-j join_program] [-l level] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats] [-x exchange_program] [program] < instance" << std::endl;
+		std::cerr << "Usage: " << program << " [-a algorithm_type] -e hyperedge_pred [...] [-j join_program] [--multi-level] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats] [-x exchange_program] [program] < instance" << std::endl;
 		std::cerr << std::endl << std::left;
 		std::cerr << "  " << std::setw(w) << "-a algorithm_type: " << "Either \"non-normalized\" (for all TDs) or \"semi\" (just for semi-normalized TDs). Default: \"semi\" iff \"-n semi\" or \"-n normalized\" present." << std::endl;
 		std::cerr << "  " << std::setw(w) << "-e hyperedge_pred: " << "Name of a predicate that declares hyperedges (must be specified at least once)" << std::endl;
 		std::cerr << "  " << std::setw(w) << "-j join_program: " << "File name of the logic program executed in join nodes (if omitted join equal rows)" << std::endl;
-		std::cerr << "  " << std::setw(w) << "-l level: " << "Level on polynomial hierarchy; determines depth of row tree. 0 (default) is like 1 but uses map/2, mapped/3 instead of map/3, mapped/4 and has a more efficient implementation." << std::endl;
+		std::cerr << "  " << std::setw(w) << "--multi-level: " << "Use multi-level item sets" << std::endl;
 		std::cerr << "  " << std::setw(w) << "-n normalization: " << "Either \"none\" (default), \"semi\" or \"normalized\"" << std::endl;
 		std::cerr << "  " << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
 		// TODO: Add problem types "search" and "opt-search", ideally with incremental solving
@@ -70,7 +70,7 @@ namespace {
 int main(int argc, char** argv)
 {
 	try {
-		unsigned int level = 0;
+		bool multiLevel = false;
 		enum { ENUMERATION, COUNTING, DECISION, OPT_ENUM, OPT_COUNTING, OPT_VALUE } problemType = ENUMERATION;
 		time_t seed = time(0);
 		bool algorithmTypeSpecified = false;
@@ -119,14 +119,8 @@ int main(int argc, char** argv)
 				else
 					joinProgram = argv[++i];
 			}
-			else if(arg == "-l" && hasArg) {
-				char* endptr;
-				level = strtol(argv[++i], &endptr, 0);
-				if(*endptr) {
-					std::cerr << "Invalid level" << std::endl;
-					usage(argv[0]);
-				}
-			}
+			else if(arg == "--multi-level")
+				multiLevel = true;
 			else if(arg == "--only-decompose")
 				onlyDecompose = true;
 			else if(arg == "-p" && hasArg) {
@@ -217,11 +211,11 @@ int main(int argc, char** argv)
 		std::auto_ptr<Algorithm> algorithm;
 		switch(algorithmType) {
 			case NON_NORMALIZED:
-				algorithm.reset(new NonNormalizedAlgorithm(problem, inputString, program, normalizationType, ignoreOptimization, level));
+				algorithm.reset(new NonNormalizedAlgorithm(problem, inputString, program, normalizationType, ignoreOptimization, multiLevel));
 				break;
 
 			case SEMI_NORMALIZED:
-				algorithm.reset(new SemiNormalizedAlgorithm(problem, inputString, exchangeProgram, joinProgram, normalizationType, ignoreOptimization, level));
+				algorithm.reset(new SemiNormalizedAlgorithm(problem, inputString, exchangeProgram, joinProgram, normalizationType, ignoreOptimization, multiLevel));
 				break;
 		}
 		

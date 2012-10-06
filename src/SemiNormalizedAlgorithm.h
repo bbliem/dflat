@@ -26,7 +26,7 @@ class SemiNormalizedAlgorithm : public Algorithm
 {
 public:
 	//! @param normalizationType either sharp::SemiNormalization or sharp::DefaultNormalization
-	SemiNormalizedAlgorithm(sharp::Problem& problem, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram = 0, sharp::NormalizationType normalizationType = sharp::SemiNormalization, bool ignoreOptimization = false, unsigned int level = 0);
+	SemiNormalizedAlgorithm(sharp::Problem& problem, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram = 0, sharp::NormalizationType normalizationType = sharp::SemiNormalization, bool ignoreOptimization = false, bool multiLevel = false);
 
 protected:
 	virtual const char* getUserProgram(const sharp::ExtendedHypertree& node);

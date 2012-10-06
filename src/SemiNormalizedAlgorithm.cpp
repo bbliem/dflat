@@ -38,8 +38,8 @@ namespace {
 	}
 }
 
-SemiNormalizedAlgorithm::SemiNormalizedAlgorithm(sharp::Problem& problem, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram, sharp::NormalizationType normalizationType, bool ignoreOptimization, unsigned int level)
-	: Algorithm(problem, instanceFacts, normalizationType, ignoreOptimization, level), exchangeNodeProgram(exchangeNodeProgram), joinNodeProgram(joinNodeProgram)
+SemiNormalizedAlgorithm::SemiNormalizedAlgorithm(sharp::Problem& problem, const std::string& instanceFacts, const char* exchangeNodeProgram, const char* joinNodeProgram, sharp::NormalizationType normalizationType, bool ignoreOptimization, bool multiLevel)
+	: Algorithm(problem, instanceFacts, normalizationType, ignoreOptimization, multiLevel), exchangeNodeProgram(exchangeNodeProgram), joinNodeProgram(joinNodeProgram)
 {
 	assert(normalizationType == sharp::DefaultNormalization || normalizationType == sharp::SemiNormalization);
 }

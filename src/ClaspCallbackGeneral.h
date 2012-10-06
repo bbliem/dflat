@@ -31,10 +31,9 @@ class GringoOutputProcessor;
 class ClaspCallbackGeneral : public Clasp::ClaspFacade::Callback
 {
 public:
-	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::Table& table, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes, unsigned int level)
-		: algorithm(algorithm), table(table), gringoOutput(gringoOutput), numChildNodes(numChildNodes), numLevels(level)
+	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::Table& table, const GringoOutputProcessor& gringoOutput, unsigned int numChildNodes)
+		: algorithm(algorithm), table(table), gringoOutput(gringoOutput), numChildNodes(numChildNodes)
 	{
-		assert(numLevels > 0);
 	}
 
 	// Called if the current configuration contains unsafe/unreasonable options
@@ -51,7 +50,6 @@ private:
 	sharp::Table& table;
 	const GringoOutputProcessor& gringoOutput;
 	const unsigned int numChildNodes;
-	const unsigned int numLevels;
 
 	// cf. GringoOutputProcessor.h
 	struct ItemAtom {
