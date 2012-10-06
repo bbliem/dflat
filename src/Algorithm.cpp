@@ -199,9 +199,9 @@ TupleTable* Algorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, const s
 	// Declare child tuples
 	foreach(const TupleTable::value_type& tupleAndSolution, childTable)
 		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTableInput, tupleAndSolution);
-//#ifdef VERBOSE
-//	std::cout << std::endl << "Child tuple input:" << std::endl << childTableInput->str() << std::endl;
-//#endif
+#ifdef PRINT_CHILD_TUPLE_INPUT
+	std::cout << std::endl << "Child tuple input:" << std::endl << childTableInput->str() << std::endl;
+#endif
 
 	Streams inputStreams;
 	inputStreams.addFile(exchangeNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
@@ -233,9 +233,9 @@ TupleTable* Algorithm::join(const sharp::VertexSet& vertices, sharp::TupleTable&
 			dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTableInput, tupleAndSolution, "L");
 		foreach(const TupleTable::value_type& tupleAndSolution, childTableRight)
 			dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTableInput, tupleAndSolution, "R");
-		//#ifdef VERBOSE
-		//	std::cout << std::endl << "Child tuple input:" << std::endl << childTableInput->str() << std::endl;
-		//#endif
+#ifdef PRINT_CHILD_TUPLE_INPUT
+		std::cout << std::endl << "Child tuple input:" << std::endl << childTableInput->str() << std::endl;
+#endif
 
 		Streams inputStreams;
 		inputStreams.addFile(joinNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
@@ -302,7 +302,7 @@ endJoin:
 
 std::auto_ptr<Clasp::ClaspFacade::Callback> Algorithm::newClaspCallback(sharp::TupleTable& newTable, const GringoOutputProcessor& gringoOutput, const sharp::VertexSet& currentVertices) const
 {
-#ifndef NDEBUG
+#ifndef DISABLE_ASSIGNMENT_CHECK
 	std::set<std::string> currentVertexNames;
 	foreach(sharp::Vertex v, currentVertices)
 		currentVertexNames.insert(const_cast<sharp::Problem&>(problem).getVertexName(v));

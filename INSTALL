@@ -1,3 +1,5 @@
+COMPILING
+
 To compile D-FLAT, the following dependencies are required:
 - CMake (http://cmake.org/), version 2.8.7 or later
 - Boost (http://boost.org/), version 1.48.0 or later
@@ -11,6 +13,10 @@ Compilation was tested with the stated version numbers and GCC 4.6.2. Unless the
 You need to adjust the paths in D-FLAT's Makefile. In particular, the variables gringo_dir, clasp_dir and sharp_dir.
 
 Then, running "make" in the D-FLAT top-level directory should build the binary at build/release/dflat.
+
+---
+
+TROUBLESHOOTING
 
 Make sure that Gringo, Clasp, SHARP and D-FLAT are built with the same C++ preprocessor defines. In particular, for the debug build, Gringo by default uses defines like -DGLIBCXX_DEBUG which Clasp's debug build does not use. Since I had some problem with Clasp when defining these flags, I would recommend NOT compiling Gringo with them.
 
@@ -30,3 +36,16 @@ Gringo as of 3.0.4 has the indecency to issue warnings on stderr without asking.
 				pred.print(g, std::cerr);
 				std::cerr << " is never defined" << std::endl;
 			}
+
+---
+
+COMPILATION FLAGS
+
+D-FLAT supports the following preprocessor defines:
+
+- VERBOSE: Print bag contents and generated tuples
+- PROGRESS_REPORT: Print a line of information when entering a tree decomposition node
+- WITH_NODE_TIMER: When processing of a node is finished, print the elapsed time
+- PRINT_CHILD_TUPLE_INPUT: Print input facts regarding child tuples that are passed to the user program
+- PRINT_MODELS: Print all information in a model of the user program whenever one is found
+- DISABLE_ASSIGNMENT_CHECK: By default, D-FLAT checks if all current vertices were assigned exactly one value and no non-current vertex is assigned; this flag disables the check.

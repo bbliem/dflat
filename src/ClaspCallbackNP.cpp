@@ -50,6 +50,9 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				currentCostAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
 				costAtoms[it.first] = symTab[it.second].lit;
+#ifdef PRINT_MODELS
+ 			std::cout << std::endl;
+#endif
 	}
 }
 
@@ -58,15 +61,15 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	if(e != Clasp::ClaspFacade::event_model)
 		return;
 
-//#ifdef VERBOSE
-//	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
-//	std::cout << "Model " << f.config()->ctx.enumerator()->enumerated << ": ";
-//	for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
-//		if(s.isTrue(it->second.lit) && !it->second.name.empty())
-//			std::cout << it->second.name.c_str() << ' ';
-//	}
-//	std::cout << std::endl;
-//#endif
+#ifdef PRINT_MODELS
+	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
+	std::cout << "Model " << f.config()->ctx.enumerator()->enumerated << ": ";
+	for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
+		if(s.isTrue(it->second.lit) && !it->second.name.empty())
+			std::cout << it->second.name.c_str() << ' ';
+	}
+	std::cout << std::endl;
+#endif
 
 	TupleNP& newTuple = *new TupleNP;
 
@@ -126,7 +129,7 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 
 	foreach(MapAtom& atom, mapAtoms) {
 		if(s.isTrue(atom.literal)) {
-#ifndef NDEBUG
+#ifndef DISABLE_ASSIGNMENT_CHECK
 			// Only current vertices may be assigned
 			if(currentVertices.find(atom.vertex) == currentVertices.end()) {
 				std::ostringstream err;
@@ -138,12 +141,13 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 			newTuple.assignment[atom.vertex] = atom.value;
 		}
 	}
-#ifndef NDEBUG
+#ifndef DISABLE_ASSIGNMENT_CHECK
 	// All vertices must be assigned now
 	std::set<std::string> assigned;
 	foreach(const Tuple::Assignment::value_type& kv, newTuple.assignment)
 		assigned.insert(kv.first);
-	assert(assigned == currentVertices);
+	if(assigned != currentVertices)
+		throw std::runtime_error("Not all current vertices have been assigned");
 #endif
 
 	// If oldTupleAndPlan is set, then left/rightTupleAndPlan are unset

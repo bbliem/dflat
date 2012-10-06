@@ -31,7 +31,7 @@ class GringoOutputProcessor;
 class ClaspCallbackGeneral : public Clasp::ClaspFacade::Callback
 {
 public:
-#ifdef NDEBUG
+#ifdef DISABLE_ASSIGNMENT_CHECK
 	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int level)
 		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numLevels(level+1)
 	{}
@@ -103,7 +103,7 @@ private:
 
 	PathCollection pathCollection;
 
-#ifndef NDEBUG
+#ifndef DISABLE_ASSIGNMENT_CHECK
 	std::set<std::string> currentVertices; // To check if all vertices are assigned
 #endif
 };

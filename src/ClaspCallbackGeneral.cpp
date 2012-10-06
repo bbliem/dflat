@@ -48,6 +48,9 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 				currentCostAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
 				costAtoms[it.first] = symTab[it.second].lit;
+#ifdef PRINT_MODELS
+			std::cout << std::endl;
+#endif
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit)
 			pathCollection.fillTupleTable(tupleTable, algorithm);
@@ -59,15 +62,15 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	if(e != Clasp::ClaspFacade::event_model)
 		return;
 
-//#ifdef VERBOSE
-//	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
-//	std::cout << "Model " << f.config()->ctx.enumerator()->enumerated << ": ";
-//	for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
-//		if(s.isTrue(it->second.lit) && !it->second.name.empty())
-//			std::cout << it->second.name.c_str() << ' ';
-//	}
-//	std::cout << std::endl;
-//#endif
+#ifdef PRINT_MODELS
+	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
+	std::cout << "Model " << f.config()->ctx.enumerator()->enumerated << ": ";
+	for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
+		if(s.isTrue(it->second.lit) && !it->second.name.empty())
+			std::cout << it->second.name.c_str() << ' ';
+	}
+	std::cout << std::endl;
+#endif
 
 	const sharp::TupleTable::value_type* oldTupleAndPlan = 0;
 	const sharp::TupleTable::value_type* leftTupleAndPlan = 0;
@@ -134,7 +137,7 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	foreach(MapAtom& atom, mapAtoms) {
 		assert(atom.level < numLevels);
 		if(s.isTrue(atom.literal)) {
-#ifndef NDEBUG
+#ifndef DISABLE_ASSIGNMENT_CHECK
 			// Only current vertices may be assigned
 			if(currentVertices.find(atom.vertex) == currentVertices.end()) {
 				std::ostringstream err;
@@ -148,13 +151,14 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	}
 	assert(path.size() == numLevels);
 
-#ifndef NDEBUG
+#ifndef DISABLE_ASSIGNMENT_CHECK
 	// On each level, all vertices must be assigned now
 	foreach(const Tuple::Assignment& levelAssignment, path) {
 		std::set<std::string> assigned;
 		foreach(const Tuple::Assignment::value_type& kv, levelAssignment)
 			assigned.insert(kv.first);
-		assert(assigned == currentVertices);
+		if(assigned != currentVertices)
+			throw std::runtime_error("Not all current vertices have been assigned");
 	}
 #endif
 
