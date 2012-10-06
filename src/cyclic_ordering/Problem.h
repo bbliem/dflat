@@ -1,23 +1,14 @@
 #pragma once
 
-#include "../Problem.h"
-
 namespace cyclic_ordering {
 
-class Problem : public ::Problem
+class Problem : public sharp::Problem
 {
 public:
-	typedef std::vector<std::string> StringTriple; // You may assume that instances of StringTriple always contain 3 elements
-	typedef std::vector<StringTriple> Instance;
+	Problem(const std::string& input);
 
-	Problem(std::istream& input);
-	virtual ~Problem();
-
-	const StringTriple& getOrdering(sharp::Vertex orderingVertex) const {
-		return instance[orderingVertex-1];
-	}
-
-	virtual void declareVertex(std::ostream& out, sharp::Vertex v, const sharp::VertexSet& currentVertices) const;
+	// To be used by the parser. Do not call directly.
+	void parsedOrdering(const std::vector<std::string>& args);
 
 protected:
 	virtual void parse();
@@ -25,12 +16,9 @@ protected:
 	virtual sharp::Hypergraph* buildHypergraphRepresentation();
 
 private:
-	std::istream& input;
-	Instance instance;
-
-	typedef std::vector<sharp::Vertex> VertexTriple;
-	typedef std::set<VertexTriple> VertexTripleSet;
-	std::map<sharp::Vertex, VertexTripleSet> elementToTriples;
+	const std::string& input;
+	sharp::VertexSet vertices;
+	sharp::HyperedgeSet hyperedges;
 };
 
 } // namespace cyclic_ordering

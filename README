@@ -1,1 +1,8 @@
 Make sure that gringo, clasp, sharp and this library are build with the same C++ defines. In particular, for the debug build, gringo by default uses defines like -DGLIBCXX_DEBUG which clasp's debug build does not use. Since I had some problem with clasp when defining these flags, I would recommend NOT compiling gringo with them.
+
+---
+
+Writing logic programs for the exchange node:
+Predicates provided by ASDP: current/1, introduced/1, removed/1, childTuple/1, mapped/3
+Predicates expected by ASDP: map/2
+Additionally to the provided predicates you get the original instance. Each answer set of your program corresponds to a resulting tuple. A tuple is specified by assigning some value K to each vertex X via map(X,K). You must assign exactly one value to each current vertex.

@@ -5,13 +5,13 @@
 
 namespace threeCol {
 
-ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram, sharp::NormalizationType normalizationType)
-	: ::ClaspAlgorithm(problem, exchangeNodeProgram, normalizationType)
+ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram, const std::string& instanceFacts, sharp::NormalizationType normalizationType)
+	: ::ClaspAlgorithm(problem, exchangeNodeProgram, instanceFacts, normalizationType)
 {
 }
 
 
-std::auto_ptr<Clasp::ClaspFacade::Callback> ClaspAlgorithm::newClaspCallback(sharp::TupleSet& newTuples, const ::GringoOutputProcessor& gringoOutput) const
+std::auto_ptr<Clasp::ClaspFacade::Callback> ClaspAlgorithm::newClaspCallback(sharp::TupleSet& newTuples, const ::GringoOutputProcessor& gringoOutput, const sharp::VertexSet&) const
 {
 	return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallback(*this, newTuples, dynamic_cast<const GringoOutputProcessor&>(gringoOutput)));
 }

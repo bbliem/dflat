@@ -57,37 +57,17 @@ namespace {
 
 
 
-Problem::Problem(std::istream& input)
-	: input(input), lastClause(0), atomsInClauses(0)
+Problem::Problem(const std::string& input)
+	: input(input)
 {
-}
-
-Problem::~Problem()
-{
-	delete[] atomsInClauses;
-}
-
-void Problem::declareVertex(std::ostream& out, Vertex v, const sharp::VertexSet& currentVertices) const
-{
-	if(vertexIsClause(v)) {
-		out << "clause(v" << v << ")." << std::endl;
-
-		const Problem::VerticesInClause& atoms = getAtomsInClause(v);
-		foreach(Vertex v2, atoms.pos)
-			out << "pos(v" << v << ",v" << v2 << ")." << std::endl;
-		foreach(Vertex v2, atoms.neg)
-			out << "neg(v" << v << ",v" << v2 << ")." << std::endl;
-	}
-	else // an atom
-		out << "atom(v" << v << ")." << std::endl;
 }
 
 void Problem::parse()
 {
-	InstanceGrammar<boost::spirit::istream_iterator> instanceParser;
+	InstanceGrammar<std::string::const_iterator> instanceParser;
 
-	boost::spirit::istream_iterator it(input);
-	boost::spirit::istream_iterator end;
+	std::string::const_iterator it = input.begin();
+	std::string::const_iterator end = input.end();
 
 	bool result = qi::phrase_parse(
 			it,
@@ -107,35 +87,26 @@ void Problem::preprocess()
 
 sharp::Hypergraph* Problem::buildHypergraphRepresentation()
 {
-	assert(atomsInClauses == 0 && lastClause == 0);
-	atomsInClauses = new VerticesInClause[instance.size()];
-	lastClause = instance.size();
-
 	sharp::VertexSet clauseVertices;
 	sharp::VertexSet atomVertices;
 	sharp::EdgeSet edges;
 
 	// XXX: Probably this is the wrong location for storing vertex names. Ideally we would do this during parsing
-	for(Instance::const_iterator it = instance.begin(); it != instance.end(); ++it)
-		clauseVertices.insert(createAuxiliaryVertex());
-
-	sharp::Vertex vClause = 0;
 	foreach(const Instance::value_type& clause, instance) {
-		VerticesInClause& verticesInThisClause = atomsInClauses[vClause++];
+		sharp::Vertex clauseVertex = storeVertexName(clause.first);
+		clauseVertices.insert(clauseVertex);
 
 		// Positive atoms
 		foreach(const std::string& atom, clause.second.first) {
 			sharp::Vertex v = storeVertexName(atom);
 			atomVertices.insert(v);
-			edges.insert(std::make_pair(vClause, v));
-			verticesInThisClause.pos.insert(v);
+			edges.insert(std::make_pair(clauseVertex, v));
 		}
 		// Negative atoms
 		foreach(const std::string& atom, clause.second.second) {
 			sharp::Vertex v = storeVertexName(atom);
 			atomVertices.insert(v);
-			edges.insert(std::make_pair(vClause, v));
-			verticesInThisClause.neg.insert(v);
+			edges.insert(std::make_pair(clauseVertex, v));
 		}
 	}
 

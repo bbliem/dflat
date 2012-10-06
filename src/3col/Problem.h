@@ -3,17 +3,12 @@
 #include <string>
 #include <vector>
 
-#include "../Problem.h"
-
 namespace threeCol {
 
-class Problem : public ::Problem
+class Problem : public sharp::Problem
 {
 public:
-	Problem(std::istream& input);
-
-	//! If v is in the current bag, prints edges to adjacent vertices that are also in the current bag
-	virtual void declareVertex(std::ostream& out, sharp::Vertex v, const sharp::VertexSet& currentVertices) const;
+	Problem(const std::string& input);
 
 	// XXX: As of now, we only accept graphs where each node has at least one neighbor, since the tree decomposition heuristic only works this way. Isolated nodes extend the 3col solutions only in a trivial way anyway.
 	typedef std::string Node;
@@ -27,7 +22,7 @@ protected:
 	virtual sharp::Hypergraph* buildHypergraphRepresentation();
 
 private:
-	std::istream& input;
+	const std::string& input;
 	Graph graph;
 	std::map<sharp::Vertex, std::set<sharp::Vertex> > adjacent; // XXX: Access could be in O(1)
 };

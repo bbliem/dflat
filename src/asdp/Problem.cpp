@@ -1,17 +1,18 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix.hpp>
+#include <boost/fusion/include/std_pair.hpp>
 #include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
-#include <sharp/main>
 
 #include "Problem.h"
 
-namespace cyclic_ordering {
+namespace asdp {
 
 namespace qi = boost::spirit::qi;
 
-namespace {	// Skipper for comments and whitespace
+namespace {
+	// Skipper for comments and whitespace
 	template <typename Iterator>
 	struct SkipperGrammar : qi::grammar<Iterator>
 	{
@@ -22,6 +23,7 @@ namespace {	// Skipper for comments and whitespace
 		qi::rule<Iterator> start;
 	};
 
+	// Parses a set of facts
 	template <typename Iterator>
 	struct InstanceGrammar : qi::grammar<Iterator, SkipperGrammar<Iterator> >
 	{
@@ -30,13 +32,12 @@ namespace {	// Skipper for comments and whitespace
 		InstanceGrammar(Problem& problem) : InstanceGrammar::base_type(start)
 		{
 			identifier = qi::char_("a-z") >> *qi::char_("A-Za-z0-9_");
-
-			order = "order" >> qi::lit('(') >> identifier >> ',' >> identifier >> ',' >> identifier >> ')' >> '.';
-			start = *order[boost::bind(&Problem::parsedOrdering, &problem, _1)];
+			fact = identifier >> -( qi::lit('(') >> (identifier % ',') >> ')' ) >> '.';
+			start = *fact[boost::bind(&Problem::parsedFact, &problem, _1)];
 		}
 
-		qi::rule<Iterator, std::string()> identifier;
-		qi::rule<Iterator, Skipper, std::vector<std::string>()> order;
+		qi::rule<Iterator, std::string()> identifier; // Note the absence of the skipper
+		qi::rule<Iterator, Skipper, Problem::Fact()> fact;
 		qi::rule<Iterator, Skipper> start;
 	};
 }
@@ -44,26 +45,35 @@ namespace {	// Skipper for comments and whitespace
 
 
 
-Problem::Problem(const std::string& input)
-	: input(input)
+Problem::Problem(const std::string& input, const std::set<std::string>& hyperedgePredicateNames)
+	: input(input), hyperedgePredicateNames(hyperedgePredicateNames)
 {
 }
 
-void Problem::parsedOrdering(const std::vector<std::string>& args)
+void Problem::parsedFact(const Problem::Fact& f)
 {
-	sharp::VertexSet hyperedge;
+	if(hyperedgePredicateNames.find(f.first) != hyperedgePredicateNames.end()) {
+		sharp::VertexSet hyperedge;
 
-	foreach(const std::string& arg, args) {
-		sharp::Vertex v = storeVertexName(arg);
-		vertices.insert(v);
-		hyperedge.insert(v);
+		foreach(const std::string& arg, f.second) {
+			sharp::Vertex v = storeVertexName(arg);
+			vertices.insert(v);
+			hyperedge.insert(v);
+		}
+
+		hyperedges.insert(hyperedge);
 	}
-
-	hyperedges.insert(hyperedge);
 }
 
 void Problem::parse()
 {
+//	SkipperGrammar<boost::spirit::istream_iterator> skipper;
+//	InstanceGrammar<boost::spirit::istream_iterator> instanceParser("foobar"); // TODO
+//
+//	input.unsetf(std::ios::skipws);
+//	boost::spirit::istream_iterator it(input);
+//	boost::spirit::istream_iterator end;
+
 	SkipperGrammar<std::string::const_iterator> skipper;
 	InstanceGrammar<std::string::const_iterator> instanceParser(*this);
 
@@ -90,4 +100,4 @@ sharp::Hypergraph* Problem::buildHypergraphRepresentation()
 	return createHypergraphFromSets(vertices, hyperedges);
 }
 
-} // namespace cyclic_ordering
+} // namespace asdp

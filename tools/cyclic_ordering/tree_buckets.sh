@@ -2,28 +2,27 @@
 
 # generate cyclic_ordering instances and put them into buckets according to width of tree decomposition
 
-generator=tools/cyclic_ordering/instance_generator.py
+generator=tools/cyclic_ordering/tree_instance_generator.py
 solver=build/release/cyclic_ordering
 
-minNumElements=51
-maxNumElements=100
-stepNumElements=1
-minOrderingFactor=1
-maxOrderingFactor=1.25 # Produce up to numElements * maxOrderingFactor orderings
-stepNumOrderings=1
-minWidth=7
-maxWidth=7
+minN=6
+maxN=98
+minO=0
+maxO=14
+stepN=1
+stepO=1
 
-numInstances=100
+minWidth=0
+maxWidth=9
+
+numInstances=4
 
 seed=$(date +%s) # current time
 
-for numElements in $(seq $minNumElements $stepNumElements $maxNumElements); do
-	echo $numElements elements:
-	minNumOrderings=$(bc <<< "($numElements * $minOrderingFactor)/1")
-	maxNumOrderings=$(bc <<< "($numElements * $maxOrderingFactor)/1")
-	for numOrderings in $(seq $minNumOrderings $stepNumOrderings $maxNumOrderings); do
-		echo -n "	${numOrderings} orderings"
+for n in $(seq $minN $stepN $maxN); do
+	echo n=${n}:
+	for o in $(seq $minO $stepO $maxO); do
+		echo -n "	o=${o}"
 		for instanceNumber in $(seq 1 $numInstances); do
 			echo -n "." # progress marker
 			let "seed += 1"
@@ -33,20 +32,19 @@ for numElements in $(seq $minNumElements $stepNumElements $maxNumElements); do
 			trap "rm -f $instance" EXIT
 
 			# write instance to file
-			$generator $numElements $numOrderings $seed > $instance&
+			$generator $n $o $seed > $instance&
 			wait
 
 			width=$($solver -s $seed --only-decompose --stats < $instance | awk '/Width:/ {print $2}' | head -n1)
-			echo -n "$width "
 			[[ $width -ge $minWidth && $width -le $maxWidth ]] || continue
 			directory=instances/cyclic_ordering/width${width}
 
 			# does an instance for this width/size already exist?
-			if [ -e ${directory}/${numElements}_${numOrderings}_*.lp ]; then
+			if [ -e ${directory}/${n}_${o}_*.lp ]; then
 				rm -f $instance
 			else
 				mkdir -p $directory
-				basename=${directory}/${numElements}_${numOrderings}_${seed}
+				basename=${directory}/${n}_${o}_${seed}
 				mv $instance ${basename}.lp
 			fi
 

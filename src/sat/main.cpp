@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 #include <sharp/main>
@@ -100,7 +101,12 @@ int main(int argc, char** argv)
 
 	srand(seed);
 
-	sat::Problem problem(std::cin);
+	// Store all of stdin in a string
+	std::ostringstream inputStringStream;
+	inputStringStream << std::cin.rdbuf();
+	std::string inputString = inputStringStream.str();
+
+	sat::Problem problem(inputString);
 
 	sharp::ExtendedHypertree* decomposition = problem.calculateHypertreeDecomposition();
 
@@ -127,7 +133,7 @@ int main(int argc, char** argv)
 			return 1;
 
 		case SEMI_ASP:
-			sat::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "asp_encodings/sat/exchange_decision.lp" : "asp_encodings/sat/exchange.lp", normalizationType);
+			sat::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "asp_encodings/sat/exchange_decision.lp" : "asp_encodings/sat/exchange.lp", inputString, normalizationType);
 			solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 			break;
 	}

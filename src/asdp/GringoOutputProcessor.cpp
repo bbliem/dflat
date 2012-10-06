@@ -1,6 +1,6 @@
 #include "GringoOutputProcessor.h"
 
-namespace cyclic_ordering {
+namespace asdp {
 
 GringoOutputProcessor::GringoOutputProcessor(const sharp::Problem& problem)
 	: problem(problem)
@@ -11,16 +11,14 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 {
 	::GringoOutputProcessor::printSymbolTableEntry(atom, arity, name);
 
-	if(arity == 2 && name == "map") { // FIXME: I'm dirty
-		std::pair<std::stringstream,std::stringstream> args; // The two arguments
+	if(arity == 2 && name == "map") {
+		std::pair<std::ostringstream,std::ostringstream> args; // The two arguments
 		ValVec::const_iterator k = vals_.begin() + atom.second;
 		(k++)->print(s_, args.first);
 		k->print(s_, args.second);
-		ElementAndNumber ei;
-		ei.first = args.first.str();
-		args.second >> ei.second;
-		map.push_back(MappingAndSymbolTableKey(ei, atom.first));
+
+		map.push_back(MappingAndSymbolTableKey(StringPair(args.first.str(), args.second.str()), atom.first));
 	}
 }
 
-} // namespace cyclic_ordering
+} // namespace asdp

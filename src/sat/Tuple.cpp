@@ -45,21 +45,25 @@ void Tuple::declare(std::ostream& out, const sharp::TupleSet::value_type& tupleA
 bool Tuple::isValid(const sharp::Problem& problem, const sharp::ExtendedHypertree& root) const
 {
 	// FIXME: This does not have to be done for each tuple but only once
-	unsigned int numClausesInRoot = 0;
-	foreach(sharp::Vertex v, root.getVertices())
-		if(dynamic_cast<const Problem&>(problem).vertexIsClause(v))
-			++numClausesInRoot;
+//	unsigned int numClausesInRoot = 0;
+//	foreach(sharp::Vertex v, root.getVertices())
+//		if(dynamic_cast<const Problem&>(problem).vertexIsClause(v))
+//			++numClausesInRoot;
+//
+//	// Suppose if the size is the same, the clauses are the same
+//	return clauses.size() == numClausesInRoot;
 
-	// Suppose if the size is the same, the clauses are the same
-	return clauses.size() == numClausesInRoot;
+	// TODO
+	assert(false);
+	return false;
 }
 
 #ifdef VERBOSE
-void Tuple::print(std::ostream& str, ::Problem& problem) const
+void Tuple::print(std::ostream& str, const sharp::Problem& problem) const
 {
 	str << "Tuple: ";
 	foreach(sharp::Vertex v, atoms)
-		str << problem.getVertexName(v) << '[' << v << "] ";
+		str << const_cast<sharp::Problem&>(problem).getVertexName(v) << '[' << v << "] ";
 	foreach(sharp::Vertex v, clauses)
 		str << v << ' ';
 	str << std::endl;

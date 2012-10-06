@@ -1,17 +1,17 @@
 #!/bin/bash
-# Arguments to this script will be passed to $co additionally
 
 numInstances=100
 #numElements=14
 #numOrderings=21
-numElements=5
-numOrderings=5
+numElements=10
+numOrderings=14
 
 instanceGen=tools/cyclic_ordering/instance_generator.py
 gringo=../gringo
 clasp=../clasp-2.0.2-st-x86-linux
 monolithicEncoding=asp_encodings/cyclic_ordering/monolithic.lp
-co=build/release/cyclic_ordering
+exchangeEncoding=asp_encodings/cyclic_ordering/exchange_decision.lp
+asdp="build/release/asdp -e order $exchangeEncoding -p decision"
 
 for instance in $(seq 1 $numInstances); do
 	seed=$RANDOM
@@ -23,16 +23,16 @@ for instance in $(seq 1 $numInstances); do
 
 	$gringo $monolithicEncoding $instance 2>/dev/null | $clasp -q >/dev/null
 	claspExit=$?
-	$co -s $seed $@ < $instance &>/dev/null
-	coExit=$?
+	$asdp -s $seed $@ < $instance &>/dev/null
+	asdpExit=$?
 
-	if [ $claspExit -ne $coExit ]; then
+	if [ $claspExit -ne $asdpExit ]; then
 		cp $instance mismatch${seed}.lp
 		echo
-		echo "Mismatch for seed $seed (cyclic_ordering: ${coExit}, clasp: ${claspExit})"
+		echo "Mismatch for seed $seed (asdp: ${asdpExit}, clasp: ${claspExit})"
 	else
 #		echo -n .
-		echo -n "$coExit "
+		echo -n "$asdpExit "
 	fi
 
 	# remove temp file

@@ -2,7 +2,7 @@
 
 #include "../ClaspAlgorithm.h"
 
-namespace cyclic_ordering {
+namespace asdp {
 
 class Problem;
 
@@ -16,4 +16,4 @@ public:
 	virtual std::auto_ptr< ::GringoOutputProcessor> newGringoOutputProcessor() const;
 };
 
-} // namespace cyclic_ordering
+} // namespace asdp

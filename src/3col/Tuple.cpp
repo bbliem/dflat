@@ -53,17 +53,17 @@ bool Tuple::isValid(const sharp::Problem& problem, const sharp::ExtendedHypertre
 }
 
 #ifdef VERBOSE
-void Tuple::print(std::ostream& str, ::Problem& problem) const
+void Tuple::print(std::ostream& str, const sharp::Problem& problem) const
 {
 	str << "Tuple: R: ";
 	foreach(sharp::Vertex v, red)
-		str << problem.getVertexName(v);
+		str << const_cast<sharp::Problem&>(problem).getVertexName(v);
 	std::cout << " G: ";
 	foreach(sharp::Vertex v, green)
-		str << problem.getVertexName(v);
+		str << const_cast<sharp::Problem&>(problem).getVertexName(v);
 	std::cout << " B: ";
 	foreach(sharp::Vertex v, blue)
-		str << problem.getVertexName(v);
+		str << const_cast<sharp::Problem&>(problem).getVertexName(v);
 	str << std::endl;
 }
 #endif

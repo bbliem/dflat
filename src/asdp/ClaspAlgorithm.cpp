@@ -6,7 +6,7 @@
 #include <iomanip>
 #endif
 
-namespace cyclic_ordering {
+namespace asdp {
 
 ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram, const std::string& instanceFacts, sharp::NormalizationType normalizationType)
 	: ::ClaspAlgorithm(problem, exchangeNodeProgram, instanceFacts, normalizationType)
@@ -14,9 +14,9 @@ ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram
 }
 
 
-std::auto_ptr<Clasp::ClaspFacade::Callback> ClaspAlgorithm::newClaspCallback(sharp::TupleSet& newTuples, const ::GringoOutputProcessor& gringoOutput, const sharp::VertexSet& vertices) const
+std::auto_ptr<Clasp::ClaspFacade::Callback> ClaspAlgorithm::newClaspCallback(sharp::TupleSet& newTuples, const ::GringoOutputProcessor& gringoOutput, const sharp::VertexSet&) const
 {
-	return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallback(*this, newTuples, dynamic_cast<const GringoOutputProcessor&>(gringoOutput), vertices));
+	return std::auto_ptr<Clasp::ClaspFacade::Callback>(new ClaspCallback(*this, newTuples, dynamic_cast<const GringoOutputProcessor&>(gringoOutput)));
 }
 
 std::auto_ptr< ::GringoOutputProcessor> ClaspAlgorithm::newGringoOutputProcessor() const
@@ -24,4 +24,4 @@ std::auto_ptr< ::GringoOutputProcessor> ClaspAlgorithm::newGringoOutputProcessor
 	return std::auto_ptr< ::GringoOutputProcessor>(new GringoOutputProcessor(problem));
 }
 
-} // namespace cyclic_ordering
+} // namespace asdp

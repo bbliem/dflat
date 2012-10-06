@@ -5,51 +5,52 @@
 #include <gringo/streams.h>
 
 #include "ClaspAlgorithm.h"
-#include "Problem.h"
 #include "ClaspInputReader.h"
 #include "Tuple.h"
 
 using sharp::TupleSet;
 
 namespace {
-	inline void declareBagContents(std::ostream& bagContents, const Problem& problem, const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed)
+	inline void declareBagContents(std::ostream& bagContents, const sharp::Problem& problem, const std::string& instanceFacts, const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed)
 	{
-		foreach(sharp::Vertex v, vertices)
-			problem.declareVertex(bagContents, v, vertices);
-		foreach(sharp::Vertex v, introduced)
-			problem.declareVertex(bagContents, v, vertices);
-		foreach(sharp::Vertex v, removed)
-			problem.declareVertex(bagContents, v, vertices);
+		bagContents << instanceFacts << std::endl;
 
+//		foreach(sharp::Vertex v, vertices)
+//			bagContents << "current(v" << v << ")." << std::endl;
+//		foreach(sharp::Vertex v, introduced)
+//			bagContents << "introduced(v" << v << ")." << std::endl;
+//		foreach(sharp::Vertex v, removed)
+//			bagContents << "removed(v" << v << ")." << std::endl;
 		foreach(sharp::Vertex v, vertices)
-			bagContents << "current(v" << v << ")." << std::endl;
+			bagContents << "current(" << const_cast<sharp::Problem&>(problem).getVertexName(v) << ")." << std::endl;
 		foreach(sharp::Vertex v, introduced)
-			bagContents << "introduced(v" << v << ")." << std::endl;
+			bagContents << "introduced(" << const_cast<sharp::Problem&>(problem).getVertexName(v) << ")." << std::endl;
 		foreach(sharp::Vertex v, removed)
-			bagContents << "removed(v" << v << ")." << std::endl;
+			bagContents << "removed(" << const_cast<sharp::Problem&>(problem).getVertexName(v) << ")." << std::endl;
 	}
 }
 
-ClaspAlgorithm::ClaspAlgorithm(Problem& problem, const char* exchangeNodeProgram, sharp::NormalizationType normalizationType)
-	: Algorithm(problem, normalizationType), exchangeNodeProgram(exchangeNodeProgram)
+ClaspAlgorithm::ClaspAlgorithm(sharp::Problem& problem, const char* exchangeNodeProgram, const std::string& instanceFacts, sharp::NormalizationType normalizationType)
+	: Algorithm(problem, normalizationType), exchangeNodeProgram(exchangeNodeProgram), instanceFacts(instanceFacts)
 {
 }
 
 TupleSet* ClaspAlgorithm::exchangeLeaf(const sharp::VertexSet& vertices, const sharp::VertexSet& introduced, const sharp::VertexSet& removed)
 {
 	std::stringstream* bagContents = new std::stringstream;
-	declareBagContents(*bagContents, dynamic_cast<Problem&>(problem), vertices, introduced, removed);
+	declareBagContents(*bagContents, problem, instanceFacts, vertices, introduced, removed);
 
 	Streams inputStreams;
 	inputStreams.addFile(exchangeNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
 	// Remember: "Streams" deletes the appended streams -_-
 	inputStreams.appendStream(Streams::StreamPtr(bagContents), "<bag_contents>");
+//	std::cout << "Bag " << bagContents->str() << '\n';
 
 	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
 
 	TupleSet* newTuples = new TupleSet;
-	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTuples, *outputProcessor);
+	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTuples, *outputProcessor, vertices);
 	Clasp::ClaspConfig config;
 	setClaspConfig(config);
 	clasp.solve(inputReader, config, cb.get());
@@ -66,15 +67,16 @@ TupleSet* ClaspAlgorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, cons
 		return newTuples;
 
 	std::stringstream* bagContents = new std::stringstream;
-	declareBagContents(*bagContents, dynamic_cast<Problem&>(problem), vertices, introduced, removed);
+	declareBagContents(*bagContents, problem, instanceFacts, vertices, introduced, removed);
+//	std::cout << "Bag " << bagContents->str() << '\n';
 
 	std::stringstream* childTuplesInput = new std::stringstream;
 	// Declare child tuples
 	foreach(const TupleSet::value_type& tupleAndSolution, childTuples)
 		dynamic_cast<Tuple*>(tupleAndSolution.first)->declare(*childTuplesInput, tupleAndSolution, vertices);
-//#ifdef VERBOSE
-//	std::cout << "Child tuple input:" << std::endl << childTuplesInput->str() << std::endl;
-//#endif
+#ifdef VERBOSE
+	std::cout << std::endl << "Child tuple input:" << std::endl << childTuplesInput->str() << std::endl;
+#endif
 
 	Streams inputStreams;
 	inputStreams.addFile(exchangeNodeProgram, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
@@ -84,7 +86,7 @@ TupleSet* ClaspAlgorithm::exchangeNonLeaf(const sharp::VertexSet& vertices, cons
 
 	std::auto_ptr<GringoOutputProcessor> outputProcessor = newGringoOutputProcessor();
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
-	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTuples, *outputProcessor);
+	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTuples, *outputProcessor, vertices);
 	Clasp::ClaspConfig config;
 	setClaspConfig(config);
 	clasp.solve(inputReader, config, cb.get());

@@ -8,9 +8,6 @@
 
 #include "Algorithm.h"
 #include "Tuple.h"
-#ifdef VERBOSE
-#include "Problem.h"
-#endif
 
 using sharp::Solution;
 using sharp::TupleSet;
@@ -110,7 +107,7 @@ endJoin:
 #ifdef VERBOSE
 	std::cout << "Join node result:" << std::endl;
 	for(TupleSet::const_iterator it = ts->begin(); it != ts->end(); ++it)
-		TUP(it).print(std::cout, dynamic_cast<Problem&>(problem));
+		TUP(it).print(std::cout, problem);
 	std::cout << std::endl;
 #endif
 
@@ -149,7 +146,7 @@ sharp::TupleSet* Algorithm::evaluatePermutationNode(const sharp::ExtendedHypertr
 #ifdef VERBOSE
 	std::cout << std::endl << "Resulting tuples:" << std::endl;
 	for(TupleSet::const_iterator it = newTuples->begin(); it != newTuples->end(); ++it)
-		dynamic_cast<Tuple*>(it->first)->print(std::cout, dynamic_cast<Problem&>(problem));
+		dynamic_cast<Tuple*>(it->first)->print(std::cout, problem);
 	std::cout << std::endl;
 #endif
 
@@ -204,8 +201,9 @@ void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node, size_t n
 #ifdef VERBOSE
 void Algorithm::printBagContents(const sharp::VertexSet& vertices) const
 {
-	std::cout << "Bag contents:" << std::endl;
+	std::cout << "Bag contents: ";
 	foreach(Vertex v, vertices)
-		std::cout << v << std::endl;
+		std::cout << problem.getVertexName(v) << ' ';
+	std::cout << std::endl;
 }
 #endif

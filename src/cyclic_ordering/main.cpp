@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 #include <sharp/main>
@@ -70,7 +71,12 @@ int main(int argc, char** argv)
 
 	srand(seed);
 
-	cyclic_ordering::Problem problem(std::cin);
+	// Store all of stdin in a string
+	std::ostringstream inputStringStream;
+	inputStringStream << std::cin.rdbuf();
+	std::string inputString = inputStringStream.str();
+
+	cyclic_ordering::Problem problem(inputString);
 
 	sharp::ExtendedHypertree* decomposition = problem.calculateHypertreeDecomposition();
 
@@ -90,7 +96,7 @@ int main(int argc, char** argv)
 		return 0;
 
 	sharp::Solution* solution;
-	cyclic_ordering::ClaspAlgorithm algorithm(problem, "asp_encodings/cyclic_ordering/exchange_decision.lp", normalizationType);
+	cyclic_ordering::ClaspAlgorithm algorithm(problem, "asp_encodings/cyclic_ordering/exchange_decision.lp", inputString, normalizationType);
 	solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 
 	// Print solution

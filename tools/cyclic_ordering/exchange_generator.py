@@ -30,17 +30,17 @@ for v in elements[numCurrent:]:
 # Print orderings
 for i in range(numOrderings):
 	o = random.sample(elements, 3)
-	print("order({},{},{}).".format(o[0], o[1], o[2]))
+	print("order_({},{},{}).".format(o[0], o[1], o[2]))
 
 elementsBefore = elements[numIntroduced:]
 
 # Print child tuples
 for c in range(numChildTuples):
 	childTupleName = "c"+str(c)
-	print("childTuple("+childTupleName+").")
+	print("childTuple_("+childTupleName+").")
 
 	random.shuffle(elementsBefore)
 	predecessor = elementsBefore[0]
 	for v in elementsBefore[1:]:
-		print("succ({},{},{}).".format(childTupleName, predecessor, v))
+		print("succ_({},{},{}).".format(childTupleName, predecessor, v))
 		predecessor = v

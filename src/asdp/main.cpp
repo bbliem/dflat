@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <cassert>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 #include <sharp/main>
@@ -14,18 +15,18 @@ namespace {
 
 	void usage(const char* program) {
 		const int w = 20;
-//		std::cerr << "Usage: " << program << " [-a algorithm] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats]" << std::endl;
-		std::cerr << "Usage: " << program << " [--only-decompose] [-s seed] [--stats]" << std::endl;
+		std::cerr << "Usage: " << program << " -e hyperedge_pred [...] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats] exchange_program < instance" << std::endl;
 		std::cerr << std::endl << std::left;
-//		std::cerr << '\t' << std::setw(w) << "-a algorithm: " << "Either \"semi\", \"semi-asp\" or \"normalized\" (default: argument of -n)" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-e hyperedge_pred: " << "Name of a predicate that declares hyperedges (must be specified at least once)" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
-		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"counting\" (default) or \"decision\"" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\" or \"decision\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-s seed: " << "Initialize random number generator with <seed>" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--stats: " << "Print statistics" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "exchange_program: " << "File name of the logic program executed in exchange nodes" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "instance: " << "File name of the set of facts representing an instance" << std::endl;
 		std::cerr << std::endl;
-//		std::cerr << "\"-a normalized\" only works if \"-n normalized\" is set." << std::endl;
-		std::cerr << "If \"problem_type\" is \"decision\", exit code " << CONSISTENT << " means consistent, " << INCONSISTENT << " means inconsistent." << std::endl;
+		std::cerr << "Exit code " << CONSISTENT << " means consistent, " << INCONSISTENT << " means inconsistent." << std::endl;
 		exit(1);
 	}
 
@@ -40,16 +41,21 @@ namespace {
 
 int main(int argc, char** argv)
 {
-	sharp::NormalizationType normalizationType = sharp::SemiNormalization;
-	enum { COUNTING, DECISION } problemType = COUNTING;
+	enum { ENUMERATION, COUNTING, DECISION } problemType = ENUMERATION;
 	time_t seed = time(0);
+	sharp::NormalizationType normalizationType = sharp::SemiNormalization;
 	bool onlyDecompose = false;
 	bool stats = false;
+	const char* exchangeProgram = 0;
+	std::set<std::string> hyperedgePredicateNames;
 
 	for(int i = 1; i < argc; ++i) {
+		bool hasArg = i+1 < argc;
 		std::string arg = argv[i];
 
-		if(arg == "-n") {
+		if(arg == "-e" && hasArg)
+			hyperedgePredicateNames.insert(argv[++i]);
+		else if(arg == "-n" && hasArg) {
 			std::string typeArg = argv[++i];
 			if(typeArg == "semi")
 				normalizationType = sharp::SemiNormalization;
@@ -60,16 +66,18 @@ int main(int argc, char** argv)
 		}
 		else if(arg == "--only-decompose")
 			onlyDecompose = true;
-		else if(arg == "-p") {
+		else if(arg == "-p" && hasArg) {
 			std::string typeArg = argv[++i];
-			if(typeArg == "counting")
+			if(typeArg == "enumeration")
+				problemType = ENUMERATION;
+			else if(typeArg == "counting")
 				problemType = COUNTING;
 			else if(typeArg == "decision")
 				problemType = DECISION;
 			else
 				usage(argv[0]);
 		}
-		else if(arg == "-s") {
+		else if(arg == "-s" && hasArg) {
 			char* endptr;
 			seed = strtol(argv[++i], &endptr, 0);
 			if(*endptr) {
@@ -79,9 +87,16 @@ int main(int argc, char** argv)
 		}
 		else if(arg == "--stats")
 			stats = true;
-		else
-			usage(argv[0]);
+		else {
+			if(exchangeProgram)
+				usage(argv[0]);
+			else
+				exchangeProgram = argv[i];
+		}
 	}
+
+	if(!exchangeProgram || hyperedgePredicateNames.empty())
+		usage(argv[0]);
 
 	srand(seed);
 
@@ -90,7 +105,7 @@ int main(int argc, char** argv)
 	inputStringStream << std::cin.rdbuf();
 	std::string inputString = inputStringStream.str();
 
-	threeCol::Problem problem(inputString);
+	asdp::Problem problem(inputString, hyperedgePredicateNames);
 
 	sharp::ExtendedHypertree* decomposition = problem.calculateHypertreeDecomposition();
 
@@ -109,35 +124,36 @@ int main(int argc, char** argv)
 	if(onlyDecompose)
 		return 0;
 
-	sharp::Solution* solution;
-	threeCol::ClaspAlgorithm algorithm(problem, problemType == DECISION ? "asp_encodings/3col/exchange_decision.lp" : "asp_encodings/3col/exchange.lp", inputString, normalizationType);
-	solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
+	asdp::ClaspAlgorithm algorithm(problem, exchangeProgram, inputString, normalizationType);
+	sharp::Solution* solution = problem.calculateSolutionFromDecomposition(&algorithm, decomposition);
 
 	// Print solution
 	if(solution) {
 		switch(problemType) {
-//			case ENUMERATION: {
-//				sharp::EnumerationSolutionContent* sol = dynamic_cast<sharp::EnumerationSolutionContent*>(solution->getContent(new sharp::GenericInstantiator<sharp::EnumerationSolutionContent>()));
-//
-//				std::cout << "Solutions: " << sol->enumerations.size() << std::endl;
-//				std::cout << "{";
-//				std::string osep = "";
-//				foreach(const sharp::VertexSet& o, sol->enumerations) {
-//					std::cout << osep << "{";
-//					std::string isep = "";
-//					foreach(sharp::Vertex i, o) {
-//						std::cout << isep << problem.getVertexName(i);
-//						isep = ",";
-//					}
-//					std::cout << "}" << std::flush;
-//					osep = ",";
-//				}
-//				std::cout << "}" << std::endl;
-//			} break;
+			case ENUMERATION: {
+				sharp::EnumerationSolutionContent* sol = dynamic_cast<sharp::EnumerationSolutionContent*>(solution->getContent(new sharp::GenericInstantiator<sharp::EnumerationSolutionContent>()));
+
+				std::cout << "Solutions: " << sol->enumerations.size() << std::endl;
+				std::cout << "{";
+				std::string osep = "";
+				foreach(const sharp::VertexSet& o, sol->enumerations) {
+					std::cout << osep << "{";
+					std::string isep = "";
+					foreach(sharp::Vertex i, o) {
+						std::cout << isep << problem.getVertexName(i);
+						isep = ",";
+					}
+					std::cout << "}" << std::flush;
+					osep = ",";
+				}
+				std::cout << "}" << std::endl;
+				return sol->enumerations.empty() ? INCONSISTENT : CONSISTENT;
+			} break;
 
 			case COUNTING: {
 				sharp::CountingSolutionContent* content = dynamic_cast<sharp::CountingSolutionContent*>(solution->getContent(new sharp::GenericInstantiator<sharp::CountingSolutionContent>()));
 				std::cout << "Solutions: " << content->count << std::endl;
+				return content->count == 0 ? INCONSISTENT : CONSISTENT;
 			} break;
 
 			case DECISION: {

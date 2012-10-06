@@ -21,10 +21,11 @@ struct Tuple : public sharp::Tuple
 	//! @param tupleAndSolution reference to the entry in the TupleSet that contains this tuple
 	virtual void declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution, const sharp::VertexSet& currentVertices) const = 0;
 
+	// TODO: We might be able to dispense with this method if we use an empty root and let the exchange program filter out invalid tuples
 	//! @return true iff this tuple (which is supposed to be in root) corresponds to a valid solution
 	virtual bool isValid(const sharp::Problem&, const sharp::ExtendedHypertree& root) const = 0;
 
 #ifdef VERBOSE
-	virtual void print(std::ostream&, class Problem&) const = 0;
+	virtual void print(std::ostream&, const sharp::Problem&) const = 0;
 #endif
 };

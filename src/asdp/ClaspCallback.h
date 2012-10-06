@@ -5,7 +5,7 @@
 #include "ClaspAlgorithm.h"
 #include "Tuple.h"
 
-namespace cyclic_ordering {
+namespace asdp {
 
 class GringoOutputProcessor;
 
@@ -13,8 +13,8 @@ class GringoOutputProcessor;
 class ClaspCallback : public Clasp::ClaspFacade::Callback
 {
 public:
-	ClaspCallback(const ClaspAlgorithm& algorithm, sharp::TupleSet& newTuples, const GringoOutputProcessor& gringoOutput, const sharp::VertexSet& vertices)
-		: algorithm(algorithm), newTuples(newTuples), gringoOutput(gringoOutput), numVertices(vertices.size())
+	ClaspCallback(const ClaspAlgorithm& algorithm, sharp::TupleSet& newTuples, const GringoOutputProcessor& gringoOutput)
+		: algorithm(algorithm), newTuples(newTuples), gringoOutput(gringoOutput)
 	{}
 
 	// Called if the current configuration contains unsafe/unreasonable options
@@ -30,12 +30,11 @@ private:
 	const ClaspAlgorithm& algorithm;
 	sharp::TupleSet& newTuples;
 	const GringoOutputProcessor& gringoOutput;
-	const unsigned int numVertices;
 
-	typedef std::pair<std::string,unsigned> ElementAndNumber;
-	typedef std::pair<ElementAndNumber, Clasp::Literal> MappingAndLiteral;
+	typedef std::pair<std::string,std::string> StringPair;
+	typedef std::pair<StringPair, Clasp::Literal> MappingAndLiteral;
 	typedef std::vector<MappingAndLiteral> MappingAndLiteralVec;
 	MappingAndLiteralVec map;
 };
 
-} // namespace cyclic_ordering
+} // namespace asdp

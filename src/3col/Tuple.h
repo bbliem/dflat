@@ -18,7 +18,7 @@ struct Tuple : public ::Tuple
 	virtual bool isValid(const sharp::Problem&, const sharp::ExtendedHypertree& root) const;
 
 #ifdef VERBOSE
-	virtual void print(std::ostream&, class ::Problem&) const;
+	virtual void print(std::ostream&, const sharp::Problem&) const;
 #endif	
 
 	typedef std::set<sharp::Vertex> VertexSet;

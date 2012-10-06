@@ -4,7 +4,7 @@
 
 #include "../Tuple.h"
 
-namespace cyclic_ordering {
+namespace asdp {
 
 struct Tuple : public ::Tuple
 {
@@ -17,10 +17,11 @@ struct Tuple : public ::Tuple
 	virtual bool isValid(const sharp::Problem&, const sharp::ExtendedHypertree& root) const;
 
 #ifdef VERBOSE
-	virtual void print(std::ostream&, const sharp::Problem&) const; // prints names instead of vertex numbers for atoms
+	virtual void print(std::ostream&, const class sharp::Problem&) const;
 #endif
 
-	std::vector<std::string> ordering;
+	typedef std::map<std::string, std::string> Assignments; // Assigns values to vertex names
+	Assignments assignments;
 };
 
-} // namespace cyclic_ordering
+} // namespace asdp

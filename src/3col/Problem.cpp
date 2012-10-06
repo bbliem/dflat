@@ -11,11 +11,6 @@ namespace threeCol {
 
 namespace qi = boost::spirit::qi;
 
-using std::vector;
-using std::string;
-using std::pair;
-using sharp::Vertex;
-
 namespace {
 	// Skipper for comments and whitespace
 	template <typename Iterator>
@@ -62,33 +57,18 @@ namespace {
 
 
 
-Problem::Problem(std::istream& input)
+Problem::Problem(const std::string& input)
 	: input(input)
 {
 }
 
-void Problem::declareVertex(std::ostream& out, Vertex v, const sharp::VertexSet& currentVertices) const
-{
-	if(currentVertices.find(v) == currentVertices.end())
-		return;
-
-	// Need to declare adjacent edges to vertices also in the current bag
-	assert(adjacent.find(v) != adjacent.end()); // Since we only allow vertices with neighbors
-	const std::set<sharp::Vertex>& neighbors = adjacent.find(v)->second;
-	foreach(sharp::Vertex neighbor, currentVertices) {
-		if(v < neighbor && neighbors.find(neighbor) != neighbors.end()) // "<" because edges are undirected)
-			out << "edge(v" << v << ",v" << neighbor << ")." << std::endl;
-	}
-}
-
 void Problem::parse()
 {
-	SkipperGrammar<boost::spirit::istream_iterator> skipper;
-	ThreeColGrammar<boost::spirit::istream_iterator> threeColParser(skipper);
+	SkipperGrammar<std::string::const_iterator> skipper;
+	ThreeColGrammar<std::string::const_iterator> threeColParser(skipper);
 
-	input.unsetf(std::ios::skipws);
-	boost::spirit::istream_iterator it(input);
-	boost::spirit::istream_iterator end;
+	std::string::const_iterator it = input.begin();
+	std::string::const_iterator end = input.end();
 
 	bool result = qi::phrase_parse(
 			it,

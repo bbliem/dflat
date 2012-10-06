@@ -18,7 +18,7 @@ struct Tuple : public ::Tuple
 	virtual bool isValid(const sharp::Problem&, const sharp::ExtendedHypertree& root) const;
 
 #ifdef VERBOSE
-	virtual void print(std::ostream&, class ::Problem&) const; // prints names instead of vertex numbers for atoms
+	virtual void print(std::ostream&, const sharp::Problem&) const; // prints names instead of vertex numbers for atoms
 #endif	
 
 	typedef std::set<sharp::Vertex> VertexSet;

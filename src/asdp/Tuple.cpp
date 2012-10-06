@@ -5,21 +5,21 @@
 #include "Tuple.h"
 #include "Problem.h"
 
-namespace cyclic_ordering {
+namespace asdp {
 
 bool Tuple::operator<(const sharp::Tuple& rhs) const
 {
-	return ordering < dynamic_cast<const Tuple&>(rhs).ordering;
+	return assignments < dynamic_cast<const Tuple&>(rhs).assignments;
 }
 
 bool Tuple::operator==(const sharp::Tuple& rhs) const
 {
-	return ordering == dynamic_cast<const Tuple&>(rhs).ordering;
+	return assignments == dynamic_cast<const Tuple&>(rhs).assignments;
 }
 
 bool Tuple::matches(const ::Tuple& other) const
 {
-	return ordering == dynamic_cast<const Tuple&>(other).ordering;
+	return assignments == dynamic_cast<const Tuple&>(other).assignments;
 }
 
 Tuple* Tuple::join(const ::Tuple& other) const
@@ -30,27 +30,24 @@ Tuple* Tuple::join(const ::Tuple& other) const
 void Tuple::declare(std::ostream& out, const sharp::TupleSet::value_type& tupleAndSolution, const sharp::VertexSet& currentVertices) const
 {
 	out << "childTuple(t" << &tupleAndSolution << ")." << std::endl;
-	for(unsigned int i = 0; i < ordering.size(); ++i) {
-		const std::string& element = ordering[i];
-		// TODO: Maybe only declare current vertices?
-		out << "mapped(t" << &tupleAndSolution << ',' << element << ',' << i << ")." << std::endl;
-	}
+	foreach(const Assignments::value_type& a, assignments)
+		out << "mapped(t" << &tupleAndSolution << ',' << a.first << ',' << a.second << ")." << std::endl;
 }
 
 bool Tuple::isValid(const sharp::Problem& problem, const sharp::ExtendedHypertree& root) const
 {
-	// We only generate valid tuples in the first place
-	return true;	
+	// TODO
+	return true;
 }
 
 #ifdef VERBOSE
 void Tuple::print(std::ostream& str, const sharp::Problem& problem) const
 {
 	str << "Tuple: ";
-	foreach(std::string element, ordering)
-		str << element << ' ';
+	foreach(const Assignments::value_type& a, assignments)
+		str << a.first << '=' << a.second << ' ';
 	str << std::endl;
 }
 #endif
 
-} // namespace cyclic_ordering
+} // namespace asdp
