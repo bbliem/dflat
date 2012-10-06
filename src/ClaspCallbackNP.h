@@ -24,6 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Algorithm.h"
 
+class Row;
 class GringoOutputProcessor;
 
 // Gets called by clasp whenever a model has been found
@@ -58,8 +59,11 @@ private:
 		{}
 	};
 	std::vector<ItemAtom> itemAtoms;
+
+	typedef std::map<const Row*, Clasp::Literal> RowPointerToLiteral;
+	RowPointerToLiteral extendAtoms;
+
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
-	LongToLiteral extendAtoms;
 	LongToLiteral countAtoms;
 	LongToLiteral currentCostAtoms;
 	LongToLiteral costAtoms;

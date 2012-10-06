@@ -40,25 +40,48 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 
 			foreach(const GringoOutputProcessor::ItemAtom& it, gringoOutput.getItemAtoms())
 				itemAtoms.push_back(ItemAtom(it.level, it.value, symTab[it.symbolTableKey].lit));
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getExtendAtoms())
-				extendAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::ExtendAtom& it, gringoOutput.getExtendAtoms()) {
+				if(it.level == 0)
+					extendAtoms.push_back(ExtendAtom(it.level, it.extended.row, symTab[it.symbolTableKey].lit));
+				else
+					extendAtoms.push_back(ExtendAtom(it.level, it.extended.set, symTab[it.symbolTableKey].lit));
+			}
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCountAtoms())
 				countAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
 				currentCostAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCostAtoms())
 				costAtoms[it.first] = symTab[it.second].lit;
-			foreach(const GringoOutputProcessor::StringToSymbolTableKey::value_type& it, gringoOutput.getGroupAtoms())
-				groupAtoms[it.first] = symTab[it.second].lit;
 #ifdef PRINT_MODELS
 			std::cout << std::endl;
 #endif
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit) {
-			foreach(const GroupData::value_type& it, groupData) {
-				foreach(const TopLevelItemsToRow::value_type& it2, it.second) {
-					algorithm.addRowToTable(table, it2.second);
+			foreach(const Tree::Children::value_type& child, tree.children) {
+				const ExtendArguments& predecessors = child.first.first;
+				const Row::Items& topLevelItems = child.first.second;
+				Row* row = new Row(Row::Tree(topLevelItems, child.second.mergeChildren()));
+
+				if(predecessors.empty())
+					row->setCount(1);
+				else {
+					//row->addExtensionPointerTuple(reinterpret_cast<const Row::ExtensionPointerTuple&>(predecessors)); // I hope this cast does not blow up...
+					// Better safe than sorry
+					Row::ExtensionPointerTuple extensionPointers;
+					extensionPointers.reserve(predecessors.size());
+					foreach(const void* p, predecessors)
+						extensionPointers.push_back(reinterpret_cast<const Row*>(p));
+					row->addExtensionPointerTuple(extensionPointers);
 				}
+
+				if(child.second.hasCount)
+					row->setCount(child.second.count);
+				if(child.second.hasCurrentCost)
+					row->setCurrentCost(child.second.currentCost);
+				if(child.second.hasCost)
+					row->setCost(child.second.cost);
+
+				algorithm.addRowToTable(table, row);
 			}
 #ifdef PRINT_COMPUTED_ROWS
 			// Tell each row its table index
@@ -85,99 +108,81 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	std::cout << std::endl;
 #endif
 
-	GroupTerms groupTerms;
-	groupTerms.reserve(numChildNodes); // Usually, we use the same arguments as for extend/1 for group/1
-
-	foreach(const StringToLiteral::value_type& it, groupAtoms) {
-		if(s.isTrue(it.second))
-			groupTerms.push_back(it.first);
+	unsigned int highestLevel = 0;
+	foreach(ExtendAtom& atom, extendAtoms) {
+		if(s.isTrue(atom.literal))
+			highestLevel = std::max(highestLevel, atom.level);
 	}
-
-	Row::ExtensionPointerTuple childRows;
-	childRows.reserve(numChildNodes);
-
-	foreach(const LongToLiteral::value_type& it, extendAtoms) {
-		if(s.isTrue(it.second)) {
-			childRows.push_back(reinterpret_cast<const Row*>(it.first));
-#ifdef DISABLE_ANSWER_SET_CHECKS
-			if(childRows.size() == numChildNodes)
-				break;
-#endif
-		}
-	}
-
-#ifndef DISABLE_ANSWER_SET_CHECKS
-	if(childRows.size() > 0 && childRows.size() != numChildNodes)
-		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
-#endif
-
-	unsigned int highestLevel = 0; // Highest level of an item set encountered
 	foreach(ItemAtom& atom, itemAtoms) {
 		if(s.isTrue(atom.literal))
 			highestLevel = std::max(highestLevel, atom.level);
 	}
+
 	Path path(highestLevel+1);
 
+	foreach(ExtendAtom& atom, extendAtoms) {
+		if(s.isTrue(atom.literal)) {
+			if(atom.level == 0)
+				path[atom.level].first.push_back(atom.extended.row);
+			else
+				path[atom.level].first.push_back(atom.extended.set);
+		}
+	}
 	foreach(ItemAtom& atom, itemAtoms) {
 		if(s.isTrue(atom.literal))
-			path[atom.level].insert(atom.value);
+			path[atom.level].second.insert(atom.value);
 	}
 
-	Row*& rowPtr = groupData[groupTerms][path.front()];
-	if(!rowPtr) {
-		rowPtr = new Row(path.front());
-
-		if(childRows.empty())
-			rowPtr->setCount(1);
-		else
-			rowPtr->addExtensionPointerTuple(childRows);
-	}
-
-	Row& row = *rowPtr;
-	row.addSubItemsPath(path.begin(), path.end());
+	bool hasCount = false, hasCurrentCost = false, hasCost = false;
+	long count = 0, currentCost = 0, cost = 0;
 
 	foreach(const LongToLiteral::value_type& it, countAtoms) {
 		if(s.isTrue(it.second)) {
-#ifndef DISABLE_ANSWER_SET_CHECKS
-			if(!childRows.empty())
-				throw std::runtime_error("Counts present although extension pointers are used");
-			if(row.getCount() > 1 && row.getCount() != it.first)
-				throw std::runtime_error("Different count for same top-level items");
-#endif
-			row.setCount(it.first);
-#ifdef DISABLE_ANSWER_SET_CHECKS
+			hasCount = true;
+			count = it.first;
 			break;
-#endif
 		}
 	}
 
 	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
 		if(s.isTrue(it.second)) {
-#ifndef DISABLE_ANSWER_SET_CHECKS
-			if(row.getCurrentCost() != 0 && row.getCurrentCost() != it.first)
-				throw std::runtime_error("Different current cost for same top-level items");
-#endif
-			row.setCurrentCost(it.first);
-#ifdef DISABLE_ANSWER_SET_CHECKS
+			hasCurrentCost = true;
+			currentCost = it.first;
 			break;
-#endif
 		}
 	}
 
 	foreach(const LongToLiteral::value_type& it, costAtoms) {
 		if(s.isTrue(it.second)) {
-#ifndef DISABLE_ANSWER_SET_CHECKS
-			if(row.getCost() != 0 && row.getCost() != it.first)
-				throw std::runtime_error("Different cost for same top-level items");
-#endif
-			row.setCost(it.first);
-#ifdef DISABLE_ANSWER_SET_CHECKS
+			hasCost = true;
+			cost = it.first;
 			break;
-#endif
 		}
 	}
 
-//#ifndef DISABLE_ANSWER_SET_CHECKS
-// TODO: Check if for each child node we have an extended row (or none at all)
-//#endif
+	// Insert path into tree
+	tree.insert(path.begin(), path.end(), hasCount, count, hasCurrentCost, currentCost, hasCost, cost);
+}
+
+void ClaspCallbackGeneral::Tree::insert(Path::iterator pathBegin, Path::iterator pathEnd, bool hasCount, long count, bool hasCurrentCost, long currentCost, bool hasCost, long cost)
+{
+	if(pathBegin == pathEnd)
+		return;
+
+	Tree& child = children[*pathBegin];
+	child.hasCount = hasCount;
+	child.count = count;
+	child.hasCurrentCost = hasCurrentCost;
+	child.currentCost = currentCost;
+	child.hasCost = hasCost;
+	child.cost = cost;
+	child.insert(++pathBegin, pathEnd, hasCount, count, hasCurrentCost, currentCost, hasCost, cost);
+}
+
+Row::Tree::Children ClaspCallbackGeneral::Tree::mergeChildren() const
+{
+	Row::Tree::Children result;
+	foreach(const Children::value_type& child, children)
+		result.insert(Row::Tree(child.first.second, child.second.mergeChildren())); // This eliminates duplicates, i.e., merges equal subtrees
+	return result;
 }

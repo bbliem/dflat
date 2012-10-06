@@ -27,19 +27,23 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Problem.h"
 
 Row::Row(const Row::Items& topLevelItems)
-	: count(0), currentCost(0), cost(0)
+	: tree(topLevelItems), count(0), currentCost(0), cost(0)
 {
-	tree.children[topLevelItems];
+}
+
+Row::Row(const Row::Tree& tree)
+	: tree(tree), count(0), currentCost(0), cost(0)
+{
 }
 
 bool Row::Tree::operator==(const Tree& rhs) const
 {
-	return children == rhs.children;
+	return items == rhs.items && children == rhs.children;
 }
 
 bool Row::Tree::operator<(const Tree& rhs) const
 {
-	return children < rhs.children;
+	return items < rhs.items || children < rhs.children;
 }
 
 bool Row::operator<(const sharp::Row& rhs) const
@@ -61,6 +65,7 @@ void Row::unify(sharp::Row& other)
 	if(o.cost < cost) {
 		count = o.count;
 		cost = o.cost;
+		tree.items.swap(o.tree.items);
 		tree.children.swap(o.tree.children);
 		extensionPointers.swap(o.extensionPointers);
 	}
@@ -98,25 +103,18 @@ void Row::declare(std::ostream& out, unsigned childNumber) const
 	out << "childRow(" << rowName.str() << ',' << childNumber << ")." << std::endl;
 	out << "childCount(" << rowName.str() << ',' << count << ")." << std::endl;
 	out << "childCost(" << rowName.str() << ',' << cost << ")." << std::endl;
-
-	assert(tree.children.size() == 1);
-	Tree::Children::const_iterator root = tree.children.begin();
-	// Print the top-level row
-	foreach(const std::string& value, root->first)
-		out << "childItem(" << rowName.str() << ',' << value << ")." << std::endl;
-	// Print subsidiary rows
-	root->second.declare(out, rowName.str());
+	tree.declare(out, rowName.str());
 }
 
 #ifdef PRINT_COMPUTED_ROWS
 void Row::Tree::print(std::ostream& out, const std::string& indent) const {
-	foreach(const Row::Tree::Children::value_type& child, children) {
-		out << indent;
-		foreach(const std::string& value, child.first)
-			out << value << ' ';
-		out << std::endl;
-		child.second.print(out, indent + "  ");
-	}
+	out << indent;
+	foreach(const std::string& value, items)
+		out << value << ' ';
+	out << std::endl;
+
+	foreach(const Tree& child, children)
+		child.print(out, indent + "  ");
 }
 
 void Row::print(std::ostream& str) const
@@ -139,18 +137,17 @@ void Row::print(std::ostream& str) const
 }
 #endif
 
-void Row::Tree::declare(std::ostream& out, const std::string& parent) const
+void Row::Tree::declare(std::ostream& out, const std::string& thisName) const
 {
-	foreach(const Children::value_type& child, children) {
-		// Declare this subsidiary row
-		std::ostringstream thisName;
-		thisName << 'a' << &child;
-		out << "sub(" << parent << ',' << thisName.str() << ")." << std::endl;
-		// Print the row
-		foreach(const std::string& value, child.first)
-			out << "childItem(" << thisName.str() << ',' << value << ")." << std::endl;
-		// Print its child rows
-		child.second.declare(out, thisName.str());
+	foreach(const std::string& value, items)
+		out << "childItem(" << thisName << ',' << value << ")." << std::endl;
+	foreach(const Tree& child, children) {
+		std::ostringstream childName;
+		childName << 's' << &child;
+		// Declare this subsidiary item set
+		out << "sub(" << thisName << ',' << childName.str() << ")." << std::endl;
+		// Print its children recursively
+		child.declare(out, childName.str());
 	}
 }
 

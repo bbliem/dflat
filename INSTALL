@@ -49,4 +49,4 @@ D-FLAT supports the following preprocessor defines:
 - PRINT_CHILD_TABLES_INPUT: Print input facts regarding child rows that are passed to the user program
 - PRINT_MODELS: Print all information in a model of the user program whenever one is found
 - PRINT_COMPUTED_ROWS: Print rows resulting from the user's program
-- DISABLE_ASSIGNMENT_CHECK: By default, D-FLAT checks if all current vertices were assigned exactly one value and no non-current vertex is assigned; this flag disables the check.
+- DISABLE_ANSWER_SET_CHECKS: By default, D-FLAT checks if all current vertices were assigned exactly one value and no non-current vertex is assigned; this flag disables the check.

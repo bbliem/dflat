@@ -175,8 +175,27 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 		}
 	}
 	else if(name == "extend") {
-		assert(arity == 1);
-		storeChildRowAtom(atom, extendAtoms);
+		if(arity == 2) {
+			std::stringstream firstArg; // First argument
+			std::ostringstream secondArg; // Second argument
+			ValVec::const_iterator k = vals_.begin() + atom.second;
+			(k++)->print(s_, firstArg);
+			k->print(s_, secondArg);
+
+			unsigned int firstArgNum = boost::lexical_cast<unsigned int>(firstArg.str());
+
+			if(firstArgNum == 0)
+				extendAtoms.push_back(ExtendAtom(firstArgNum, reinterpret_cast<const Row*>(std::strtol(secondArg.str().c_str()+1, 0, 0)), atom.first));
+			else
+				extendAtoms.push_back(ExtendAtom(firstArgNum, reinterpret_cast<const Row::Tree*>(std::strtol(secondArg.str().c_str()+1, 0, 0)), atom.first));
+		}
+		else if(arity == 1) {
+			std::ostringstream arg;
+			ValVec::const_iterator k = vals_.begin() + atom.second;
+			k->print(s_, arg);
+
+			extendAtoms.push_back(ExtendAtom(0, reinterpret_cast<const Row*>(std::strtol(arg.str().c_str()+1, 0, 0)), atom.first));
+		}
 	}
 	else if(name == "count") {
 		assert(arity == 1);
@@ -189,13 +208,6 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 	else if(!ignoreOptimization && name == "cost") {
 		assert(arity == 1);
 		storeNumberAtom(atom, costAtoms);
-	}
-	else if(name == "group") {
-		assert(arity == 1);
-		std::stringstream firstArg; // First argument
-		ValVec::const_iterator k = vals_.begin() + atom.second;
-		k->print(s_, firstArg);
-		groupAtoms[firstArg.str()] = atom.first;
 	}
 }
 
@@ -229,14 +241,6 @@ const LparseConverter::SymbolMap &GringoOutputProcessor::symbolMap(uint32_t domI
 ValRng GringoOutputProcessor::vals(Domain *dom, uint32_t offset) const
 {
 	return ValRng(vals_.begin() + offset, vals_.begin() + offset + dom->arity());
-}
-
-inline void GringoOutputProcessor::storeChildRowAtom(const AtomRef& atom, LongToSymbolTableKey& store)
-{
-	std::stringstream firstArg; // First argument
-	ValVec::const_iterator k = vals_.begin() + atom.second;
-	k->print(s_, firstArg);
-	store[std::strtol(firstArg.str().c_str()+1, 0, 0)] = atom.first;
 }
 
 inline void GringoOutputProcessor::storeNumberAtom(const AtomRef& atom, LongToSymbolTableKey& store)

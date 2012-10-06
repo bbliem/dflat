@@ -21,6 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <clasp/clasp_facade.h>
+#include <boost/container/map.hpp>
 
 #include "Algorithm.h"
 #include "Row.h"
@@ -61,20 +62,61 @@ private:
 		{}
 	};
 	std::vector<ItemAtom> itemAtoms;
+
+	// cf. GringoOutputProcessor.h
+	struct ExtendAtom {
+		unsigned int level;
+		union {
+			const Row* row;
+			const Row::Tree* set;
+		} extended;
+		Clasp::Literal literal;
+
+		ExtendAtom(unsigned int level, const Row* row, Clasp::Literal literal)
+			: level(level), literal(literal)
+		{
+			extended.row = row;
+		}
+
+		ExtendAtom(unsigned int level, const Row::Tree* set, Clasp::Literal literal)
+			: level(level), literal(literal)
+		{
+			extended.set = set;
+		}
+	};
+	std::vector<ExtendAtom> extendAtoms;
+
 	typedef std::map<long, Clasp::Literal> LongToLiteral;
-	LongToLiteral extendAtoms;
 	LongToLiteral countAtoms;
 	LongToLiteral currentCostAtoms;
 	LongToLiteral costAtoms;
-	typedef std::map<std::string, Clasp::Literal> StringToLiteral;
-	StringToLiteral groupAtoms;
 
 	// Because one table row can be constituted of multiple AS's, we cannot insert a new row upon arrival of a new AS but must rather collect all AS data until the solve state is finished.
 	// By "path" we denote a path from root to leaf in Row::Tree. Each AS characterizes exactly one path.
-	typedef std::vector<Row::Items> Path;
-	typedef std::map<Row::Items, Row*> TopLevelItemsToRow; // Maps an item set to a row with that item set on the top level
-	typedef std::vector<std::string> GroupTerms;
-	typedef std::map<GroupTerms, TopLevelItemsToRow> GroupData;
+	typedef std::vector<const void*> ExtendArguments; // XXX: We can't use a union like above because < is undefined for it :(
+	typedef std::pair<ExtendArguments, Row::Items> ExtendArgumentsAndItems;
+	typedef std::vector<ExtendArgumentsAndItems> Path; // XXX: Check if vector isn't too inefficient because of reallocation when changing elements
 
-	GroupData groupData;
+	struct Tree
+	{
+		typedef boost::container::map<ExtendArgumentsAndItems, Tree> Children;
+		Children children;
+		// std::map won't work because Tree is an incomplete type at this time.
+		// Cf. http://stackoverflow.com/questions/6527917/how-can-i-emulate-a-recursive-type-definition-in-c
+		// Cf. http://www.boost.org/doc/libs/1_48_0/doc/html/container/containers_of_incomplete_types.html
+
+		// XXX: Redundancy
+		bool hasCount;
+		long count;
+		bool hasCurrentCost;
+		long currentCost;
+		bool hasCost;
+		long cost;
+
+		void insert(Path::iterator pathBegin, Path::iterator pathEnd, bool hasCount, long count, bool hasCurrentCost, long currentCost, bool hasCost, long cost);
+
+		// Merge subtrees whose item sets are equal to obtain the characteristic of a row
+		// XXX: Check if too much is being copied around due to storing stuff on the stack
+		Row::Tree::Children mergeChildren() const;
+	} tree;
 };

@@ -23,7 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <cassert>
 #include <gmpxx.h>
 #include <sharp/main>
-#include <boost/container/map.hpp>
+#include <boost/container/set.hpp>
 
 class Row : public sharp::Row
 {
@@ -32,7 +32,30 @@ public:
 	typedef std::vector<const Row*> ExtensionPointerTuple;
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
 
+	// Each item set can have subordinate item sets
+	struct Tree
+	{
+		Items items;
+		typedef boost::container::set<Tree> Children;
+		Children children;
+		// std::set won't work because Tree is an incomplete type at this time.
+		// Cf. http://stackoverflow.com/questions/6527917/how-can-i-emulate-a-recursive-type-definition-in-c
+		// Cf. http://www.boost.org/doc/libs/1_48_0/doc/html/container/containers_of_incomplete_types.html
+
+		Tree(const Items& items) : items(items) {}
+		Tree(const Items& items, const Children& children) : items(items), children(children) {}
+
+		bool operator==(const Tree& rhs) const;
+		bool operator<(const Tree& rhs) const;
+
+		void declare(std::ostream& out, const std::string& parent) const;
+#ifdef PRINT_COMPUTED_ROWS
+		void print(std::ostream& out, const std::string& indent = "") const;
+#endif
+	};
+
 	Row(const Items& topLevelItems);
+	Row(const Tree& tree);
 
 	//! Must be asymmetric
 	virtual bool operator<(const sharp::Row&) const;
@@ -60,19 +83,8 @@ public:
 	 * @return this row's items (without any additional information on levels
 	 * higher than 0 like, e.g., certificates)
 	 */
-	const Items& getItems() const { 
-		assert(tree.children.size() == 1);
-		return tree.children.begin()->first;
-	}
+	const Items& getItems() const { return tree.items; }
 
-	//! Adds the given path of subsidiary item sets
-	template <class Iterator> void addSubItemsPath(Iterator begin, Iterator end)
-	{
-		assert(tree.children.empty() || *begin == getItems());
-		tree.addPath(begin, end);
-	}
-
-	// TODO: Let the user count if desired
 	const mpz_class& getCount() const { return count; }
 	void setCount(const mpz_class& c) { count = c; }
 
@@ -98,32 +110,7 @@ public:
 #endif
 
 private:
-	// Each item set has a set of subordinate item sets
-	struct Tree
-	{
-		typedef boost::container::map<Items, Tree> Children; // The node data is stored as the keys
-		Children children;
-		// std::map won't work because Tree is an incomplete type at this time.
-		// Cf. http://stackoverflow.com/questions/6527917/how-can-i-emulate-a-recursive-type-definition-in-c
-		// Cf. http://www.boost.org/doc/libs/1_48_0/doc/html/container/containers_of_incomplete_types.html
-
-		bool operator==(const Tree& rhs) const;
-		bool operator<(const Tree& rhs) const;
-
-		//! Adds the given path of rows as descendants to this tree
-		template <class Iterator> void addPath(Iterator begin, Iterator end)
-		{
-			if(begin != end) {
-				Tree& child = children[*begin];
-				child.addPath(++begin, end);
-			}
-		}
-
-		void declare(std::ostream& out, const std::string& parent) const;
-#ifdef PRINT_COMPUTED_ROWS
-		void print(std::ostream& out, const std::string& indent = "") const;
-#endif
-	} tree; // It is your responsibility that "tree" only has one child (viz. the actual root)
+	Tree tree;
 
 	// TODO: We might distinguish rows with some additional information from those without, but OTOH the memory consumption should not be that critical
 	mpz_class count;

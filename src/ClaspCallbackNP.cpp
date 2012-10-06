@@ -46,8 +46,10 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				itemAtoms.push_back(ItemAtom(it.value, symTab[it.symbolTableKey].lit));
 			}
 
-			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getExtendAtoms())
-				extendAtoms[it.first] = symTab[it.second].lit;
+			foreach(const GringoOutputProcessor::ExtendAtom& it, gringoOutput.getExtendAtoms()) {
+				assert(it.level == 0);
+				extendAtoms[it.extended.row] = symTab[it.symbolTableKey].lit;
+			}
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCountAtoms())
 				countAtoms[it.first] = symTab[it.second].lit;
 			foreach(const GringoOutputProcessor::LongToSymbolTableKey::value_type& it, gringoOutput.getCurrentCostAtoms())
@@ -93,9 +95,9 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	Row::ExtensionPointerTuple childRows;
 	childRows.reserve(numChildNodes);
 
-	foreach(const LongToLiteral::value_type& it, extendAtoms) {
+	foreach(const RowPointerToLiteral::value_type& it, extendAtoms) {
 		if(s.isTrue(it.second)) {
-			childRows.push_back(reinterpret_cast<const Row*>(it.first));
+			childRows.push_back(it.first);
 #ifdef DISABLE_ANSWER_SET_CHECKS
 			if(childRows.size() == numChildNodes)
 				break;
