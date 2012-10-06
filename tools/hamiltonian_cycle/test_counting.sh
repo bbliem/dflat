@@ -7,4 +7,4 @@ export instanceGen="tools/graphs/instance_generator.py $numNodes $numEdges"
 export monolithicEncoding=asp_encodings/hamiltonian_cycle/monolithic.lp
 export dflatArguments="-e edge -l 2 asp_encodings/hamiltonian_cycle/dynamic.lp"
 
-tools/verify_counting.sh
+tools/test_counting.sh
