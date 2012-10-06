@@ -3,8 +3,8 @@ For instructions about compiling or installing, see the file INSTALL.
 ---
 
 Writing logic programs for the exchange node for problems beyond NP:
-Predicates provided by ASDP: current/1, introduced/1, removed/1, childTuple/1, mapped/4
-Predicates expected by ASDP: map/3, chosenChildTuple/1 (not necessary for the decision problem)
+Predicates provided by ASDP: current/1, introduced/1, removed/1, childTuple/1, mapped/3, sub/2, childCost/2
+Predicates expected by ASDP: map/3, chosenChildTuple/1 (for exchange), chosenChildTuple{L,R}/1 (for join), cost/1, currentCost/1.
 Additionally to the provided predicates you get the original problem instance.
 
 In the following, let the term "level L assignment" mean an assignment that maps to each vertex V exactly one value K, given by the output predicate map(L,V,K). Suppose the problem is on the n-th level of the polynomial hierarchy. In this case a tuple consists of
@@ -29,9 +29,9 @@ AS 1: map(0,v,red) map(1,v,red) map(2,v,green)
 AS 2: map(0,v,red) map(1,v,green)
 AS 3: map(0,v,red) map(1,v,blue) map(2,v,red)
 
-The provided predicate mapped(I,L,V,K) denotes that the child tuple with the ID I maps K to V on the L-th level.
+The provided predicate sub(I,J) declares that the assignment I is a parent of the assignment J in a tree like above. The provided predicate mapped(I,V,K) denotes that the assignment with the ID I maps K to V. I can either be a child tuple or some subsidiary assignment.
 
 ---
 
 Writing exchange node programs for problems in NP:
-Conceptually this is just a special case where you have only level 0 assignments. For problems in NP, each answer set of the exchange node program therefore corresponds to exactly one tuple. Instead of mapped/4 and map/3 you now must use mapped/3 and map/2, which work the same as in the general case, but with the level parameter omitted.
+Conceptually this is just a special case where you have only level 0 assignments. For problems in NP, each answer set of the exchange node program therefore corresponds to exactly one tuple. Instead of map/3 you now must use map/2, which works the same as in the general case, but with the level parameter omitted. Obviously, there is no provided sub/2 predicate.

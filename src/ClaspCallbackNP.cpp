@@ -36,7 +36,10 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 			Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
 
 			foreach(const GringoOutputProcessor::MapAtom& it, gringoOutput.getMapAtoms()) {
-				assert(it.level == 0);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+				if(it.level != 0)
+					throw std::runtime_error("map predicate uses invalid level");
+#endif
 				mapAtoms.push_back(MapAtom(it.vertex, it.value, symTab[it.symbolTableKey].lit));
 			}
 
@@ -79,9 +82,12 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(!oldTupleAndPlan);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(oldTupleAndPlan)
+				throw std::runtime_error("Multiple chosen child tuples");
+#endif
 			oldTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
-#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
@@ -89,9 +95,12 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleLAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(!leftTupleAndPlan);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(leftTupleAndPlan)
+				throw std::runtime_error("Multiple chosen left child tuples");
+#endif
 			leftTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
-#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
@@ -99,9 +108,12 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleRAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(!rightTupleAndPlan);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(rightTupleAndPlan)
+				throw std::runtime_error("Multiple chosen right child tuples");
+#endif
 			rightTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
-#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
@@ -109,9 +121,12 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 
 	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(newTuple.currentCost == 0);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(newTuple.currentCost != 0)
+				throw std::runtime_error("Multiple current costs");
+#endif
 			newTuple.currentCost = it.first;
-#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
@@ -119,9 +134,12 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 
 	foreach(const LongToLiteral::value_type& it, costAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(newTuple.cost == 0);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(newTuple.cost != 0)
+				throw std::runtime_error("Multiple costs");
+#endif
 			newTuple.cost = it.first;
-#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
@@ -129,31 +147,37 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 
 	foreach(MapAtom& atom, mapAtoms) {
 		if(s.isTrue(atom.literal)) {
-#ifndef DISABLE_ASSIGNMENT_CHECK
+#ifndef DISABLE_ANSWER_SET_CHECKS
 			// Only current vertices may be assigned
 			if(currentVertices.find(atom.vertex) == currentVertices.end()) {
 				std::ostringstream err;
 				err << "Attempted assigning non-current vertex " << atom.vertex;
 				throw std::runtime_error(err.str());
 			}
+
+			// vertex must not be assigned yet
+			if(newTuple.assignment.find(atom.vertex) != newTuple.assignment.end()) {
+				std::ostringstream err;
+				err << "Multiple assignments to vertex " << atom.vertex;
+				throw std::runtime_error(err.str());
+			}
 #endif
-			assert(newTuple.assignment.find(atom.vertex) == newTuple.assignment.end()); // vertex must not be assigned yet
 			newTuple.assignment[atom.vertex] = atom.value;
 		}
 	}
-#ifndef DISABLE_ASSIGNMENT_CHECK
+#ifndef DISABLE_ANSWER_SET_CHECKS
 	// All vertices must be assigned now
 	std::set<std::string> assigned;
 	foreach(const Tuple::Assignment::value_type& kv, newTuple.assignment)
 		assigned.insert(kv.first);
 	if(assigned != currentVertices)
 		throw std::runtime_error("Not all current vertices have been assigned");
-#endif
 
-	// If oldTupleAndPlan is set, then left/rightTupleAndPlan are unset
-	assert(!oldTupleAndPlan || (!leftTupleAndPlan && !rightTupleAndPlan));
-	// If left/rightTupleAndPlan are set, then oldTupleAndPlan is unset
-	assert(!(leftTupleAndPlan && rightTupleAndPlan) || !oldTupleAndPlan);
+	if((oldTupleAndPlan && (leftTupleAndPlan || rightTupleAndPlan))
+			|| (leftTupleAndPlan && !rightTupleAndPlan)
+			|| (!leftTupleAndPlan && rightTupleAndPlan))
+		throw std::runtime_error("Invalid use of chosenChildTuple(L/R)");
+#endif
 
 	if(oldTupleAndPlan) {
 		// This is an exchange node

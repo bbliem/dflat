@@ -31,15 +31,16 @@ class GringoOutputProcessor;
 class ClaspCallbackGeneral : public Clasp::ClaspFacade::Callback
 {
 public:
-#ifdef DISABLE_ASSIGNMENT_CHECK
+#ifdef DISABLE_ANSWER_SET_CHECKS
 	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int level)
-		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numLevels(level+1)
-	{}
+		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numLevels(level)
 #else
 	ClaspCallbackGeneral(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput, unsigned int level, const std::set<std::string>& currentVertices)
-		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numLevels(level+1), currentVertices(currentVertices)
-	{}
+		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput), numLevels(level), currentVertices(currentVertices)
 #endif
+	{
+		assert(numLevels > 0);
+	}
 
 	// Called if the current configuration contains unsafe/unreasonable options
 	virtual void warning(const char* msg);
@@ -103,7 +104,7 @@ private:
 
 	PathCollection pathCollection;
 
-#ifndef DISABLE_ASSIGNMENT_CHECK
+#ifndef DISABLE_ANSWER_SET_CHECKS
 	std::set<std::string> currentVertices; // To check if all vertices are assigned
 #endif
 };

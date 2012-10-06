@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <sstream>
 #include <cassert>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
@@ -26,12 +27,18 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Problem.h"
 
 namespace {
-	void declareTree(const TupleGeneral::Tree& node, std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, unsigned int level)
+	void declareTree(const TupleGeneral::Tree& node, std::ostream& out, const std::string& parent)
 	{
 		foreach(const TupleGeneral::Tree::Children::value_type& child, node.children) {
-			foreach(const TupleGeneral::Assignment::value_type& assignment, child.first)
-				out << "mapped(t" << &tupleAndSolution << ',' << level << ',' << assignment.first << ',' << assignment.second << ")." << std::endl;
-			declareTree(child.second, out, tupleAndSolution, level+1);
+			// Declare this subsidiary assignment
+			std::ostringstream thisName;
+			thisName << 'a' << &child;
+			out << "sub(" << parent << ',' << thisName.str() << ")." << std::endl;
+			// Print the assignment
+			foreach(const TupleGeneral::Assignment::value_type& mapping, child.first)
+				out << "mapped(" << thisName.str() << ',' << mapping.first << ',' << mapping.second << ")." << std::endl;
+			// Print its child assignments
+			declareTree(child.second, out, thisName.str());
 		}
 	}
 }
@@ -87,9 +94,18 @@ TupleGeneral* TupleGeneral::join(const Tuple& other) const
 
 void TupleGeneral::declare(std::ostream& out, const sharp::TupleTable::value_type& tupleAndSolution, const char* predicateSuffix) const
 {
-	out << "childTuple" << predicateSuffix << "(t" << &tupleAndSolution << ")." << std::endl;
-	declareTree(tree, out, tupleAndSolution, 0);
-	out << "childCost(t" << &tupleAndSolution << ',' << cost << ")." << std::endl;
+	std::ostringstream tupleName;
+	tupleName << 't' << &tupleAndSolution;
+	out << "childTuple" << predicateSuffix << '(' << tupleName.str() << ")." << std::endl;
+	out << "childCost(" << tupleName.str() << ',' << cost << ")." << std::endl;
+
+	assert(tree.children.size() == 1);
+	Tree::Children::const_iterator root = tree.children.begin();
+	// Print the top-level assignment
+	foreach(const Assignment::value_type& mapping, root->first)
+		out << "mapped(" << tupleName.str() << ',' << mapping.first << ',' << mapping.second << ")." << std::endl;
+	// Print subsidiary assignments
+	declareTree(root->second, out, tupleName.str());
 }
 
 const Tuple::Assignment& TupleGeneral::getAssignment() const

@@ -50,7 +50,7 @@ public:
 	{
 		typedef boost::container::map<Assignment, Tree> Children; // The node data is stored as the keys
 		Children children;
-		// std::set won't work because Tree is an incomplete type at this time.
+		// std::map won't work because Tree is an incomplete type at this time.
 		// Cf. http://stackoverflow.com/questions/6527917/how-can-i-emulate-a-recursive-type-definition-in-c
 		// Cf. http://www.boost.org/doc/libs/1_48_0/doc/html/container/containers_of_incomplete_types.html
 

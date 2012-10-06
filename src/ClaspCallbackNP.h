@@ -30,7 +30,7 @@ class GringoOutputProcessor;
 class ClaspCallbackNP : public Clasp::ClaspFacade::Callback
 {
 public:
-#ifdef DISABLE_ASSIGNMENT_CHECK
+#ifdef DISABLE_ANSWER_SET_CHECKS
 	ClaspCallbackNP(const Algorithm& algorithm, sharp::TupleTable& tupleTable, const GringoOutputProcessor& gringoOutput)
 		: algorithm(algorithm), tupleTable(tupleTable), gringoOutput(gringoOutput)
 	{}
@@ -71,7 +71,7 @@ private:
 	LongToLiteral currentCostAtoms;
 	LongToLiteral costAtoms;
 
-#ifndef DISABLE_ASSIGNMENT_CHECK
+#ifndef DISABLE_ANSWER_SET_CHECKS
 	std::set<std::string> currentVertices; // To check if all vertices are assigned
 #endif
 };

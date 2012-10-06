@@ -302,7 +302,7 @@ endJoin:
 
 std::auto_ptr<Clasp::ClaspFacade::Callback> Algorithm::newClaspCallback(sharp::TupleTable& newTable, const GringoOutputProcessor& gringoOutput, const sharp::VertexSet& currentVertices) const
 {
-#ifndef DISABLE_ASSIGNMENT_CHECK
+#ifndef DISABLE_ANSWER_SET_CHECKS
 	std::set<std::string> currentVertexNames;
 	foreach(sharp::Vertex v, currentVertices)
 		currentVertexNames.insert(const_cast<sharp::Problem&>(problem).getVertexName(v));

@@ -80,9 +80,12 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(!oldTupleAndPlan);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(oldTupleAndPlan)
+				throw std::runtime_error("Multiple chosen child tuples");
+#endif
 			oldTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
-#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
@@ -90,9 +93,12 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleLAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(!leftTupleAndPlan);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(leftTupleAndPlan)
+				throw std::runtime_error("Multiple chosen left child tuples");
+#endif
 			leftTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
-#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
@@ -100,9 +106,12 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 
 	foreach(const LongToLiteral::value_type& it, chosenChildTupleRAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(!rightTupleAndPlan);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(rightTupleAndPlan)
+				throw std::runtime_error("Multiple chosen right child tuples");
+#endif
 			rightTupleAndPlan = reinterpret_cast<const sharp::TupleTable::value_type*>(it.first);
-#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
@@ -110,9 +119,12 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 
 	foreach(const LongToLiteral::value_type& it, currentCostAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(currentCost == 0);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(currentCost != 0)
+				throw std::runtime_error("Multiple current costs");
+#endif
 			currentCost = it.first;
-#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
@@ -120,45 +132,66 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 
 	foreach(const LongToLiteral::value_type& it, costAtoms) {
 		if(s.isTrue(it.second)) {
-			assert(cost == 0);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(cost != 0)
+				throw std::runtime_error("Multiple costs");
+#endif
 			cost = it.first;
-#ifdef NDEBUG // ifndef NDEBUG we want to check the assertion above
+#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
 	}
 
-	// If oldTupleAndPlan is set, then left/rightTupleAndPlan are unset
-	assert(!oldTupleAndPlan || (!leftTupleAndPlan && !rightTupleAndPlan));
-	// If left/rightTupleAndPlan are set, then oldTupleAndPlan is unset
-	assert(!(leftTupleAndPlan && rightTupleAndPlan) || !oldTupleAndPlan);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+	if((oldTupleAndPlan && (leftTupleAndPlan || rightTupleAndPlan))
+			|| (leftTupleAndPlan && !rightTupleAndPlan)
+			|| (!leftTupleAndPlan && rightTupleAndPlan))
+		throw std::runtime_error("Invalid use of chosenChildTuple(L/R)");
+#endif
 
 	Path path(numLevels);
+	unsigned int highestLevel = 0; // Highest level of an assignment encountered so far
 	foreach(MapAtom& atom, mapAtoms) {
-		assert(atom.level < numLevels);
 		if(s.isTrue(atom.literal)) {
-#ifndef DISABLE_ASSIGNMENT_CHECK
-			// Only current vertices may be assigned
+			highestLevel = std::max(highestLevel, atom.level);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(atom.level >= numLevels) {
+				std::ostringstream err;
+				err << "map predicate uses invalid level " << atom.level;
+				throw std::runtime_error(err.str());
+			}
+
 			if(currentVertices.find(atom.vertex) == currentVertices.end()) {
 				std::ostringstream err;
-				err << "Attempted assigning non-current vertex " << atom.vertex;
+				err << "Attempted assigning non-current vertex " << atom.vertex << " on level " << atom.level;
+				throw std::runtime_error(err.str());
+			}
+
+			if(path[atom.level].find(atom.vertex) != path[atom.level].end()) {
+				std::ostringstream err;
+				err << "Multiple assignments to vertex " << atom.vertex << " on level " << atom.level;
 				throw std::runtime_error(err.str());
 			}
 #endif
-			assert(path[atom.level].find(atom.vertex) == path[atom.level].end()); // vertex must not be assigned yet
 			path[atom.level][atom.vertex] = atom.value;
 		}
 	}
-	assert(path.size() == numLevels);
-
-#ifndef DISABLE_ASSIGNMENT_CHECK
-	// On each level, all vertices must be assigned now
+	// A path must not use all levels, but up to the highest used level it must be connected.
+	path.resize(highestLevel+1);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+	// On each assignment of the path, all current vertices must be assigned
+	unsigned int l = 0;
 	foreach(const Tuple::Assignment& levelAssignment, path) {
 		std::set<std::string> assigned;
 		foreach(const Tuple::Assignment::value_type& kv, levelAssignment)
 			assigned.insert(kv.first);
-		if(assigned != currentVertices)
-			throw std::runtime_error("Not all current vertices have been assigned");
+		if(assigned != currentVertices) {
+			std::ostringstream err;
+			err << "Not all current vertices have been assigned on level " << l;
+			throw std::runtime_error(err.str());
+		}
+		++l;
 	}
 #endif
 
@@ -175,8 +208,12 @@ inline void ClaspCallbackGeneral::PathCollection::insert(const Path& path, const
 	TupleData& tupleData = tupleDataMap[topLevelAssignment];
 
 	tupleData.paths.push_back(path);
-	assert(tupleData.currentCost == 0 || tupleData.currentCost == currentCost);
-	assert(tupleData.cost == 0 || tupleData.cost == cost);
+#ifndef DISABLE_ANSWER_SET_CHECKS
+	if(tupleData.currentCost != 0 && tupleData.currentCost != currentCost)
+		throw std::runtime_error("Different current cost for same top-level assignment");
+	if(tupleData.cost != 0 && tupleData.cost != cost)
+		throw std::runtime_error("Different cost for same top-level assignment");
+#endif
 	tupleData.currentCost = currentCost;
 	tupleData.cost = cost;
 }

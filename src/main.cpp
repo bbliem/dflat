@@ -51,7 +51,7 @@ namespace {
 		std::cerr << std::endl << std::left;
 		std::cerr << "  " << std::setw(w) << "-e hyperedge_pred: " << "Name of a predicate that declares hyperedges (must be specified at least once)" << std::endl;
 		std::cerr << "  " << std::setw(w) << "-j join_program: " << "File name of the logic program executed in join nodes (if omitted join equal tuples)" << std::endl;
-		std::cerr << "  " << std::setw(w) << "-l level: " << "Level on polynomial hierarchy; determines depth of tuple assignment tree. Default: 0" << std::endl;
+		std::cerr << "  " << std::setw(w) << "-l level: " << "Level on polynomial hierarchy; determines depth of tuple assignment tree. 0 (default) is like 1 but uses map/2, mapped/3 instead of map/3, mapped/4 and has a more efficient implementation." << std::endl;
 		std::cerr << "  " << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
 		std::cerr << "  " << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
 		std::cerr << "  " << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\", \"decision\", \"opt-enum\", \"opt-counting\" or \"opt-value\"" << std::endl;
@@ -302,7 +302,7 @@ int main(int argc, char** argv)
 							} break;
 		}
 	} catch(const std::exception& e) {
-		std::cerr << "Fatal error: " << e.what() << std::endl;
+		std::cerr << std::endl << "Fatal error: " << e.what() << std::endl;
 		return 2;
 	}
 
