@@ -61,14 +61,12 @@ void ClaspCallbackNP::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 			std::cout << std::endl;
 #endif
 		}
-#ifdef PRINT_COMPUTED_ROWS
 		else if(e == Clasp::ClaspFacade::event_state_exit) {
 			// Tell each row its table index
 			unsigned int i = 0;
 			foreach(sharp::Row* row, table)
 				dynamic_cast<Row*>(row)->setIndex(i++);
 		}
-#endif
 	}
 }
 
@@ -109,9 +107,12 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 			// Child node number is before the first '_' (and after the initial 'r')
 			// Row number is after the first '_'
 			unsigned int underscorePos = it.first.find('_');
-			unsigned int childNodeNumber = boost::lexical_cast<unsigned int>(std::string(it.first, 1, underscorePos-1));
+			unsigned int tableNumber = boost::lexical_cast<unsigned int>(std::string(it.first, 1, underscorePos-1));
 			unsigned int rowNumber = boost::lexical_cast<unsigned int>(std::string(it.first, underscorePos + 1));
-			childRows.push_back(dynamic_cast<const Row*>(childTablesVec[childNodeNumber][rowNumber]));
+			// TODO: Instead of the following assertions, throw assertions if invalid extension pointers are given. Also, add a check that ensures that if extension pointers are given, exactly one is given for each child table.
+			assert(tableNumber < childTablesVec.size());
+			assert(rowNumber < childTablesVec[tableNumber].size());
+			childRows.push_back(dynamic_cast<const Row*>(childTablesVec[tableNumber][rowNumber]));
 #ifdef DISABLE_ANSWER_SET_CHECKS
 			if(childRows.size() == childTables.size())
 				break;
