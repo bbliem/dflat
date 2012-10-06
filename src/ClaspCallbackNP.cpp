@@ -108,11 +108,13 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	foreach(const LongToLiteral::value_type& it, countAtoms) {
 		if(s.isTrue(it.second)) {
 #ifndef DISABLE_ANSWER_SET_CHECKS
+			if(!childRows.empty())
+				throw std::runtime_error("Counts present although extension pointers are used");
 			if(newRow.getCount() > 1)
 				throw std::runtime_error("Multiple counts");
 #endif
 			newRow.setCount(it.first);
-#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
+#ifdef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
@@ -125,7 +127,7 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 				throw std::runtime_error("Multiple current costs");
 #endif
 			newRow.setCurrentCost(it.first);
-#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
+#ifdef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}
@@ -138,7 +140,7 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 				throw std::runtime_error("Multiple costs");
 #endif
 			newRow.setCost(it.first);
-#ifndef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
+#ifdef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
 			break;
 #endif
 		}

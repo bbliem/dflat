@@ -131,11 +131,13 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 	foreach(const LongToLiteral::value_type& it, countAtoms) {
 		if(s.isTrue(it.second)) {
 #ifndef DISABLE_ANSWER_SET_CHECKS
+			if(!childRows.empty())
+				throw std::runtime_error("Counts present although extension pointers are used");
 			if(row.getCount() > 1 && row.getCount() != it.first)
 				throw std::runtime_error("Different count for same top-level items");
 #endif
 			row.setCount(it.first);
-#ifndef DISABLE_ANSWER_SET_CHECKS
+#ifdef DISABLE_ANSWER_SET_CHECKS
 			break;
 #endif
 		}
@@ -148,7 +150,7 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 				throw std::runtime_error("Different current cost for same top-level items");
 #endif
 			row.setCurrentCost(it.first);
-#ifndef DISABLE_ANSWER_SET_CHECKS
+#ifdef DISABLE_ANSWER_SET_CHECKS
 			break;
 #endif
 		}
@@ -161,7 +163,7 @@ void ClaspCallbackGeneral::event(const Clasp::Solver& s, Clasp::ClaspFacade::Eve
 				throw std::runtime_error("Different cost for same top-level items");
 #endif
 			row.setCost(it.first);
-#ifndef DISABLE_ANSWER_SET_CHECKS
+#ifdef DISABLE_ANSWER_SET_CHECKS
 			break;
 #endif
 		}
