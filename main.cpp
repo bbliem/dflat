@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 			case Algorithm::DECISION: {
 				sharp::ConsistencySolutionContent* content = dynamic_cast<sharp::ConsistencySolutionContent*>(solution->getContent(new sharp::GenericInstantiator<sharp::ConsistencySolutionContent>()));
 				if(content->consistent == false) {
-					std::cout << "INCONSISTENT";
+					std::cout << "INCONSISTENT" << std::endl;
 					return INCONSISTENT;
 				}
 				std::cout << "CONSISTENT" << std::endl;

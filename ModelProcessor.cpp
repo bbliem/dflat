@@ -24,11 +24,14 @@ void ModelProcessor::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 
 	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
 
-	foreach(const GringoOutputProcessor::LongAndSymbolTableKey& it, gringoOutput.getMAtoms()) {
-		mAtoms.push_back(LongAndLiteral(it.first, symTab[it.second].lit));
+	foreach(const GringoOutputProcessor::LongAndSymbolTableKey& it, gringoOutput.getMAtom()) {
+		mAtom.push_back(LongAndLiteral(it.first, symTab[it.second].lit));
 	}
-	foreach(const GringoOutputProcessor::LongAndSymbolTableKey& it, gringoOutput.getChosenOldMAtoms()) {
-		chosenOldMAtoms.push_back(LongAndLiteral(it.first, symTab[it.second].lit));
+	foreach(const GringoOutputProcessor::LongAndSymbolTableKey& it, gringoOutput.getMRule()) {
+		mRule.push_back(LongAndLiteral(it.first, symTab[it.second].lit));
+	}
+	foreach(const GringoOutputProcessor::LongAndSymbolTableKey& it, gringoOutput.getChosenOldM()) {
+		chosenOldM.push_back(LongAndLiteral(it.first, symTab[it.second].lit));
 	}
 }
 
@@ -50,11 +53,15 @@ void ModelProcessor::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, 
 	const TupleSet::value_type* oldTupleAndSolution = 0;
 	Tuple& newTuple = *new Tuple;
 
-	foreach(LongAndLiteral& it, mAtoms) {
+	foreach(LongAndLiteral& it, mAtom) {
 		if(s.isTrue(it.second))
-			newTuple.m.insert(it.first);
+			newTuple.atoms.insert(it.first);
 	}
-	foreach(LongAndLiteral& it, chosenOldMAtoms) {
+	foreach(LongAndLiteral& it, mRule) {
+		if(s.isTrue(it.second))
+			newTuple.rules.insert(it.first);
+	}
+	foreach(LongAndLiteral& it, chosenOldM) {
 		if(s.isTrue(it.second)) {
 			assert(!oldTupleAndSolution);
 			oldTupleAndSolution = reinterpret_cast<const TupleSet::value_type*>(it.first);
@@ -67,16 +74,10 @@ void ModelProcessor::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, 
 	// were guessed to true.
 	// In the meantime we just add all X s. t. m(X) is in the model, but
 	// this adds atoms multiple times.
-	VertexSet add;
-	foreach(Vertex v, newTuple.m) {
-		if(dynamic_cast<Problem*>(algorithm.problem())->vertexIsRule(v) == false)
-			add.insert(v);
-	}
-
 	if(oldTupleAndSolution)
-		newSolution = algorithm.addToSolution(oldTupleAndSolution->second, add);
+		newSolution = algorithm.addToSolution(oldTupleAndSolution->second, newTuple.atoms);
 	else
-		newSolution = algorithm.createLeafSolution(add);
+		newSolution = algorithm.createLeafSolution(newTuple.atoms);
 
 	algorithm.addToTupleSet(&newTuple, newSolution, &newTuples);
 }

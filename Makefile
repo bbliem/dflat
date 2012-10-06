@@ -29,6 +29,7 @@ debug:
 	cd build/debug && \
 	cmake ../.. \
 		-DCMAKE_BUILD_TYPE=debug \
+		-DCMAKE_CXX_FLAGS="-DVERBOSE" \
 		-Dgringo_lib=$(gringo_lib_debug) \
 		-Dclasp_lib=$(clasp_lib_debug) \
 		-Dgringo_dir=$(gringo_dir) \

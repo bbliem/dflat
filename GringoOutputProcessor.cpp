@@ -126,13 +126,12 @@ void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t 
 	b_->setAtomName(atom.first, ss.str().c_str());
 	atomUnnamed_[atom.first - lastUnnamed_] = false;
 
-	if(name == "m") {
-		// FIXME: I'm dirty
+	if(name == "mAtom") // FIXME: I'm dirty
 		mAtom.push_back(LongAndSymbolTableKey(std::strtol(arg.str().c_str()+1, 0, 0), atom.first)); // +1 because of the leading "m" of the argument
-	}
-	else if(name == "chosenOldM") {
-		chosenOldMAtom.push_back(LongAndSymbolTableKey(std::strtol(arg.str().c_str()+1, 0, 0), atom.first));
-	}
+	else if(name == "mRule")
+		mRule.push_back(LongAndSymbolTableKey(std::strtol(arg.str().c_str()+1, 0, 0), atom.first));
+	else if(name == "chosenOldM")
+		chosenOldM.push_back(LongAndSymbolTableKey(std::strtol(arg.str().c_str()+1, 0, 0), atom.first));
 }
 
 void GringoOutputProcessor::printExternalTableEntry(const AtomRef &atom, uint32_t arity, const std::string &name)

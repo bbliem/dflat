@@ -8,14 +8,20 @@ Tuple::~Tuple()
 }
 
 
-bool Tuple::operator<(const sharp::Tuple& rhs) const
+bool Tuple::operator<(const sharp::Tuple& rhs_) const
 {
-	return m < ((Tuple&)rhs).m;
+	const Tuple& rhs = dynamic_cast<const Tuple&>(rhs_);
+	if(atoms < rhs.atoms)
+		return true;
+	if(atoms == rhs.atoms) // XXX: Why compare twice?
+		return rules < rhs.rules;
+	return false;
 }
 
-bool Tuple::operator==(const sharp::Tuple& rhs) const
+bool Tuple::operator==(const sharp::Tuple& rhs_) const
 {
-	return m == ((Tuple&)rhs).m;
+	const Tuple& rhs = dynamic_cast<const Tuple&>(rhs_);
+	return atoms == rhs.atoms && rules == rhs.rules;
 }
 
 int Tuple::hash() const
@@ -25,23 +31,13 @@ int Tuple::hash() const
 }
 
 #ifdef VERBOSE
-void Tuple::print(std::ostream& str) const
-{
-	str << "Tuple\tm: ";
-	for(VertexSet::const_iterator i = m.begin(); i != m.end(); ++i)
-		str << *i << ' ';
-	str << std::endl;
-}
-
 void Tuple::print(std::ostream& str, Problem& problem) const
 {
-	str << "Tuple\tm: ";
-	foreach(sharp::Vertex v, m) {
-		if(problem.vertexIsRule(v))
-			str << v << ' ';
-		else
-			str << problem.getVertexName(v) << ' ';
-	}
+	str << "Tuple: ";
+	foreach(sharp::Vertex v, atoms)
+		str << problem.getVertexName(v) << '[' << v << "] ";
+	foreach(sharp::Vertex v, rules)
+		str << v << ' ';
 	str << std::endl;
 }
 #endif

@@ -19,8 +19,9 @@ public:
 
 	typedef std::pair<long, Clasp::SymbolTable::key_type> LongAndSymbolTableKey;
 	typedef std::vector<LongAndSymbolTableKey> LongAndSymbolTableKeyVec;
-	const LongAndSymbolTableKeyVec& getMAtoms() const { return mAtom; }
-	const LongAndSymbolTableKeyVec& getChosenOldMAtoms() const { return chosenOldMAtom; }
+	const LongAndSymbolTableKeyVec& getMAtom() const { return mAtom; }
+	const LongAndSymbolTableKeyVec& getMRule() const { return mRule; }
+	const LongAndSymbolTableKeyVec& getChosenOldM() const { return chosenOldM; }
 
 protected:
 	void printBasicRule(int head, const AtomVec &pos, const AtomVec &neg);
@@ -40,6 +41,7 @@ protected:
 	uint32_t lastUnnamed_;
 
 private:
-	LongAndSymbolTableKeyVec mAtom; // Holds pairs of "arg" and the key in the symbol table which is mapped to the clasp variable corresponding to "m(arg)" (different keys be mapped to the same variables due to clasp internals)
-	LongAndSymbolTableKeyVec chosenOldMAtom;
+	LongAndSymbolTableKeyVec mAtom; // Holds pairs of "arg" and the key in the symbol table which is mapped to the clasp variable corresponding to "mAtom(arg)" (different keys be mapped to the same variables due to clasp internals)
+	LongAndSymbolTableKeyVec mRule;
+	LongAndSymbolTableKeyVec chosenOldM;
 };

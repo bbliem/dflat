@@ -38,8 +38,10 @@ namespace {
 
 			ss << "oldMi(m" << mi << ")." << std::endl;
 
-			foreach(Vertex v, tuple.m)
-				ss << "oldM(m" << mi << ",v" << v << ")." << std::endl;
+			foreach(Vertex v, tuple.atoms)
+				ss << "oldMAtom(m" << mi << ",v" << v << ")." << std::endl;
+			foreach(Vertex v, tuple.rules)
+				ss << "oldMRule(m" << mi << ",v" << v << ")." << std::endl;
 		}
 	}
 
@@ -74,32 +76,6 @@ namespace {
 			}
 		}
 	}
-
-
-	// FIXME: I'm ugly.
-	inline bool equalAtoms(const VertexSet& l, const VertexSet& r, Problem& problem) {
-		// Supposes that the traversal order of the atoms is the same
-		VertexSet::const_iterator lit = l.begin();
-		VertexSet::const_iterator rit = r.begin();
-
-		for(;;) {
-			while(lit != l.end() && problem.vertexIsRule(*lit))
-				++lit;
-			while(rit != r.end() && problem.vertexIsRule(*rit))
-				++rit;
-
-			if(lit == l.end() || rit == r.end())
-				break;
-
-			if(*lit != *rit)
-				return false;
-
-			++lit;
-			++rit;
-		}
-
-		return lit == l.end() && rit == r.end();
-	}
 }
 
 Algorithm::Algorithm(sharp::Problem& problem, Algorithm::ProblemType problemType)
@@ -117,7 +93,7 @@ Algorithm::~Algorithm()
 Solution* Algorithm::selectSolution(TupleSet* tuples, const ExtendedHypertree* root)
 {
 #ifndef NO_PROGRESS_REPORT
-	std::cout << std::endl; // End progress line
+	std::cout << '\r' << std::setw(40) << "Done." << std::endl; // Clear/end progress line
 #endif
 
 	Solution* result = createEmptySolution();
@@ -130,8 +106,8 @@ Solution* Algorithm::selectSolution(TupleSet* tuples, const ExtendedHypertree* r
 	for(TupleSet::iterator it = tuples->begin(); it != tuples->end(); ++it) {
 		const Tuple& t = *dynamic_cast<Tuple*>(it->first);
 
-		// A tuple corresponds to a valid solution if all rules in the current bag are in M
-		if(std::includes(t.m.begin(), t.m.end(), currentRules.begin(), currentRules.end()))
+		// A tuple corresponds to a valid solution if all rules in the current bag are in it
+		if(t.rules == currentRules)
 			result = combineSolutions(sharp::Union, result, it->second);
 	}
 
@@ -142,22 +118,39 @@ TupleSet* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 {
 	TupleSet* left = evaluateNode(node->firstChild());
 	TupleSet* right = evaluateNode(node->secondChild());
+#ifndef NO_PROGRESS_REPORT
 	printProgressLine(node);
+#endif
 	TupleSet* ts = new TupleSet;
 
-	for(TupleSet::const_iterator lit = left->begin(); lit != left->end(); ++lit) {
-		Tuple &l = *(Tuple *)lit->first;
-		for(TupleSet::const_iterator rit = right->begin(); rit != right->end(); ++rit) {
-			Tuple &r = *(Tuple *)rit->first;
-			if(!equalAtoms(l.m, r.m, *dynamic_cast<Problem*>(problem()))) continue;
+	// TupleSets are ordered, use sort merge join algorithm
+	TupleSet::const_iterator lit = left->begin();
+	TupleSet::const_iterator rit = right->begin();
+#define TUP(X) (*dynamic_cast<const Tuple*>(X->first)) // FIXME: Think of something better
+	while(lit != left->end() && rit != right->end()) {
+		while(TUP(lit).atoms != TUP(rit).atoms) {
+			// Advance iterator pointing to smaller value
+			if(TUP(lit).atoms < TUP(rit).atoms) {
+				++lit;
+				if(lit == left->end())
+					goto endJoin;
+			} else {
+				++rit;
+				if(rit == right->end())
+					goto endJoin;
+			}
+		}
 
+		// Now lit and rit join
+		// Remember position of rit and advance rit until no more match
+		TupleSet::const_iterator mark = rit;
+joinLitWithAllPartners:
+		do {
 			Tuple& ast = *new Tuple;
-
-			ast.m = l.m;
-			ast.m.insert(r.m.begin(), r.m.end());
-
+			ast.atoms = TUP(lit).atoms;
+			ast.rules = TUP(lit).rules;
+			ast.rules.insert(TUP(rit).rules.begin(), TUP(rit).rules.end());
 			Solution *s = combineSolutions(sharp::CrossJoin, lit->second, rit->second);
-
 			// FIXME: It seems this is the same as Algorithm::addToTupleSet. Use that instead?
 			std::pair<TupleSet::iterator, bool> result = ts->insert(TupleSet::value_type(&ast, s));
 			if(!result.second) {
@@ -165,8 +158,20 @@ TupleSet* Algorithm::evaluateBranchNode(const ExtendedHypertree* node)
 				ts->erase(result.first);
 				ts->insert(TupleSet::value_type(&ast, combineSolutions(sharp::Union, orig, s)));
 			}
+			++rit;
+		} while(rit != right->end() && TUP(lit).atoms == TUP(rit).atoms);
+
+		// lit and rit don't join anymore. Advance lit. If it joins with mark, reset rit to mark.
+		++lit;
+		if(lit == left->end())
+			break;
+
+		if(TUP(lit).atoms == TUP(mark).atoms) {
+			rit = mark;
+			goto joinLitWithAllPartners; // Ha!
 		}
 	}
+endJoin:
 
 	delete left;
 	delete right;
@@ -194,20 +199,22 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 
 	if(node->getType() != sharp::Leaf) {
 		TupleSet* childTuples = evaluateNode(node->firstChild());
+#ifndef NO_PROGRESS_REPORT
 		printProgressLine(node);
+#endif
 		// There might be no child tuples, consider as a child e.g. a join node without matches.
 		// If we were to run the program without child tuples, it would consider the current node as a leaf node and wrongly generate new tuples.
 		if(childTuples->empty() == false) {
 			std::stringstream* childTuplesInput = new std::stringstream;
 			describeChildTuples(*childTuplesInput, *childTuples);
 #ifdef VERBOSE
-			std::cout << "Exchange node; bag contents:" << std::endl;
-			std::cout << bagContents->str() << std::endl;
+			std::cout << "Bag contents:" << std::endl;
+//			std::cout << bagContents->str() << std::endl;
 			foreach(Vertex v, node->getVertices()) {
 				if(dynamic_cast<Problem*>(problem())->vertexIsRule(v))
-					std::cout << 'r' << v << std::endl;
+					std::cout << v << std::endl;
 				else
-					std::cout << problem()->getVertexName(v) << " (v" << v << ")" << std::endl;
+					std::cout << problem()->getVertexName(v) << '[' << v << "]" << std::endl;
 			}
 			std::cout << "Child tuple input:" << std::endl << childTuplesInput->str() << std::endl;
 #endif
@@ -231,15 +238,17 @@ TupleSet* Algorithm::evaluatePermutationNode(const ExtendedHypertree* node)
 	}
 	else {
 		// This is a leaf, run the program once
+#ifndef NO_PROGRESS_REPORT
 		printProgressLine(node);
+#endif
 #ifdef VERBOSE
-		std::cout << "Leaf node; bag contents:" << std::endl;
-		std::cout << bagContents->str() << std::endl;
+		std::cout << "Bag contents:" << std::endl;
+//		std::cout << bagContents->str() << std::endl;
 		foreach(Vertex v, node->getVertices()) {
 			if(dynamic_cast<Problem*>(problem())->vertexIsRule(v))
-				std::cout << 'r' << v << std::endl;
+				std::cout << v << std::endl;
 			else
-				std::cout << problem()->getVertexName(v) << " (v" << v << ")" << std::endl;
+				std::cout << problem()->getVertexName(v) << '[' << v << "]" << std::endl;
 		}
 #endif
 

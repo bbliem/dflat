@@ -1,3 +1,10 @@
+% TODO: Incorporate (old)mAtom/Rule into the program instead of these auxiliary predicates
+oldM(M,A) :- oldMAtom(M,A).
+oldM(M,R) :- oldMRule(M,R).
+mAtom(X) :- m(X), atom(X).
+mRule(X) :- m(X), rule(X).
+
+
 introduced(X) :- current(X), not before(X).
 removed(X) :- before(X), not current(X).
 
@@ -31,5 +38,6 @@ m(R) :- introduced(R), pos(R,A), current(A), not m(A).
 
 
 #hide.
-#show m/1.
+#show mAtom/1.
+#show mRule/1.
 #show chosenOldM/1.
