@@ -15,11 +15,11 @@ for instance in $(seq 1 $numInstances); do
 	dimacsInstance=$(mktemp)
 	trap "rm -f $lpInstance $dimacsInstance" EXIT
 
-	$satgen $numClauses $numVars dimacs $seed > $dimacsInstance
+	$satgen $numClauses $numVars dimacs $seed > $dimacsInstance 2>/dev/null || exit
 	$minisat < $dimacsInstance &>/dev/null
 	miniSatExitCode=$?
 
-	$satgen $numClauses $numVars lp $seed > $lpInstance
+	$satgen $numClauses $numVars lp $seed > $lpInstance 2>/dev/null || exit
 	$sat -p decision -s $seed < $lpInstance &>/dev/null
 	satExitCode=$?
 
