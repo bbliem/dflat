@@ -221,10 +221,13 @@ void Algorithm::printProgressLine(const sharp::ExtendedHypertree* node, size_t n
 	}
 
 	// FIXME: Number of removed/introduced vertices is always 0 when there is more than one child
-	std::cout << "] " << std::setw(2) << std::right << node->getVertices().size() << " elements ["
-		<< std::setw(2) << node->getRemovedVertices().size() << "R"
-		<< std::setw(2) << node->getIntroducedVertices().size() << "I] "
-		<< std::setw(7) << numChildRows << " child rows"
-		<< std::flush;
+//	std::cout << "] " << std::setw(2) << std::right << node->getVertices().size() << " elements ["
+//		<< std::setw(2) << node->getRemovedVertices().size() << "R"
+//		<< std::setw(2) << node->getIntroducedVertices().size() << "I] "
+//		<< std::setw(7) << numChildRows << " child rows"
+//		<< std::flush;
+
+	std::cout << "] " << std::setw(2) << std::right << node->getVertices().size() << " elements, "
+		<< std::setw(7) << numChildRows << " child rows" << std::flush;
 }
 #endif
