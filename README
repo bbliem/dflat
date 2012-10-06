@@ -2,7 +2,36 @@ Make sure that gringo, clasp, sharp and this library are build with the same C++
 
 ---
 
-Writing logic programs for the exchange node:
-Predicates provided by ASDP: current/1, introduced/1, removed/1, childTuple/1, mapped/3
-Predicates expected by ASDP: map/2
-Additionally to the provided predicates you get the original instance. Each answer set of your program corresponds to a resulting tuple. A tuple is specified by assigning some value K to each vertex X via map(X,K). You must assign exactly one value to each current vertex.
+Writing logic programs for the exchange node for problems beyond NP:
+Predicates provided by ASDP: current/1, introduced/1, removed/1, childTuple/1, mapped/4
+Predicates expected by ASDP: map/3, chosenChildTuple/1 (not necessary for the decision problem)
+Additionally to the provided predicates you get the original problem instance.
+
+In the following, let the term "level L assignment" mean an assignment that maps to each vertex V exactly one value K, given by the output predicate map(L,V,K). Suppose the problem is on the n-th level of the polynomial hierarchy. In this case a tuple consists of
+-) a level 0 assignment,
+-) a set of level 1 assignments,
+-) for each level 1 assignment, a set of level 2 assignments,
+-) for each level 2 assignment, a set of level 3 assignments,
+-) ...
+-) for each level n-3 assignment, a set of level n-1 assignments.
+
+The structure of a tuple is therefore a tree like in the following example for a problem on the 3rd level of the PH, where a number n stands for a level n assignment:
+
+       0
+     / | \
+    1  1  1
+   / \    |
+  2   2   2
+
+Since there are four leaves, there are four paths from the root to a leaf. Therefore four answer sets of your program are used to construct this tuple.For instance the followings answer sets could correspond to the paths, from left to right (assuming just a single vertex v):
+AS 0: map(0,v,red) map(1,v,red) map(2,v,red)
+AS 1: map(0,v,red) map(1,v,red) map(2,v,green)
+AS 2: map(0,v,red) map(1,v,green)
+AS 3: map(0,v,red) map(1,v,blue) map(2,v,red)
+
+The provided predicate mapped(I,L,V,K) denotes that the child tuple with the ID I maps K to V on the L-th level.
+
+---
+
+Writing exchange node programs for problems in NP:
+Conceptually this is just a special case where you have only level 0 assignments. For problems in NP, each answer set of the exchange node program therefore corresponds to exactly one tuple. Instead of mapped/4 and map/3 you now must use mapped/3 and map/2, which work the same as in the general case, but with the level parameter omitted.
