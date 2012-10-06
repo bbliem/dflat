@@ -1,25 +1,25 @@
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 
-#include "OptimizationSolution.h"
+#include "OptEnumSolution.h"
 
 namespace asdp { namespace solution {
 
-OptimizationSolution::OptimizationSolution()
+OptEnumSolution::OptEnumSolution()
 {
 }
 
-OptimizationSolution* OptimizationSolution::leaf(const Tuple::Assignment& leafSolution, unsigned cost)
+OptEnumSolution* OptEnumSolution::leaf(const Tuple::Assignment& leafSolution, unsigned cost)
 {
-	OptimizationSolution* s = new OptimizationSolution;
+	OptEnumSolution* s = new OptEnumSolution;
 	s->cost = cost;
 	s->assignments.insert(leafSolution);
 	return s;
 }
 
-OptimizationSolution* OptimizationSolution::extend(OptimizationSolution* base, const Tuple::Assignment& extension, unsigned cost)
+OptEnumSolution* OptEnumSolution::extend(OptEnumSolution* base, const Tuple::Assignment& extension, unsigned cost)
 {
-	OptimizationSolution* s = new OptimizationSolution;
+	OptEnumSolution* s = new OptEnumSolution;
 	foreach(const Tuple::Assignment& baseAssignment, base->assignments) {
 		Tuple::Assignment newAssignment = extension;
 		newAssignment.insert(baseAssignment.begin(), baseAssignment.end());
@@ -30,7 +30,7 @@ OptimizationSolution* OptimizationSolution::extend(OptimizationSolution* base, c
 	return s;
 }
 
-OptimizationSolution* OptimizationSolution::unify(OptimizationSolution* left, OptimizationSolution* right, unsigned cost)
+OptEnumSolution* OptEnumSolution::unify(OptEnumSolution* left, OptEnumSolution* right, unsigned cost)
 {
 	left->assignments.insert(right->assignments.begin(), right->assignments.end());
 	left->cost = cost;
@@ -38,9 +38,9 @@ OptimizationSolution* OptimizationSolution::unify(OptimizationSolution* left, Op
 	return left;
 }
 
-OptimizationSolution* OptimizationSolution::join(OptimizationSolution* left, OptimizationSolution* right, unsigned cost)
+OptEnumSolution* OptEnumSolution::join(OptEnumSolution* left, OptEnumSolution* right, unsigned cost)
 {
-	OptimizationSolution* s = new OptimizationSolution;
+	OptEnumSolution* s = new OptEnumSolution;
 	foreach(const Tuple::Assignment& l, left->assignments) {
 		foreach(const Tuple::Assignment& r, right->assignments) {
 			Tuple::Assignment j = l;
@@ -54,12 +54,12 @@ OptimizationSolution* OptimizationSolution::join(OptimizationSolution* left, Opt
 	return s;
 }
 
-unsigned OptimizationSolution::getCost() const
+unsigned OptEnumSolution::getCost() const
 {
 	return cost;
 }
 
-const std::set<Tuple::Assignment>& OptimizationSolution::getSolutions() const
+const std::set<Tuple::Assignment>& OptEnumSolution::getSolutions() const
 {
 	return assignments;
 }

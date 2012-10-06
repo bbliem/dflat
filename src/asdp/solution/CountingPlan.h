@@ -2,6 +2,8 @@
 
 #include <sharp/main>
 
+#include "CountingSolution.h"
+
 namespace asdp { namespace solution {
 
 class CountingPlan : public sharp::Plan
@@ -19,8 +21,8 @@ protected:
 	virtual sharp::Solution* materializeJoin() const;
 
 private:
-	CountingPlan(size_t count);
-	size_t count;
+	CountingPlan(const CountingSolution::CountType& count);
+	CountingSolution::CountType count;
 };
 
 }} // namespace asdp::solution

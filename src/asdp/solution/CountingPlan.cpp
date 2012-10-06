@@ -1,12 +1,10 @@
 #include <cassert>
 
 #include "CountingPlan.h"
-#include "CountingSolution.h"
-
 
 namespace asdp { namespace solution {
 
-CountingPlan::CountingPlan(size_t count)
+CountingPlan::CountingPlan(const CountingSolution::CountType& count)
 	: Plan(LEAF), count(count)
 {
 }

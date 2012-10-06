@@ -9,12 +9,17 @@
 #include "Problem.h"
 #include "ClaspAlgorithm.h"
 #include "solution/DecisionPlan.h"
+#include "solution/DecisionSolution.h"
 #include "solution/CountingPlan.h"
 #include "solution/CountingSolution.h"
 #include "solution/EnumerationPlan.h"
 #include "solution/EnumerationSolution.h"
-#include "solution/OptimizationPlan.h"
-#include "solution/OptimizationSolution.h"
+#include "solution/OptValuePlan.h"
+#include "solution/OptValueSolution.h"
+#include "solution/OptCountingPlan.h"
+#include "solution/OptCountingSolution.h"
+#include "solution/OptEnumPlan.h"
+#include "solution/OptEnumSolution.h"
 
 namespace {
 	const int CONSISTENT = 10;
@@ -29,7 +34,7 @@ namespace {
 		std::cerr << '\t' << std::setw(w) << "-l level: " << "Level on polynomial hierarchy; determines depth of tuple assignment tree. Default: 0" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-n normalization: " << "Either \"semi\" (default) or \"normalized\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
-		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\", \"decision\" or \"optimization\"" << std::endl;
+		std::cerr << '\t' << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\", \"decision\", \"opt-enum\", \"opt-counting\" or \"opt-value\"" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-s seed: " << "Initialize random number generator with <seed>" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "--stats: " << "Print statistics" << std::endl;
 		std::cerr << '\t' << std::setw(w) << "-x exchange_program: " << "File name of the logic program executed in exchange nodes" << std::endl;
@@ -51,7 +56,7 @@ namespace {
 int main(int argc, char** argv)
 {
 	unsigned int level = 0;
-	enum { ENUMERATION, COUNTING, DECISION, OPTIMIZATION } problemType = ENUMERATION;
+	enum { ENUMERATION, COUNTING, DECISION, OPT_ENUM, OPT_COUNTING, OPT_VALUE } problemType = ENUMERATION;
 	time_t seed = time(0);
 	sharp::NormalizationType normalizationType = sharp::SemiNormalization;
 	bool onlyDecompose = false;
@@ -99,8 +104,12 @@ int main(int argc, char** argv)
 				problemType = COUNTING;
 			else if(typeArg == "decision")
 				problemType = DECISION;
-			else if(typeArg == "optimization")
-				problemType = OPTIMIZATION;
+			else if(typeArg == "opt-enum")
+				problemType = OPT_ENUM;
+			else if(typeArg == "opt-counting")
+				problemType = OPT_COUNTING;
+			else if(typeArg == "opt-value")
+				problemType = OPT_VALUE;
 			else
 				usage(argv[0]);
 		}
@@ -124,7 +133,7 @@ int main(int argc, char** argv)
 			usage(argv[0]);
 	}
 
-	if(!exchangeProgram || hyperedgePredicateNames.empty())
+	if((!exchangeProgram && !onlyDecompose) || hyperedgePredicateNames.empty())
 		usage(argv[0]);
 
 	srand(seed);
@@ -153,88 +162,124 @@ int main(int argc, char** argv)
 	if(onlyDecompose)
 		return 0;
 
-	std::auto_ptr<sharp::PlanFactory> planFactory;
 	switch(problemType) {
-		case ENUMERATION:
-			planFactory.reset(new sharp::GenericPlanFactory<asdp::solution::EnumerationPlan, Tuple>);
-			break;
+		case ENUMERATION: {
+			sharp::GenericPlanFactory<asdp::solution::EnumerationPlan, Tuple> planFactory;
+			asdp::ClaspAlgorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
 
-		case COUNTING:
-			planFactory.reset(new sharp::GenericPlanFactory<asdp::solution::CountingPlan>);
-			break;
+			if(plan) {
+				std::auto_ptr<asdp::solution::EnumerationSolution> s(dynamic_cast<asdp::solution::EnumerationSolution*>(plan->materialize()));
+				delete plan;
+				std::cout << "Solutions: " << s->getSolutions().size() << std::endl;
 
-		case DECISION:
-			planFactory.reset(new sharp::GenericPlanFactory<asdp::solution::DecisionPlan>);
-			break;
-
-		case OPTIMIZATION:
-			planFactory.reset(new sharp::GenericPlanFactory<asdp::solution::OptimizationPlan, Tuple>);
-			break;
-	}
-
-	asdp::ClaspAlgorithm algorithm(problem, *planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
-	sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
-
-	// Print solution
-	if(plan) {
-		std::auto_ptr<sharp::Solution> solution(plan->materialize());
-		delete plan;
-
-		switch(problemType) {
-			case ENUMERATION: {
-				// TODO: Actually an enumeration problem is just a special case of an optimization problem with all costs equal
-				asdp::solution::EnumerationSolution& s = *dynamic_cast<asdp::solution::EnumerationSolution*>(solution.get());
-
-				std::cout << "Solutions: " << s.getSolutions().size() << std::endl;
-
-				foreach(const Tuple::Assignment& a, s.getSolutions()) {
+				foreach(const Tuple::Assignment& a, s->getSolutions()) {
 					foreach(const Tuple::Assignment::value_type& pair, a)
 						std::cout << pair.first << '=' << pair.second << ' ';
 					std::cout << std::endl;
 				}
 
-				return s.getSolutions().empty() ? INCONSISTENT : CONSISTENT;
-			} break;
+				return s->getSolutions().empty() ? INCONSISTENT : CONSISTENT;
+			} else {
+				std::cout << "Solutions: 0" << std::endl;
+				return INCONSISTENT;
+			}
+		} break;
 
-			case COUNTING: {
-				asdp::solution::CountingSolution& s = *dynamic_cast<asdp::solution::CountingSolution*>(solution.get());
-				std::cout << "Solutions: " << s.count << std::endl;
-				return s.count == 0 ? INCONSISTENT : CONSISTENT;
-			} break;
+		case COUNTING: {
+			sharp::GenericPlanFactory<asdp::solution::CountingPlan> planFactory;
+			asdp::ClaspAlgorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
 
-			case DECISION: {
-//				if(solution.get()) {
-//					std::cout << "CONSISTENT" << std::endl;
-//					return CONSISTENT;
-//				}
-//				std::cout << "INCONSISTENT" << std::endl;
-//				return INCONSISTENT;
-				// Actually since there is a plan, there must also be a solution
-				assert(solution.get());
+			if(plan) {
+				std::auto_ptr<asdp::solution::CountingSolution> s(dynamic_cast<asdp::solution::CountingSolution*>(plan->materialize()));
+				delete plan;
+				std::cout << "Solutions: " << s->getCount() << std::endl;
+				return s->getCount() == 0 ? INCONSISTENT : CONSISTENT;
+			} else {
+				std::cout << "Solutions: 0" << std::endl;
+				return INCONSISTENT;
+			}
+		} break;
+
+		case DECISION: {
+			sharp::GenericPlanFactory<asdp::solution::DecisionPlan> planFactory;
+			asdp::ClaspAlgorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
+
+			if(plan) {
+				// Since there is a plan, there must also be a solution
+#ifndef NDEBUG
+				std::auto_ptr<asdp::solution::DecisionSolution> s(dynamic_cast<asdp::solution::DecisionSolution*>(plan->materialize()));
+				assert(s.get());
+#endif
+				delete plan;
 				std::cout << "CONSISTENT" << std::endl;
 				return CONSISTENT;
-			} break;
+			} else {
+				std::cout << "INCONSISTENT" << std::endl;
+				return INCONSISTENT;
+			}
+		} break;
 
-			case OPTIMIZATION: {
-				asdp::solution::OptimizationSolution& s = *dynamic_cast<asdp::solution::OptimizationSolution*>(solution.get());
+		case OPT_ENUM: {
+			sharp::GenericPlanFactory<asdp::solution::OptEnumPlan, Tuple> planFactory;
+			asdp::ClaspAlgorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
 
-				std::cout << "Minimum cost: " << s.getCost() << std::endl;
-				std::cout << "Solutions: " << s.getSolutions().size() << std::endl;
+			if(plan) {
+				std::auto_ptr<asdp::solution::OptEnumSolution> s(dynamic_cast<asdp::solution::OptEnumSolution*>(plan->materialize()));
+				delete plan;
 
-				foreach(const Tuple::Assignment& a, s.getSolutions()) {
+				std::cout << "Minimum cost: " << s->getCost() << std::endl;
+				std::cout << "Optimal solutions: " << s->getSolutions().size() << std::endl;
+
+				foreach(const Tuple::Assignment& a, s->getSolutions()) {
 					foreach(const Tuple::Assignment::value_type& pair, a)
 						std::cout << pair.first << '=' << pair.second << ' ';
 					std::cout << std::endl;
 				}
 
-				return s.getSolutions().empty() ? INCONSISTENT : CONSISTENT;
-		   } break;
+				return s->getSolutions().empty() ? INCONSISTENT : CONSISTENT;
+			} else {
+				std::cout << "Optimal solutions: 0" << std::endl;
+				return INCONSISTENT;
+			}
+		} break;
 
-		}
+		case OPT_COUNTING: {
+			sharp::GenericPlanFactory<asdp::solution::OptCountingPlan, Tuple> planFactory;
+			asdp::ClaspAlgorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
+
+			if(plan) {
+				std::auto_ptr<asdp::solution::OptCountingSolution> s(dynamic_cast<asdp::solution::OptCountingSolution*>(plan->materialize()));
+				delete plan;
+				std::cout << "Minimum cost: " << s->getCost() << std::endl;
+				std::cout << "Optimal solutions: " << s->getCount() << std::endl;
+				return s->getCount() == 0 ? INCONSISTENT : CONSISTENT;
+			} else {
+				std::cout << "Optimal Solutions: 0" << std::endl;
+				return INCONSISTENT;
+			}
+		} break;
+
+		case OPT_VALUE: {
+			sharp::GenericPlanFactory<asdp::solution::OptValuePlan, Tuple> planFactory;
+			asdp::ClaspAlgorithm algorithm(problem, planFactory, inputString, exchangeProgram, joinProgram, normalizationType, level);
+			sharp::Plan* plan = problem.calculatePlanFromDecomposition(&algorithm, decomposition);
+
+			if(plan) {
+				std::auto_ptr<asdp::solution::OptValueSolution> s(dynamic_cast<asdp::solution::OptValueSolution*>(plan->materialize()));
+				delete plan;
+				std::cout << "Minimum cost: " << s->getCost() << std::endl;
+				return CONSISTENT;
+			} else {
+				std::cout << "INCONSISTENT" << std::endl;
+				return INCONSISTENT;
+			}
+		} break;
 	}
-	if(problemType == DECISION)
-		std::cout << "INCONSISTENT" << std::endl;
-	else
-		std::cout << "Solutions: 0" << std::endl;
+	assert(false); // Should never reach this point
 	return INCONSISTENT;
 }
