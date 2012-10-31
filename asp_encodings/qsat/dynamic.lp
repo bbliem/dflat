@@ -8,7 +8,7 @@ forallItemSet(S) :- childRow(S,_),              sub(S,_).
 forallItemSet(S) :- existsItemSet(R), sub(R,S), sub(S,_).
 existsItemSet(S) :- forallItemSet(R), sub(R,S), sub(S,_).
 
-bad(S)  :- childItem(S,bad). % Has already been bad
+bad(S)  :- childItem(S,fail). % Has already been bad
 bad(S)  :- clause(C), removed(C), levels(L), itemSet(L-1,S,N), childBag(N,C), not childItem(S,C). % Becomes bad due to clause removal
 bad(S)  :- forallItemSet(S), sub(S,T),     bad(T).
 -bad(S) :- existsItemSet(S), sub(S,T), not bad(T).
@@ -25,8 +25,8 @@ extend(L-1,R) :- extend(L,S), sub(R,S).
 
 item(L,X) :- extend(L,S), childItem(S,X), not removed(X).
 
-% The leaves (and only they) can contain "bad"
-item(L,bad) :- levels(L+1), extend(L,S), bad(S).
+% The leaves (and only they) can contain "fail"
+item(L,fail) :- levels(L+1), extend(L,S), bad(S).
 
 :- extend(0,S), bad(S).
 
