@@ -26,14 +26,30 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Row.h"
 #include "Problem.h"
 
-Row::Row(const Row::Items& topLevelItems)
-	: tree(topLevelItems), count(0), currentCost(0), cost(0), index(0)
+Row::Row(const Row::Items& topLevelItems, const ExtensionPointerTuple& predecessor)
+	: tree(topLevelItems), currentCost(0), cost(0), index(0)
 {
+	// Default counting
+	mpz_class product = 1;
+	foreach(const Row* r, predecessor)
+		product *= r->getCount();
+	count = product;
+
+	if(!predecessor.empty())
+		extensionPointers.push_back(predecessor);
 }
 
-Row::Row(const Row::Tree& tree)
-	: tree(tree), count(0), currentCost(0), cost(0), index(0)
+Row::Row(const Row::Tree& tree, const ExtensionPointerTuple& predecessor)
+	: tree(tree), currentCost(0), cost(0), index(0)
 {
+	// Default counting
+	mpz_class product = 1;
+	foreach(const Row* r, predecessor)
+		product *= r->getCount();
+	count = product;
+
+	if(!predecessor.empty())
+		extensionPointers.push_back(predecessor);
 }
 
 bool Row::Tree::operator==(const Tree& rhs) const
@@ -152,18 +168,4 @@ void Row::Tree::declare(std::ostream& out, const std::string& thisName) const
 		child.declare(out, childName.str());
 		++i;
 	}
-}
-
-void Row::addExtensionPointerTuple(const ExtensionPointerTuple& ep)
-{
-#ifndef DISABLE_ANSWER_SET_CHECKS
-	if(!extensionPointers.empty() && extensionPointers.front().size() != ep.size())
-		throw std::runtime_error("Tried to add extension pointer tuple with different arity than before");
-#endif
-	extensionPointers.push_back(ep);
-	// Default counting
-	mpz_class product = 1;
-	foreach(const Row* predecessor, ep)
-		product *= predecessor->getCount();
-	count += product;
 }

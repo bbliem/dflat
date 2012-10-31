@@ -125,12 +125,7 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
 #endif
 
-	Row& newRow = *new Row(items);
-
-	if(childRows.empty())
-		newRow.setCount(1);
-	else
-		newRow.addExtensionPointerTuple(childRows);
+	Row& newRow = *new Row(items, childRows);
 
 	foreach(const LongToLiteral::value_type& it, countAtoms) {
 		if(s.isTrue(it.second)) {

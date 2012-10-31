@@ -54,8 +54,9 @@ public:
 #endif
 	};
 
-	Row(const Items& topLevelItems);
-	Row(const Tree& tree);
+	// If predecessor is empty, this is a leaf table row (this sets count to 1)
+	Row(const Items& topLevelItems, const ExtensionPointerTuple& predecessor = ExtensionPointerTuple());
+	Row(const Tree& tree, const ExtensionPointerTuple& predecessor = ExtensionPointerTuple());
 
 	//! Must be asymmetric
 	virtual bool operator<(const sharp::Row&) const;
@@ -100,8 +101,6 @@ public:
 	void setCost(unsigned int c) { cost = c; }
 
 	const ExtensionPointers& getExtensionPointers() const { return extensionPointers; }
-	//! Adds the given tuple to the extension pointers and adds the product of the extended rows' counts to this row's solution count
-	void addExtensionPointerTuple(const ExtensionPointerTuple&);
 
 	void setIndex(unsigned int i) { index = i; }
 	unsigned int getIndex() const { return index; }

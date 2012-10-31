@@ -66,25 +66,20 @@ void ClaspCallbackGeneral::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade
 			foreach(const Tree::Children::value_type& child, tree.children) {
 				const ExtendArguments& predecessors = child.first.first;
 				const Row::Items& topLevelItems = child.first.second;
-				Row* row = new Row(Row::Tree(topLevelItems, child.second.mergeChildren()));
 
-				if(predecessors.empty())
-					row->setCount(1);
-				else {
-					Row::ExtensionPointerTuple extensionPointers;
-					extensionPointers.reserve(predecessors.size());
-					foreach(const string& predecessor, predecessors) {
-						// Child table number is before, row number is after the first '_'
-						const unsigned int underscorePos = predecessor.find('_');
-						unsigned int tableNumber = boost::lexical_cast<unsigned int>(std::string(predecessor, 1, underscorePos-1)); // predecessor starts with 'r'
-						unsigned int rowNumber = boost::lexical_cast<unsigned int>(std::string(predecessor, underscorePos + 1));
-						// TODO: Instead of the following assertions, throw assertions if invalid extension pointers are given. Also, add a check that ensures that if extension pointers are given, exactly one is given for each child table.
-						assert(tableNumber < childTablesVec.size());
-						assert(rowNumber < childTablesVec[tableNumber].size());
-						extensionPointers.push_back(dynamic_cast<const Row*>(childTablesVec[tableNumber][rowNumber]));
-					}
-					row->addExtensionPointerTuple(extensionPointers);
+				Row::ExtensionPointerTuple extensionPointers;
+				extensionPointers.reserve(predecessors.size());
+				foreach(const string& predecessor, predecessors) {
+					// Child table number is before, row number is after the first '_'
+					const unsigned int underscorePos = predecessor.find('_');
+					unsigned int tableNumber = boost::lexical_cast<unsigned int>(std::string(predecessor, 1, underscorePos-1)); // predecessor starts with 'r'
+					unsigned int rowNumber = boost::lexical_cast<unsigned int>(std::string(predecessor, underscorePos + 1));
+					// TODO: Instead of the following assertions, throw assertions if invalid extension pointers are given. Also, add a check that ensures that if extension pointers are given, exactly one is given for each child table.
+					assert(tableNumber < childTablesVec.size());
+					assert(rowNumber < childTablesVec[tableNumber].size());
+					extensionPointers.push_back(dynamic_cast<const Row*>(childTablesVec[tableNumber][rowNumber]));
 				}
+				Row* row = new Row(Row::Tree(topLevelItems, child.second.mergeChildren()), extensionPointers);
 
 				if(child.second.hasCount)
 					row->setCount(child.second.count);
