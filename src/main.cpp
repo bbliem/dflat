@@ -51,7 +51,7 @@ namespace {
 		std::cerr << "  " << std::setw(w) << "-s seed: " << "Initialize random number generator with <seed>" << std::endl;
 		std::cerr << "  " << std::setw(w) << "--stats: " << "Print statistics" << std::endl;
 		std::cerr << "  " << std::setw(w) << "-x exchange_program: " << "File name of the logic program executed in exchange nodes (only for semi-normalized decompositions)" << std::endl;
-		std::cerr << "  " << std::setw(w) << "program: " << "File name of the logic program executed in nodes (only for semi-normalized decompositions)" << std::endl;
+		std::cerr << "  " << std::setw(w) << "program: " << "File name of the logic program executed in nodes (incompatible with -x and -j)" << std::endl;
 		std::cerr << "  " << std::setw(w) << "instance: " << "File name of the set of facts representing an instance" << std::endl;
 		std::cerr << std::endl;
 		std::cerr << "Exit code " << CONSISTENT << " means there is a solution, " << INCONSISTENT << " means there is none." << std::endl;
