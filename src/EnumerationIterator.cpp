@@ -105,6 +105,7 @@ void EnumerationIterator::incrementExtensionIterator(unsigned int i) {
 		if(!extensionIts[i]->valid) {
 			// Now we need to advance the next iterator left of it ("carry operation")
 			extensionIts[i]->reset();
+			extensionIts[i]->materializeItems();
 			incrementExtensionIterator(i + 1);
 		}
 	}
