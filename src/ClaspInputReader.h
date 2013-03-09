@@ -32,7 +32,7 @@ public:
 
 	// Clasp::Input interface
 	virtual Format format() const;
-	virtual bool read(ApiPtr, int);
+	virtual bool read(ApiPtr, uint32);
 	virtual void addMinimize(Clasp::MinimizeBuilder&, ApiPtr);
 	virtual void getAssumptions(Clasp::LitVec&);
 

@@ -44,7 +44,7 @@ ClaspInputReader::Format ClaspInputReader::format() const
 	return SMODELS;
 }
 
-bool ClaspInputReader::read(ApiPtr api, int)
+bool ClaspInputReader::read(ApiPtr api, uint32)
 {
 	output.setProgramBuilder(api.api);
 	output.initialize();

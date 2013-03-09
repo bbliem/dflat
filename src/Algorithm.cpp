@@ -123,7 +123,8 @@ Table* Algorithm::computeTable(const sharp::ExtendedHypertree& node, const std::
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
 	std::auto_ptr<Clasp::ClaspFacade::Callback> cb = newClaspCallback(*newTable, *outputProcessor, childTables, node.getVertices());
 	Clasp::ClaspConfig config;
-	config.master()->heuristic().name = "none";
+//	config.master()->heuristic().name = "none"; // before clasp 2.1.1
+//	config.master()->solver->strategies().heuId = Clasp::ClaspConfig::heu_none; // for clasp 2.1.1, but it seems switching the heuristic off does not pay off anymore...?
 	config.enumerate.numModels = 0;
 	clasp.solve(inputReader, config, cb.get());
 

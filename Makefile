@@ -1,14 +1,14 @@
 # You probably need to adjust the *_dir variables before running "make"
-cxxflags_release="-DPROGRESS_REPORT -DDISABLE_ANSWER_SET_CHECKS"
-cxxflags_debug="-DPROGRESS_REPORT -DWITH_NODE_TIMER -DPRINT_COMPUTED_ROWS -DPRINT_BAG_INPUT -DPRINT_MODELS -DPRINT_CHILD_TABLES_INPUT"
+cxxflags_release="-DWITH_THREADS=0 -DPROGRESS_REPORT -DDISABLE_ANSWER_SET_CHECKS"
+cxxflags_debug="-DWITH_THREADS=0 -DPROGRESS_REPORT -DWITH_NODE_TIMER -DPRINT_COMPUTED_ROWS -DPRINT_BAG_INPUT -DPRINT_MODELS -DPRINT_CHILD_TABLES_INPUT"
 cxxflags_gprof=$(cxxflags_debug)
 
-gringo_dir=/home/bernhard/Informatik/gringo-3.0.4-source
+gringo_dir=/home/bernhard/Informatik/gringo-3.0.5-source
 gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a
 gringo_lib_debug=$(gringo_dir)/build/debug/lib/libgringo.a
 gringo_lib_gprof=$(gringo_dir)/build/gprof/lib/libgringo.a
 
-clasp_dir=/home/bernhard/Informatik/clasp-2.0.5
+clasp_dir=/home/bernhard/Informatik/clasp-2.1.1
 clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
