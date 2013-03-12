@@ -1,0 +1,7 @@
+In this directory, example D-FLAT encodings for various problems can be found.
+Some naming conventions:
+- dynamic.lp is a D-FLAT encoding usable for any tree decomposition.
+- exchange.lp and join.lp are D-FLAT encodings for the exchange and join nodes (respectively) in semi-normalized tree decompositions. (If an exchange but no join program is given, the default join implementation within D-FLAT is used.)
+- monolithic.lp is a monolithic ASP program that can serve as comparison and is not used by D-FLAT.
+- X_decision.lp with X in {dynamic, exchange, join} is a D-FLAT encoding for the appropriate normalization and node type, but can only solve decision problems.
+- dynamic_semi.lp is a D-FLAT encoding for the exchange as well as the join nodes in semi-normalized tree decompositions.
