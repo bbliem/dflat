@@ -94,22 +94,25 @@ void Row::unify(sharp::Row& other)
 
 bool Row::matches(const Row& other) const
 {
-	return tree == dynamic_cast<const Row&>(other).tree;
+	return tree == other.tree;
 }
 
 Row* Row::join(const Row& other) const
 {
-	const Row& o = dynamic_cast<const Row&>(other);
-
 	// Since according to matches() the trees must coincide, we suppose equal currentCost
-	assert(currentCost == o.currentCost);
+	assert(currentCost == other.currentCost);
 	assert(cost >= currentCost);
-	assert(o.cost >= o.currentCost);
+	assert(other.cost >= other.currentCost);
 
 	Row* t = new Row(*this);
 	// currentCost is contained in both this->cost and other.cost, so subtract it once
-	t->cost = (this->cost - currentCost) + o.cost;
-	t->count = this->count * o.count;
+	t->cost = (this->cost - currentCost) + other.cost;
+	t->count = this->count * other.count;
+	t->extensionPointers.clear();
+	ExtensionPointerTuple predecessors(2);
+	predecessors[0] = this;
+	predecessors[1] = &other;
+	t->extensionPointers.push_back(predecessors);
 	return t;
 }
 
