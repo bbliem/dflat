@@ -137,5 +137,10 @@ joinLitWithAllPartners:
 		}
 	}
 endJoin:
+	// Tell each row its table index
+	unsigned int i = 0;
+	foreach(sharp::Row* row, *newTable)
+		dynamic_cast<Row*>(row)->setIndex(i++);
+
 	return newTable;
 }
