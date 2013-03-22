@@ -215,7 +215,7 @@ int main(int argc, char** argv)
 			return INCONSISTENT;
 		}
 
-		unsigned int minCost = std::numeric_limits<unsigned int>::max();
+		int minCost = std::numeric_limits<int>::max();
 
 		foreach(const sharp::Row* r, *table)
 			minCost = std::min(minCost, dynamic_cast<const Row*>(r)->getCost());

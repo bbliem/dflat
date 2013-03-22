@@ -93,12 +93,12 @@ public:
 	 * If using the default join implementation, this method is used to calculate the total cost of joining two child rows.
 	 * @return cost of the row considering only the current vertices
 	 */
-	unsigned int getCurrentCost() const { return currentCost; }
-	void setCurrentCost(unsigned int c) { currentCost = c; }
+	int getCurrentCost() const { return currentCost; }
+	void setCurrentCost(int c) { currentCost = c; }
 
 	//! @return cost of the (partial) solution of this row, considering the current and all forgotten vertices
-	unsigned int getCost() const { return cost; }
-	void setCost(unsigned int c) { cost = c; }
+	int getCost() const { return cost; }
+	void setCost(int c) { cost = c; }
 
 	const ExtensionPointers& getExtensionPointers() const { return extensionPointers; }
 
@@ -114,8 +114,8 @@ private:
 
 	// TODO: We might distinguish rows with some additional information from those without, but OTOH the memory consumption should not be that critical
 	mpz_class count;
-	unsigned int currentCost;
-	unsigned int cost;
+	int currentCost;
+	int cost;
 	ExtensionPointers extensionPointers;
 
 	// XXX: It is kind of a waste of memory to store the index in each row.
