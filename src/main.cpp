@@ -63,7 +63,7 @@ namespace {
 		std::cout << std::setw(w) << "Width: " << d.getTreeWidth() << std::endl;
 		std::cout << std::setw(w) << "Nodes: " << d.getNumberOfDescendants() << std::endl;
 		std::cout << std::setw(w) << "Join nodes: " << d.getNumberOfJoinNodes() << " (" << (100*d.getJoinNodePercentage()) << " %)" << std::endl;
-		std::cout << std::setw(w) << "Leafs: " << d.getNumberOfLeafNodes() << std::endl;
+		std::cout << std::setw(w) << "Leaves: " << d.getNumberOfLeafNodes() << std::endl;
 	}
 }
 
