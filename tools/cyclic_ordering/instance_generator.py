@@ -9,6 +9,9 @@ if len(sys.argv) not in (3, 4):
 n = int(sys.argv[1])
 o = int(sys.argv[2])
 
+if len(sys.argv) == 4:
+	random.seed(int(sys.argv[3]))
+
 if o < n:
 	sys.stderr.write("Must have at least as many orderings as elements.\n")
 	sys.exit(2)
