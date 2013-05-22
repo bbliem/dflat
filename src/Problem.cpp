@@ -49,6 +49,9 @@ namespace {
 
 		InstanceGrammar(Problem& problem) : InstanceGrammar::base_type(start)
 		{
+			// FIXME Arguments of predicates / functions are parsed twice!?
+			// Also, the parentheses of function terms are wrong.
+			// E.g. instead of p(a,f(b,c)), we get p(aa,fbbcc).
 			constant = qi::char_("a-z") >> *qi::char_("A-Za-z0-9_");
 			simpleterm = (+qi::char_("0-9")) | constant;
 			function = constant >> qi::lit('(') >> (term % ',') >> ')';
