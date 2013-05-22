@@ -49,15 +49,18 @@ namespace {
 
 		InstanceGrammar(Problem& problem) : InstanceGrammar::base_type(start)
 		{
-			identifier = qi::char_("a-z") >> *qi::char_("A-Za-z0-9_");
-//			fact = identifier >> -( qi::lit('(') >> (identifier % ',') >> ')' ) >> '.';
-			argument = identifier | (*qi::char_("0-9"));
-			fact = identifier >> -( qi::lit('(') >> (argument % ',') >> ')' ) >> '.';
+			constant = qi::char_("a-z") >> *qi::char_("A-Za-z0-9_");
+			simpleterm = (+qi::char_("0-9")) | constant;
+			function = constant >> qi::lit('(') >> (term % ',') >> ')';
+			term = function | simpleterm;
+			fact = constant >> -( qi::lit('(') >> (term % ',') >> ')' ) >> '.';
 			start = *fact[boost::bind(&Problem::parsedFact, &problem, _1)];
 		}
 
-		qi::rule<Iterator, std::string()> identifier; // Note the absence of the skipper
-		qi::rule<Iterator, std::string()> argument; // Note the absence of the skipper
+		qi::rule<Iterator, std::string()> constant; // Note the absence of the skipper
+		qi::rule<Iterator, std::string()> simpleterm;
+		qi::rule<Iterator, std::string()> function;
+		qi::rule<Iterator, std::string()> term;
 		qi::rule<Iterator, Skipper, Problem::Fact()> fact;
 		qi::rule<Iterator, Skipper> start;
 	};
@@ -88,13 +91,6 @@ void Problem::parsedFact(const Problem::Fact& f)
 
 void Problem::parse()
 {
-//	SkipperGrammar<boost::spirit::istream_iterator> skipper;
-//	InstanceGrammar<boost::spirit::istream_iterator> instanceParser("foobar"); // TODO
-//
-//	input.unsetf(std::ios::skipws);
-//	boost::spirit::istream_iterator it(input);
-//	boost::spirit::istream_iterator end;
-
 	SkipperGrammar<std::string::const_iterator> skipper;
 	InstanceGrammar<std::string::const_iterator> instanceParser(*this);
 
