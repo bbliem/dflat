@@ -1,7 +1,7 @@
 
 /*
 Copyright 2012-2013, Bernhard Bliem
-WWW: <http://dbai.tuwien.ac.at/research/project/dynasp/dflat/>.
+WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
 

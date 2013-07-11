@@ -6,7 +6,7 @@ Compilation of D-FLAT has been tested with the following versions of the depende
 - libgringo (http://potassco.sourceforge.net/), version 3.0.5
 - libclasp (http://potassco.sourceforge.net/), version 2.1.1
 - GMP (http://gmplib.org/), version 5.1.1 -- make sure to also compile the C++ interface
-- SHARP (http://www.dbai.tuwien.ac.at/research/project/sharp/) with D-FLAT-specific modifications, for now provided only on the D-FLAT website, http://dbai.tuwien.ac.at/research/project/dynasp/dflat/
+- SHARP (http://www.dbai.tuwien.ac.at/research/project/sharp/) with D-FLAT-specific modifications, for now provided only on the D-FLAT website, http://dbai.tuwien.ac.at/research/project/dflat/
 
 Compilation was tested with the stated version numbers and GCC 4.7.2. Unless the developers of the dependencies introduce incompatible changes, later versions should work too. If you run into any problems with later releases, try compiling D-FLAT with the version specified above.
 
