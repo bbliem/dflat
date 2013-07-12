@@ -1,8 +1,8 @@
 #!/bin/bash
 
 numInstances=100
-gringo=../gringo
-clasp=../clasp
+gringo=gringo
+clasp=clasp
 dflat=build/release/dflat
 
 if [[ -z "$instanceGen" || -z "$dflatArguments" || -z "$monolithicEncoding" ]]; then
@@ -22,6 +22,8 @@ for instance in $(seq 1 $numInstances); do
 	claspExit=$?
 	$dflat $dflatArguments -p decision -s $seed < $instance >/dev/null
 	dflatExit=$?
+
+	[ $claspExit -ne 30 ] || claspExit=10
 
 	if [ $claspExit -ne $dflatExit ]; then
 		cp $instance mismatch${seed}.lp

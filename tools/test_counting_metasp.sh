@@ -29,6 +29,8 @@ for instance in $(seq 1 $numInstances); do
 #	dflatExit=${PIPESTATUS[0]}
 	dflatCount=$(<$dflatCountFile)
 
+#	[ $claspExit -ne 30 ] || claspExit=10
+
 #	if [ $claspExit -ne $dflatExit ]; then
 #		cp $instance mismatch${seed}.lp
 #		echo

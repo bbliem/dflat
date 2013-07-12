@@ -28,6 +28,8 @@ for instance in $(seq 1 $numInstances); do
 	dflatExit=${PIPESTATUS[0]}
 	dflatOptVal=$(<$dflatOptValFile)
 
+	[ $claspExit -ne 30 ] || claspExit=10
+
 	if [ $claspExit -ne $dflatExit ]; then
 		cp $instance mismatch${seed}.lp
 		echo
