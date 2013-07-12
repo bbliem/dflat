@@ -20,28 +20,32 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <sharp/main>
+#include "parser.h"
+#include "../Problem.h"
+
+#define YY_DECL                                \
+ yy::Parser::token_type                        \
+ yylex(yy::Parser::semantic_type* yylval,      \
+       yy::Parser::location_type* yylloc,      \
+       parser::Driver& driver)
+YY_DECL;
 
 namespace parser {
-	class Terms;
-}
 
-class Problem : public sharp::Problem
+class Driver
 {
 public:
-	Problem(const std::string& input, const std::set<std::string>& hyperedgePredicateNames);
-
-	// To be used by the parser. Do not call directly.
-	void parsedFact(const std::string& predicate, const parser::Terms* arguments);
-
-protected:
-	virtual void parse();
-	virtual void preprocess();
-	virtual sharp::Hypergraph* buildHypergraphRepresentation();
+	Driver(Problem& problem, const std::string& input);
+	~Driver();
+	void scan_begin();
+	void scan_end();
+	void parse();
+	void error(const yy::location& l, const std::string& m);
+	void reportFact(const std::string& predicate, const Terms* arguments = 0);
 
 private:
-	const std::string& input;
-	const std::set<std::string>& hyperedgePredicateNames;
-	sharp::VertexSet vertices;
-	sharp::HyperedgeSet hyperedges;
+	Problem& problem;
+	std::string input;
 };
+
+} // namespace parser

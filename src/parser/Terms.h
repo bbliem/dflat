@@ -20,28 +20,20 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <sharp/main>
+#include <vector>
 
 namespace parser {
-	class Terms;
-}
 
-class Problem : public sharp::Problem
+class Terms
 {
 public:
-	Problem(const std::string& input, const std::set<std::string>& hyperedgePredicateNames);
-
-	// To be used by the parser. Do not call directly.
-	void parsedFact(const std::string& predicate, const parser::Terms* arguments);
-
-protected:
-	virtual void parse();
-	virtual void preprocess();
-	virtual sharp::Hypergraph* buildHypergraphRepresentation();
-
+    Terms(std::string* term);
+    ~Terms();
+    void push_back(std::string* term);
+	const std::vector<std::string*>& getTerms() const;
+    friend std::ostream& operator<<(std::ostream& stream, const Terms& terms);
 private:
-	const std::string& input;
-	const std::set<std::string>& hyperedgePredicateNames;
-	sharp::VertexSet vertices;
-	sharp::HyperedgeSet hyperedges;
+    std::vector<std::string*> terms;
 };
+
+} // namespace parser

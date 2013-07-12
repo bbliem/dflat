@@ -18,30 +18,41 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include <sharp/main>
+#include <stdexcept>
+#include "Driver.h"
+#include "parser.h"
 
 namespace parser {
-	class Terms;
+
+Driver::Driver(Problem& problem, const std::string& input)
+	: problem(problem), input(input)
+{
 }
 
-class Problem : public sharp::Problem
+Driver::~Driver()
 {
-public:
-	Problem(const std::string& input, const std::set<std::string>& hyperedgePredicateNames);
+}
 
-	// To be used by the parser. Do not call directly.
-	void parsedFact(const std::string& predicate, const parser::Terms* arguments);
+void Driver::parse()
+{
+	scan_begin();
+	::yy::Parser parser(*this);
+	int res = parser.parse();
+	scan_end();
+	if(res != 0)
+		throw std::runtime_error("Parse error");
+}
 
-protected:
-	virtual void parse();
-	virtual void preprocess();
-	virtual sharp::Hypergraph* buildHypergraphRepresentation();
+void Driver::error(const yy::location& l, const std::string& m)
+{
+	std::ostringstream ss;
+	ss << "Parse error." << std::endl << l << ": " << m;
+	throw std::runtime_error(ss.str());
+}
 
-private:
-	const std::string& input;
-	const std::set<std::string>& hyperedgePredicateNames;
-	sharp::VertexSet vertices;
-	sharp::HyperedgeSet hyperedges;
-};
+void Driver::reportFact(const std::string& predicate, const Terms* arguments)
+{
+	problem.parsedFact(predicate, arguments);
+}
+
+} // namespace parser

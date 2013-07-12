@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 2.8)
 project(dflat)
 
 add_definitions("-Wall -pedantic -ansi -DDISABLE_MULTI_THREADING")
+
+# XXX This is a workaround because SHARP generates these warnings
+add_definitions("-Wno-write-strings")
+
+# XXX This is a workaround because flex generates these warnings
+add_definitions("-Wno-sign-compare")
+
 set(CMAKE_CXX_FLAGS_GPROF "-O3 -g -pg")
 set(CMAKE_LINKER_FLAGS_GPROF "-pg")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -DDEBUG") # Without -D_DEBUG there will be voodoo in libclasp's pod_vector.h, since then the size of our Clasp::PodVector is different than when we built clasp's debug release
@@ -21,8 +28,20 @@ set_target_properties(clasp PROPERTIES IMPORTED_LOCATION ${clasp_lib})
 find_library(gmpxx gmpxx)
 find_library(gmp gmp)
 find_package(Boost COMPONENTS system filesystem timer REQUIRED)
+find_package(FLEX)
+find_package(BISON)
+
+FLEX_TARGET(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/parser/scanner.ll  ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
+BISON_TARGET(Parser ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp COMPILE_FLAGS \"--defines=${CMAKE_CURRENT_BINARY_DIR}/parser.h\")
+ADD_FLEX_BISON_DEPENDENCY(Scanner Parser)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(dflat
+	${FLEX_Scanner_OUTPUTS}
+	${BISON_Parser_OUTPUTS}
+	parser/Driver.cpp
+	parser/Terms.cpp
 	Algorithm.cpp
 	NonNormalizedAlgorithm.cpp
 	SemiNormalizedAlgorithm.cpp

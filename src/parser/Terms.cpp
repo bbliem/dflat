@@ -18,30 +18,41 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include <ostream>
 
-#include <sharp/main>
+#include "Terms.h"
 
 namespace parser {
-	class Terms;
+
+Terms::Terms(std::string* term)
+{
+    terms.push_back(term);
 }
 
-class Problem : public sharp::Problem
+Terms::~Terms()
 {
-public:
-	Problem(const std::string& input, const std::set<std::string>& hyperedgePredicateNames);
+    for(std::vector<std::string*>::iterator i = terms.begin(); i != terms.end(); ++i)
+        delete *i;
+}
 
-	// To be used by the parser. Do not call directly.
-	void parsedFact(const std::string& predicate, const parser::Terms* arguments);
+void Terms::push_back(std::string* term)
+{
+    terms.push_back(term);
+}
 
-protected:
-	virtual void parse();
-	virtual void preprocess();
-	virtual sharp::Hypergraph* buildHypergraphRepresentation();
+const std::vector<std::string*>& Terms::getTerms() const
+{
+	return terms;
+}
 
-private:
-	const std::string& input;
-	const std::set<std::string>& hyperedgePredicateNames;
-	sharp::VertexSet vertices;
-	sharp::HyperedgeSet hyperedges;
-};
+std::ostream& operator<<(std::ostream& stream, const Terms& terms)
+{
+    std::vector<std::string*>::const_iterator i = terms.terms.begin();
+    if(i != terms.terms.end())
+        stream << **(i++);
+    while(i != terms.terms.end())
+        stream << ',' << **(i++);
+    return stream;
+}
+
+} // namespace parser

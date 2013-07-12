@@ -3,12 +3,12 @@ cxxflags_release="-DWITH_THREADS=0 -DPROGRESS_REPORT -DDISABLE_ANSWER_SET_CHECKS
 cxxflags_debug="-DWITH_THREADS=0 -DPROGRESS_REPORT -DWITH_NODE_TIMER -DPRINT_COMPUTED_ROWS -DPRINT_BAG_INPUT -DPRINT_MODELS -DPRINT_CHILD_TABLES_INPUT"
 cxxflags_gprof=$(cxxflags_debug)
 
-gringo_dir=/home/bernhard/Informatik/gringo-3.0.5-source
+gringo_dir=/home/bernhard/gringo-3.0.5-source
 gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a
 gringo_lib_debug=$(gringo_dir)/build/debug/lib/libgringo.a
 gringo_lib_gprof=$(gringo_dir)/build/gprof/lib/libgringo.a
 
-clasp_dir=/home/bernhard/Informatik/clasp-2.1.1
+clasp_dir=/home/bernhard/clasp-2.1.1
 clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
@@ -18,7 +18,7 @@ sharp_dir=$(PWD)/sharp
 all: release
 
 release:
-	mkdir -p build/release
+	mkdir -p build/release/parser
 	cd build/release && \
 	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=release \
@@ -31,7 +31,7 @@ release:
 	&& $(MAKE)
 
 debug:
-	mkdir -p build/debug
+	mkdir -p build/debug/parser
 	cd build/debug && \
 	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=debug \
@@ -44,7 +44,7 @@ debug:
 	&& $(MAKE)
 
 gprof:
-	mkdir -p build/gprof
+	mkdir -p build/gprof/parser
 	cd build/gprof && \
 	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=gprof \
