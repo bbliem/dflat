@@ -21,7 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 %skeleton "lalr1.cc"
 %require "2.7.12"
 
-%define parser_class_name "Parser"
+%define parser_class_name {Parser}
 
 %code requires
 {
