@@ -27,7 +27,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 %option noyywrap nounput batch
 
 identifier    [a-z][a-zA-Z_0-9]*
-number        [0-9]+
+number        -?[0-9]+
 blank         [ \t]
 comment       %.*
 
