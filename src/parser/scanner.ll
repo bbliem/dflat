@@ -28,6 +28,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 identifier    [a-z][a-zA-Z_0-9]*
 number        -?[0-9]+
+qstring       \"[^"]*\"
 blank         [ \t]
 comment       %.*
 
@@ -59,6 +60,11 @@ comment       %.*
 {number} {
 	yylval->string = new std::string(yytext);
 	return token::NUMBER;
+}
+
+{qstring} {
+	yylval->string = new std::string(yytext);
+	return token::QSTRING;
 }
 
 . driver.error(*yylloc, "invalid character");

@@ -52,10 +52,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 %token          END        0 "end of file"
 %token <string> IDENTIFIER "identifier"
 %token <string> NUMBER     "number"
+%token <string> QSTRING    "qstring"
 %type  <string> simpleterm term function
 %type  <terms> terms
 
-%destructor { delete $$; } "identifier" "number" simpleterm term function terms
+%destructor { delete $$; } "identifier" "number" "qstring" simpleterm term function terms
 
 %%
 
@@ -63,6 +64,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 simpleterm: "identifier" { $$ = $1; }
 		  | "number"     { $$ = $1; }
+		  | "qstring"    { $$ = $1; }
 		  ;
 
 term: simpleterm { $$ = $1; }
