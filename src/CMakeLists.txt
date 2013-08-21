@@ -31,27 +31,34 @@ find_package(Boost COMPONENTS system filesystem timer REQUIRED)
 find_package(FLEX)
 find_package(BISON)
 
-FLEX_TARGET(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/parser/scanner.ll  ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
-BISON_TARGET(Parser ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp COMPILE_FLAGS \"--defines=${CMAKE_CURRENT_BINARY_DIR}/parser.h\")
-ADD_FLEX_BISON_DEPENDENCY(Scanner Parser)
+#FLEX_TARGET(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/parser/scanner.ll  ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
+#BISON_TARGET(Parser ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp COMPILE_FLAGS \"--defines=${CMAKE_CURRENT_BINARY_DIR}/parser.h\")
+#ADD_FLEX_BISON_DEPENDENCY(Scanner Parser)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(dflat
 	${FLEX_Scanner_OUTPUTS}
 	${BISON_Parser_OUTPUTS}
-	parser/Driver.cpp
-	parser/Terms.cpp
-	Algorithm.cpp
-	NonNormalizedAlgorithm.cpp
-	SemiNormalizedAlgorithm.cpp
-	ClaspCallbackGeneral.cpp
-	ClaspCallbackNP.cpp
-	ClaspInputReader.cpp
-	GringoOutputProcessor.cpp
-	Problem.cpp
-	Row.cpp
-	EnumerationIterator.cpp
+#	parser/Driver.cpp
+#	parser/Terms.cpp
+#	Algorithm.cpp
+#	NonNormalizedAlgorithm.cpp
+#	SemiNormalizedAlgorithm.cpp
+#	ClaspCallbackGeneral.cpp
+#	ClaspCallbackNP.cpp
+#	ClaspInputReader.cpp
+#	GringoOutputProcessor.cpp
+#	Problem.cpp
+#	Row.cpp
+#	EnumerationIterator.cpp
+	options/Option.cpp
+	options/ValueOption.cpp
+	options/SingleValueOption.cpp
+	options/MultiValueOption.cpp
+	options/Choice.cpp
+	options/Group.cpp
+	options/OptionHandler.cpp
 	main.cpp)
 
 target_link_libraries(dflat libsharp.a gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})

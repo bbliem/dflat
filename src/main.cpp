@@ -33,30 +33,15 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "SemiNormalizedAlgorithm.h"
 #include "EnumerationIterator.h"
 
+#include "options/Choice.h"
+#include "options/MultiValueOption.h"
+#include "options/SingleValueOption.h"
+#include "options/Group.h"
+#include "options/OptionHandler.h"
+
 namespace {
 	const int CONSISTENT = 10;
 	const int INCONSISTENT = 20;
-
-	void usage(const char* program) {
-		const int w = 22;
-		std::cerr << "Usage: " << program << " -e hyperedge_pred [...] [-j join_program] [--multi-level] [-n normalization] [--only-decompose] [-p problem_type] [-s seed] [--stats] [-x exchange_program] [program] < instance" << std::endl;
-		std::cerr << std::endl << std::left;
-		std::cerr << "  " << std::setw(w) << "-e hyperedge_pred: " << "Name of a predicate that declares hyperedges (must be specified at least once)" << std::endl;
-		std::cerr << "  " << std::setw(w) << "-j join_program: " << "File name of the logic program executed in join nodes (if omitted join equal rows)" << std::endl;
-		std::cerr << "  " << std::setw(w) << "--multi-level: " << "Use multi-level item sets" << std::endl;
-		std::cerr << "  " << std::setw(w) << "-n normalization: " << "Either \"none\" (default), \"semi\" or \"normalized\"" << std::endl;
-		std::cerr << "  " << std::setw(w) << "--only-decompose: " << "Only perform decomposition and do not solve (useful with --stats)" << std::endl;
-		// TODO: Add problem types "search" and "opt-search", ideally with incremental solving
-		std::cerr << "  " << std::setw(w) << "-p problem_type: " << "Either \"enumeration\" (default), \"counting\", \"decision\", \"opt-enum\", \"opt-counting\" or \"opt-value\"" << std::endl;
-		std::cerr << "  " << std::setw(w) << "-s seed: " << "Initialize random number generator with <seed>" << std::endl;
-		std::cerr << "  " << std::setw(w) << "--stats: " << "Print statistics" << std::endl;
-		std::cerr << "  " << std::setw(w) << "-x exchange_program: " << "File name of the logic program executed in exchange nodes (only for semi-normalized decompositions)" << std::endl;
-		std::cerr << "  " << std::setw(w) << "program: " << "File name of the logic program executed in nodes (incompatible with -x and -j)" << std::endl;
-		std::cerr << "  " << std::setw(w) << "instance: " << "File name of the set of facts representing an instance" << std::endl;
-		std::cerr << std::endl;
-		std::cerr << "Exit code " << CONSISTENT << " means there is a solution, " << INCONSISTENT << " means there is none." << std::endl;
-		exit(1);
-	}
 
 	inline void printDecompositionStats(sharp::ExtendedHypertree& d) {
 		const int w = 20;
@@ -69,6 +54,86 @@ namespace {
 
 int main(int argc, char** argv)
 {
+	try {
+		options::OptionHandler opts;
+
+		// Set up general options
+		options::Choice optDecomposer("d", "decomposer", "Use decomposition method <decomposer>");
+		optDecomposer.addChoice("td", "Tree decomposition", true);
+		optDecomposer.addChoice("none", "Do not decompose");
+		opts.add(optDecomposer);
+
+		options::Option optHelp("h", "Print usage information and exit");
+		opts.add(optHelp);
+
+		options::Choice optSolver("s", "solver", "Use <solver> to compute partial solutions");
+		optSolver.addChoice("asp", "ASP", true);
+		optSolver.addChoice("none", "Do nothing");
+		opts.add(optSolver);
+
+		options::Choice optFinalizer("f", "finalizer", "Use <finalizer> to materialize complete solutions");
+		optFinalizer.addChoice("enumeration", "Enumerate all solutions", true);
+		optFinalizer.addChoice("search", "Enumerate one solution");
+		optFinalizer.addChoice("counting", "Print number of solutions");
+		optFinalizer.addChoice("decision", "Report whether there is a solution");
+		optFinalizer.addChoice("none", "Do nothing");
+		opts.add(optFinalizer);
+
+		options::SingleValueOption optSeed("seed", "n", "Initialize random number generator with seed <n>");
+		opts.add(optSeed);
+
+		options::Option optStats("stats", "Print statistics");
+		opts.add(optStats);
+
+		// Set up TD options
+		const options::OptionHandler::Section tdSection = "Tree decomposition options";
+
+		options::MultiValueOption optEdge("e", "edge", "Predicate <edge> declares (hyper)edges");
+		opts.add(optEdge, tdSection);
+
+		options::Choice optNormalization("n", "normalization", "Use normal form <normalization> for the tree decomposition");
+		optNormalization.addChoice("none", "No normalization", true);
+		optNormalization.addChoice("semi", "Semi-normalization");
+		optNormalization.addChoice("normalized", "Normalization");
+		opts.add(optNormalization, tdSection);
+
+		// Set up semi-normalized TD options
+		const options::OptionHandler::Section semiTdSection = "(Semi-)normalized tree decomposition options";
+
+		options::Option optTest("t", "Test, only to be used with (semi-)normalized TDs");
+		opts.add(optTest, semiTdSection);
+
+		// Parse command line
+		opts.parse(argc, argv);
+
+		// Check dependencies between groups of options
+		options::Group tdGroup;
+		tdGroup.add(optEdge);
+		tdGroup.add(optNormalization);
+
+		options::Group semiNormTdGroup;
+		semiNormTdGroup.add(optTest);
+
+		if(optHelp.isUsed()) {
+			opts.printHelp();
+			return 1;
+		}
+
+		if(optDecomposer.getValue() == "td") {
+			tdGroup.allow();
+			if(optNormalization.getValue() == "semi" || optNormalization.getValue() == "normalized")
+				semiNormTdGroup.allow();
+		}
+
+		tdGroup.check();
+		semiNormTdGroup.check();
+
+	} catch(const std::exception& e) {
+		std::cerr << std::endl << "Error: " << e.what() << std::endl;
+		return 2;
+	}
+
+#if 0
 	try {
 		bool multiLevel = false;
 		enum { ENUMERATION, COUNTING, DECISION, OPT_ENUM, OPT_COUNTING, OPT_VALUE } problemType = ENUMERATION;
@@ -289,4 +354,5 @@ int main(int argc, char** argv)
 
 	assert(false); // Should never reach this point
 	return INCONSISTENT;
+#endif
 }
