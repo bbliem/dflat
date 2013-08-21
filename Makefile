@@ -22,7 +22,7 @@ release:
 	cd build/release && \
 	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=release \
-		-DCMAKE_CXX_FLAGS=$(cxxflags_release) \
+		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_release) \
 		-Dgringo_lib=$(gringo_lib) \
 		-Dclasp_lib=$(clasp_lib) \
 		-Dgringo_dir=$(gringo_dir) \
@@ -35,7 +35,7 @@ debug:
 	cd build/debug && \
 	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=debug \
-		-DCMAKE_CXX_FLAGS=$(cxxflags_debug) \
+		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_debug) \
 		-Dgringo_lib=$(gringo_lib_debug) \
 		-Dclasp_lib=$(clasp_lib_debug) \
 		-Dgringo_dir=$(gringo_dir) \
@@ -48,7 +48,7 @@ gprof:
 	cd build/gprof && \
 	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=gprof \
-		-DCMAKE_CXX_FLAGS=$(cxxflags_gprof) \
+		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_gprof) \
 		-Dgringo_lib=$(gringo_lib_gprof) \
 		-Dclasp_lib=$(clasp_lib_gprof) \
 		-Dgringo_dir=$(gringo_dir) \
