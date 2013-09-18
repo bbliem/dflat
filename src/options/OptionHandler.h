@@ -24,29 +24,44 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <map>
 
 #include "Option.h"
+#include "Condition.h"
+#include "Observer.h"
 
 namespace options {
 
 class OptionHandler
 {
 public:
-	typedef std::string Section;
-	static const Section GENERAL_SECTION; // Section that is used by default
+	static const std::string GENERAL_SECTION; // Section that is used by default
 
-	// Adds the given option to the given section. When calling, there must not be an option with the same name in any section.
-	void add(Option& opt, const Section& section = GENERAL_SECTION);
+	OptionHandler();
+
+	// Adds the given option to the given section. When calling, there must not be an option with the same name in any section. If the section does not exist yet, it is added.
+	void addOption(Option& opt, const std::string& section = GENERAL_SECTION);
+
+	// Parses the command-line and then notifies observers. (They could then, e.g., determine which conditions are satisfied.)
+	// Finally, this function checks if the parsed options are valid.
+	// That is: The conditions of all options are checked (in particular, all choice options without defaults must have been used).
 	void parse(int argc, char** argv);
+
 	void printHelp() const;
 
-private:
-	typedef std::vector<const Option*> OptionList;
-	typedef std::vector<std::pair<Section, OptionList> > SectionList;
+	// Registers an observer that is notified when parsing is done.
+	void registerObserver(Observer& observer);
 
+private:
+	void checkConditions() const;
+
+	typedef std::vector<const Option*> OptionList;
+	typedef std::vector<std::pair<std::string, OptionList> > SectionList;
 	SectionList sections;
 
 	// Given an option name, we want to find the option quickly.
 	typedef std::map<std::string, Option*> NameToOption;
 	NameToOption names;
+
+	typedef std::vector<Observer*> Observers;
+	Observers observers;
 };
 
 } // namespace options

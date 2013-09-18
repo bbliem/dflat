@@ -21,18 +21,41 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <stdexcept>
 
 #include "Option.h"
 
 namespace options {
 
 Option::Option(const std::string& name, const std::string& description)
-: name(name), dashedName(name.size() > 1 ? "--" + name : "-" + name), description(description), used(false)
+	: name(name)
+	, dashedName(name.size() > 1 ? "--" + name : "-" + name)
+	, description(description)
+	, used(false)
 {
 }
 
 Option::~Option()
 {
+}
+
+void Option::addCondition(const Condition& condition)
+{
+	conditions.push_back(&condition);
+}
+
+void Option::checkConditions() const
+{
+	if(!used)
+		return;
+
+	for(Conditions::const_iterator it = conditions.begin(); it != conditions.end(); ++it) {
+		if((*it)->isSatisfied() == false) {
+			std::ostringstream ss;
+			ss << "Option '" << name << "' has been used but was not allowed in that context.";
+			throw std::runtime_error(ss.str());
+		}
+	}
 }
 
 void Option::printHelp() const

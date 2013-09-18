@@ -18,41 +18,18 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-
-#include "Group.h"
+#pragma once
 
 namespace options {
 
-Group::Group()
-: allowed(false)
+// Implement this interface to be notified when parsing of options is complete, but before the options' conditions are checked.
+// Notified objects can, e.g., verify which of their conditions hold (for example if a choice option is set to a certain value).
+class Observer
 {
-}
+public:
+	virtual ~Observer() {};
 
-void Group::add(const Option& opt)
-{
-	options.push_back(&opt);
-}
-
-void Group::allow()
-{
-	allowed = true;
-}
-
-void Group::check() const
-{
-	if(allowed)
-		return;
-
-	for(OptionList::const_iterator it = options.begin(); it != options.end(); ++it) {
-		if((*it)->isUsed()) {
-			std::ostringstream ss;
-			ss << "Option '" << (*it)->getName() << "' has been used but was not allowed in that context.";
-			throw std::runtime_error(ss.str());
-		}
-	}
-}
+	virtual void notify() = 0;
+};
 
 } // namespace options

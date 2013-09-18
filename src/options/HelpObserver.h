@@ -18,28 +18,25 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
-#include <sstream>
-#include <iomanip>
-#include <stdexcept>
+#pragma once
 
-#include "SingleValueOption.h"
+#include "Observer.h"
+#include "../Application.h"
+#include "Option.h"
 
 namespace options {
 
-SingleValueOption::SingleValueOption(const std::string& name, const std::string& placeholder, const std::string& description)
-: ValueOption(name, placeholder, description)
+// Observe the option handler. When notified, the HelpObserver checks whether the help option was given and, if so, prints the usage message and exits (with code 0).
+class HelpObserver : public Observer
 {
-}
+public:
+	HelpObserver(const Application& app, const Option& help);
 
-void SingleValueOption::setValue(const std::string& v)
-{
-	if(isUsed() && value != v) {
-		std::ostringstream ss;
-		ss << "Option '" << getName() << "' only takes a single value, but more than one was specified.";
-		throw std::runtime_error(ss.str());
-	}
-	value = v;
-}
+	virtual void notify();
+
+private:
+	const Application& app;
+	const options::Option& help;
+};
 
 } // namespace options

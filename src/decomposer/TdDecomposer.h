@@ -18,28 +18,30 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
-#include <sstream>
-#include <iomanip>
-#include <stdexcept>
+#pragma once
 
-#include "SingleValueOption.h"
+#include "../Decomposer.h"
+#include "../options/OptionHandler.h"
+#include "../options/MultiValueOption.h"
+#include "../options/Choice.h"
 
-namespace options {
+namespace decomposer {
 
-SingleValueOption::SingleValueOption(const std::string& name, const std::string& placeholder, const std::string& description)
-: ValueOption(name, placeholder, description)
+class TdDecomposer : public Decomposer, public options::Observer
 {
-}
+public:
+	TdDecomposer(options::OptionHandler& opts, options::Choice& decomposers, bool newDefault = false);
 
-void SingleValueOption::setValue(const std::string& v)
-{
-	if(isUsed() && value != v) {
-		std::ostringstream ss;
-		ss << "Option '" << getName() << "' only takes a single value, but more than one was specified.";
-		throw std::runtime_error(ss.str());
-	}
-	value = v;
-}
+	virtual void notify();
 
-} // namespace options
+private:
+	static const std::string NAME;
+	static const std::string OPTION_SECTION;
+
+	options::Choice optNormalization;
+
+	const options::Choice& decomposers;
+	options::Condition selected;
+};
+
+} // namespace decomposer

@@ -27,13 +27,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace options {
 
 ValueOption::ValueOption(const std::string& name, const std::string& placeholder, const std::string& description)
-: Option(name, description), placeholder(placeholder)
+	: Option(name, description)
+	, placeholder(placeholder)
 {
-}
-
-void ValueOption::setValue(const std::string&)
-{
-	setUsed();
 }
 
 void ValueOption::printHelp() const

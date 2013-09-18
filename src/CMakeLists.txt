@@ -57,8 +57,11 @@ add_executable(dflat
 	options/SingleValueOption.cpp
 	options/MultiValueOption.cpp
 	options/Choice.cpp
-	options/Group.cpp
 	options/OptionHandler.cpp
+	options/HelpObserver.cpp
+	decomposer/TdDecomposer.cpp
+	solver/Dummy.cpp
+	Application.cpp
 	main.cpp)
 
 target_link_libraries(dflat libsharp.a gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})

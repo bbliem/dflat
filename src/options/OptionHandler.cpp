@@ -29,11 +29,17 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace options {
 
-const OptionHandler::Section OptionHandler::GENERAL_SECTION = "General options";
+const std::string OptionHandler::GENERAL_SECTION = "General options";
 
-void OptionHandler::add(Option& opt, const Section& section)
+OptionHandler::OptionHandler()
 {
-	assert(names.count(opt.getName()) == 0);
+	// Add the general section without any options before any other sections will be added (to make sure the general section is always shown first)
+	sections.push_back(std::make_pair(GENERAL_SECTION, OptionList()));
+}
+
+void OptionHandler::addOption(Option& opt, const std::string& section)
+{
+	assert(names.count(opt.getDashedName()) == 0);
 	names[opt.getDashedName()] = &opt;
 
 	for(SectionList::iterator it = sections.begin(); it != sections.end(); ++it) {
@@ -66,10 +72,9 @@ void OptionHandler::parse(int argc, char** argv)
 					word = argv[i];
 					dynamic_cast<ValueOption*>(it->second)->setValue(word);
 				}
-				else {
-					// It is not a ValueOption, therefore it must be a flag (i.e., not take an option)
-					it->second->setUsed();
-				}
+
+				// Mark the option as used
+				it->second->setUsed();
 
 				goto nextOption;
 			}
@@ -85,6 +90,14 @@ void OptionHandler::parse(int argc, char** argv)
 nextOption:
 		;
 	}
+
+	// Notify observers
+	for(Observers::iterator it = observers.begin(); it != observers.end(); ++it)
+		(*it)->notify();
+
+	// Check all conditions
+	for(NameToOption::const_iterator it = names.begin(); it != names.end(); ++it)
+		it->second->checkConditions();
 }
 
 void OptionHandler::printHelp() const
@@ -95,6 +108,11 @@ void OptionHandler::printHelp() const
 			(*oit)->printHelp();
 		std::cerr << std::endl;
 	}
+}
+
+void OptionHandler::registerObserver(Observer& observer)
+{
+	observers.push_back(&observer);
 }
 
 } // namespace options

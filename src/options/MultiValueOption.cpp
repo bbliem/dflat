@@ -33,7 +33,6 @@ MultiValueOption::MultiValueOption(const std::string& name, const std::string& p
 
 void MultiValueOption::setValue(const std::string& v)
 {
-	ValueOption::setValue(v);
 	values.push_back(v);
 }
 

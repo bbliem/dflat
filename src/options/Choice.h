@@ -35,6 +35,7 @@ public:
 	void addChoice(const std::string& choiceName, const std::string& description, bool newDefault = false);
 
 	virtual void setValue(const std::string& v);
+	virtual void checkConditions() const;
 	virtual void printHelp() const;
 
 private:

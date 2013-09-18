@@ -26,26 +26,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace options {
 
-// An option group is used for checking dependencies of options. For instance, some options may only be used when other options have a certain value.
-class Group
+// This is used for checking dependencies of options. Some options may only be used when other options have a certain value.
+class Condition
 {
 public:
-	// Initially all options contained in this group are not allowed to be used. This is changed by calling allow().
-	Group();
-
-	void add(const Option& opt);
-
-	// Allow the options contained in this group to be used.
-	void allow();
-
-	// Throw an exception when allow() has not been called but any of the contained options have been used.
-	void check() const;
+	Condition(bool s = false) : satisfied(s) {}
+	void setSatisfied(bool s = true) { satisfied = s; }
+	bool isSatisfied() const { return satisfied; }
 
 private:
-	typedef std::vector<const Option*> OptionList;
-
-	OptionList options;
-	bool allowed;
+	bool satisfied;
 };
 
 } // namespace options

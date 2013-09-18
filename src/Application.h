@@ -18,28 +18,23 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
-#include <sstream>
-#include <iomanip>
-#include <stdexcept>
+#pragma once
 
-#include "SingleValueOption.h"
+#include "options/OptionHandler.h"
 
-namespace options {
-
-SingleValueOption::SingleValueOption(const std::string& name, const std::string& placeholder, const std::string& description)
-: ValueOption(name, placeholder, description)
+class Application
 {
-}
+public:
+	Application(const std::string& binaryName);
 
-void SingleValueOption::setValue(const std::string& v)
-{
-	if(isUsed() && value != v) {
-		std::ostringstream ss;
-		ss << "Option '" << getName() << "' only takes a single value, but more than one was specified.";
-		throw std::runtime_error(ss.str());
-	}
-	value = v;
-}
+	void run(int argc, char** argv);
 
-} // namespace options
+	// Print usage and exit
+	void usage(int exitCode = 0) const;
+
+private:
+	std::string binaryName;
+	options::OptionHandler opts;
+
+	static const std::string MODULE_SECTION;
+};

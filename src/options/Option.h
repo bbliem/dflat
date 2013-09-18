@@ -21,6 +21,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <string>
+#include <vector>
+
+#include "Condition.h"
 
 namespace options {
 
@@ -38,10 +41,19 @@ public:
 	bool isUsed() const { return used; }
 	void setUsed() { used = true; }
 
+	// Adds a condition that must be satisfied for this option to be used.
+	void addCondition(const Condition& condition);
+
+	// If this option has been used but any added condition is unsatisfied, throws an exception.
+	virtual void checkConditions() const;
+
 	virtual void printHelp() const;
 
 protected:
 	static const int NAME_WIDTH = 22;
+
+	typedef std::vector<const Condition*> Conditions;
+	Conditions conditions;
 
 private:
 	const std::string name;

@@ -29,7 +29,7 @@ class ValueOption : public Option
 public:
 	ValueOption(const std::string& name, const std::string& placeholder, const std::string& description);
 
-	// Call this only if the option is actually specified by the user
+	// If the option is actually specified by the user, be sure to call setUsed() *after* calling setValue().
 	virtual void setValue(const std::string& value) = 0;
 	virtual void printHelp() const;
 

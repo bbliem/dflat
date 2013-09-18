@@ -56,6 +56,25 @@ void Choice::setValue(const std::string& v)
 	throw std::runtime_error(msg.str());
 }
 
+void Choice::checkConditions() const
+{
+	SingleValueOption::checkConditions();
+
+	// If this has no default, it must have been used (unless a condition is not satisfied).
+	if(defaultValue.empty() == false)
+		return;
+
+	for(Conditions::const_iterator it = conditions.begin(); it != conditions.end(); ++it)
+		if((*it)->isSatisfied() == false)
+			return;
+
+	if(!isUsed()) {
+		std::ostringstream ss;
+		ss << "Option '" << getName() << "' has not been supplied";
+		throw std::runtime_error(ss.str());
+	}
+}
+
 void Choice::printHelp() const
 {
 	SingleValueOption::printHelp();
