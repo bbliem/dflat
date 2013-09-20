@@ -41,6 +41,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Traverser.h"
 #include "traverser/Dummy.h"
 
+#include "parser/Driver.h"
+
 const std::string Application::MODULE_SECTION = "Module selection";
 
 Application::Application(const std::string& binaryName)
@@ -102,17 +104,18 @@ void Application::run(int argc, char** argv)
 	}
 	srand(seed);
 
+	// Get (hyper-)edge predicate names
+	parser::Driver::Predicates edgePredicates(optEdge.getValues().begin(), optEdge.getValues().end());
+
 	// Store all of stdin in a string
 	std::ostringstream inputStringStream;
 	inputStringStream << std::cin.rdbuf();
 	std::string inputString = inputStringStream.str();
 
 	// Parse instance
-//	parser::Driver driver(*this, inputString);
-//	driver.parse();
-//	Problem problem(inputString, hyperedgePredicateNames);
-//
-//	sharp::ExtendedHypertree* decomposition = problem.calculateHypertreeDecomposition();
+	const Hypergraph& instance = parser::Driver(inputString, edgePredicates).parse();
+
+	// TODO Decompose instance
 }
 
 void Application::usage(int exitCode) const

@@ -31,7 +31,7 @@ Terms::Terms(std::string* term)
 
 Terms::~Terms()
 {
-    for(std::vector<std::string*>::iterator i = terms.begin(); i != terms.end(); ++i)
+    for(List::iterator i = terms.begin(); i != terms.end(); ++i)
         delete *i;
 }
 
@@ -40,14 +40,14 @@ void Terms::push_back(std::string* term)
     terms.push_back(term);
 }
 
-const std::vector<std::string*>& Terms::getTerms() const
+const Terms::List& Terms::getTerms() const
 {
 	return terms;
 }
 
 std::ostream& operator<<(std::ostream& stream, const Terms& terms)
 {
-    std::vector<std::string*>::const_iterator i = terms.terms.begin();
+	Terms::List::const_iterator i = terms.terms.begin();
     if(i != terms.terms.end())
         stream << **(i++);
     while(i != terms.terms.end())

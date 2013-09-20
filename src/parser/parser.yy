@@ -88,11 +88,11 @@ function: "identifier" '(' terms ')' {
         ;
 
 fact: "identifier" '.'               {
-                                       driver.reportFact(*$1);
+                                       driver.processFact(*$1);
                                        delete $1;
                                      }
     | "identifier" '(' terms ')' '.' {
-                                       driver.reportFact(*$1, $3);
+                                       driver.processFact(*$1, $3);
                                        delete $1;
                                        delete $3;
                                      }

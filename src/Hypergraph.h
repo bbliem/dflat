@@ -20,21 +20,25 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <vector>
+#include <set>
+#include <string>
 
-namespace parser {
-
-class Terms
+class Hypergraph
 {
 public:
-	typedef std::vector<std::string*> List;
-    Terms(std::string* term);
-    ~Terms();
-    void push_back(std::string* term);
-	const List& getTerms() const;
-    friend std::ostream& operator<<(std::ostream& stream, const Terms& terms);
-private:
-	List terms;
-};
+	// XXX Maybe using numbers instead of strings for vertices would be an improvement...
+	typedef std::string Vertex;
+	typedef std::set<Vertex> Vertices;
+	typedef Vertices Edge;
+	typedef std::set<Edge> Edges;
 
-} // namespace parser
+	const Vertices& getVertices() const { return vertices; }
+	const Edges& getEdges() const { return edges; }
+
+	void addVertex(const Vertex& v) { vertices.insert(v); }
+	void addEdge(const Edge& e) { edges.insert(e); }
+
+private:
+	Vertices vertices;
+	Edges edges;
+};

@@ -31,17 +31,17 @@ find_package(Boost COMPONENTS system filesystem timer REQUIRED)
 find_package(FLEX)
 find_package(BISON)
 
-#FLEX_TARGET(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/parser/scanner.ll  ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
-#BISON_TARGET(Parser ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp COMPILE_FLAGS \"--defines=${CMAKE_CURRENT_BINARY_DIR}/parser.h\")
-#ADD_FLEX_BISON_DEPENDENCY(Scanner Parser)
+FLEX_TARGET(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/parser/scanner.ll  ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
+BISON_TARGET(Parser ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp COMPILE_FLAGS \"--defines=${CMAKE_CURRENT_BINARY_DIR}/parser.h\")
+ADD_FLEX_BISON_DEPENDENCY(Scanner Parser)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(dflat
 	${FLEX_Scanner_OUTPUTS}
 	${BISON_Parser_OUTPUTS}
-#	parser/Driver.cpp
-#	parser/Terms.cpp
+	parser/Driver.cpp
+	parser/Terms.cpp
 #	Algorithm.cpp
 #	NonNormalizedAlgorithm.cpp
 #	SemiNormalizedAlgorithm.cpp
