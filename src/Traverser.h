@@ -24,4 +24,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 class Traverser : public Module
 {
+public:
+	Traverser(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
+
+	virtual void select();
 };

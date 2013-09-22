@@ -21,14 +21,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "../Solver.h"
-#include "../options/Choice.h"
 
 namespace solver {
 
 class Dummy : public Solver
 {
 public:
-	Dummy(options::Choice& solvers, bool newDefault = false);
+	Dummy(Application& app, bool newDefault = false);
 };
 
 } // namespace solver

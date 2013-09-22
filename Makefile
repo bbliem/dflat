@@ -13,7 +13,11 @@ clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
 
-sharp_dir=$(PWD)/sharp
+sharp_dir=/home/bernhard/Informatik/sharp-1.0
+sharp_lib=$(sharp_dir)/src/.libs/libsharp.a
+# XXX no debug/gprof build done yet...
+sharp_lib_debug=$(sharp_dir)/src/.libs/libsharp.a
+sharp_lib_gprof=$(sharp_dir)/src/.libs/libsharp.a
 
 all: release
 
@@ -25,6 +29,7 @@ release:
 		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_release) \
 		-Dgringo_lib=$(gringo_lib) \
 		-Dclasp_lib=$(clasp_lib) \
+		-Dsharp_lib=$(sharp_lib) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
 		-Dsharp_dir=$(sharp_dir) \
@@ -38,6 +43,7 @@ debug:
 		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_debug) \
 		-Dgringo_lib=$(gringo_lib_debug) \
 		-Dclasp_lib=$(clasp_lib_debug) \
+		-Dsharp_lib=$(sharp_lib) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
 		-Dsharp_dir=$(sharp_dir) \
@@ -51,6 +57,7 @@ gprof:
 		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_gprof) \
 		-Dgringo_lib=$(gringo_lib_gprof) \
 		-Dclasp_lib=$(clasp_lib_gprof) \
+		-Dsharp_lib=$(sharp_lib) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
 		-Dsharp_dir=$(sharp_dir) \

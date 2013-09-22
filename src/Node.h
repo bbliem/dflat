@@ -18,13 +18,11 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Dummy.h"
+#pragma once
 
-namespace solver {
-
-Dummy::Dummy(Application& app, bool newDefault)
-	: Solver(app, "dummy", "Do nothing", newDefault)
+// Node of a Decomposition
+class Node
 {
-}
-
-} // namespace solver
+public:
+	// TODO
+};

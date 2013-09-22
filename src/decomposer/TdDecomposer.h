@@ -21,27 +21,21 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "../Decomposer.h"
-#include "../options/OptionHandler.h"
-#include "../options/MultiValueOption.h"
-#include "../options/Choice.h"
+#include "../Application.h"
 
 namespace decomposer {
 
-class TdDecomposer : public Decomposer, public options::Observer
+class TdDecomposer : public Decomposer
 {
 public:
-	TdDecomposer(options::OptionHandler& opts, options::Choice& decomposers, bool newDefault = false);
+	TdDecomposer(Application& app, bool newDefault = false);
 
-	virtual void notify();
+	virtual Decomposition decompose(const Hypergraph& instance) const;
 
 private:
-	static const std::string NAME;
 	static const std::string OPTION_SECTION;
 
 	options::Choice optNormalization;
-
-	const options::Choice& decomposers;
-	options::Condition selected;
 };
 
 } // namespace decomposer

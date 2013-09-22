@@ -18,13 +18,14 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Dummy.h"
+#include "Decomposer.h"
 
-namespace solver {
-
-Dummy::Dummy(Application& app, bool newDefault)
-	: Solver(app, "dummy", "Do nothing", newDefault)
+Decomposer::Decomposer(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault)
+	: Module(app, app.getDecomposerChoice(), optionName, optionDescription, newDefault)
 {
 }
 
-} // namespace solver
+void Decomposer::select()
+{
+	app.setDecomposer(*this);
+}

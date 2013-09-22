@@ -22,28 +22,27 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace decomposer {
 
-const std::string TdDecomposer::NAME = "td";
 const std::string TdDecomposer::OPTION_SECTION = "Tree decomposition";
 
-TdDecomposer::TdDecomposer(options::OptionHandler& opts, options::Choice& decomposers, bool newDefault)
-	: optNormalization("n", "normalization", "Use normal form <normalization> for the tree decomposition")
-	, decomposers(decomposers)
+TdDecomposer::TdDecomposer(Application& app, bool newDefault)
+	: Decomposer(app, "td", "Tree decomposition", newDefault)
+	, optNormalization("n", "normalization", "Use normal form <normalization> for the tree decomposition")
 {
+	optNormalization.addCondition(selected);
 	optNormalization.addChoice("none", "No normalization", true);
 	optNormalization.addChoice("semi", "Semi-normalization");
 	optNormalization.addChoice("normalized", "Normalization");
 
-	optNormalization.addCondition(selected);
-
-	decomposers.addChoice(NAME, "Tree Decomposition", newDefault);
-	opts.addOption(optNormalization, OPTION_SECTION);
-	opts.registerObserver(*this);
+	app.getOptionHandler().addOption(optNormalization, OPTION_SECTION);
 }
 
-void TdDecomposer::notify()
+Decomposition TdDecomposer::decompose(const Hypergraph& instance) const
 {
-	if(decomposers.getValue() == NAME)
-		selected.setSatisfied();
+	Decomposition td;
+
+	// TODO
+
+	return td;
 }
 
 } // namespace decomposer

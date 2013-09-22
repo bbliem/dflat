@@ -21,18 +21,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "../Traverser.h"
-#include "../options/Choice.h"
 
 namespace traverser {
 
 class Dummy : public Traverser
 {
 public:
-	Dummy(options::Choice& traversers, bool newDefault = false)
-	{
-		// TODO implementation file
-		traversers.addChoice("dummy", "Do nothing", newDefault);
-	}
+	Dummy(Application& app, bool newDefault = false);
 };
 
 } // namespace traverser

@@ -22,9 +22,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace traverser {
 
-Dummy::Dummy(options::Choice& traversers, bool newDefault)
+Dummy::Dummy(Application& app, bool newDefault)
+	: Traverser(app, "dummy", "Do nothing", newDefault)
 {
-	traversers.addChoice("dummy", "Do nothing", newDefault);
 }
 
 } // namespace traverser

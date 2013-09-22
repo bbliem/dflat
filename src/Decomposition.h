@@ -18,13 +18,18 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Dummy.h"
+#pragma once
 
-namespace solver {
+#include <set>
+#include <string>
 
-Dummy::Dummy(Application& app, bool newDefault)
-	: Solver(app, "dummy", "Do nothing", newDefault)
+#include "Node.h"
+
+// A decomposition is a (rooted) DAG where each node corresponds to a part of the instance
+// TODO Maybe make this abstract and derive TreeDecomposition?
+class Decomposition
 {
-}
-
-} // namespace solver
+public:
+	const Node& getRoot();
+	// TODO
+};

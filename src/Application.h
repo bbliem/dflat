@@ -21,6 +21,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "options/OptionHandler.h"
+#include "options/Choice.h"
+
+class Decomposer;
+class Solver;
+class Traverser;
 
 class Application
 {
@@ -32,9 +37,26 @@ public:
 	// Print usage and exit
 	void usage(int exitCode = 0) const;
 
+	options::OptionHandler& getOptionHandler();
+	options::Choice& getDecomposerChoice();
+	options::Choice& getSolverChoice();
+	options::Choice& getTraverserChoice();
+
+	void setDecomposer(Decomposer& decomposer);
+	void setSolver(Solver& solver);
+	void setTraverser(Traverser& traverser);
+
 private:
+	static const std::string MODULE_SECTION;
+
 	std::string binaryName;
 	options::OptionHandler opts;
 
-	static const std::string MODULE_SECTION;
+	options::Choice optDecomposer;
+	options::Choice optSolver;
+	options::Choice optTraverser;
+
+	Decomposer* decomposer;
+	Solver* solver;
+	Traverser* traverser;
 };

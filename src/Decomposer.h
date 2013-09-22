@@ -20,8 +20,19 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "Application.h"
+#include "Decomposition.h"
 #include "Module.h"
+
+class Hypergraph;
 
 class Decomposer : public Module
 {
+public:
+	Decomposer(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
+
+	// TODO check that return value optimization is performed
+	virtual Decomposition decompose(const Hypergraph& instance) const = 0;
+
+	virtual void select();
 };

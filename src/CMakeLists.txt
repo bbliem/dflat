@@ -18,12 +18,13 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -DDEBUG") # Without
 # i.e., warnings are suppressed for the clasp headers.
 include_directories(SYSTEM ${clasp_dir}/libclasp)
 include_directories(${sharp_dir}/include ${gringo_dir}/libgringo)
-link_directories(${sharp_dir}/src/.libs)
 
 add_library(gringo STATIC IMPORTED)
 set_target_properties(gringo PROPERTIES IMPORTED_LOCATION ${gringo_lib})
 add_library(clasp STATIC IMPORTED)
 set_target_properties(clasp PROPERTIES IMPORTED_LOCATION ${clasp_lib})
+add_library(sharp STATIC IMPORTED)
+set_target_properties(sharp PROPERTIES IMPORTED_LOCATION ${sharp_lib})
 
 find_library(gmpxx gmpxx)
 find_library(gmp gmp)
@@ -59,9 +60,15 @@ add_executable(dflat
 	options/Choice.cpp
 	options/OptionHandler.cpp
 	options/HelpObserver.cpp
+	Module.cpp
+	Decomposer.cpp
+	decomposer/Dummy.cpp
 	decomposer/TdDecomposer.cpp
+	Solver.cpp
 	solver/Dummy.cpp
+	Traverser.cpp
+	traverser/Dummy.cpp
 	Application.cpp
 	main.cpp)
 
-target_link_libraries(dflat libsharp.a gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})
+target_link_libraries(dflat sharp gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})

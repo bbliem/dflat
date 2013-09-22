@@ -20,10 +20,26 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-// TODO Remove this class (and maybe also Decomposer etc.) if it turns out to be unnecessary
+#include "Application.h"
+#include "options/Choice.h"
+#include "options/Condition.h"
+#include "options/Observer.h"
 
-class Module
+class Module : public options::Observer
 {
 public:
+	Module(Application& app, options::Choice& choice, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
+
 	virtual ~Module() {};
+
+	virtual void notify();
+
+	// Called when this module has been selected using the choice option given to the constructor
+	virtual void select();
+
+protected:
+	Application& app;
+	options::Choice& choice;
+	std::string optionName;
+	options::Condition selected; // Use this when the module adds custom options that may only be used when it is selected. The condition is set to satisfied in select().
 };

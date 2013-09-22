@@ -27,11 +27,9 @@ namespace decomposer {
 class Dummy : public Decomposer
 {
 public:
-	Dummy(options::Choice& decomposers, bool newDefault = false)
-	{
-		// TODO implementation file
-		decomposers.addChoice("dummy", "Do not decompose", newDefault);
-	}
+	Dummy(Application& app, bool newDefault = false);
+
+	virtual Decomposition decompose(const Hypergraph& instance) const;
 };
 
 } // namespace decomposer

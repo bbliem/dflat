@@ -20,11 +20,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Dummy.h"
 
-namespace solver {
+namespace decomposer {
 
 Dummy::Dummy(Application& app, bool newDefault)
-	: Solver(app, "dummy", "Do nothing", newDefault)
+	: Decomposer(app, "dummy", "Do not decompose", newDefault)
 {
 }
 
-} // namespace solver
+Decomposition Dummy::decompose(const Hypergraph& instance) const
+{
+	return Decomposition();
+}
+
+} // namespace decomposer

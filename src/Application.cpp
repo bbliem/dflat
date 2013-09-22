@@ -18,13 +18,13 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstdlib>
 #include <iostream>
+#include <cstdlib>
 #include <sstream>
+#include <cassert>
 
 #include "Application.h"
 
-#include "options/Choice.h"
 #include "options/MultiValueOption.h"
 #include "options/SingleValueOption.h"
 #include "options/Condition.h"
@@ -46,7 +46,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 const std::string Application::MODULE_SECTION = "Module selection";
 
 Application::Application(const std::string& binaryName)
-: binaryName(binaryName)
+	: binaryName(binaryName)
+	, optDecomposer("d", "decomposer", "Use decomposition method <decomposer>")
+	, optSolver("s", "solver", "Use <solver> to compute partial solutions")
+	, optTraverser("t", "traverser", "Use <traverser> to apply the solver on the decomposition")
+	, decomposer(0)
+	, solver(0)
+	, traverser(0)
 {
 }
 
@@ -67,18 +73,15 @@ void Application::run(int argc, char** argv)
 	opts.addOption(optSeed);
 
 	// Set up module selection options
-	options::Choice optDecomposer("d", "decomposer", "Use decomposition method <decomposer>");
 	opts.addOption(optDecomposer, MODULE_SECTION);
-	decomposer::Dummy dummyDecomposer(optDecomposer);
-	decomposer::TdDecomposer tdDecomposer(opts, optDecomposer, true);
+	decomposer::Dummy dummyDecomposer(*this);
+	decomposer::TdDecomposer tdDecomposer(*this, true);
 
-	options::Choice optSolver("s", "solver", "Use <solver> to compute partial solutions");
-	solver::Dummy dummySolver(optSolver, true);
 	opts.addOption(optSolver, MODULE_SECTION);
+	solver::Dummy dummySolver(*this, true);
 
-	options::Choice optTraverser("t", "traverser", "Use <traverser> to apply the solver on the decomposition");
-	traverser::Dummy dummyTraverser(optTraverser, true);
 	opts.addOption(optTraverser, MODULE_SECTION);
+	traverser::Dummy dummyTraverser(*this, true);
 
 	//		options::Choice optFinalizer("f", "finalizer", "Use <finalizer> to materialize complete solutions");
 	//		optFinalizer.addChoice("enumeration", "Enumerate all solutions", true);
@@ -91,6 +94,11 @@ void Application::run(int argc, char** argv)
 
 	// Parse command line
 	opts.parse(argc, argv);
+
+	// Modules must make sure that they register themselves (with, e.g., setDecomposer()) in notify() (derived from Observer) when they have been chosen
+	assert(decomposer);
+	assert(solver);
+	assert(traverser);
 
 	// Set random seed
 	time_t seed = time(0);
@@ -115,7 +123,8 @@ void Application::run(int argc, char** argv)
 	// Parse instance
 	const Hypergraph& instance = parser::Driver(inputString, edgePredicates).parse();
 
-	// TODO Decompose instance
+	// TODO do something with the return value
+	decomposer->decompose(instance);
 }
 
 void Application::usage(int exitCode) const
@@ -123,4 +132,39 @@ void Application::usage(int exitCode) const
 	std::cerr << "Usage: " << binaryName << " [options] < instance" << std::endl;
 	opts.printHelp();
 	std::exit(exitCode);
+}
+
+options::OptionHandler& Application::getOptionHandler()
+{
+	return opts;
+}
+
+options::Choice& Application::getDecomposerChoice()
+{
+	return optDecomposer;
+}
+
+options::Choice& Application::getSolverChoice()
+{
+	return optSolver;
+}
+
+options::Choice& Application::getTraverserChoice()
+{
+	return optTraverser;
+}
+
+void Application::setDecomposer(Decomposer& d)
+{
+	decomposer = &d;
+}
+
+void Application::setSolver(Solver& s)
+{
+	solver = &s;
+}
+
+void Application::setTraverser(Traverser& t)
+{
+	traverser = &t;
 }
