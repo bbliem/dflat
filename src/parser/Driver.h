@@ -20,7 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "parser.h"
+#include "parser.hpp"
 #include "../Hypergraph.h"
 
 #define YY_DECL                                \

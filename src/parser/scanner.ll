@@ -20,7 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 %{
 	#include "../../src/parser/Driver.h"
-	#include "parser.h"
+	#include "parser.hpp"
 	#define yyterminate() return token::END
 %}
 

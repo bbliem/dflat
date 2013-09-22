@@ -22,7 +22,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Driver.h"
 #include "Terms.h"
-#include "parser.h"
 
 namespace parser {
 
