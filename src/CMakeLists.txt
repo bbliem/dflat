@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(dflat)
 
-add_definitions("-Wall -pedantic -ansi -DDISABLE_MULTI_THREADING")
+add_definitions("-Wall -pedantic -std=c++11 -DDISABLE_MULTI_THREADING")
 
 # XXX This is a workaround because SHARP generates these warnings
-add_definitions("-Wno-write-strings")
+#add_definitions("-Wno-write-strings")
 
 # XXX This is a workaround because flex generates these warnings
 add_definitions("-Wno-sign-compare")
@@ -60,6 +60,7 @@ add_executable(dflat
 	options/Choice.cpp
 	options/OptionHandler.cpp
 	options/HelpObserver.cpp
+	Decomposition.cpp
 	Module.cpp
 	Decomposer.cpp
 	decomposer/Dummy.cpp

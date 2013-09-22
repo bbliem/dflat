@@ -36,11 +36,11 @@ TdDecomposer::TdDecomposer(Application& app, bool newDefault)
 	app.getOptionHandler().addOption(optNormalization, OPTION_SECTION);
 }
 
-Decomposition TdDecomposer::decompose(const Hypergraph& instance) const
+Decomposition TdDecomposer::decompose(const Hypergraph& inst) const
 {
-	Decomposition td;
+	Decomposition td = Node(Hypergraph::Vertices());
 
-	// TODO
+	//sharp::ExtendedHypertree* eh = calculateHypertreeDecomposition();
 
 	return td;
 }

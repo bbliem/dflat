@@ -53,7 +53,7 @@ private:
 	void checkConditions() const;
 
 	typedef std::vector<const Option*> OptionList;
-	typedef std::vector<std::pair<std::string, OptionList> > SectionList;
+	typedef std::vector<std::pair<std::string, OptionList>> SectionList;
 	SectionList sections;
 
 	// Given an option name, we want to find the option quickly.

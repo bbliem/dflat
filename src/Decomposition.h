@@ -20,16 +20,28 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <set>
-#include <string>
+#include <memory>
+#include <vector>
 
 #include "Node.h"
 
-// A decomposition is a (rooted) DAG where each node corresponds to a part of the instance
+// A decomposition is a (rooted) DAG where each node corresponds to a part of the instance.
+// An instance of this class contains the root node and pointers to its children.
 // TODO Maybe make this abstract and derive TreeDecomposition?
 class Decomposition
 {
 public:
-	const Node& getRoot();
-	// TODO
+	Decomposition(const Node& leaf);
+
+	const Node& getRoot() const;
+
+	// Adds the root of "child" to the list of children. Takes ownership of the whole subgraph rooted at "child".
+	void addChild(Decomposition* child);
+
+private:
+	Node root;
+
+	typedef std::shared_ptr<Decomposition> DecompositionPtr;
+	typedef std::vector<DecompositionPtr> Children;
+	Children children;
 };

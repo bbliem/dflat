@@ -18,18 +18,14 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "Decomposition.h"
 
-#include "Hypergraph.h"
-
-// Node of a Decomposition
-class Node
+Decomposition::Decomposition(const Node& leaf)
+	: root(leaf)
 {
-public:
-	Node(const Hypergraph::Vertices& bag) : bag(bag) {}
+}
 
-	const Hypergraph::Vertices& getBag() const { return bag; }
-
-private:
-	Hypergraph::Vertices bag;
-};
+void Decomposition::addChild(Decomposition* child)
+{
+	children.push_back(DecompositionPtr(child));
+}

@@ -13,7 +13,7 @@ clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
 
-sharp_dir=/home/bernhard/Informatik/sharp-1.0
+sharp_dir=/home/bernhard/Informatik/sharp-svn
 sharp_lib=$(sharp_dir)/src/.libs/libsharp.a
 # XXX no debug/gprof build done yet...
 sharp_lib_debug=$(sharp_dir)/src/.libs/libsharp.a
