@@ -32,7 +32,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Decomposer.h"
 #include "decomposer/Dummy.h"
-#include "decomposer/TdDecomposer.h"
+#include "decomposer/TreeDecomposer.h"
 
 #include "Solver.h"
 #include "solver/Dummy.h"
@@ -74,7 +74,7 @@ void Application::run(int argc, char** argv)
 	// Set up module selection options
 	opts.addOption(optDecomposer, MODULE_SECTION);
 	decomposer::Dummy dummyDecomposer(*this);
-	decomposer::TdDecomposer tdDecomposer(*this, true);
+	decomposer::TreeDecomposer treeDecomposer(*this, true);
 
 	opts.addOption(optSolver, MODULE_SECTION);
 	solver::Dummy dummySolver(*this, true);

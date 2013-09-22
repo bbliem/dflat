@@ -18,20 +18,24 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <boost/foreach.hpp>
-#define foreach BOOST_FOREACH
+#pragma once
 
-#include "NonNormalizedAlgorithm.h"
-#include "Row.h"
+#include "../Decomposer.h"
+#include "../Application.h"
 
-using sharp::Table;
+namespace decomposer {
 
-NonNormalizedAlgorithm::NonNormalizedAlgorithm(sharp::Problem& problem, const std::string& instanceFacts, const char* program, sharp::NormalizationType normalizationType, bool ignoreOptimization, bool multiLevel)
-	: Algorithm(problem, instanceFacts, normalizationType, ignoreOptimization, multiLevel), program(program)
+class TreeDecomposer : public Decomposer
 {
-}
+public:
+	TreeDecomposer(Application& app, bool newDefault = false);
 
-const char* NonNormalizedAlgorithm::getUserProgram(const sharp::ExtendedHypertree& node)
-{
-	return program;
-}
+	virtual Decomposition decompose(const Hypergraph& instance) const;
+
+private:
+	static const std::string OPTION_SECTION;
+
+	options::Choice optNormalization;
+};
+
+} // namespace decomposer

@@ -20,16 +20,24 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "Algorithm.h"
+#include <sharp/Problem.hpp>
 
-class NonNormalizedAlgorithm : public Algorithm
+#include "../../Hypergraph.h"
+
+namespace decomposer {
+namespace sharp {
+
+class Problem : public ::sharp::Problem
 {
 public:
-	NonNormalizedAlgorithm(sharp::Problem& problem, const std::string& instanceFacts, const char* program, sharp::NormalizationType normalizationType = sharp::NoNormalization, bool ignoreOptimization = false, bool multiLevel = false);
+	Problem(const Hypergraph& instance);
 
-protected:
-	virtual const char* getUserProgram(const sharp::ExtendedHypertree& node);
+	virtual void parse();
+	virtual ::sharp::Hypergraph* buildHypergraphRepresentation();
 
 private:
-	const char* program;
+	const Hypergraph& instance;
 };
+
+} // namespace sharp
+} // namespace decomposer

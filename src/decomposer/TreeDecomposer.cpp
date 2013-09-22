@@ -18,13 +18,13 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "TdDecomposer.h"
+#include "TreeDecomposer.h"
 
 namespace decomposer {
 
-const std::string TdDecomposer::OPTION_SECTION = "Tree decomposition";
+const std::string TreeDecomposer::OPTION_SECTION = "Tree decomposition";
 
-TdDecomposer::TdDecomposer(Application& app, bool newDefault)
+TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	: Decomposer(app, "td", "Tree decomposition", newDefault)
 	, optNormalization("n", "normalization", "Use normal form <normalization> for the tree decomposition")
 {
@@ -36,7 +36,7 @@ TdDecomposer::TdDecomposer(Application& app, bool newDefault)
 	app.getOptionHandler().addOption(optNormalization, OPTION_SECTION);
 }
 
-Decomposition TdDecomposer::decompose(const Hypergraph& inst) const
+Decomposition TreeDecomposer::decompose(const Hypergraph& inst) const
 {
 	Decomposition td = Node(Hypergraph::Vertices());
 

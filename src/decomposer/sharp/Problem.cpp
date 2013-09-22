@@ -18,46 +18,37 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <boost/foreach.hpp>
-#define foreach BOOST_FOREACH
-
-#include "parser/Driver.h"
-#include "parser/Terms.h"
 #include "Problem.h"
 
-Problem::Problem(const std::string& input, const std::set<std::string>& hyperedgePredicateNames)
-	: input(input), hyperedgePredicateNames(hyperedgePredicateNames)
+namespace decomposer {
+namespace sharp {
+
+Problem::Problem(const Hypergraph& inst)
+	: instance(instance)
 {
-}
-
-void Problem::parsedFact(const std::string& predicate, const parser::Terms* arguments)
-{
-	if(hyperedgePredicateNames.find(predicate) != hyperedgePredicateNames.end()) {
-		sharp::VertexSet hyperedge;
-
-		if(arguments) {
-			foreach(const std::string* arg, arguments->getTerms()) {
-				sharp::Vertex v = storeVertexName(*arg);
-				vertices.insert(v);
-				hyperedge.insert(v);
-			}
-		}
-
-		hyperedges.insert(hyperedge);
-	}
 }
 
 void Problem::parse()
 {
-	parser::Driver driver(*this, input);
-	driver.parse();
 }
 
-void Problem::preprocess()
+::sharp::Hypergraph* Problem::buildHypergraphRepresentation()
 {
-}
+	::sharp::VertexSet vertices;
+	::sharp::HyperedgeSet hyperedges;
 
-sharp::Hypergraph* Problem::buildHypergraphRepresentation()
-{
+	for(auto v : instance.getVertices())
+		vertices.insert(storeVertexName(v));
+
+	for(auto e : instance.getEdges()) {
+		::sharp::VertexSet vs;
+		for(auto v : e)
+			vs.insert(getVertexId(v));
+		hyperedges.insert(vs);
+	}
+
 	return createHypergraphFromSets(vertices, hyperedges);
 }
+
+} // namespace sharp
+} // namespace decomposer
