@@ -27,7 +27,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "options/MultiValueOption.h"
 #include "options/SingleValueOption.h"
-#include "options/Condition.h"
 #include "options/OptionHandler.h"
 #include "options/HelpObserver.h"
 
@@ -95,7 +94,6 @@ void Application::run(int argc, char** argv)
 	// Parse command line
 	opts.parse(argc, argv);
 
-	// Modules must make sure that they register themselves (with, e.g., setDecomposer()) in notify() (derived from Observer) when they have been chosen
 	assert(decomposer);
 	assert(solver);
 	assert(traverser);
