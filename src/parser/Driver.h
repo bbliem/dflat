@@ -41,14 +41,13 @@ public:
 	~Driver();
 	void scan_begin();
 	void scan_end();
-	const Hypergraph& parse();
+	Hypergraph parse();
 	void error(const yy::location& l, const std::string& m);
-	void processFact(const std::string& predicate, const Terms* arguments = 0);
+	void processFact(Hypergraph& hypergraph, const std::string& predicate, const Terms* arguments = 0);
 
 private:
 	const std::string& input;
 	const Predicates& hyperedgePredicateNames;
-	Hypergraph hypergraph;
 };
 
 } // namespace parser

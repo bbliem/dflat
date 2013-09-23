@@ -119,7 +119,7 @@ void Application::run(int argc, char** argv)
 	std::string inputString = inputStringStream.str();
 
 	// Parse instance
-	const Hypergraph& instance = parser::Driver(inputString, edgePredicates).parse();
+	Hypergraph instance = parser::Driver(inputString, edgePredicates).parse();
 
 	// TODO do something with the return value
 	decomposer->decompose(instance);

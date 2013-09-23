@@ -35,10 +35,11 @@ Driver::~Driver()
 {
 }
 
-const Hypergraph& Driver::parse()
+Hypergraph Driver::parse()
 {
+	Hypergraph hypergraph;
 	scan_begin();
-	::yy::Parser parser(*this);
+	::yy::Parser parser(*this, hypergraph);
 	int res = parser.parse();
 	scan_end();
 	if(res != 0)
@@ -53,7 +54,7 @@ void Driver::error(const yy::location& l, const std::string& m)
 	throw std::runtime_error(ss.str());
 }
 
-void Driver::processFact(const std::string& predicate, const Terms* arguments)
+void Driver::processFact(Hypergraph& hypergraph, const std::string& predicate, const Terms* arguments)
 {
 	if(hyperedgePredicateNames.find(predicate) != hyperedgePredicateNames.end()) {
 		Hypergraph::Edge hyperedge;

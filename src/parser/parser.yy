@@ -26,6 +26,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 %code requires
 {
 	#include <sstream>
+	class Hypergraph;
 	namespace parser {
 		class Driver;
     	class Terms;
@@ -33,6 +34,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 }
 
 %parse-param { parser::Driver& driver }
+%parse-param { Hypergraph& hypergraph }
 %lex-param   { parser::Driver& driver }
 %locations
 %error-verbose
@@ -88,11 +90,11 @@ function: "identifier" '(' terms ')' {
         ;
 
 fact: "identifier" '.'               {
-                                       driver.processFact(*$1);
+                                       driver.processFact(hypergraph, *$1);
                                        delete $1;
                                      }
     | "identifier" '(' terms ')' '.' {
-                                       driver.processFact(*$1, $3);
+                                       driver.processFact(hypergraph, *$1, $3);
                                        delete $1;
                                        delete $3;
                                      }
