@@ -21,6 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <memory>
+#include <ostream>
 #include <vector>
 
 #include "Node.h"
@@ -34,14 +35,24 @@ public:
 	Decomposition(const Node& leaf);
 
 	const Node& getRoot() const;
+	Node& getRoot();
 
 	// Adds the root of "child" to the list of children. Takes ownership of the whole subgraph rooted at "child".
+	// Make sure there arise no cycles!
 	void addChild(Decomposition* child);
 
+	// Print decomposition (multiple lines, with EOL at the end)
+	friend std::ostream& operator<<(std::ostream& os, const Decomposition& decomposition);
+
 private:
+	void printNode(std::ostream& os, bool last, std::string indent = "") const;
+
 	Node root;
 
 	typedef std::shared_ptr<Decomposition> DecompositionPtr;
 	typedef std::vector<DecompositionPtr> Children;
 	Children children;
 };
+
+// Print decomposition (multiple lines, with EOL at the end)
+std::ostream& operator<<(std::ostream& os, const Decomposition& decomposition);

@@ -25,7 +25,45 @@ Decomposition::Decomposition(const Node& leaf)
 {
 }
 
+const Node& Decomposition::getRoot() const
+{
+	return root;
+}
+
+Node& Decomposition::getRoot()
+{
+	return root;
+}
+
 void Decomposition::addChild(Decomposition* child)
 {
 	children.push_back(DecompositionPtr(child));
 }
+
+void Decomposition::printNode(std::ostream& os, bool last, std::string indent) const
+{
+	os << indent;
+
+	if(last) {
+		os << "\\-";
+		indent += "  ";
+	}
+	else {
+		os << "|-";
+		indent += "| ";
+	}
+
+	os << root.getGlobalId() << ' ' << root << std::endl;
+
+	for(size_t i = 0; i < children.size(); ++i)
+		children[i]->printNode(os, i + 1 == children.size(), indent);
+}
+
+std::ostream& operator<<(std::ostream& os, const Decomposition& decomposition)
+{
+	os << decomposition.root.getGlobalId() << ' ' << decomposition.root << std::endl;
+	for(size_t i = 0; i < decomposition.children.size(); ++i)
+		decomposition.children[i]->printNode(os, i + 1 == decomposition.children.size());
+	return os;
+}
+

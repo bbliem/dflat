@@ -20,16 +20,32 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include <ostream>
+
 #include "Hypergraph.h"
 
 // Node of a Decomposition
 class Node
 {
 public:
-	Node(const Hypergraph::Vertices& bag) : bag(bag) {}
+	Node();
+	Node(const Hypergraph::Vertices& bag);
 
-	const Hypergraph::Vertices& getBag() const { return bag; }
+	const Hypergraph::Vertices& getBag() const;
+
+	void addBagElement(const Hypergraph::Vertex& vertex);
+
+	// Each Node object that is created gets assigned a unique number starting from 1. This can, for instance, be used for printing when nodes should have unique names.
+	int getGlobalId() const;
+
+	// Print node (no EOLs)
+	friend std::ostream& operator<<(std::ostream& os, const Node& node);
 
 private:
 	Hypergraph::Vertices bag;
+	int globalId;
+	static int nextGlobalId;
 };
+
+// Print node (no EOLs)
+std::ostream& operator<<(std::ostream& os, const Node& node);

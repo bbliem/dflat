@@ -18,26 +18,45 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "Node.h"
 
-#include <sharp/Problem.hpp>
+int Node::nextGlobalId = 1;
 
-#include "../../Hypergraph.h"
-
-namespace decomposer {
-namespace sharp {
-
-class Problem : public ::sharp::Problem
+Node::Node()
+	: globalId(nextGlobalId++)
 {
-public:
-	Problem(const Hypergraph& instance);
+}
 
-	virtual void parse();
-	virtual ::sharp::Hypergraph* buildHypergraphRepresentation();
+Node::Node(const Hypergraph::Vertices& bag)
+	: bag(bag)
+	, globalId(nextGlobalId++)
+{
+}
 
-private:
-	const Hypergraph& instance;
-};
+const Hypergraph::Vertices& Node::getBag() const
+{
+	return bag;
+}
 
-} // namespace sharp
-} // namespace decomposer
+void Node::addBagElement(const Hypergraph::Vertex& vertex)
+{
+	bag.insert(vertex);
+}
+
+int Node::getGlobalId() const
+{
+	return globalId;
+}
+
+std::ostream& operator<<(std::ostream& os, const Node& node)
+{
+	os << '{';
+	Hypergraph::Vertices::const_iterator it = node.bag.begin();
+	if(it != node.bag.end()) {
+			os << *it;
+		while(++it != node.bag.end())
+			os << ',' << *it;
+	}
+	os << '}';
+	return os;
+}

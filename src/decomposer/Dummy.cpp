@@ -29,7 +29,7 @@ Dummy::Dummy(Application& app, bool newDefault)
 
 Decomposition Dummy::decompose(const Hypergraph& instance) const
 {
-	return Decomposition(Node(Hypergraph::Vertices()));
+	return Decomposition(Node(instance.getVertices()));
 }
 
 } // namespace decomposer

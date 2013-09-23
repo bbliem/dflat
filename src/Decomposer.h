@@ -31,7 +31,6 @@ class Decomposer : public Module
 public:
 	Decomposer(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
 
-	// TODO check that return value optimization is performed
 	virtual Decomposition decompose(const Hypergraph& instance) const = 0;
 
 	virtual void select();

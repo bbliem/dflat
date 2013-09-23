@@ -68,6 +68,9 @@ void Application::run(int argc, char** argv)
 	options::MultiValueOption optEdge("e", "edge", "Predicate <edge> declares (hyper)edges");
 	opts.addOption(optEdge);
 
+	options::Option optPrintDecomposition("print-decomposition", "Print the decomposition");
+	opts.addOption(optPrintDecomposition);
+
 	options::SingleValueOption optSeed("seed", "n", "Initialize random number generator with seed <n>");
 	opts.addOption(optSeed);
 
@@ -121,8 +124,12 @@ void Application::run(int argc, char** argv)
 	// Parse instance
 	Hypergraph instance = parser::Driver(inputString, edgePredicates).parse();
 
-	// TODO do something with the return value
-	decomposer->decompose(instance);
+	// Decompose instance
+	Decomposition decomposition = decomposer->decompose(instance);
+
+	// Print decomposition if requested
+	if(optPrintDecomposition.isUsed())
+		std::cout << "Decomposition:" << std::endl << decomposition << std::endl;
 }
 
 void Application::usage(int exitCode) const

@@ -60,12 +60,12 @@ add_executable(dflat
 	options/Choice.cpp
 	options/OptionHandler.cpp
 	options/HelpObserver.cpp
+	Node.cpp
 	Decomposition.cpp
 	Module.cpp
 	Decomposer.cpp
 	decomposer/Dummy.cpp
 	decomposer/TreeDecomposer.cpp
-	decomposer/sharp/Problem.cpp
 	Solver.cpp
 	solver/Dummy.cpp
 	Traverser.cpp
