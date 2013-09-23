@@ -21,7 +21,7 @@ sharp_lib_gprof=$(sharp_dir)/src/.libs/libsharp.a
 all: release
 
 release:
-	mkdir -p build/release/parser
+	mkdir -p build/release
 	cd build/release && \
 	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=release \
@@ -35,7 +35,7 @@ release:
 	&& $(MAKE)
 
 debug:
-	mkdir -p build/debug/parser
+	mkdir -p build/debug
 	cd build/debug && \
 	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=debug \
@@ -49,7 +49,7 @@ debug:
 	&& $(MAKE)
 
 gprof:
-	mkdir -p build/gprof/parser
+	mkdir -p build/gprof
 	cd build/gprof && \
 	cmake ../../src \
 		-DCMAKE_BUILD_TYPE=gprof \
