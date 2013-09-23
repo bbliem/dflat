@@ -53,6 +53,3 @@ private:
 	typedef std::vector<DecompositionPtr> Children;
 	Children children;
 };
-
-// Print decomposition (multiple lines, with EOL at the end)
-std::ostream& operator<<(std::ostream& os, const Decomposition& decomposition);

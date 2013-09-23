@@ -42,9 +42,9 @@ void OptionHandler::addOption(Option& opt, const std::string& section)
 	assert(names.count(opt.getDashedName()) == 0);
 	names[opt.getDashedName()] = &opt;
 
-	for(SectionList::iterator it = sections.begin(); it != sections.end(); ++it) {
-		if(it->first == section) {
-			it->second.push_back(&opt);
+	for(auto& sec : sections) {
+		if(sec.first == section) {
+			sec.second.push_back(&opt);
 			return;
 		}
 	}
@@ -58,23 +58,23 @@ void OptionHandler::parse(int argc, char** argv)
 	for(int i = 1; i < argc; ++i) {
 		std::string word = argv[i];
 
-		for(NameToOption::iterator it = names.begin(); it != names.end(); ++it) {
-			// Does "it" point to an option with matching name?
-			if(it->first == word) {
+		for(auto& opt : names) {
+			// Is it an option with matching name?
+			if(opt.first == word) {
 				// Does the option take a value?
-				if(dynamic_cast<ValueOption*>(it->second) != 0) {
+				if(dynamic_cast<ValueOption*>(opt.second) != 0) {
 					++i;
 					if(i == argc) {
 						std::ostringstream msg;
-						msg << "Option '" << it->second->getName() << "' requires an argument.";
+						msg << "Option '" << opt.second->getName() << "' requires an argument.";
 						throw std::runtime_error(msg.str());
 					}
 					word = argv[i];
-					dynamic_cast<ValueOption*>(it->second)->setValue(word);
+					dynamic_cast<ValueOption*>(opt.second)->setValue(word);
 				}
 
 				// Mark the option as used
-				it->second->setUsed();
+				opt.second->setUsed();
 
 				goto nextOption;
 			}
@@ -92,20 +92,20 @@ nextOption:
 	}
 
 	// Notify observers
-	for(Observers::iterator it = observers.begin(); it != observers.end(); ++it)
-		(*it)->notify();
+	for(Observer* o : observers)
+		o->notify();
 
 	// Check all conditions
-	for(NameToOption::const_iterator it = names.begin(); it != names.end(); ++it)
-		it->second->checkConditions();
+	for(const auto& o : names)
+		o.second->checkConditions();
 }
 
 void OptionHandler::printHelp() const
 {
-	for(SectionList::const_iterator it = sections.begin(); it != sections.end(); ++it) {
-		std::cerr << std::endl << it->first << ':' << std::endl << std::endl;
-		for(OptionList::const_iterator oit = it->second.begin(); oit != it->second.end(); ++oit)
-			(*oit)->printHelp();
+	for(const auto& sec : sections) {
+		std::cerr << std::endl << sec.first << ':' << std::endl << std::endl;
+		for(const Option* o : sec.second)
+			o->printHelp();
 		std::cerr << std::endl;
 	}
 }

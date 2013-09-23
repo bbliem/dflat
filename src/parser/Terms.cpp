@@ -31,8 +31,8 @@ Terms::Terms(std::string* term)
 
 Terms::~Terms()
 {
-    for(List::iterator i = terms.begin(); i != terms.end(); ++i)
-        delete *i;
+	for(auto* t : terms)
+        delete t;
 }
 
 void Terms::push_back(std::string* term)

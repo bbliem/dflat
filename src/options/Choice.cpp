@@ -44,8 +44,8 @@ void Choice::addChoice(const std::string& choiceName, const std::string& descrip
 
 void Choice::setValue(const std::string& v)
 {
-	for(Possibilities::const_iterator it = possibilities.begin(); it != possibilities.end(); ++it) {
-		if(it->name == v) {
+	for(const Possibility& p : possibilities) {
+		if(p.name == v) {
 			SingleValueOption::setValue(v);
 			return;
 		}
@@ -64,8 +64,8 @@ void Choice::checkConditions() const
 	if(defaultValue.empty() == false)
 		return;
 
-	for(Conditions::const_iterator it = conditions.begin(); it != conditions.end(); ++it)
-		if((*it)->isSatisfied() == false)
+	for(const Condition* c : conditions)
+		if(c->isSatisfied() == false)
 			return;
 
 	if(!isUsed()) {
@@ -80,9 +80,9 @@ void Choice::printHelp() const
 	SingleValueOption::printHelp();
 	//std::cerr << "      Permitted values for <" << placeholder << ">:" << std::endl;
 	std::cerr << "      Permitted values:" << std::endl;
-	for(Possibilities::const_iterator it = possibilities.begin(); it != possibilities.end(); ++it) {
-		std::cerr << "      " << std::right << std::setw(POSSIBILITY_NAME_WIDTH) << it->name << " : " << it->description;
-		if(it->name == defaultValue)
+	for(const Possibility& p : possibilities) {
+		std::cerr << "      " << std::right << std::setw(POSSIBILITY_NAME_WIDTH) << p.name << " : " << p.description;
+		if(p.name == defaultValue)
 			std::cerr << " (default)";
 		std::cerr << std::endl;
 	}

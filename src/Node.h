@@ -46,6 +46,3 @@ private:
 	int globalId;
 	static int nextGlobalId;
 };
-
-// Print node (no EOLs)
-std::ostream& operator<<(std::ostream& os, const Node& node);

@@ -49,8 +49,8 @@ void Option::checkConditions() const
 	if(!used)
 		return;
 
-	for(Conditions::const_iterator it = conditions.begin(); it != conditions.end(); ++it) {
-		if((*it)->isSatisfied() == false) {
+	for(const Condition* c : conditions) {
+		if(c->isSatisfied() == false) {
 			std::ostringstream ss;
 			ss << "Option '" << name << "' has been used but was not allowed in that context.";
 			throw std::runtime_error(ss.str());
