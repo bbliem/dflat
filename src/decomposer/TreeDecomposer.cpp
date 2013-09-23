@@ -21,6 +21,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <cassert>
 #include <sharp/Problem.hpp>
 #include <sharp/ExtendedHypertree.hpp>
+#include <sharp/BucketEliminationAlgorithm.hpp>
+#include <sharp/AbstractEliminationOrdering.hpp>
+#include <sharp/MinimumDegreeOrdering.hpp>
+#include <sharp/MinimumFillOrdering.hpp>
+#include <sharp/MaximumCardinalitySearchOrdering.hpp>
 
 #include "TreeDecomposer.h"
 
@@ -28,7 +33,11 @@ namespace {
 	class SharpProblem : public sharp::Problem
 	{
 	public:
-		SharpProblem(const Hypergraph& instance) : instance(instance) {}
+		SharpProblem(const Hypergraph& instance, sharp::AbstractHypertreeDecompositionAlgorithm& algorithm)
+			: sharp::Problem(&algorithm)
+			, instance(instance)
+		{
+		}
 
 		virtual void parse() {}
 
@@ -72,20 +81,39 @@ namespace decomposer {
 const std::string TreeDecomposer::OPTION_SECTION = "Tree decomposition";
 
 TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
-	: Decomposer(app, "td", "Tree decomposition", newDefault)
+	: Decomposer(app, "td", "Tree decomposition (bucket elimination)", newDefault)
 	, optNormalization("n", "normalization", "Use normal form <normalization> for the tree decomposition")
+	, optEliminationOrdering("elimination-ordering", "o", "Use elimination ordering <o> for bucket elimination")
 {
 	optNormalization.addCondition(selected);
 	optNormalization.addChoice("none", "No normalization", true);
 	optNormalization.addChoice("semi", "Semi-normalization");
 	optNormalization.addChoice("normalized", "Normalization");
-
 	app.getOptionHandler().addOption(optNormalization, OPTION_SECTION);
+
+	optEliminationOrdering.addCondition(selected);
+	optEliminationOrdering.addChoice("min-degree", "Minimum degree ordering", true);
+	optEliminationOrdering.addChoice("min-fill", "Minimum fill ordering");
+	optEliminationOrdering.addChoice("mcs", "Maximum cardinality search");
+	app.getOptionHandler().addOption(optEliminationOrdering, OPTION_SECTION);
 }
 
 Decomposition TreeDecomposer::decompose(const Hypergraph& instance) const
 {
-	SharpProblem problem(instance);
+	// Which algorithm to use?
+	sharp::AbstractEliminationOrdering* ordering;
+	if(optEliminationOrdering.getValue() == "min-degree")
+		ordering = new sharp::MinimumDegreeOrdering;
+	else if(optEliminationOrdering.getValue() == "min-fill")
+		ordering = new sharp::MinimumFillOrdering;
+	else {
+		assert(optEliminationOrdering.getValue() == "mcs");
+		ordering = new sharp::MaximumCardinalitySearchOrdering;
+	}
+	sharp::BucketEliminationAlgorithm algorithm(ordering);
+
+	// Use SHARP to decompose
+	SharpProblem problem(instance, algorithm);
 	sharp::ExtendedHypertree* td = problem.calculateHypertreeDecomposition();
 	assert(td);
 

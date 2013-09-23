@@ -36,6 +36,7 @@ private:
 	static const std::string OPTION_SECTION;
 
 	options::Choice optNormalization;
+	options::Choice optEliminationOrdering;
 };
 
 } // namespace decomposer
