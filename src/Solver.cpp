@@ -27,5 +27,6 @@ Solver::Solver(Application& app, const std::string& optionName, const std::strin
 
 void Solver::select()
 {
+	Module::select();
 	app.setSolver(*this);
 }

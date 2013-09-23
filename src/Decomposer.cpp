@@ -27,5 +27,6 @@ Decomposer::Decomposer(Application& app, const std::string& optionName, const st
 
 void Decomposer::select()
 {
+	Module::select();
 	app.setDecomposer(*this);
 }

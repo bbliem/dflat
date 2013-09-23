@@ -27,5 +27,6 @@ Traverser::Traverser(Application& app, const std::string& optionName, const std:
 
 void Traverser::select()
 {
+	Module::select();
 	app.setTraverser(*this);
 }
