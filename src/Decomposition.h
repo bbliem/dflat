@@ -35,7 +35,6 @@ public:
 	Decomposition(const Node& leaf);
 
 	const Node& getRoot() const;
-	Node& getRoot();
 
 	// Adds the root of "child" to the list of children. Takes ownership of the whole subgraph rooted at "child".
 	// Make sure there arise no cycles!

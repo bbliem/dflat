@@ -30,11 +30,6 @@ const Node& Decomposition::getRoot() const
 	return root;
 }
 
-Node& Decomposition::getRoot()
-{
-	return root;
-}
-
 void Decomposition::addChild(Decomposition* child)
 {
 	children.push_back(DecompositionPtr(child));

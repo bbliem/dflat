@@ -1,6 +1,6 @@
 # You probably need to adjust the *_dir variables before running "make"
-cxxflags_release="-DWITH_THREADS=0 -DPROGRESS_REPORT -DDISABLE_ANSWER_SET_CHECKS"
-cxxflags_debug="-DWITH_THREADS=0 -DPROGRESS_REPORT -DWITH_NODE_TIMER -DPRINT_COMPUTED_ROWS -DPRINT_BAG_INPUT -DPRINT_MODELS -DPRINT_CHILD_TABLES_INPUT"
+cxxflags_release="-DWITH_THREADS=0"
+cxxflags_debug=$(cxxflags_release)
 cxxflags_gprof=$(cxxflags_debug)
 
 gringo_dir=/home/bernhard/Informatik/gringo-3.0.5-source
@@ -13,9 +13,8 @@ clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
 
-sharp_dir=/home/bernhard/Informatik/sharp-svn
+sharp_dir=/home/bernhard/Informatik/sharp-1.1
 sharp_lib=$(sharp_dir)/src/.libs/libsharp.a
-# XXX no debug/gprof build done yet...
 sharp_lib_debug=$(sharp_dir)/src/.libs/libsharp.a
 sharp_lib_gprof=$(sharp_dir)/src/.libs/libsharp.a
 

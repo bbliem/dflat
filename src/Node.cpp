@@ -20,27 +20,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Node.h"
 
-int Node::nextGlobalId = 1;
-
-Node::Node()
-	: globalId(nextGlobalId++)
-{
-}
-
 Node::Node(const Hypergraph::Vertices& bag)
 	: bag(bag)
-	, globalId(nextGlobalId++)
 {
+	static int nextGlobalId = 1;
+	globalId = nextGlobalId++;
 }
 
 const Hypergraph::Vertices& Node::getBag() const
 {
 	return bag;
-}
-
-void Node::addBagElement(const Hypergraph::Vertex& vertex)
-{
-	bag.insert(vertex);
 }
 
 int Node::getGlobalId() const

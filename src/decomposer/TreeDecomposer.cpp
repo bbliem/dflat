@@ -85,21 +85,18 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 
 Decomposition TreeDecomposer::decompose(const Hypergraph& instance) const
 {
-	// SHARP has a bug that causes segfaults when there are no vertices. This makes our code a little cumbersome because in order to avoid eliminating return value optimization, we should make sure there is but a single return statement.
-	Decomposition transformedTd = Node();
+	SharpProblem problem(instance);
+	sharp::ExtendedHypertree* td = problem.calculateHypertreeDecomposition();
+	assert(td);
 
-	if(instance.getVertices().empty() == false) {
-		SharpProblem problem(instance);
-		sharp::ExtendedHypertree* td = problem.calculateHypertreeDecomposition();
-		assert(td);
+	// Transform td into our format
+	Hypergraph::Vertices rootBag;
+	for(sharp::Vertex v : td->getVertices())
+		rootBag.insert(problem.getVertexName(v));
 
-		for(sharp::Vertex v : td->getVertices())
-			transformedTd.getRoot().addBagElement(problem.getVertexName(v));
-
-		for(sharp::Hypertree* child : *td->getChildren())
-			transformedTd.addChild(transformTd(dynamic_cast<sharp::ExtendedHypertree*>(child), problem));
-	}
-
+	Decomposition transformedTd = Node(rootBag);
+	for(sharp::Hypertree* child : *td->getChildren())
+		transformedTd.addChild(transformTd(dynamic_cast<sharp::ExtendedHypertree*>(child), problem));
 	return transformedTd;
 }
 
