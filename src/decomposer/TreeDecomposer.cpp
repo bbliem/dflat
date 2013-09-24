@@ -117,16 +117,26 @@ Decomposition TreeDecomposer::decompose(const Hypergraph& instance) const
 	sharp::ExtendedHypertree* td = problem.calculateHypertreeDecomposition();
 	assert(td);
 
-	// TODO normalize
+	// Normalize
+	sharp::NormalizationType normalizationType;
+	if(optNormalization.getValue() == "semi")
+		normalizationType = sharp::SemiNormalization;
+	else if(optNormalization.getValue() == "normalized")
+		normalizationType = sharp::DefaultNormalization;
+	else
+		normalizationType = sharp::NoNormalization;
+	sharp::ExtendedHypertree* normalized = td->normalize(normalizationType);
+	delete td;
 
-	// Transform td into our format
+	// Transform SHARP's tree decomposition into our format
 	Hypergraph::Vertices rootBag;
-	for(sharp::Vertex v : td->getVertices())
+	for(sharp::Vertex v : normalized->getVertices())
 		rootBag.insert(problem.getVertexName(v));
 
 	Decomposition transformedTd = DecompositionNode(rootBag);
-	for(sharp::Hypertree* child : *td->getChildren())
+	for(sharp::Hypertree* child : *normalized->getChildren())
 		transformedTd.addChild(transformTd(dynamic_cast<sharp::ExtendedHypertree*>(child), problem));
+	delete normalized;
 	return transformedTd;
 }
 
