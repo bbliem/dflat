@@ -18,34 +18,26 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Node.h"
+#pragma once
 
-Node::Node(const Hypergraph::Vertices& bag)
-	: bag(bag)
-{
-	static int nextGlobalId = 1;
-	globalId = nextGlobalId++;
-}
+#include <ostream>
 
-const Hypergraph::Vertices& Node::getBag() const
-{
-	return bag;
-}
+#include "Hypergraph.h"
 
-int Node::getGlobalId() const
+class DecompositionNode
 {
-	return globalId;
-}
+public:
+	DecompositionNode(const Hypergraph::Vertices& bag);
 
-std::ostream& operator<<(std::ostream& os, const Node& node)
-{
-	os << '{';
-	Hypergraph::Vertices::const_iterator it = node.bag.begin();
-	if(it != node.bag.end()) {
-			os << *it;
-		while(++it != node.bag.end())
-			os << ',' << *it;
-	}
-	os << '}';
-	return os;
-}
+	const Hypergraph::Vertices& getBag() const;
+
+	// Each DecompositionNode object that is created gets assigned a unique number starting from 1. This can, for instance, be used for printing when nodes should have unique names.
+	int getGlobalId() const;
+
+	// Print node (no EOLs)
+	friend std::ostream& operator<<(std::ostream& os, const DecompositionNode& node);
+
+private:
+	Hypergraph::Vertices bag;
+	int globalId;
+};

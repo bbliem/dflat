@@ -20,12 +20,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Decomposition.h"
 
-Decomposition::Decomposition(const Node& leaf)
+Decomposition::Decomposition(const DecompositionNode& leaf)
 	: root(leaf)
 {
 }
 
-const Node& Decomposition::getRoot() const
+const DecompositionNode& Decomposition::getRoot() const
 {
 	return root;
 }

@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <ostream>
 #include <vector>
 
-#include "Node.h"
+#include "DecompositionNode.h"
 
 // A decomposition is a (rooted) DAG where each node corresponds to a part of the instance.
 // An instance of this class contains the root node and pointers to its children.
@@ -32,9 +32,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 class Decomposition
 {
 public:
-	Decomposition(const Node& leaf);
+	Decomposition(const DecompositionNode& leaf);
 
-	const Node& getRoot() const;
+	const DecompositionNode& getRoot() const;
 
 	// Adds the root of "child" to the list of children. Takes ownership of the whole subgraph rooted at "child".
 	// Make sure there arise no cycles!
@@ -46,7 +46,7 @@ public:
 private:
 	void printNode(std::ostream& os, bool last, std::string indent = "") const;
 
-	Node root;
+	DecompositionNode root;
 
 	typedef std::shared_ptr<Decomposition> DecompositionPtr;
 	typedef std::vector<DecompositionPtr> Children;

@@ -18,18 +18,34 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Dummy.h"
+#include "DecompositionNode.h"
 
-namespace decomposer {
-
-Dummy::Dummy(Application& app, bool newDefault)
-	: Decomposer(app, "dummy", "Do not decompose", newDefault)
+DecompositionNode::DecompositionNode(const Hypergraph::Vertices& bag)
+	: bag(bag)
 {
+	static int nextGlobalId = 1;
+	globalId = nextGlobalId++;
 }
 
-Decomposition Dummy::decompose(const Hypergraph& instance) const
+const Hypergraph::Vertices& DecompositionNode::getBag() const
 {
-	return Decomposition(DecompositionNode(instance.getVertices()));
+	return bag;
 }
 
-} // namespace decomposer
+int DecompositionNode::getGlobalId() const
+{
+	return globalId;
+}
+
+std::ostream& operator<<(std::ostream& os, const DecompositionNode& node)
+{
+	os << '{';
+	Hypergraph::Vertices::const_iterator it = node.bag.begin();
+	if(it != node.bag.end()) {
+			os << *it;
+		while(++it != node.bag.end())
+			os << ',' << *it;
+	}
+	os << '}';
+	return os;
+}
