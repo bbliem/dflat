@@ -33,5 +33,5 @@ public:
 
 	virtual Decomposition decompose(const Hypergraph& instance) const = 0;
 
-	virtual void select();
+	virtual void select() override;
 };

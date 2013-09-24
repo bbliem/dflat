@@ -39,9 +39,9 @@ namespace {
 		{
 		}
 
-		virtual void parse() {}
+		virtual void parse() override {}
 
-		virtual sharp::Hypergraph* buildHypergraphRepresentation()
+		virtual sharp::Hypergraph* buildHypergraphRepresentation() override
 		{
 			sharp::VertexSet vertices;
 			sharp::HyperedgeSet hyperedges;

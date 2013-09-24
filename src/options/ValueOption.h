@@ -31,7 +31,7 @@ public:
 
 	// If the option is actually specified by the user, be sure to call setUsed() *after* calling setValue().
 	virtual void setValue(const std::string& value) = 0;
-	virtual void printHelp() const;
+	virtual void printHelp() const override;
 
 protected:
 	std::string placeholder;

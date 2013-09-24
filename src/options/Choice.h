@@ -34,9 +34,9 @@ public:
 	//! This should only be called before setValue() has been called
 	void addChoice(const std::string& choiceName, const std::string& description, bool newDefault = false);
 
-	virtual void setValue(const std::string& v);
-	virtual void checkConditions() const;
-	virtual void printHelp() const;
+	virtual void setValue(const std::string& v) override;
+	virtual void checkConditions() const override;
+	virtual void printHelp() const override;
 
 private:
 	struct Possibility

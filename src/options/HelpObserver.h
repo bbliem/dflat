@@ -32,7 +32,7 @@ class HelpObserver : public Observer
 public:
 	HelpObserver(const Application& app, const Option& help);
 
-	virtual void notify();
+	virtual void notify() override;
 
 private:
 	const Application& app;

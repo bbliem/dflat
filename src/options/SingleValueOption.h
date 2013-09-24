@@ -33,7 +33,7 @@ public:
 
 	const std::string& getValue() const { return value; }
 	// May only be called once, otherwise an exception is thrown.
-	virtual void setValue(const std::string& value);
+	virtual void setValue(const std::string& value) override;
 
 protected:
 	std::string value;

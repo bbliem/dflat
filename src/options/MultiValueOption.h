@@ -34,7 +34,7 @@ public:
 	typedef std::vector<std::string> Values;
 
 	const Values& getValues() const { return values; }
-	virtual void setValue(const std::string& value);
+	virtual void setValue(const std::string& value) override;
 
 protected:
 	Values values;
