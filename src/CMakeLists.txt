@@ -59,7 +59,6 @@ add_executable(dflat
 	options/Choice.cpp
 	options/OptionHandler.cpp
 	options/HelpObserver.cpp
-	DecompositionNode.cpp
 	Decomposition.cpp
 	Module.cpp
 	Decomposer.cpp

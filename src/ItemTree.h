@@ -50,11 +50,11 @@ public:
 	ItemTree(Items&& items);
 	ItemTree(Items&& items, Children&& children);
 
-	void printNode(std::ostream& os, bool last, std::string indent = "") const;
-
 	friend std::ostream& operator<<(std::ostream& os, const ItemTree& tree);
 
 private:
+	void printNode(std::ostream& os, bool root, bool last = false, std::string indent = "") const;
+
 	Items items;
 	Children children;
 };

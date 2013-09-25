@@ -69,7 +69,7 @@ namespace {
 		for(sharp::Vertex v : td->getVertices())
 			rootBag.insert(problem.getVertexName(v));
 
-		Decomposition* transformedTd = new Decomposition(DecompositionNode(rootBag));
+		Decomposition* transformedTd = new Decomposition(rootBag);
 		for(sharp::Hypertree* child : *td->getChildren())
 			transformedTd->addChild(transformTd(dynamic_cast<sharp::ExtendedHypertree*>(child), problem));
 		return transformedTd;
@@ -133,7 +133,7 @@ Decomposition TreeDecomposer::decompose(const Hypergraph& instance) const
 	for(sharp::Vertex v : normalized->getVertices())
 		rootBag.insert(problem.getVertexName(v));
 
-	Decomposition transformedTd = DecompositionNode(rootBag);
+	Decomposition transformedTd = rootBag;
 	for(sharp::Hypertree* child : *normalized->getChildren())
 		transformedTd.addChild(transformTd(dynamic_cast<sharp::ExtendedHypertree*>(child), problem));
 	delete normalized;

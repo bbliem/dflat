@@ -20,14 +20,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Decomposition.h"
 
-Decomposition::Decomposition(const DecompositionNode& leaf)
-	: root(leaf)
+Decomposition::Decomposition(const Hypergraph::Vertices& bag)
+	: bag(bag)
 {
+	static int nextGlobalId = 1;
+	globalId = nextGlobalId++;
 }
 
-const DecompositionNode& Decomposition::getRoot() const
+const Hypergraph::Vertices& Decomposition::getBag() const
 {
-	return root;
+	return bag;
 }
 
 void Decomposition::addChild(Decomposition* child)
@@ -35,29 +37,49 @@ void Decomposition::addChild(Decomposition* child)
 	children.push_back(DecompositionPtr(child));
 }
 
-void Decomposition::printNode(std::ostream& os, bool last, std::string indent) const
+void Decomposition::printNode(std::ostream& os, bool root, bool last, std::string indent) const
 {
 	os << indent;
 
-	if(last) {
-		os << "\\-";
-		indent += "  ";
-	}
-	else {
-		os << "|-";
-		indent += "| ";
+	if(!root) {
+		if(last) {
+#ifndef NO_UNICODE
+			os << "┗━ ";
+			indent += "   ";
+#else
+			os << "\\-";
+			indent += "  ";
+#endif
+		}
+		else {
+#ifndef NO_UNICODE
+			os << "┣━ ";
+			indent += "┃  ";
+#else
+			os << "|-";
+			indent += "| ";
+#endif
+		}
 	}
 
-	os << root.getGlobalId() << ' ' << root << std::endl;
+	os << globalId << ' ';
+
+	// Print bag
+	os << '{';
+	Hypergraph::Vertices::const_iterator it = bag.begin();
+	if(it != bag.end()) {
+			os << *it;
+		while(++it != bag.end())
+			os << ',' << *it;
+	}
+	os << '}' << std::endl;
 
 	for(size_t i = 0; i < children.size(); ++i)
-		children[i]->printNode(os, i + 1 == children.size(), indent);
+		children[i]->printNode(os, false, i + 1 == children.size(), indent);
 }
 
 std::ostream& operator<<(std::ostream& os, const Decomposition& decomposition)
 {
-	os << decomposition.root.getGlobalId() << ' ' << decomposition.root << std::endl;
-	for(size_t i = 0; i < decomposition.children.size(); ++i)
-		decomposition.children[i]->printNode(os, i + 1 == decomposition.children.size());
+	decomposition.printNode(os, true);
 	return os;
 }

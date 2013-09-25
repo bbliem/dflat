@@ -40,17 +40,29 @@ ItemTree::ItemTree(Items&& items, Children&& children)
 {
 }
 
-void ItemTree::printNode(std::ostream& os, bool last, std::string indent) const
+void ItemTree::printNode(std::ostream& os, bool root, bool last, std::string indent) const
 {
 	os << indent;
 
-	if(last) {
-		os << "\\-";
-		indent += "  ";
-	}
-	else {
-		os << "|-";
-		indent += "| ";
+	if(!root) {
+		if(last) {
+#ifndef NO_UNICODE
+			os << "┗━ ";
+			indent += "   ";
+#else
+			os << "\\-";
+			indent += "  ";
+#endif
+		}
+		else {
+#ifndef NO_UNICODE
+			os << "┣━ ";
+			indent += "┃  ";
+#else
+			os << "|-";
+			indent += "| ";
+#endif
+		}
 	}
 
 	ItemTree::Items::const_iterator it = items.begin();
@@ -63,20 +75,11 @@ void ItemTree::printNode(std::ostream& os, bool last, std::string indent) const
 
 	size_t i = 0;
 	for(const auto& child : children)
-		child->printNode(os, ++i == children.size(), indent);
+		child->printNode(os, false, ++i == children.size(), indent);
 }
 
 std::ostream& operator<<(std::ostream& os, const ItemTree& tree)
 {
-	ItemTree::Items::const_iterator it = tree.items.begin();
-	if(it != tree.items.end()) {
-			os << *it;
-		while(++it != tree.items.end())
-			os << ',' << *it;
-	}
-	os << std::endl;
-	size_t i = 0;
-	for(const auto& child : tree.children)
-		child->printNode(os, ++i == tree.children.size());
+	tree.printNode(os, true);
 	return os;
 }

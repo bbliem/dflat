@@ -24,29 +24,32 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <ostream>
 #include <vector>
 
-#include "DecompositionNode.h"
+#include "Hypergraph.h"
 
 // A decomposition is a (rooted) DAG where each node corresponds to a part of the instance.
 // An instance of this class contains the root node and pointers to its children.
-// TODO Maybe make this abstract and derive TreeDecomposition?
 class Decomposition
 {
 public:
-	Decomposition(const DecompositionNode& leaf);
+	Decomposition(const Hypergraph::Vertices& bag);
 
-	const DecompositionNode& getRoot() const;
+	const Hypergraph::Vertices& getBag() const;
 
 	// Adds the root of "child" to the list of children. Takes ownership of the whole subgraph rooted at "child".
 	// Make sure there arise no cycles!
 	void addChild(Decomposition* child);
 
+	// Each Decomposition object that is created gets assigned a unique number starting from 1. This can, for instance, be used for printing when nodes should have unique names.
+	int getGlobalId() const;
+
 	// Print decomposition (multiple lines, with EOL at the end)
 	friend std::ostream& operator<<(std::ostream& os, const Decomposition& decomposition);
 
 private:
-	void printNode(std::ostream& os, bool last, std::string indent = "") const;
+	void printNode(std::ostream& os, bool root, bool last = false, std::string indent = "") const;
 
-	DecompositionNode root;
+	int globalId;
+	Hypergraph::Vertices bag;
 
 	typedef std::shared_ptr<Decomposition> DecompositionPtr;
 	typedef std::vector<DecompositionPtr> Children;
