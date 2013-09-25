@@ -69,6 +69,7 @@ add_executable(dflat
 	solver/Dummy.cpp
 	Traverser.cpp
 	traverser/Dummy.cpp
+	ItemTree.cpp
 	Application.cpp
 	main.cpp)
 

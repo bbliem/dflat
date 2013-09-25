@@ -61,4 +61,3 @@ std::ostream& operator<<(std::ostream& os, const Decomposition& decomposition)
 		decomposition.children[i]->printNode(os, i + 1 == decomposition.children.size());
 	return os;
 }
-
