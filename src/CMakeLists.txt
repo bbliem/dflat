@@ -28,7 +28,6 @@ set_target_properties(sharp PROPERTIES IMPORTED_LOCATION ${sharp_lib})
 
 find_library(gmpxx gmpxx)
 find_library(gmp gmp)
-find_package(Boost COMPONENTS system filesystem timer REQUIRED)
 find_package(FLEX)
 find_package(BISON)
 
@@ -73,4 +72,4 @@ add_executable(dflat
 	Application.cpp
 	main.cpp)
 
-target_link_libraries(dflat sharp gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_TIMER_LIBRARY})
+target_link_libraries(dflat sharp gringo clasp gmp gmpxx)
