@@ -59,7 +59,7 @@ add_executable(dflat
 	options/Choice.cpp
 	options/OptionHandler.cpp
 	options/HelpObserver.cpp
-	Decomposition.cpp
+	DecompositionNode.cpp
 	Module.cpp
 	Decomposer.cpp
 	decomposer/Dummy.cpp
@@ -68,6 +68,7 @@ add_executable(dflat
 	solver/Dummy.cpp
 	Traverser.cpp
 	traverser/Dummy.cpp
+	ItemTreeNode.cpp
 	ItemTree.cpp
 	Application.cpp
 	main.cpp)

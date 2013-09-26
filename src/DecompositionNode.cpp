@@ -18,25 +18,31 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "DecompositionNode.h"
 
-#include <memory>
-
-#include "DAG.h"
-#include "ItemTreeNode.h"
-
-class ItemTree;
-typedef std::unique_ptr<ItemTree> ItemTreePtr;
-
-// The set of children is sorted ascendingly according to the following criterion:
-// A TreePtr is smaller than another if
-// (a) its item set is (lexicographically) smaller, or
-// (b) its item set is equal to the other's and its set of children is (lexicographically) smaller.
-struct ItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs); };
-
-class ItemTree : public DAG<ItemTreeNode, std::set<ItemTreePtr, ItemTreePtrComparator>>
+DecompositionNode::DecompositionNode(const Hypergraph::Vertices& bag)
+	: bag(bag)
 {
-public:
-	friend ItemTreePtrComparator;
-	using DAG::DAG; // inherit Constructor
-};
+	static int nextGlobalId = 1;
+	globalId = nextGlobalId++;
+}
+
+const Hypergraph::Vertices& DecompositionNode::getBag() const
+{
+	return bag;
+}
+
+std::ostream& operator<<(std::ostream& os, const DecompositionNode& node)
+{
+	os << node.globalId << ' ';
+	// Print bag
+	os << '{';
+	Hypergraph::Vertices::const_iterator it = node.bag.begin();
+	if(it != node.bag.end()) {
+			os << *it;
+		while(++it != node.bag.end())
+			os << ',' << *it;
+	}
+	os << '}';
+	return os;
+}

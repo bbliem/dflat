@@ -18,68 +18,11 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <ostream>
-
 #include "ItemTree.h"
 
-bool ItemTree::TreePtrComparator::operator()(const TreePtr& lhs, const TreePtr& rhs)
+bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
-	return lhs->items < rhs->items || (lhs->items == rhs->items &&
+	return lhs->node.getItems() < rhs->node.getItems() || (lhs->node.getItems() == rhs->node.getItems() &&
 			std::lexicographical_compare(lhs->children.begin(), lhs->children.end(), rhs->children.begin(), rhs->children.end(), *this)
 			);
-}
-
-ItemTree::ItemTree(Items&& items)
-	: items(std::move(items))
-{
-}
-
-ItemTree::ItemTree(Items&& items, Children&& children)
-	: items(std::move(items))
-	, children(std::move(children))
-{
-}
-
-void ItemTree::printNode(std::ostream& os, bool root, bool last, std::string indent) const
-{
-	os << indent;
-
-	if(!root) {
-		if(last) {
-#ifndef NO_UNICODE
-			os << "┗━ ";
-			indent += "   ";
-#else
-			os << "\\-";
-			indent += "  ";
-#endif
-		}
-		else {
-#ifndef NO_UNICODE
-			os << "┣━ ";
-			indent += "┃  ";
-#else
-			os << "|-";
-			indent += "| ";
-#endif
-		}
-	}
-
-	ItemTree::Items::const_iterator it = items.begin();
-	if(it != items.end()) {
-		os << *it;
-		while(++it != items.end())
-			os << ',' << *it;
-	}
-	os << std::endl;
-
-	size_t i = 0;
-	for(const auto& child : children)
-		child->printNode(os, false, ++i == children.size(), indent);
-}
-
-std::ostream& operator<<(std::ostream& os, const ItemTree& tree)
-{
-	tree.printNode(os, true);
-	return os;
 }

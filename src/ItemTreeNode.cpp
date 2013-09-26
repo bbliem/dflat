@@ -18,25 +18,25 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include <memory>
-
-#include "DAG.h"
 #include "ItemTreeNode.h"
 
-class ItemTree;
-typedef std::unique_ptr<ItemTree> ItemTreePtr;
-
-// The set of children is sorted ascendingly according to the following criterion:
-// A TreePtr is smaller than another if
-// (a) its item set is (lexicographically) smaller, or
-// (b) its item set is equal to the other's and its set of children is (lexicographically) smaller.
-struct ItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs); };
-
-class ItemTree : public DAG<ItemTreeNode, std::set<ItemTreePtr, ItemTreePtrComparator>>
+ItemTreeNode::ItemTreeNode(Items&& items)
+	: items(std::move(items))
 {
-public:
-	friend ItemTreePtrComparator;
-	using DAG::DAG; // inherit Constructor
-};
+}
+
+const ItemTreeNode::Items& ItemTreeNode::getItems() const
+{
+	return items;
+}
+
+std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
+{
+	ItemTreeNode::Items::const_iterator it = node.items.begin();
+	if(it != node.items.end()) {
+		os << *it;
+		while(++it != node.items.end())
+			os << ',' << *it;
+	}
+	return os;
+}

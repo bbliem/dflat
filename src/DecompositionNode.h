@@ -20,23 +20,24 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <memory>
+#include <ostream>
 
-#include "DAG.h"
-#include "ItemTreeNode.h"
+#include "Hypergraph.h"
 
-class ItemTree;
-typedef std::unique_ptr<ItemTree> ItemTreePtr;
-
-// The set of children is sorted ascendingly according to the following criterion:
-// A TreePtr is smaller than another if
-// (a) its item set is (lexicographically) smaller, or
-// (b) its item set is equal to the other's and its set of children is (lexicographically) smaller.
-struct ItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs); };
-
-class ItemTree : public DAG<ItemTreeNode, std::set<ItemTreePtr, ItemTreePtrComparator>>
+class DecompositionNode
 {
 public:
-	friend ItemTreePtrComparator;
-	using DAG::DAG; // inherit Constructor
+	DecompositionNode(const Hypergraph::Vertices& bag);
+
+	const Hypergraph::Vertices& getBag() const;
+
+	// Each DecompositionNode object that is created gets assigned a unique number starting from 1. This can, for instance, be used for printing when nodes should have unique names.
+	int getGlobalId() const;
+
+	// Print this node (no newlines)
+	friend std::ostream& operator<<(std::ostream& os, const DecompositionNode& node);
+
+private:
+	int globalId;
+	Hypergraph::Vertices bag;
 };

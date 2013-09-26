@@ -20,23 +20,22 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <memory>
+#include <ostream>
+#include <set>
+#include <string>
 
-#include "DAG.h"
-#include "ItemTreeNode.h"
-
-class ItemTree;
-typedef std::unique_ptr<ItemTree> ItemTreePtr;
-
-// The set of children is sorted ascendingly according to the following criterion:
-// A TreePtr is smaller than another if
-// (a) its item set is (lexicographically) smaller, or
-// (b) its item set is equal to the other's and its set of children is (lexicographically) smaller.
-struct ItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs); };
-
-class ItemTree : public DAG<ItemTreeNode, std::set<ItemTreePtr, ItemTreePtrComparator>>
+class ItemTreeNode
 {
 public:
-	friend ItemTreePtrComparator;
-	using DAG::DAG; // inherit Constructor
+	typedef std::set<std::string> Items; // We need the sortedness for, e.g., the default join.
+
+	ItemTreeNode(Items&& items);
+
+	const Items& getItems() const;
+
+	// Print this node (no newlines)
+	friend std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node);
+
+private:
+	Items items;
 };
