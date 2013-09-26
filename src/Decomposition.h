@@ -24,13 +24,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <ostream>
 #include <vector>
 
-#include "DAG.h"
+#include "DirectedAcyclicGraph.h"
 #include "DecompositionNode.h"
 
 // A decomposition is a (rooted) DAG where each node corresponds to a part of the instance.
 // An instance of this class contains the root node and pointers to its children.
-class Decomposition : public DAG<DecompositionNode, std::vector<std::shared_ptr<Decomposition>>>
+class Decomposition : public DirectedAcyclicGraph<DecompositionNode, std::vector<std::shared_ptr<Decomposition>>>
 {
 public:
-	using DAG::DAG; // inherit Constructor
+	using DirectedAcyclicGraph::DirectedAcyclicGraph;
 };

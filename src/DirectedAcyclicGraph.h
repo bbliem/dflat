@@ -32,15 +32,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 // In particular, look at bdonlan's answer in http://stackoverflow.com/questions/6527917/how-can-i-emulate-a-recursive-type-definition-in-c
 
 template <typename N, typename Cs>
-class DAG
+class DirectedAcyclicGraph
 {
 public:
 	typedef N Node;
 	typedef Cs Children;
 	typedef typename Children::value_type ChildPtr;
 
-	DAG(Node&& leaf) : node(std::move(leaf)) {}
-	DAG(const Node& leaf) : node(leaf) {}
+	DirectedAcyclicGraph(Node&& leaf) : node(std::move(leaf)) {}
 	const Node& getRoot() const { return node; }
 	const Children& getChildren() const { return children; }
 
@@ -84,7 +83,7 @@ public:
 	}
 
 	// Print decomposition (multiple lines, with EOL at the end)
-	friend std::ostream& operator<<(std::ostream& os, const DAG& tree)
+	friend std::ostream& operator<<(std::ostream& os, const DirectedAcyclicGraph& tree)
 	{
 		tree.print(os, true);
 		return os;

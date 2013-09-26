@@ -22,7 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <memory>
 
-#include "DAG.h"
+#include "DirectedAcyclicGraph.h"
 #include "ItemTreeNode.h"
 
 class ItemTree;
@@ -34,9 +34,8 @@ typedef std::unique_ptr<ItemTree> ItemTreePtr;
 // (b) its item set is equal to the other's and its set of children is (lexicographically) smaller.
 struct ItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs); };
 
-class ItemTree : public DAG<ItemTreeNode, std::set<ItemTreePtr, ItemTreePtrComparator>>
+class ItemTree : public DirectedAcyclicGraph<ItemTreeNode, std::set<ItemTreePtr, ItemTreePtrComparator>>
 {
 public:
-	friend ItemTreePtrComparator;
-	using DAG::DAG; // inherit Constructor
+	using DirectedAcyclicGraph::DirectedAcyclicGraph;
 };

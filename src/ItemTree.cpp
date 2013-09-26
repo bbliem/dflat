@@ -22,7 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
-	return lhs->node.getItems() < rhs->node.getItems() || (lhs->node.getItems() == rhs->node.getItems() &&
-			std::lexicographical_compare(lhs->children.begin(), lhs->children.end(), rhs->children.begin(), rhs->children.end(), *this)
+	return lhs->getRoot().getItems() < rhs->getRoot().getItems() || (lhs->getRoot().getItems() == rhs->getRoot().getItems() &&
+			std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this)
 			);
 }
