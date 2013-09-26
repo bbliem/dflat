@@ -20,10 +20,15 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "Application.h"
-#include "options/Choice.h"
-#include "options/Condition.h"
+#include <string>
+
 #include "options/Observer.h"
+#include "options/Condition.h"
+
+class Application;
+namespace options {
+	class Choice;
+}
 
 class Module : public options::Observer
 {

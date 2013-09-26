@@ -21,7 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "../Decomposer.h"
-#include "../Application.h"
+#include "../options/Choice.h"
 
 namespace decomposer {
 

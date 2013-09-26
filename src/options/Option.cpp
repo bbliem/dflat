@@ -24,6 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdexcept>
 
 #include "Option.h"
+#include "Condition.h"
 
 namespace options {
 

@@ -18,7 +18,11 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <string>
+
 #include "Module.h"
+#include "Application.h"
+#include "options/Choice.h"
 
 Module::Module(Application& app, options::Choice& choice, const std::string& optionName, const std::string& optionDescription, bool newDefault)
 	: app(app)

@@ -24,6 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <cassert>
 
 #include "Application.h"
+#include "Decomposition.h"
 
 #include "options/MultiValueOption.h"
 #include "options/SingleValueOption.h"

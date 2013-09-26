@@ -20,8 +20,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include <set>
+
 #include "parser.hpp"
-#include "../Hypergraph.h"
 
 #define YY_DECL                                \
  yy::Parser::token_type                        \

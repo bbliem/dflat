@@ -25,6 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <cassert>
 
 #include "Choice.h"
+#include "Condition.h"
 
 namespace options {
 

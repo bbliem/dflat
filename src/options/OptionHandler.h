@@ -23,11 +23,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <map>
 
-#include "Option.h"
-#include "Condition.h"
-#include "Observer.h"
-
 namespace options {
+
+class Option;
+class Observer;
 
 class OptionHandler
 {

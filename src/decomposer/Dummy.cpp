@@ -19,6 +19,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Dummy.h"
+#include "../Decomposition.h"
 
 namespace decomposer {
 

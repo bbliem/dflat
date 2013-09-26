@@ -20,10 +20,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "Application.h"
-#include "Decomposition.h"
 #include "Module.h"
 
+class Decomposition;
 class Hypergraph;
 
 class Decomposer : public Module

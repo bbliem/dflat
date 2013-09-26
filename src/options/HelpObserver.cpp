@@ -21,6 +21,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <cstdlib>
 
 #include "HelpObserver.h"
+#include "Option.h"
+#include "../Application.h"
 
 namespace options {
 

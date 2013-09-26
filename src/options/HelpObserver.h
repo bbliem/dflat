@@ -21,10 +21,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "Observer.h"
-#include "../Application.h"
-#include "Option.h"
+
+class Application;
 
 namespace options {
+
+class Option;
 
 // Observe the option handler. When notified, the HelpObserver checks whether the help option was given and, if so, prints the usage message and exits (with code 0).
 class HelpObserver : public Observer

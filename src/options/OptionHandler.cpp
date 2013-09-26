@@ -25,7 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "OptionHandler.h"
 #include "ValueOption.h"
-
+#include "Observer.h"
 
 namespace options {
 

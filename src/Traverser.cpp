@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Application.h"
 #include "Traverser.h"
 
 Traverser::Traverser(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault)

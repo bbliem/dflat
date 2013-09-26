@@ -23,9 +23,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
-#include "Condition.h"
-
 namespace options {
+
+class Condition;
 
 class Option
 {

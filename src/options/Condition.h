@@ -20,10 +20,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <vector>
-
-#include "Option.h"
-
 namespace options {
 
 // This is used for checking dependencies of options. Some options may only be used when other options have a certain value.

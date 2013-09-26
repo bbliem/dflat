@@ -28,6 +28,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <sharp/MaximumCardinalitySearchOrdering.hpp>
 
 #include "TreeDecomposer.h"
+#include "../Hypergraph.h"
+#include "../Decomposition.h"
+#include "../Application.h"
 
 namespace {
 	class SharpProblem : public sharp::Problem
