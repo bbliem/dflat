@@ -27,9 +27,9 @@ DummyFactory::DummyFactory(Application& app, bool newDefault)
 {
 }
 
-Dummy* DummyFactory::newSolver(const Decomposition& decomposition, const ChildSolvers& childSolvers) const
+std::unique_ptr<Solver> DummyFactory::newSolver(const Decomposition& decomposition, const ChildSolvers& childSolvers) const
 {
-	return new Dummy(decomposition, childSolvers);
+	return std::unique_ptr<Solver>(new Dummy(decomposition, childSolvers));
 }
 
 } // namespace solver

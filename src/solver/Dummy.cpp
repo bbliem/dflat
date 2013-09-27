@@ -30,6 +30,9 @@ Dummy::Dummy(const Decomposition& decomposition, const ChildSolvers& childSolver
 
 ItemTree Dummy::compute()
 {
+	for(Solver* childSolver : childSolvers)
+		childSolver->compute(); // XXX ignore return value
+
 	ItemTree itree = ItemTreeNode({}); // empty root
 
 	itree.addChild(ItemTreePtr(new ItemTree(ItemTreeNode({"foo"}))));

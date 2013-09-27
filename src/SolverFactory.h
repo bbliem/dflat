@@ -20,12 +20,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <vector>
+#include <memory>
 
 #include "Module.h"
 #include "Solver.h"
 
-class ItemTree;
 class Decomposition;
 
 class SolverFactory : public Module
@@ -36,7 +35,7 @@ public:
 	SolverFactory(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
 
 	// Construct a solver responsible for the root of the given decomposition
-	virtual Solver* newSolver(const Decomposition& decomposition, const ChildSolvers& childSolvers) const = 0;
+	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition, const ChildSolvers& childSolvers) const = 0;
 
 	virtual void select() override;
 };
