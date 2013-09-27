@@ -20,12 +20,29 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "Module.h"
+#include <vector>
 
-class Solver : public Module
+class ItemTree;
+class Decomposition;
+
+class Solver
 {
 public:
-	Solver(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
+	typedef std::vector<Solver*> ChildSolvers;
 
-	virtual void select() override;
+	// Construct a solver responsible for the root of the given decomposition
+	Solver(const Decomposition& decomposition, const ChildSolvers& childSolvers);
+
+	// Return the complete item tree
+	virtual ItemTree compute() = 0;
+
+	// Return the next subtree that is a candidate for a winning strategy
+	//virtual ItemTree nextCandidate() = 0;
+
+	// Return the next candidate that has an optimization value below the given one
+	//virtual ItemTree nextFeasibleCandidate(int bestSoFar) = 0;
+
+protected:
+	const Decomposition& decomposition;
+	const ChildSolvers& childSolvers;
 };

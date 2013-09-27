@@ -36,7 +36,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "decomposer/TreeDecomposer.h"
 
 #include "Solver.h"
-#include "solver/Dummy.h"
+#include "solver/DummyFactory.h"
 
 #include "Traverser.h"
 #include "traverser/Dummy.h"
@@ -51,7 +51,7 @@ Application::Application(const std::string& binaryName)
 	, optSolver("s", "solver", "Use <solver> to compute partial solutions")
 	, optTraverser("t", "traverser", "Use <traverser> to apply the solver on the decomposition")
 	, decomposer(0)
-	, solver(0)
+	, solverFactory(0)
 	, traverser(0)
 {
 }
@@ -81,7 +81,7 @@ void Application::run(int argc, char** argv)
 	decomposer::TreeDecomposer treeDecomposer(*this, true);
 
 	opts.addOption(optSolver, MODULE_SECTION);
-	solver::Dummy dummySolver(*this, true);
+	solver::DummyFactory dummySolverFactory(*this, true);
 
 	opts.addOption(optTraverser, MODULE_SECTION);
 	traverser::Dummy dummyTraverser(*this, true);
@@ -99,7 +99,7 @@ void Application::run(int argc, char** argv)
 	opts.parse(argc, argv);
 
 	assert(decomposer);
-	assert(solver);
+	assert(solverFactory);
 	assert(traverser);
 
 	// Set random seed
@@ -165,9 +165,9 @@ void Application::setDecomposer(Decomposer& d)
 	decomposer = &d;
 }
 
-void Application::setSolver(Solver& s)
+void Application::setSolverFactory(SolverFactory& s)
 {
-	solver = &s;
+	solverFactory = &s;
 }
 
 void Application::setTraverser(Traverser& t)

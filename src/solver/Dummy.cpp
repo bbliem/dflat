@@ -19,12 +19,23 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Dummy.h"
+#include "../ItemTree.h"
 
 namespace solver {
 
-Dummy::Dummy(Application& app, bool newDefault)
-	: Solver(app, "dummy", "Do nothing", newDefault)
+Dummy::Dummy(const Decomposition& decomposition, const ChildSolvers& childSolvers)
+	: Solver(decomposition, childSolvers)
 {
+}
+
+ItemTree Dummy::compute()
+{
+	ItemTree itree = ItemTreeNode({}); // empty root
+
+	itree.addChild(ItemTreePtr(new ItemTree(ItemTreeNode({"foo"}))));
+	itree.addChild(ItemTreePtr(new ItemTree(ItemTreeNode({"bar"}))));
+
+	return itree;
 }
 
 } // namespace solver

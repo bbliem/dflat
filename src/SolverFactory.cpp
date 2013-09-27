@@ -21,11 +21,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <vector>
 
-#include "Solver.h"
+#include "SolverFactory.h"
 #include "Application.h"
 
-Solver::Solver(const Decomposition& decomposition, const ChildSolvers& childSolvers)
-	: decomposition(decomposition)
-	, childSolvers(childSolvers)
+SolverFactory::SolverFactory(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault)
+	: Module(app, app.getSolverChoice(), optionName, optionDescription, newDefault)
 {
+}
+
+void SolverFactory::select()
+{
+	Module::select();
+	app.setSolverFactory(*this);
 }

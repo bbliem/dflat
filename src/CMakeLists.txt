@@ -64,7 +64,9 @@ add_executable(dflat
 	Decomposer.cpp
 	decomposer/Dummy.cpp
 	decomposer/TreeDecomposer.cpp
+	SolverFactory.cpp
 	Solver.cpp
+	solver/DummyFactory.cpp
 	solver/Dummy.cpp
 	Traverser.cpp
 	traverser/Dummy.cpp

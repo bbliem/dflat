@@ -18,14 +18,25 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <string>
+#pragma once
+
 #include <vector>
 
+#include "Module.h"
 #include "Solver.h"
-#include "Application.h"
 
-Solver::Solver(const Decomposition& decomposition, const ChildSolvers& childSolvers)
-	: decomposition(decomposition)
-	, childSolvers(childSolvers)
+class ItemTree;
+class Decomposition;
+
+class SolverFactory : public Module
 {
-}
+public:
+	typedef Solver::ChildSolvers ChildSolvers;
+
+	SolverFactory(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
+
+	// Construct a solver responsible for the root of the given decomposition
+	virtual Solver* newSolver(const Decomposition& decomposition, const ChildSolvers& childSolvers) const = 0;
+
+	virtual void select() override;
+};

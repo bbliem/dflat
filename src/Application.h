@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "options/Choice.h"
 
 class Decomposer;
-class Solver;
+class SolverFactory;
 class Traverser;
 
 class Application
@@ -43,7 +43,7 @@ public:
 	options::Choice& getTraverserChoice();
 
 	void setDecomposer(Decomposer& decomposer);
-	void setSolver(Solver& solver);
+	void setSolverFactory(SolverFactory& solverFactory);
 	void setTraverser(Traverser& traverser);
 
 private:
@@ -57,6 +57,6 @@ private:
 	options::Choice optTraverser;
 
 	Decomposer* decomposer;
-	Solver* solver;
+	SolverFactory* solverFactory;
 	Traverser* traverser;
 };

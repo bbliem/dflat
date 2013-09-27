@@ -27,7 +27,9 @@ namespace solver {
 class Dummy : public Solver
 {
 public:
-	Dummy(Application& app, bool newDefault = false);
+	Dummy(const Decomposition& decomposition, const ChildSolvers& childSolvers);
+
+	virtual ItemTree compute() override;
 };
 
 } // namespace solver
