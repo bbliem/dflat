@@ -80,6 +80,7 @@ void Driver::scan_begin()
 
 void Driver::scan_end()
 {
+	yylex_destroy();
 }
 
 } // namespace parser
