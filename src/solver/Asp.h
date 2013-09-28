@@ -18,14 +18,23 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <string>
-#include <vector>
+#pragma once
 
-#include "Solver.h"
-#include "Application.h"
+#include "../Solver.h"
 
-Solver::Solver(const Decomposition& decomposition, const Application& app)
-	: decomposition(decomposition)
-	, app(app)
+namespace solver {
+
+class Asp : public Solver
 {
-}
+public:
+	using Solver::Solver;
+
+	virtual ItemTree compute() override;
+
+protected:
+	void declareDecomposition(std::ostream& out) const;
+	void declareChildItemTrees(std::ostream& out) const;
+
+};
+
+} // namespace solver

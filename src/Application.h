@@ -37,6 +37,7 @@ public:
 	// Print usage and exit
 	void usage(int exitCode = 0) const;
 
+	const std::string& getInputString() const;
 	options::OptionHandler& getOptionHandler();
 	options::Choice& getDecomposerChoice();
 	options::Choice& getSolverChoice();
@@ -51,8 +52,9 @@ private:
 	static const std::string MODULE_SECTION;
 
 	std::string binaryName;
-	options::OptionHandler opts;
+	std::string inputString;
 
+	options::OptionHandler opts;
 	options::Choice optDecomposer;
 	options::Choice optSolver;
 	options::Choice optTraverser;

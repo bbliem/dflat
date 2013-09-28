@@ -42,16 +42,6 @@ add_executable(dflat
 	${BISON_Parser_OUTPUTS}
 	parser/Driver.cpp
 	parser/Terms.cpp
-#	Algorithm.cpp
-#	NonNormalizedAlgorithm.cpp
-#	SemiNormalizedAlgorithm.cpp
-#	ClaspCallbackGeneral.cpp
-#	ClaspCallbackNP.cpp
-#	ClaspInputReader.cpp
-#	GringoOutputProcessor.cpp
-#	Problem.cpp
-#	Row.cpp
-#	EnumerationIterator.cpp
 	options/Option.cpp
 	options/ValueOption.cpp
 	options/SingleValueOption.cpp
@@ -69,6 +59,8 @@ add_executable(dflat
 	Solver.cpp
 	solver/DummyFactory.cpp
 	solver/Dummy.cpp
+	solver/AspFactory.cpp
+	solver/Asp.cpp
 	Traverser.cpp
 	traverser/Dummy.cpp
 	ItemTreeNode.cpp

@@ -24,12 +24,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 class ItemTree;
 class Decomposition;
+class Application;
 
 class Solver
 {
 public:
 	// Construct a solver responsible for the root of the given decomposition
-	Solver(const Decomposition& decomposition);
+	Solver(const Decomposition& decomposition, const Application& app);
 
 	// Return the complete item tree
 	virtual ItemTree compute() = 0;
@@ -42,4 +43,5 @@ public:
 
 protected:
 	const Decomposition& decomposition;
+	const Application& app;
 };

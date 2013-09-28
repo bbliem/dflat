@@ -38,6 +38,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Solver.h"
 #include "solver/DummyFactory.h"
+#include "solver/AspFactory.h"
 
 #include "Traverser.h"
 #include "traverser/Dummy.h"
@@ -82,7 +83,8 @@ void Application::run(int argc, char** argv)
 	decomposer::TreeDecomposer treeDecomposer(*this, true);
 
 	opts.addOption(optSolver, MODULE_SECTION);
-	solver::DummyFactory dummySolverFactory(*this, true);
+	solver::DummyFactory dummySolverFactory(*this);
+	solver::AspFactory aspSolverFactory(*this, true);
 
 	opts.addOption(optTraverser, MODULE_SECTION);
 	traverser::Dummy dummyTraverser(*this, true);
@@ -121,7 +123,7 @@ void Application::run(int argc, char** argv)
 	// Store all of stdin in a string
 	std::ostringstream inputStringStream;
 	inputStringStream << std::cin.rdbuf();
-	std::string inputString = inputStringStream.str();
+	inputString = inputStringStream.str();
 
 	// Parse instance
 	Hypergraph instance = parser::Driver(inputString, edgePredicates).parse();
@@ -144,6 +146,11 @@ void Application::usage(int exitCode) const
 	std::cerr << "Usage: " << binaryName << " [options] < instance" << std::endl;
 	opts.printHelp();
 	std::exit(exitCode);
+}
+
+const std::string& Application::getInputString() const
+{
+	return inputString;
 }
 
 options::OptionHandler& Application::getOptionHandler()

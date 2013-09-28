@@ -23,13 +23,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver {
 
 DummyFactory::DummyFactory(Application& app, bool newDefault)
-	: SolverFactory(app, "Dummy", "Do nothing", newDefault)
+	: SolverFactory(app, "dummy", "Do nothing", newDefault)
 {
 }
 
 std::unique_ptr<Solver> DummyFactory::newSolver(const Decomposition& decomposition) const
 {
-	return std::unique_ptr<Solver>(new Dummy(decomposition));
+	return std::unique_ptr<Solver>(new Dummy(decomposition, app));
 }
 
 } // namespace solver

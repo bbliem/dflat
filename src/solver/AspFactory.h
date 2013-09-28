@@ -18,14 +18,19 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <string>
-#include <vector>
+#pragma once
 
-#include "Solver.h"
-#include "Application.h"
+#include "../SolverFactory.h"
+#include "Asp.h"
 
-Solver::Solver(const Decomposition& decomposition, const Application& app)
-	: decomposition(decomposition)
-	, app(app)
+namespace solver {
+
+class AspFactory : public SolverFactory
 {
-}
+public:
+	AspFactory(Application& app, bool newDefault = false);
+
+	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const override;
+};
+
+} // namespace solver

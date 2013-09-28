@@ -21,6 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <ostream>
+#include <vector>
 
 // Using STL containers with incomplete types is forbidden.
 // This is why the template parameter Cs is expected to be a container of smart pointers.
@@ -38,15 +39,20 @@ public:
 	typedef N Node;
 	typedef Cs Children;
 	typedef typename Children::value_type ChildPtr;
+	// Parents are not managed by smart pointers, as this would lead to cycles
+	typedef std::vector<DirectedAcyclicGraph*> Parents;
 
 	DirectedAcyclicGraph(Node&& leaf) : node(std::move(leaf)) {}
 	const Node& getRoot() const { return node; }
+	const Parents& getParents() const { return parents; }
 	const Children& getChildren() const { return children; }
 
 	// Adds the root of "child" to the list of children. Takes ownership of the whole subgraph rooted at "child".
 	// Make sure there arise no cycles!
+	// Inserts this node into the new child's list of parents.
 	void addChild(ChildPtr&& child)
 	{
+		child->parents.push_back(this);
 		children.insert(children.end(), std::move(child));
 	}
 
@@ -92,4 +98,5 @@ public:
 protected:
 	Node node;
 	Children children;
+	Parents parents;
 };
