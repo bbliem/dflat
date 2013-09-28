@@ -30,7 +30,7 @@ class DummyFactory : public SolverFactory
 public:
 	DummyFactory(Application& app, bool newDefault = false);
 
-	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition, const ChildSolvers& childSolvers) const override;
+	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const override;
 };
 
 } // namespace solver

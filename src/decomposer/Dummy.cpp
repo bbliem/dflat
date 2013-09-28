@@ -20,6 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Dummy.h"
 #include "../Decomposition.h"
+#include "../Application.h"
 
 namespace decomposer {
 
@@ -30,7 +31,7 @@ Dummy::Dummy(Application& app, bool newDefault)
 
 Decomposition Dummy::decompose(const Hypergraph& instance) const
 {
-	return Decomposition(instance.getVertices());
+	return Decomposition(instance.getVertices(), app.getSolverFactory());
 }
 
 } // namespace decomposer

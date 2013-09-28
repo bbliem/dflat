@@ -28,10 +28,8 @@ class Decomposition;
 class Solver
 {
 public:
-	typedef std::vector<Solver*> ChildSolvers;
-
 	// Construct a solver responsible for the root of the given decomposition
-	Solver(const Decomposition& decomposition, const ChildSolvers& childSolvers);
+	Solver(const Decomposition& decomposition);
 
 	// Return the complete item tree
 	virtual ItemTree compute() = 0;
@@ -44,5 +42,4 @@ public:
 
 protected:
 	const Decomposition& decomposition;
-	const ChildSolvers& childSolvers;
 };

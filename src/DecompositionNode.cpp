@@ -32,6 +32,11 @@ const Hypergraph::Vertices& DecompositionNode::getBag() const
 	return bag;
 }
 
+int DecompositionNode::getGlobalId() const
+{
+	return globalId;
+}
+
 std::ostream& operator<<(std::ostream& os, const DecompositionNode& node)
 {
 	os << node.globalId << ' ';

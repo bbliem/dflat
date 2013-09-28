@@ -20,23 +20,20 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Dummy.h"
 #include "../ItemTree.h"
+#include "../Decomposition.h"
 
 namespace solver {
 
-Dummy::Dummy(const Decomposition& decomposition, const ChildSolvers& childSolvers)
-	: Solver(decomposition, childSolvers)
-{
-}
-
 ItemTree Dummy::compute()
 {
-	for(Solver* childSolver : childSolvers)
-		childSolver->compute(); // XXX ignore return value
+	//ItemTree itree = ItemTreeNode({}); // empty root
+	ItemTree itree = ItemTreeNode({std::to_string(decomposition.getRoot().getGlobalId())});
 
-	ItemTree itree = ItemTreeNode({}); // empty root
+	for(const Decomposition::ChildPtr& child : decomposition.getChildren())
+		itree.addChild(ItemTreePtr(new ItemTree(child->getSolver().compute())));
 
-	itree.addChild(ItemTreePtr(new ItemTree(ItemTreeNode({"foo"}))));
-	itree.addChild(ItemTreePtr(new ItemTree(ItemTreeNode({"bar"}))));
+	//itree.addChild(ItemTreePtr(new ItemTree(ItemTreeNode({"foo"}))));
+	//itree.addChild(ItemTreePtr(new ItemTree(ItemTreeNode({"bar"}))));
 
 	return itree;
 }

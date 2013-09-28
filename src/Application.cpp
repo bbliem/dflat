@@ -25,6 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Application.h"
 #include "Decomposition.h"
+#include "ItemTree.h" // XXX still actually needed in this file?
 
 #include "options/MultiValueOption.h"
 #include "options/SingleValueOption.h"
@@ -131,6 +132,11 @@ void Application::run(int argc, char** argv)
 	// Print decomposition if requested
 	if(optPrintDecomposition.isUsed())
 		std::cout << "Decomposition:" << std::endl << decomposition << std::endl;
+
+	// Solve
+	// TODO control how computation proceeds and what is computed / printed
+	// So far, this only prints the item tree at the root.
+	std::cout << "Root item tree:" << std::endl << decomposition.getSolver().compute();
 }
 
 void Application::usage(int exitCode) const
@@ -158,6 +164,12 @@ options::Choice& Application::getSolverChoice()
 options::Choice& Application::getTraverserChoice()
 {
 	return optTraverser;
+}
+
+const SolverFactory& Application::getSolverFactory() const
+{
+	assert(solverFactory);
+	return *solverFactory;
 }
 
 void Application::setDecomposer(Decomposer& d)

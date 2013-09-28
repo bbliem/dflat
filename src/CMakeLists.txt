@@ -60,6 +60,7 @@ add_executable(dflat
 	options/OptionHandler.cpp
 	options/HelpObserver.cpp
 	DecompositionNode.cpp
+	Decomposition.cpp
 	Module.cpp
 	Decomposer.cpp
 	decomposer/Dummy.cpp

@@ -18,18 +18,16 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "DummyFactory.h"
+#include "Decomposition.h"
+#include "SolverFactory.h"
 
-namespace solver {
-
-DummyFactory::DummyFactory(Application& app, bool newDefault)
-	: SolverFactory(app, "Dummy", "Do nothing", newDefault)
+Decomposition::Decomposition(Node&& leaf, const SolverFactory& solverFactory)
+	: DirectedAcyclicGraph(std::move(leaf))
+	, solver(solverFactory.newSolver(*this))
 {
 }
 
-std::unique_ptr<Solver> DummyFactory::newSolver(const Decomposition& decomposition) const
+Solver& Decomposition::getSolver()
 {
-	return std::unique_ptr<Solver>(new Dummy(decomposition));
+	return *solver;
 }
-
-} // namespace solver

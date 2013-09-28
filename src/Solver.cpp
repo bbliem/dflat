@@ -24,8 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Solver.h"
 #include "Application.h"
 
-Solver::Solver(const Decomposition& decomposition, const ChildSolvers& childSolvers)
+Solver::Solver(const Decomposition& decomposition)
 	: decomposition(decomposition)
-	, childSolvers(childSolvers)
 {
 }

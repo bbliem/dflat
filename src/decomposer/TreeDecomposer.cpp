@@ -66,15 +66,15 @@ namespace {
 		const Hypergraph& instance;
 	};
 
-	Decomposition::ChildPtr transformTd(sharp::ExtendedHypertree& td, sharp::Problem& problem)
+	Decomposition::ChildPtr transformTd(sharp::ExtendedHypertree& td, sharp::Problem& problem, const Application& app)
 	{
 		Hypergraph::Vertices rootBag;
 		for(sharp::Vertex v : td.getVertices())
 			rootBag.insert(problem.getVertexName(v));
 
-		Decomposition::ChildPtr transformedTd(new Decomposition{rootBag});
+		Decomposition::ChildPtr transformedTd(new Decomposition(rootBag, app.getSolverFactory()));
 		for(sharp::Hypertree* child : *td.getChildren())
-			transformedTd->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), problem));
+			transformedTd->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), problem, app));
 		return transformedTd;
 	}
 }
@@ -136,9 +136,9 @@ Decomposition TreeDecomposer::decompose(const Hypergraph& instance) const
 	for(sharp::Vertex v : normalized->getVertices())
 		rootBag.insert(problem.getVertexName(v));
 
-	Decomposition transformedTd = {rootBag};
+	Decomposition transformedTd(rootBag, app.getSolverFactory());
 	for(sharp::Hypertree* child : *normalized->getChildren())
-		transformedTd.addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), problem));
+		transformedTd.addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), problem, app));
 	delete normalized;
 	return transformedTd;
 }

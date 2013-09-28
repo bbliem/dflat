@@ -42,6 +42,7 @@ public:
 	options::Choice& getSolverChoice();
 	options::Choice& getTraverserChoice();
 
+	const SolverFactory& getSolverFactory() const;
 	void setDecomposer(Decomposer& decomposer);
 	void setSolverFactory(SolverFactory& solverFactory);
 	void setTraverser(Traverser& traverser);

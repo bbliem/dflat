@@ -30,12 +30,10 @@ class Decomposition;
 class SolverFactory : public Module
 {
 public:
-	typedef Solver::ChildSolvers ChildSolvers;
-
 	SolverFactory(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
 
 	// Construct a solver responsible for the root of the given decomposition
-	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition, const ChildSolvers& childSolvers) const = 0;
+	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const = 0;
 
 	virtual void select() override;
 };
