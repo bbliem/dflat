@@ -56,7 +56,15 @@ public:
 		children.insert(children.end(), std::move(child));
 	}
 
-	void print(std::ostream& os, bool root, bool last = false, std::string indent = "") const
+	// Print decomposition (multiple lines, with EOL at the end)
+	friend std::ostream& operator<<(std::ostream& os, const DirectedAcyclicGraph& tree)
+	{
+		tree.print(os);
+		return os;
+	}
+
+protected:
+	void print(std::ostream& os, bool root = true, bool last = false, std::string indent = "") const
 	{
 		os << indent;
 
@@ -88,14 +96,6 @@ public:
 			child->print(os, false, ++i == children.size(), indent);
 	}
 
-	// Print decomposition (multiple lines, with EOL at the end)
-	friend std::ostream& operator<<(std::ostream& os, const DirectedAcyclicGraph& tree)
-	{
-		tree.print(os, true);
-		return os;
-	}
-
-protected:
 	Node node;
 	Children children;
 	Parents parents;

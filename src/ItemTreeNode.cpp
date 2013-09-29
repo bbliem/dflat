@@ -20,14 +20,20 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ItemTreeNode.h"
 
-ItemTreeNode::ItemTreeNode(Items&& items)
+ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
 	: items(std::move(items))
+	, extensionPointers(std::move(extensionPointers))
 {
 }
 
 const ItemTreeNode::Items& ItemTreeNode::getItems() const
 {
 	return items;
+}
+
+const ItemTreeNode::ExtensionPointers& ItemTreeNode::getExtensionPointers() const
+{
+	return extensionPointers;
 }
 
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)

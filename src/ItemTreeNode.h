@@ -21,6 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <ostream>
+#include <vector>
 #include <set>
 #include <string>
 
@@ -28,14 +29,18 @@ class ItemTreeNode
 {
 public:
 	typedef std::set<std::string> Items; // We need the sortedness for, e.g., the default join.
+	typedef std::vector<const ItemTreeNode*> ExtensionPointerTuple;
+	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
 
-	ItemTreeNode(Items&& items);
+	ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers = {});
 
 	const Items& getItems() const;
+	const ExtensionPointers& getExtensionPointers() const;
 
 	// Print this node (no newlines)
 	friend std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node);
 
 private:
 	Items items;
+	ExtensionPointers extensionPointers;
 };

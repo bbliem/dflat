@@ -65,6 +65,7 @@ add_executable(dflat
 	traverser/Dummy.cpp
 	ItemTreeNode.cpp
 	ItemTree.cpp
+	ExtensionIterator.cpp
 	Application.cpp
 	main.cpp)
 

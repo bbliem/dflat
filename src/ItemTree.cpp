@@ -19,6 +19,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "ItemTree.h"
+#include "ExtensionIterator.h"
 
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
@@ -26,3 +27,47 @@ bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr
 			std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this)
 			);
 }
+
+void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool root, bool lastChild, const std::string& indent) const
+{
+	ExtensionIterator it(node);
+
+	while(it.isValid()) {
+		std::string childIndent = indent;
+		os << indent;
+		ItemTreeNode::Items items = std::move(*it);
+		++it;
+
+		if(!root) {
+			if(lastChild && !it.isValid()) {
+#ifndef NO_UNICODE
+				os << "┗━ ";
+				childIndent += "   ";
+#else
+				os << "\\-";
+				childIndent += "  ";
+#endif
+			}
+			else {
+#ifndef NO_UNICODE
+				os << "┣━ ";
+				childIndent += "┃  ";
+#else
+				os << "|-";
+				childIndent += "| ";
+#endif
+			}
+		}
+
+		for(const auto& item : items)
+			os << item << ' ';
+		os << std::endl;
+
+		if(maxDepth > 0) {
+			size_t i = 0;
+			for(const auto& child : children)
+				child->printExtensions(os, maxDepth - 1, false, ++i == children.size(), childIndent);
+		}
+	}
+}
+

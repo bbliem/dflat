@@ -21,6 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <memory>
+#include <limits>
 
 #include "DirectedAcyclicGraph.h"
 #include "ItemTreeNode.h"
@@ -38,4 +39,6 @@ class ItemTree : public DirectedAcyclicGraph<ItemTreeNode, std::set<ItemTreePtr,
 {
 public:
 	using DirectedAcyclicGraph::DirectedAcyclicGraph;
+
+	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool root = true, bool lastChild = false, const std::string& indent = "") const;
 };
