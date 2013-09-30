@@ -33,6 +33,8 @@ public:
 
 	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const override;
 
+	virtual void select() override;
+
 private:
 	static const std::string OPTION_SECTION;
 

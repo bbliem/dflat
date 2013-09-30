@@ -38,4 +38,12 @@ std::unique_ptr<Solver> AspFactory::newSolver(const Decomposition& decomposition
 	return std::unique_ptr<Solver>(new Asp(decomposition, app, optEncodingFile.getValue()));
 }
 
+void AspFactory::select()
+{
+	SolverFactory::select();
+	if(!optEncodingFile.isUsed())
+		throw std::runtime_error("ASP solver requires a program to be specified");
+}
+
+
 } // namespace solver
