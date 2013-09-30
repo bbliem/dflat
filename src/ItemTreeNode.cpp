@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <cassert>
+
 #include "ItemTreeNode.h"
 
 ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
@@ -34,6 +36,12 @@ const ItemTreeNode::Items& ItemTreeNode::getItems() const
 const ItemTreeNode::ExtensionPointers& ItemTreeNode::getExtensionPointers() const
 {
 	return extensionPointers;
+}
+
+void ItemTreeNode::merge(const ItemTreeNode& other)
+{
+	assert(items == other.items);
+	extensionPointers.insert(extensionPointers.end(), other.extensionPointers.begin(), other.extensionPointers.end());
 }
 
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)

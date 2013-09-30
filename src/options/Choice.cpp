@@ -36,7 +36,7 @@ Choice::Choice(const std::string& name, const std::string& placeholder, const st
 
 void Choice::addChoice(const std::string& choiceName, const std::string& description, bool newDefault)
 {
-	possibilities.push_back(Possibility(choiceName, description));
+	possibilities.emplace_back(choiceName, description);
 	if(newDefault) {
 		defaultValue = choiceName;
 		value = choiceName;

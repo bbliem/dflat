@@ -8,7 +8,7 @@ gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a
 gringo_lib_debug=$(gringo_dir)/build/debug/lib/libgringo.a
 gringo_lib_gprof=$(gringo_dir)/build/gprof/lib/libgringo.a
 
-clasp_dir=/home/bernhard/Informatik/clasp-2.1.1
+clasp_dir=/home/bernhard/Informatik/clasp-2.1.3
 clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a

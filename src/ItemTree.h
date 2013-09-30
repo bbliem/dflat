@@ -40,5 +40,13 @@ class ItemTree : public DirectedAcyclicGraph<ItemTreeNode, std::set<ItemTreePtr,
 public:
 	using DirectedAcyclicGraph::DirectedAcyclicGraph;
 
+	// If there is a subtree rooted at a child of this node that has equal item sets as the given one, the existing subtree is unified with the given one
+	void addChildAndMerge(ChildPtr&& child);
+
+	// Print the tree that would result from recursively extending all nodes
 	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool root = true, bool lastChild = false, const std::string& indent = "") const;
+
+private:
+	// Recursively unify extension pointers of this itree with the other one's given that the item sets are all equal
+	void merge(const ItemTree& other);
 };

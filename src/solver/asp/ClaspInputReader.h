@@ -20,19 +20,33 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "../Solver.h"
+#include <clasp/reader.h>
+#include <gringo/inclit.h>
 
-namespace solver {
+#include "GringoOutputProcessor.h"
 
-class Asp : public Solver
-{
+namespace solver { namespace asp {
+
+class ClaspInputReader : public Clasp::Input {
 public:
-	Asp(const Decomposition& decomposition, const Application& app, const std::string& encodingFile);
+	ClaspInputReader(Streams&, GringoOutputProcessor&);
+	virtual ~ClaspInputReader();
 
-	virtual ItemTree compute() override;
+	// Clasp::Input interface
+	virtual Format format() const;
+	virtual bool read(ApiPtr, uint32);
+	virtual void addMinimize(Clasp::MinimizeBuilder&, ApiPtr);
+	virtual void getAssumptions(Clasp::LitVec&);
 
-protected:
-	std::string encodingFile;
+private:
+	typedef std::unique_ptr<Grounder> GrounderPtr;
+	typedef std::unique_ptr<Parser> ParserPtr;
+
+	TermExpansionPtr termExpansion;
+	GrounderPtr grounder;
+	ParserPtr parser;
+	IncConfig config;
+	GringoOutputProcessor& output;
 };
 
-} // namespace solver
+}} // namespace solver::asp

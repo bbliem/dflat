@@ -18,24 +18,33 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "AspFactory.h"
-#include "../Application.h"
+#pragma once
 
-namespace solver {
+#include <vector>
 
-const std::string AspFactory::OPTION_SECTION = "ASP solver";
+#include "../../ItemTree.h"
 
-AspFactory::AspFactory(Application& app, bool newDefault)
-	: SolverFactory(app, "asp", "Answer Set Programming", newDefault)
-	, optEncodingFile("p", "program", "Use <program> as the ASP encoding for solving")
+namespace solver { namespace asp {
+
+// Associates an integer with each branch of an item tree, which allows for random access.
+class ItemTreeBranchLookupTable
 {
-	optEncodingFile.addCondition(selected);
-	app.getOptionHandler().addOption(optEncodingFile, OPTION_SECTION);
-}
+public:
+	typedef std::vector<const ItemTree*> Branches;
 
-std::unique_ptr<Solver> AspFactory::newSolver(const Decomposition& decomposition) const
-{
-	return std::unique_ptr<Solver>(new Asp(decomposition, app, optEncodingFile.getValue()));
-}
+	ItemTreeBranchLookupTable(ItemTree&& itemTree);
 
-} // namespace solver
+	const ItemTree& getItemTree() const;
+	const Branches& getBranches() const;
+
+	// Returns the leaf of the i'th branch of the managed item tree
+	const ItemTree& operator[](unsigned int i) const;
+
+private:
+	void init(const ItemTree& node);
+
+	ItemTree itemTree;
+	Branches branches;
+};
+
+}} // namespace solver::asp

@@ -37,6 +37,9 @@ public:
 	const Items& getItems() const;
 	const ExtensionPointers& getExtensionPointers() const;
 
+	// Unify extension pointers of this node with the other one's given that the item sets are equal
+	void merge(const ItemTreeNode& other);
+
 	// Print this node (no newlines)
 	friend std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node);
 

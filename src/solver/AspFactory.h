@@ -21,6 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "../SolverFactory.h"
+#include "../options/SingleValueOption.h"
 #include "Asp.h"
 
 namespace solver {
@@ -31,6 +32,11 @@ public:
 	AspFactory(Application& app, bool newDefault = false);
 
 	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const override;
+
+private:
+	static const std::string OPTION_SECTION;
+
+	options::SingleValueOption optEncodingFile;
 };
 
 } // namespace solver

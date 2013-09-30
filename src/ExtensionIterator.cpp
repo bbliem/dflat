@@ -28,7 +28,7 @@ ExtensionIterator::ExtensionIterator(const ItemTreeNode& itemTreeNode)
 	if(curExtension != itemTreeNode.getExtensionPointers().end()) {
 		extensionIts.reserve(curExtension->size());
 		for(const auto& extendedItemTreeNode : *curExtension)
-			extensionIts.push_back(std::unique_ptr<ExtensionIterator>(new ExtensionIterator(*extendedItemTreeNode)));
+			extensionIts.emplace_back(new ExtensionIterator(*extendedItemTreeNode));
 	}
 	materializeItems();
 }

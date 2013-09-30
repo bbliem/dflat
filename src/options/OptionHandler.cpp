@@ -34,7 +34,7 @@ const std::string OptionHandler::GENERAL_SECTION = "General options";
 OptionHandler::OptionHandler()
 {
 	// Add the general section without any options before any other sections will be added (to make sure the general section is always shown first)
-	sections.push_back(std::make_pair(GENERAL_SECTION, OptionList()));
+	sections.emplace_back(GENERAL_SECTION, OptionList());
 }
 
 void OptionHandler::addOption(Option& opt, const std::string& section)
@@ -50,7 +50,7 @@ void OptionHandler::addOption(Option& opt, const std::string& section)
 	}
 
 	// Section does not exist yet
-	sections.push_back(std::make_pair(section, OptionList(1, &opt)));
+	sections.emplace_back(section, OptionList(1, &opt));
 }
 
 void OptionHandler::parse(int argc, char** argv)
