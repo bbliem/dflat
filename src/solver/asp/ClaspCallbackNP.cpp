@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-ClaspCallbackNP::ClaspCallbackNP(const GringoOutputProcessor& gringoOutput, const std::vector<ItemTreeBranchLookupTable>& itemTreeBranchLookupTables)
+ClaspCallbackNP::ClaspCallbackNP(const GringoOutputProcessor& gringoOutput, const MapChildIdToBranches& itemTreeBranchLookupTables)
 	: itemTree({{}})
 	, gringoOutput(gringoOutput)
 	, itemTreeBranchLookupTables(itemTreeBranchLookupTables)
@@ -101,12 +101,12 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 			// Child node number is before the first '_' (and after the initial 'r')
 			// Row number is after the first '_'
 			unsigned int underscorePos = it.first.find('_');
-			unsigned int tableNumber = std::stoi(std::string(it.first, 1, underscorePos-1));
+			unsigned int childId = std::stoi(std::string(it.first, 1, underscorePos-1));
 			unsigned int rowNumber = std::stoi(std::string(it.first, underscorePos + 1));
 			// TODO: Instead of the following assertions, throw assertions if invalid extension pointers are given. Also, add a check that ensures that if extension pointers are given, exactly one is given for each child table.
-			assert(tableNumber < itemTreeBranchLookupTables.size());
-			assert(rowNumber < itemTreeBranchLookupTables[tableNumber].getBranches().size());
-			childRows.push_back(&itemTreeBranchLookupTables[tableNumber][rowNumber].getRoot());
+			assert(itemTreeBranchLookupTables.find(childId) != itemTreeBranchLookupTables.end());
+			assert(rowNumber < itemTreeBranchLookupTables.at(childId).getBranches().size());
+			childRows.push_back(&itemTreeBranchLookupTables.at(childId)[rowNumber].getRoot());
 #ifdef DISABLE_ANSWER_SET_CHECKS
 			if(childRows.size() == itemTreeBranchLookupTables.size())
 				break;

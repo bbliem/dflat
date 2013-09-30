@@ -89,7 +89,13 @@ protected:
 			}
 		}
 
-		os << node << std::endl;
+//		os << node << std::endl;
+		os << this << " ";
+		os << node;
+		os << " parents: ";
+		for(const auto& parent : parents)
+			os << parent << " ";
+		os << std::endl;
 
 		size_t i = 0;
 		for(const auto& child : children)

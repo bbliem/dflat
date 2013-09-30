@@ -25,7 +25,7 @@ namespace solver { namespace asp {
 ItemTreeBranchLookupTable::ItemTreeBranchLookupTable(ItemTree&& itemTree)
 	: itemTree(std::move(itemTree))
 {
-	init(itemTree);
+	init(this->itemTree);
 }
 
 const ItemTree& ItemTreeBranchLookupTable::getItemTree() const

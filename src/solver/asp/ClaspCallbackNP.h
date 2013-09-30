@@ -20,6 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include <unordered_map>
 #include <clasp/clasp_facade.h>
 
 #include "../../ItemTree.h"
@@ -33,7 +34,9 @@ class ItemTreeBranchLookupTable;
 class ClaspCallbackNP : public Clasp::ClaspFacade::Callback
 {
 public:
-	ClaspCallbackNP(const GringoOutputProcessor& gringoOutput, const std::vector<ItemTreeBranchLookupTable>& itemTreeBranchLookupTables);
+	typedef std::unordered_map<unsigned int, ItemTreeBranchLookupTable> MapChildIdToBranches;
+
+	ClaspCallbackNP(const GringoOutputProcessor& gringoOutput, const MapChildIdToBranches& itemTreeBranchLookupTables);
 
 	// Call this after all answer sets have been processed. The contained item tree is moved.
 	ItemTree&& getItemTree();
@@ -50,7 +53,7 @@ public:
 private:
 	ItemTree itemTree;
 	const GringoOutputProcessor& gringoOutput;
-	const std::vector<ItemTreeBranchLookupTable>& itemTreeBranchLookupTables;
+	const MapChildIdToBranches& itemTreeBranchLookupTables;
 
 	// cf. GringoOutputProcessor.h
 	struct ItemAtom {

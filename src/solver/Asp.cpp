@@ -35,31 +35,29 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream> // XXX
 
 using namespace solver::asp;
+using MapChildIdToBranches = ClaspCallbackNP::MapChildIdToBranches;
 
 namespace {
 
 void declareDecomposition(const Decomposition& decomposition, std::ostream& out)
 {
 	out << "currentNode(" << decomposition.getRoot().getGlobalId() << ")." << std::endl;
-
-	for(const auto& child : decomposition.getChildren())
-		out << "childNode(" << child->getRoot().getGlobalId() << ")." << std::endl;
-
-	for(const auto& parent : decomposition.getParents())
-		out << "parentNode(" << parent->getRoot().getGlobalId() << ")." << std::endl;
-
 	for(const auto& v : decomposition.getRoot().getBag()) {
 		out << "bag(" << decomposition.getRoot().getGlobalId() << ',' << v << "). ";
 		out << "current(" << v << ")." << std::endl;
 	}
 
-	for(const auto& child : decomposition.getChildren())
+	for(const auto& child : decomposition.getChildren()) {
+		out << "childNode(" << child->getRoot().getGlobalId() << ")." << std::endl;
 		for(const auto& v : child->getRoot().getBag())
 			out << "bag(" << child->getRoot().getGlobalId() << ',' << v << ")." << std::endl;
+	}
 
-	for(const auto& parent : decomposition.getParents())
+	for(const auto& parent : decomposition.getParents()) {
+		out << "parentNode(" << parent->getRoot().getGlobalId() << ")." << std::endl;
 		for(const auto& v : parent->getRoot().getBag())
 			out << "bag(" << parent->getRoot().getGlobalId() << ',' << v << ")." << std::endl;
+	}
 
 	// Redundant predicates for convenience...
 	out << "-introduced(X) :- childBag(_,X)." << std::endl;
@@ -70,18 +68,21 @@ void declareDecomposition(const Decomposition& decomposition, std::ostream& out)
 	out << "root :- not -root." << std::endl;
 }
 
-void declareChildItemTrees(const std::vector<ItemTreeBranchLookupTable>& itemTreeBranchLookupTables, std::ostream& out)
+void declareChildItemTrees(const MapChildIdToBranches& itemTreeBranchLookupTables, std::ostream& out)
 {
-	for(size_t childNodeNumber = 0; childNodeNumber < itemTreeBranchLookupTables.size(); ++childNodeNumber) {
-		const ItemTreeBranchLookupTable& lookupTable = itemTreeBranchLookupTables[childNodeNumber];
+	for(const auto& childIdAndBranches : itemTreeBranchLookupTables) {
+		std::cout << "Itree " << childIdAndBranches.second.getItemTree() << '\n';
 
-		for(size_t branchNumber = 0; branchNumber < lookupTable.getBranches().size(); ++branchNumber) {
-			const ItemTree& leaf = lookupTable[branchNumber];
+		for(size_t branchNumber = 0; branchNumber < childIdAndBranches.second.getBranches().size(); ++branchNumber) {
+			const ItemTree& leaf = childIdAndBranches.second[branchNumber];
+
+			ItemTree::DirectedAcyclicGraph& parent = *leaf.getParents().front();
+			std::cout << "Leaf " << leaf << "(" << leaf.getParents().size() << " parents)" << std::endl << "Parent " << parent << std::endl;
 
 			assert(leaf.getParents().size() == 1 && leaf.getParents().front()->getParents().empty());
 			std::ostringstream rowName;
-			rowName << 'r' << childNodeNumber << '_' << branchNumber;
-			out << "childRow(" << rowName.str() << ',' << childNodeNumber << ")." << std::endl;
+			rowName << 'r' << childIdAndBranches.first << '_' << branchNumber;
+			out << "childRow(" << rowName.str() << ',' << childIdAndBranches.first << ")." << std::endl;
 			for(const auto& item : leaf.getRoot().getItems())
 				out << "childItem(" << rowName.str() << ',' << item << ")." << std::endl;
 		}
@@ -100,29 +101,28 @@ Asp::Asp(const Decomposition& decomposition, const Application& app, const std::
 
 ItemTree Asp::compute()
 {
-	std::vector<ItemTreeBranchLookupTable> itemTreeBranchLookupTables;
-	itemTreeBranchLookupTables.reserve(decomposition.getChildren().size());
+	MapChildIdToBranches itemTreeBranchLookupTables;
 
 	// Compute item trees of child nodes
 	for(const auto& child : decomposition.getChildren()) {
-		itemTreeBranchLookupTables.emplace_back(child->getSolver().compute());
-		assert(itemTreeBranchLookupTables.back().getItemTree().getRoot().getItems().empty()); // Root item set must be empty
+		itemTreeBranchLookupTables.emplace(child->getRoot().getGlobalId(), child->getSolver().compute());
+		assert(itemTreeBranchLookupTables.at(child->getRoot().getGlobalId()).getItemTree().getRoot().getItems().empty()); // Root item set must be empty
 	}
 
 	// Input: Child item trees
 	std::unique_ptr<std::stringstream> childItemTrees(new std::stringstream);
 	declareChildItemTrees(itemTreeBranchLookupTables, *childItemTrees);
-	std::cout << "Child item trees:" << std::endl << childItemTrees->str() << std::endl;
+//	std::cout << "Child item trees:" << std::endl << childItemTrees->str() << std::endl;
 
 	// Input: Original problem instance
 	std::unique_ptr<std::stringstream> instance(new std::stringstream);
 	*instance << app.getInputString();
-	std::cout << "Instance:" << std::endl << instance->str() << std::endl;
+//	std::cout << "Instance:" << std::endl << instance->str() << std::endl;
 
 	// Input: Decomposition
 	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
 	declareDecomposition(decomposition, *decompositionInput);
-	std::cout << "Decomposition:" << std::endl << decompositionInput->str() << std::endl;
+//	std::cout << "Decomposition:" << std::endl << decompositionInput->str() << std::endl;
 
 	// Put these inputs together
 	Streams inputStreams;
@@ -135,17 +135,18 @@ ItemTree Asp::compute()
 	// Call the ASP solver
 	std::unique_ptr<GringoOutputProcessor> outputProcessor(new GringoOutputProcessor);
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
-	std::unique_ptr<Clasp::ClaspFacade::Callback> cb(new ClaspCallbackNP(*outputProcessor, itemTreeBranchLookupTables));
-//	Clasp::ClaspConfig config;
-//	// config.master()->heuristic().name = "none"; // before clasp 2.1.1
-//	// config.master()->solver->strategies().heuId = Clasp::ClaspConfig::heu_none; // for clasp 2.1.1, but it seems switching the heuristic off does not pay off anymore...?
-//	config.enumerate.numModels = 0;
-//	clasp.solve(inputReader, config, cb.get());
+	std::unique_ptr<ClaspCallbackNP> cb(new ClaspCallbackNP(*outputProcessor, itemTreeBranchLookupTables));
+	Clasp::ClaspConfig config;
+	// config.master()->heuristic().name = "none"; // before clasp 2.1.1
+	// config.master()->solver->strategies().heuId = Clasp::ClaspConfig::heu_none; // for clasp 2.1.1, but it seems switching the heuristic off does not pay off anymore...?
+	config.enumerate.numModels = 0;
+	Clasp::ClaspFacade clasp;
+	std::cout << "Calling ASP solver at node " << decomposition.getRoot().getGlobalId() << std::endl;
+	clasp.solve(inputReader, config, cb.get());
 
-	ItemTree itree = ItemTreeNode({}); // empty root
-	itree.addChild(ItemTreePtr(new ItemTree(ItemTreeNode({std::to_string(decomposition.getRoot().getGlobalId())}))));
-	itree.addChild(ItemTreePtr(new ItemTree(ItemTreeNode({"foo"}))));
-
+//	return cb->getItemTree();
+	ItemTree itree = cb->getItemTree();
+	std::cout << "Resulting itree: " << itree << std::endl;
 	return itree;
 }
 
