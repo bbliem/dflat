@@ -132,15 +132,19 @@ Decomposition TreeDecomposer::decompose(const Hypergraph& instance) const
 	delete td;
 
 	// Transform SHARP's tree decomposition into our format
+	Decomposition tdWithEmptyRoot(DecompositionNode({}), app.getSolverFactory());
 	Hypergraph::Vertices rootBag;
 	for(sharp::Vertex v : normalized->getVertices())
 		rootBag.insert(problem.getVertexName(v));
 
-	Decomposition transformedTd(rootBag, app.getSolverFactory());
+	Decomposition::ChildPtr transformedTd(new Decomposition(rootBag, app.getSolverFactory()));
 	for(sharp::Hypertree* child : *normalized->getChildren())
-		transformedTd.addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), problem, app));
+		transformedTd->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), problem, app));
 	delete normalized;
-	return transformedTd;
+
+	// Add empty root
+	tdWithEmptyRoot.addChild(std::move(transformedTd));
+	return tdWithEmptyRoot;
 }
 
 } // namespace decomposer
