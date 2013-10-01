@@ -24,7 +24,7 @@ for instance in $(seq 1 $numInstances); do
 	claspExit=${PIPESTATUS[1]}
 	claspCount=$(<$claspCountFile)
 	
-	$dflat $dflatArguments -p counting -s $seed < $instance | tail -n1 | awk '{ print $2 }' > $dflatCountFile
+	$dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | sed 's/\[\([0-9]*\)\]/\1/g' > $dflatCountFile
 	dflatExit=${PIPESTATUS[0]}
 	dflatCount=$(<$dflatCountFile)
 

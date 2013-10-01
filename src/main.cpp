@@ -25,7 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 int main(int argc, char** argv)
 {
 	try {
-		Application(argv[0]).run(argc, argv);
+		return Application(argv[0]).run(argc, argv);
 	} catch(const std::exception& e) {
 		std::cerr << std::endl << "Error: " << e.what() << std::endl;
 		return 2;

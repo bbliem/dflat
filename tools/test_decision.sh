@@ -20,7 +20,7 @@ for instance in $(seq 1 $numInstances); do
 
 	$gringo $monolithicEncoding $instance 2>/dev/null | $clasp -q >/dev/null
 	claspExit=$?
-	$dflat $dflatArguments -p decision -s $seed < $instance >/dev/null
+	$dflat $dflatArguments --depth 0 --seed $seed < $instance >/dev/null
 	dflatExit=$?
 
 	[ $claspExit -ne 30 ] || claspExit=10

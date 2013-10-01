@@ -142,7 +142,7 @@ int Application::run(int argc, char** argv)
 	if(rootItree)
 		rootItree->printExtensions(std::cout, depth);
 	else {
-		std::cout << "Reject" << std::endl;
+		std::cout << "[0]" << std::endl;
 		return 20;
 	}
 	return 10;
