@@ -66,8 +66,6 @@ add_executable(dflat
 	solver/asp/GringoOutputProcessor.cpp
 	solver/asp/ClaspInputReader.cpp
 	solver/asp/ClaspCallbackNP.cpp
-	Traverser.cpp
-	traverser/Dummy.cpp
 	ItemTreeNode.cpp
 	ItemTree.cpp
 	ExtensionIterator.cpp

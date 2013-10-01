@@ -25,14 +25,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 class Decomposer;
 class SolverFactory;
-class Traverser;
 
 class Application
 {
 public:
 	Application(const std::string& binaryName);
 
-	void run(int argc, char** argv);
+	int run(int argc, char** argv);
 
 	// Print usage and exit
 	void usage(int exitCode = 0) const;
@@ -41,12 +40,10 @@ public:
 	options::OptionHandler& getOptionHandler();
 	options::Choice& getDecomposerChoice();
 	options::Choice& getSolverChoice();
-	options::Choice& getTraverserChoice();
 
 	const SolverFactory& getSolverFactory() const;
 	void setDecomposer(Decomposer& decomposer);
 	void setSolverFactory(SolverFactory& solverFactory);
-	void setTraverser(Traverser& traverser);
 
 private:
 	static const std::string MODULE_SECTION;
@@ -57,9 +54,7 @@ private:
 	options::OptionHandler opts;
 	options::Choice optDecomposer;
 	options::Choice optSolver;
-	options::Choice optTraverser;
 
 	Decomposer* decomposer;
 	SolverFactory* solverFactory;
-	Traverser* traverser;
 };

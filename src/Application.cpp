@@ -39,9 +39,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "solver/DummyFactory.h"
 #include "solver/AspFactory.h"
 
-#include "Traverser.h"
-#include "traverser/Dummy.h"
-
 #include "parser/Driver.h"
 
 const std::string Application::MODULE_SECTION = "Module selection";
@@ -66,14 +63,12 @@ Application::Application(const std::string& binaryName)
 	: binaryName(binaryName)
 	, optDecomposer("d", "decomposer", "Use decomposition method <decomposer>")
 	, optSolver("s", "solver", "Use <solver> to compute partial solutions")
-	, optTraverser("t", "traverser", "Use <traverser> to apply the solver on the decomposition")
 	, decomposer(0)
 	, solverFactory(0)
-	, traverser(0)
 {
 }
 
-void Application::run(int argc, char** argv)
+int Application::run(int argc, char** argv)
 {
 	// Set up general options
 	options::Option optHelp("h", "Print usage information and exit");
@@ -104,24 +99,11 @@ void Application::run(int argc, char** argv)
 	solver::DummyFactory dummySolverFactory(*this);
 	solver::AspFactory aspSolverFactory(*this, true);
 
-	opts.addOption(optTraverser, MODULE_SECTION);
-	traverser::Dummy dummyTraverser(*this, true);
-
-	//		options::Choice optFinalizer("f", "finalizer", "Use <finalizer> to materialize complete solutions");
-	//		optFinalizer.addChoice("enumeration", "Enumerate all solutions", true);
-	//		optFinalizer.addChoice("search", "Enumerate one solution");
-	//		optFinalizer.addChoice("counting", "Print number of solutions");
-	//		optFinalizer.addChoice("decision", "Report whether there is a solution");
-	//		optFinalizer.addChoice("none", "Do nothing");
-	//		opts.addOption(optFinalizer);
-
-
 	// Parse command line
 	opts.parse(argc, argv);
 
 	assert(decomposer);
 	assert(solverFactory);
-	assert(traverser);
 
 	// Set random seed
 	time_t seed = time(0);
@@ -156,11 +138,14 @@ void Application::run(int argc, char** argv)
 	// TODO control how computation proceeds and what is computed / printed
 	//decomposition.getSolver().compute().printExtensions(std::cout);
 	ItemTreePtr rootItree = decomposition.getSolver().compute();
-//	std::cout << *rootItree << std::endl;
+
 	if(rootItree)
 		rootItree->printExtensions(std::cout, depth);
-	else
+	else {
 		std::cout << "Reject" << std::endl;
+		return 20;
+	}
+	return 10;
 }
 
 void Application::usage(int exitCode) const
@@ -190,11 +175,6 @@ options::Choice& Application::getSolverChoice()
 	return optSolver;
 }
 
-options::Choice& Application::getTraverserChoice()
-{
-	return optTraverser;
-}
-
 const SolverFactory& Application::getSolverFactory() const
 {
 	assert(solverFactory);
@@ -209,9 +189,4 @@ void Application::setDecomposer(Decomposer& d)
 void Application::setSolverFactory(SolverFactory& s)
 {
 	solverFactory = &s;
-}
-
-void Application::setTraverser(Traverser& t)
-{
-	traverser = &t;
 }
