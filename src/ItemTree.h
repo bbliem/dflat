@@ -35,7 +35,7 @@ typedef std::unique_ptr<ItemTree> ItemTreePtr;
 // (b) its item set is equal to the other's and its set of children is (lexicographically) smaller.
 struct ItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs); };
 
-class ItemTree : public DirectedAcyclicGraph<ItemTreeNode, std::set<ItemTreePtr, ItemTreePtrComparator>>
+class ItemTree : public DirectedAcyclicGraph<std::shared_ptr<ItemTreeNode>, std::set<ItemTreePtr, ItemTreePtrComparator>>
 {
 public:
 	using DirectedAcyclicGraph::DirectedAcyclicGraph;

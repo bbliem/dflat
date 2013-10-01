@@ -137,8 +137,7 @@ void Application::run(int argc, char** argv)
 
 	// Solve
 	// TODO control how computation proceeds and what is computed / printed
-	// So far, this only prints the item tree at the root.
-	std::cout << "Root item tree:" << std::endl << decomposition.getSolver().compute();
+	decomposition.getSolver().compute().printExtensions(std::cout);
 }
 
 void Application::usage(int exitCode) const

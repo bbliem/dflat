@@ -25,7 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver { namespace asp {
 
 ClaspCallbackNP::ClaspCallbackNP(const GringoOutputProcessor& gringoOutput, const MapChildIdToBranches& itemTreeBranchLookupTables)
-	: itemTree({{}})
+	: itemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({})))
 	, gringoOutput(gringoOutput)
 	, itemTreeBranchLookupTables(itemTreeBranchLookupTables)
 {
@@ -106,7 +106,7 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 			// TODO: Instead of the following assertions, throw assertions if invalid extension pointers are given. Also, add a check that ensures that if extension pointers are given, exactly one is given for each child table.
 			assert(itemTreeBranchLookupTables.find(childId) != itemTreeBranchLookupTables.end());
 			assert(rowNumber < itemTreeBranchLookupTables.at(childId).getBranches().size());
-			childRows.push_back(&itemTreeBranchLookupTables.at(childId)[rowNumber].getRoot());
+			childRows.push_back(itemTreeBranchLookupTables.at(childId)[rowNumber].getRoot());
 #ifdef DISABLE_ANSWER_SET_CHECKS
 			if(childRows.size() == itemTreeBranchLookupTables.size())
 				break;
@@ -119,7 +119,7 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
 #endif
 
-	itemTree.addChildAndMerge(ItemTreePtr(new ItemTree({std::move(items), {std::move(childRows)}})));
+	itemTree.addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode(std::move(items), {std::move(childRows)})))));
 }
 
 }} // namespace solver::asp

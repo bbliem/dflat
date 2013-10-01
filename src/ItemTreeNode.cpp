@@ -19,6 +19,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <cassert>
+#include <memory>
 
 #include "ItemTreeNode.h"
 

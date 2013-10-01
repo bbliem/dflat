@@ -25,7 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
-	return lhs->getRoot().getItems() < rhs->getRoot().getItems() || (lhs->getRoot().getItems() == rhs->getRoot().getItems() &&
+	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() || (lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
 			std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this)
 			);
 }
@@ -54,7 +54,7 @@ void ItemTree::addChildAndMerge(ChildPtr&& child)
 
 void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool root, bool lastChild, const std::string& indent) const
 {
-	ExtensionIterator it(node);
+	ExtensionIterator it(*node);
 
 	while(it.isValid()) {
 		std::string childIndent = indent;
@@ -97,8 +97,8 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 
 void ItemTree::merge(const ItemTree& other)
 {
-	assert(node.getItems() == other.node.getItems());
-	node.merge(other.node);
+	assert(node->getItems() == other.node->getItems());
+	node->merge(*other.node);
 	assert(children.size() == other.children.size());
 	Children::const_iterator it = other.children.begin();
 	for(const ItemTreePtr& child : children) {

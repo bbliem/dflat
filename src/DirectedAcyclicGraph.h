@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <ostream>
 #include <vector>
+#include <algorithm>
 
 // Using STL containers with incomplete types is forbidden.
 // This is why the template parameter Cs is expected to be a container of smart pointers.
@@ -43,6 +44,20 @@ public:
 	typedef std::vector<DirectedAcyclicGraph*> Parents;
 
 	DirectedAcyclicGraph(Node&& leaf) : node(std::move(leaf)) {}
+
+	// When moving a DirectedAcyclicGraph, we must set the parent pointer of each child to the new address.
+	// Make sure that you don't have any other pointers (not managed by this class) pointing to the old one. (I.e., be careful with extension pointers, for instance.)
+	DirectedAcyclicGraph(DirectedAcyclicGraph&& other)
+		: node(std::move(other.node))
+		, children(std::move(other.children))
+//		, parents(std::move(other.parents)) // XXX does this make sense? Doesn't moving always have to be a root to be reasonable?
+	{
+		for(auto& child : children)
+			std::replace(child->parents.begin(), child->parents.end(), &other, this);
+	}
+
+	DirectedAcyclicGraph(const DirectedAcyclicGraph&) = delete;
+
 	const Node& getRoot() const { return node; }
 	const Parents& getParents() const { return parents; }
 	const Children& getChildren() const { return children; }
@@ -89,13 +104,7 @@ protected:
 			}
 		}
 
-//		os << node << std::endl;
-		os << this << " ";
-		os << node;
-		os << " parents: ";
-		for(const auto& parent : parents)
-			os << parent << " ";
-		os << std::endl;
+		os << node << std::endl;
 
 		size_t i = 0;
 		for(const auto& child : children)

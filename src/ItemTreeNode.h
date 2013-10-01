@@ -29,7 +29,8 @@ class ItemTreeNode
 {
 public:
 	typedef std::set<std::string> Items; // We need the sortedness for, e.g., the default join.
-	typedef std::vector<const ItemTreeNode*> ExtensionPointerTuple;
+	typedef std::shared_ptr<ItemTreeNode> ExtensionPointer;
+	typedef std::vector<ExtensionPointer> ExtensionPointerTuple;
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
 
 	ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers = {});
