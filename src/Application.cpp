@@ -19,7 +19,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <iostream>
-#include <cstdlib>
 #include <sstream>
 #include <cassert>
 
@@ -47,6 +46,22 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 const std::string Application::MODULE_SECTION = "Module selection";
 
+namespace {
+	int strToInt(const std::string& str, const std::string& errorMsg)
+	{
+		int value;
+		size_t idx;
+		try {
+			value = std::stoi(str, &idx);
+			if(idx != str.size())
+				throw std::invalid_argument("");
+		} catch(const std::invalid_argument&) {
+			throw std::runtime_error(errorMsg);
+		}
+		return value;
+	}
+}
+
 Application::Application(const std::string& binaryName)
 	: binaryName(binaryName)
 	, optDecomposer("d", "decomposer", "Use decomposition method <decomposer>")
@@ -67,6 +82,9 @@ void Application::run(int argc, char** argv)
 	// Note that we use an observer for this instead of checking manually (right after opts.parse()) if optHelp was used, because other observers might perform actions which are undesired if -h has been passed. This is why helpObserver is the first observer we register.
 	options::HelpObserver helpObserver(*this, optHelp);
 	opts.registerObserver(helpObserver);
+
+	options::SingleValueOption optDepth("depth", "d", "Print only item sets of depth at most <d>");
+	opts.addOption(optDepth);
 
 	options::MultiValueOption optEdge("e", "edge", "Predicate <edge> declares (hyper)edges");
 	opts.addOption(optEdge);
@@ -107,15 +125,14 @@ void Application::run(int argc, char** argv)
 
 	// Set random seed
 	time_t seed = time(0);
-	if(optSeed.isUsed()) {
-		char* endptr;
-		seed = strtol(optSeed.getValue().c_str(), &endptr, 0);
-		if(*endptr) {
-			std::cerr << "Invalid seed" << std::endl;
-			usage(2);
-		}
-	}
+	if(optSeed.isUsed())
+		seed = strToInt(optSeed.getValue(), "Invalid random seed");
 	srand(seed);
+
+	// Set materialization depth
+	unsigned int depth = std::numeric_limits<unsigned int>::max();
+	if(optDepth.isUsed())
+		depth = strToInt(optDepth.getValue(), "Invalid depth");
 
 	// Get (hyper-)edge predicate names
 	parser::Driver::Predicates edgePredicates(optEdge.getValues().begin(), optEdge.getValues().end());
@@ -141,9 +158,9 @@ void Application::run(int argc, char** argv)
 	ItemTreePtr rootItree = decomposition.getSolver().compute();
 //	std::cout << *rootItree << std::endl;
 	if(rootItree)
-		rootItree->printExtensions(std::cout);
+		rootItree->printExtensions(std::cout, depth);
 	else
-		std::cout << "Root itree empty\n";
+		std::cout << "Reject" << std::endl;
 }
 
 void Application::usage(int exitCode) const

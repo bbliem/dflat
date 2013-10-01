@@ -87,11 +87,15 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 
 		for(const auto& item : items)
 			os << item << ' ';
-		os << '[';
-		mpz_class count = 0;
-		for(const auto& child : children)
-			count += child->node->getCount();
-		os << count << " accepting children]";
+
+		// Print number of accepting children
+		if(children.empty() == false) {
+			os << '[';
+			mpz_class count = 0;
+			for(const auto& child : children)
+				count += child->node->getCount();
+			os << count << ']';
+		}
 
 		os << std::endl;
 
