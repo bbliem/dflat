@@ -27,11 +27,11 @@ ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
 	: items(std::move(items))
 	, extensionPointers(std::move(extensionPointers))
 {
-	if(extensionPointers.empty())
+	if(this->extensionPointers.empty())
 		count = 1;
 	else {
 		count = 0;
-		for(const ExtensionPointerTuple& tuple : extensionPointers) {
+		for(const ExtensionPointerTuple& tuple : this->extensionPointers) {
 			mpz_class product = 1;
 			for(const ExtensionPointer& predecessor : tuple)
 				product *= predecessor->getCount();

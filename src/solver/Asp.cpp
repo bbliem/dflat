@@ -137,13 +137,17 @@ ItemTreePtr Asp::compute()
 	Clasp::ClaspFacade clasp;
 	clasp.solve(inputReader, config, cb.get());
 
-//	return cb->getItemTree();
-	ItemTreePtr itree = cb->getItemTree();
-	if(itree)
-		std::cout << "Itree returned at node " << decomposition.getRoot().getGlobalId() << ": " << *itree << std::endl;
-	else
-		std::cout << "Empty itree at node " << decomposition.getRoot().getGlobalId() << std::endl;
-	return itree;
+	return cb->getItemTree();
+//	ItemTreePtr itree = cb->getItemTree();
+//	if(itree) {
+//		std::cout << "Itree returned at node " << decomposition.getRoot().getGlobalId() << ": " << *itree << std::endl;
+//		std::cout << "Extensions:\n";
+//		itree->printExtensions(std::cout);
+//		std::cout << '\n';
+//	}
+//	else
+//		std::cout << "Empty itree at node " << decomposition.getRoot().getGlobalId() << std::endl;
+//	return itree;
 }
 
 } // namespace solver
