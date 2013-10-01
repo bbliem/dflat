@@ -44,7 +44,7 @@ void ItemTree::addChildAndMerge(ChildPtr&& child)
 		const ItemTreePtr& origChild = *result.first;
 
 		// Unify child with origChild
-		child->merge(*origChild);
+		child->merge(std::move(*origChild));
 		// TODO optimization values as in the old D-FLAT's Row class. (Here or in ItemTreeNode?)
 		Children::const_iterator hint = result.first;
 		++hint;
@@ -85,17 +85,21 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 			}
 		}
 
-		for(const auto& item : items)
-			os << item << ' ';
-
 		// Print number of accepting children
 		if(children.empty() == false) {
 			os << '[';
 			mpz_class count = 0;
 			for(const auto& child : children)
 				count += child->node->getCount();
-			os << count << ']';
+			os << count << "] ";
 		}
+
+		for(const auto& item : items)
+			os << item << ' ';
+
+		// Print cost
+		if(node->getCost() != 0)
+			os << "(cost: " << node->getCost() << ')';
 
 		os << std::endl;
 
@@ -110,7 +114,7 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 void ItemTree::merge(const ItemTree& other)
 {
 	assert(node->getItems() == other.node->getItems());
-	node->merge(*other.node);
+	node->merge(std::move(*other.node));
 	assert(children.size() == other.children.size());
 	Children::const_iterator it = other.children.begin();
 	for(const ItemTreePtr& child : children) {

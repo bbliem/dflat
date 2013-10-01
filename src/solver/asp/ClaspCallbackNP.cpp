@@ -86,12 +86,14 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 	std::cout << std::endl;
 #endif
 
+	// Get items
 	ItemTreeNode::Items items;
 	for(ItemAtom& atom : itemAtoms) {
 		if(s.isTrue(atom.literal))
 			items.insert(atom.value);
 	}
 
+	// Get extension pointers
 	ItemTreeNode::ExtensionPointerTuple childRows;
 	childRows.reserve(itemTreeBranchLookupTables.size());
 
@@ -118,10 +120,26 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
 #endif
 
-	if(!itemTree)
-		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}))));
+	// Get cost
+	int cost = 0;
 
-	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode(std::move(items), {std::move(childRows)})))));
+	for(const LongToLiteral::value_type& pair : costAtoms) {
+		if(s.isTrue(pair.second)) {
+#ifndef DISABLE_ANSWER_SET_CHECKS
+			if(cost != 0)
+				throw std::runtime_error("Multiple costs");
+#endif
+			cost = pair.first;
+#ifdef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
+			break;
+#endif
+		}
+	}
+
+	if(!itemTree)
+		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode)));
+
+	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode(std::move(items), {std::move(childRows)}, cost)))));
 }
 
 }} // namespace solver::asp

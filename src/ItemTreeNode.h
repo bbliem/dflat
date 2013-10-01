@@ -34,14 +34,18 @@ public:
 	typedef std::vector<ExtensionPointer> ExtensionPointerTuple;
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
 
-	ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers = {});
+	ItemTreeNode(Items&& items = {}, ExtensionPointers&& extensionPointers = {}, int cost = 0);
 
 	const Items& getItems() const;
 	const ExtensionPointers& getExtensionPointers() const;
 	const mpz_class& getCount() const;
 
-	// Unify extension pointers of this node with the other one's given that the item sets are equal
-	void merge(const ItemTreeNode& other);
+	int getCost() const;
+	void setCost(int cost);
+
+	// Unify extension pointers of this node with the other one's given that the item sets are equal.
+	// "other" will subsequently be thrown away and only "this" will be retained.
+	void merge(ItemTreeNode&& other);
 
 	// Print this node (no newlines)
 	friend std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node);
@@ -50,6 +54,7 @@ private:
 	Items items;
 	ExtensionPointers extensionPointers;
 	mpz_class count; // number of possible extensions of this node
+	int cost;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::shared_ptr<ItemTreeNode>& node);

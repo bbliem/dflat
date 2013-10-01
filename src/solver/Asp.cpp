@@ -77,6 +77,7 @@ void declareChildItemTrees(const MapChildIdToBranches& itemTreeBranchLookupTable
 			std::ostringstream rowName;
 			rowName << 'r' << childIdAndBranches.first << '_' << branchNumber;
 			out << "childRow(" << rowName.str() << ',' << childIdAndBranches.first << ")." << std::endl;
+			out << "childCost(" << rowName.str() << ',' << leaf.getRoot()->getCost() << ")." << std::endl;
 			for(const auto& item : leaf.getRoot()->getItems())
 				out << "childItem(" << rowName.str() << ',' << item << ")." << std::endl;
 		}
