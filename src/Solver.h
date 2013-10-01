@@ -22,7 +22,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <vector>
 
-class ItemTree;
+#include "ItemTree.h"
+
 class Decomposition;
 class Application;
 
@@ -33,13 +34,13 @@ public:
 	Solver(const Decomposition& decomposition, const Application& app);
 
 	// Return the complete item tree
-	virtual ItemTree compute() = 0;
+	virtual ItemTreePtr compute() = 0;
 
 	// Return the next subtree that is a candidate for a winning strategy
-	//virtual ItemTree nextCandidate() = 0;
+	//virtual ItemTreePtr nextCandidate() = 0;
 
 	// Return the next candidate that has an optimization value below the given one
-	//virtual ItemTree nextFeasibleCandidate(int bestSoFar) = 0;
+	//virtual ItemTreePtr nextFeasibleCandidate(int bestSoFar) = 0;
 
 protected:
 	const Decomposition& decomposition;

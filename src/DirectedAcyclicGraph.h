@@ -23,6 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <ostream>
 #include <vector>
 #include <algorithm>
+#include <cassert>
 
 // Using STL containers with incomplete types is forbidden.
 // This is why the template parameter Cs is expected to be a container of smart pointers.
@@ -67,6 +68,7 @@ public:
 	// Inserts this node into the new child's list of parents.
 	void addChild(ChildPtr&& child)
 	{
+		assert(child);
 		child->parents.push_back(this);
 		children.insert(children.end(), std::move(child));
 	}

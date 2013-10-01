@@ -29,7 +29,7 @@ class Dummy : public Solver
 public:
 	using Solver::Solver;
 
-	virtual ItemTree compute() override;
+	virtual ItemTreePtr compute() override;
 };
 
 } // namespace solver

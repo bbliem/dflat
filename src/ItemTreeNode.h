@@ -24,6 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <set>
 #include <string>
+#include <gmpxx.h>
 
 class ItemTreeNode
 {
@@ -37,6 +38,7 @@ public:
 
 	const Items& getItems() const;
 	const ExtensionPointers& getExtensionPointers() const;
+	const mpz_class& getCount() const;
 
 	// Unify extension pointers of this node with the other one's given that the item sets are equal
 	void merge(const ItemTreeNode& other);
@@ -47,4 +49,7 @@ public:
 private:
 	Items items;
 	ExtensionPointers extensionPointers;
+	mpz_class count; // number of possible extensions of this node
 };
+
+std::ostream& operator<<(std::ostream& os, const std::shared_ptr<ItemTreeNode>& node);

@@ -32,9 +32,9 @@ class ItemTreeBranchLookupTable
 public:
 	typedef std::vector<const ItemTree*> Branches;
 
-	ItemTreeBranchLookupTable(ItemTree&& itemTree);
+	ItemTreeBranchLookupTable(ItemTreePtr itemTree);
 
-	const ItemTree& getItemTree() const;
+	ItemTreePtr&& getItemTree();
 	const Branches& getBranches() const;
 
 	// Returns the leaf of the i'th branch of the managed item tree
@@ -43,7 +43,7 @@ public:
 private:
 	void init(const ItemTree& node);
 
-	ItemTree itemTree;
+	ItemTreePtr itemTree;
 	Branches branches;
 };
 

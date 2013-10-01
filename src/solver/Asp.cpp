@@ -72,7 +72,8 @@ void declareChildItemTrees(const MapChildIdToBranches& itemTreeBranchLookupTable
 		for(size_t branchNumber = 0; branchNumber < childIdAndBranches.second.getBranches().size(); ++branchNumber) {
 			const ItemTree& leaf = childIdAndBranches.second[branchNumber];
 
-			assert(leaf.getParents().size() == 1 && leaf.getParents().front()->getParents().empty());
+			assert(leaf.getParents().size() == 1);
+			assert(leaf.getParents().front()->getParents().empty());
 			std::ostringstream rowName;
 			rowName << 'r' << childIdAndBranches.first << '_' << branchNumber;
 			out << "childRow(" << rowName.str() << ',' << childIdAndBranches.first << ")." << std::endl;
@@ -92,14 +93,17 @@ Asp::Asp(const Decomposition& decomposition, const Application& app, const std::
 {
 }
 
-ItemTree Asp::compute()
+ItemTreePtr Asp::compute()
 {
 	MapChildIdToBranches itemTreeBranchLookupTables;
 
 	// Compute item trees of child nodes
 	for(const auto& child : decomposition.getChildren()) {
 		itemTreeBranchLookupTables.emplace(child->getRoot().getGlobalId(), child->getSolver().compute());
-		assert(itemTreeBranchLookupTables.at(child->getRoot().getGlobalId()).getItemTree().getRoot()->getItems().empty()); // Root item set must be empty
+#ifndef NDEBUG
+		const ItemTreePtr& childItree = itemTreeBranchLookupTables.at(child->getRoot().getGlobalId()).getItemTree();
+		assert(!childItree || childItree->getRoot()->getItems().empty()); // Root item set must be empty
+#endif
 	}
 
 	// Input: Child item trees
@@ -133,7 +137,13 @@ ItemTree Asp::compute()
 	Clasp::ClaspFacade clasp;
 	clasp.solve(inputReader, config, cb.get());
 
-	return cb->getItemTree();
+//	return cb->getItemTree();
+	ItemTreePtr itree = cb->getItemTree();
+	if(itree)
+		std::cout << "Itree returned at node " << decomposition.getRoot().getGlobalId() << ": " << *itree << std::endl;
+	else
+		std::cout << "Empty itree at node " << decomposition.getRoot().getGlobalId() << std::endl;
+	return itree;
 }
 
 } // namespace solver

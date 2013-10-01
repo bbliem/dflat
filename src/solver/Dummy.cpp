@@ -24,16 +24,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver {
 
-ItemTree Dummy::compute()
+ItemTreePtr Dummy::compute()
 {
-	//ItemTree itree = ItemTreeNode({}); // empty root
-	ItemTree itree = std::shared_ptr<ItemTreeNode>(new ItemTreeNode({std::to_string(decomposition.getRoot().getGlobalId())}));
+	ItemTreePtr itree(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({std::to_string(decomposition.getRoot().getGlobalId())}))));
 
 	for(const Decomposition::ChildPtr& child : decomposition.getChildren())
-		itree.addChild(ItemTreePtr(new ItemTree(child->getSolver().compute())));
-
-	//itree.addChild(ItemTreePtr(new ItemTree(ItemTreeNode({"foo"}))));
-	//itree.addChild(ItemTreePtr(new ItemTree(ItemTreeNode({"bar"}))));
+		itree->addChild(child->getSolver().compute());
 
 	return itree;
 }

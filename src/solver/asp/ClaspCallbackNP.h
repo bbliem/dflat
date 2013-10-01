@@ -38,8 +38,8 @@ public:
 
 	ClaspCallbackNP(const GringoOutputProcessor& gringoOutput, const MapChildIdToBranches& itemTreeBranchLookupTables);
 
-	// Call this after all answer sets have been processed. The contained item tree is moved.
-	ItemTree&& getItemTree();
+	// Call this after all answer sets have been processed
+	ItemTreePtr getItemTree();
 
 	// Called if the current configuration contains unsafe/unreasonable options
 	virtual void warning(const char* msg);
@@ -51,7 +51,7 @@ public:
 	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f);
 
 private:
-	ItemTree itemTree;
+	ItemTreePtr itemTree;
 	const GringoOutputProcessor& gringoOutput;
 	const MapChildIdToBranches& itemTreeBranchLookupTables;
 

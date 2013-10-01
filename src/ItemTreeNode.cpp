@@ -27,6 +27,17 @@ ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
 	: items(std::move(items))
 	, extensionPointers(std::move(extensionPointers))
 {
+	if(extensionPointers.empty())
+		count = 1;
+	else {
+		count = 0;
+		for(const ExtensionPointerTuple& tuple : extensionPointers) {
+			mpz_class product = 1;
+			for(const ExtensionPointer& predecessor : tuple)
+				product *= predecessor->getCount();
+			count += product;
+		}
+	}
 }
 
 const ItemTreeNode::Items& ItemTreeNode::getItems() const
@@ -39,19 +50,31 @@ const ItemTreeNode::ExtensionPointers& ItemTreeNode::getExtensionPointers() cons
 	return extensionPointers;
 }
 
+const mpz_class& ItemTreeNode::getCount() const
+{
+	return count;
+}
+
 void ItemTreeNode::merge(const ItemTreeNode& other)
 {
 	assert(items == other.items);
 	extensionPointers.insert(extensionPointers.end(), other.extensionPointers.begin(), other.extensionPointers.end());
+	count += other.count;
 }
 
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 {
+	os << '[' << node.count << "] ";
 	ItemTreeNode::Items::const_iterator it = node.items.begin();
 	if(it != node.items.end()) {
 		os << *it;
 		while(++it != node.items.end())
-			os << ',' << *it;
+			os << ' ' << *it;
 	}
 	return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::shared_ptr<ItemTreeNode>& node)
+{
+	return os << *node;
 }

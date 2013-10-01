@@ -137,7 +137,13 @@ void Application::run(int argc, char** argv)
 
 	// Solve
 	// TODO control how computation proceeds and what is computed / printed
-	decomposition.getSolver().compute().printExtensions(std::cout);
+	//decomposition.getSolver().compute().printExtensions(std::cout);
+	ItemTreePtr rootItree = decomposition.getSolver().compute();
+//	std::cout << *rootItree << std::endl;
+	if(rootItree)
+		rootItree->printExtensions(std::cout);
+	else
+		std::cout << "Root itree empty\n";
 }
 
 void Application::usage(int exitCode) const

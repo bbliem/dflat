@@ -22,15 +22,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-ItemTreeBranchLookupTable::ItemTreeBranchLookupTable(ItemTree&& itemTree)
+ItemTreeBranchLookupTable::ItemTreeBranchLookupTable(ItemTreePtr itemTree)
 	: itemTree(std::move(itemTree))
 {
-	init(this->itemTree);
+	if(this->itemTree)
+		init(*this->itemTree);
 }
 
-const ItemTree& ItemTreeBranchLookupTable::getItemTree() const
+ItemTreePtr&& ItemTreeBranchLookupTable::getItemTree()
 {
-	return itemTree;
+	return std::move(itemTree);
 }
 
 const ItemTreeBranchLookupTable::Branches& ItemTreeBranchLookupTable::getBranches() const

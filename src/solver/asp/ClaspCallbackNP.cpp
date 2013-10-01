@@ -25,13 +25,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver { namespace asp {
 
 ClaspCallbackNP::ClaspCallbackNP(const GringoOutputProcessor& gringoOutput, const MapChildIdToBranches& itemTreeBranchLookupTables)
-	: itemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({})))
-	, gringoOutput(gringoOutput)
+	: gringoOutput(gringoOutput)
 	, itemTreeBranchLookupTables(itemTreeBranchLookupTables)
 {
 }
 
-ItemTree&& ClaspCallbackNP::getItemTree()
+ItemTreePtr ClaspCallbackNP::getItemTree()
 {
 	return std::move(itemTree);
 }
@@ -119,7 +118,10 @@ void ClaspCallbackNP::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e,
 		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
 #endif
 
-	itemTree.addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode(std::move(items), {std::move(childRows)})))));
+	if(!itemTree)
+		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}))));
+
+	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode(std::move(items), {std::move(childRows)})))));
 }
 
 }} // namespace solver::asp
