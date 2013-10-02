@@ -66,16 +66,23 @@ namespace {
 		const Hypergraph& instance;
 	};
 
-	Decomposition::ChildPtr transformTd(sharp::ExtendedHypertree& td, sharp::Problem& problem, const Application& app)
+	DecompositionPtr transformTd(sharp::ExtendedHypertree& td, bool emptyLeaves, sharp::Problem& problem, const Application& app)
 	{
-		Hypergraph::Vertices rootBag;
+		Hypergraph::Vertices bag;
 		for(sharp::Vertex v : td.getVertices())
-			rootBag.insert(problem.getVertexName(v));
+			bag.insert(problem.getVertexName(v));
 
-		Decomposition::ChildPtr transformedTd(new Decomposition(rootBag, app.getSolverFactory()));
-		for(sharp::Hypertree* child : *td.getChildren())
-			transformedTd->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), problem, app));
-		return transformedTd;
+		DecompositionPtr result(new Decomposition(bag, app.getSolverFactory()));
+		// If there are no children, optionally add empty leaves
+		if(td.getChildren()->empty()) {
+			if(emptyLeaves)
+				result->addChild(DecompositionPtr(new Decomposition(DecompositionNode({}), app.getSolverFactory())));
+		}
+		else {
+			for(sharp::Hypertree* child : *td.getChildren())
+				result->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), emptyLeaves, problem, app));
+		}
+		return result;
 	}
 }
 
@@ -87,6 +94,8 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	: Decomposer(app, "td", "Tree decomposition (bucket elimination)", newDefault)
 	, optNormalization("n", "normalization", "Use normal form <normalization> for the tree decomposition")
 	, optEliminationOrdering("elimination-ordering", "o", "Use elimination ordering <o> for bucket elimination")
+	, optNoEmptyRoot("no-empty-root", "Do not add an empty root to the tree decomposition")
+	, optNoEmptyLeaves("no-empty-leaves", "Do not add empty leaves to the tree decomposition")
 {
 	optNormalization.addCondition(selected);
 	optNormalization.addChoice("none", "No normalization", true);
@@ -99,9 +108,15 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	optEliminationOrdering.addChoice("min-fill", "Minimum fill ordering");
 	optEliminationOrdering.addChoice("mcs", "Maximum cardinality search");
 	app.getOptionHandler().addOption(optEliminationOrdering, OPTION_SECTION);
+
+	optNoEmptyRoot.addCondition(selected);
+	app.getOptionHandler().addOption(optNoEmptyRoot, OPTION_SECTION);
+
+	optNoEmptyLeaves.addCondition(selected);
+	app.getOptionHandler().addOption(optNoEmptyLeaves, OPTION_SECTION);
 }
 
-Decomposition TreeDecomposer::decompose(const Hypergraph& instance) const
+DecompositionPtr TreeDecomposer::decompose(const Hypergraph& instance) const
 {
 	// Which algorithm to use?
 	sharp::AbstractEliminationOrdering* ordering;
@@ -117,7 +132,7 @@ Decomposition TreeDecomposer::decompose(const Hypergraph& instance) const
 
 	// Use SHARP to decompose
 	SharpProblem problem(instance, algorithm);
-	sharp::ExtendedHypertree* td = problem.calculateHypertreeDecomposition();
+	std::unique_ptr<sharp::ExtendedHypertree> td(problem.calculateHypertreeDecomposition());
 	assert(td);
 
 	// Normalize
@@ -128,23 +143,20 @@ Decomposition TreeDecomposer::decompose(const Hypergraph& instance) const
 		normalizationType = sharp::DefaultNormalization;
 	else
 		normalizationType = sharp::NoNormalization;
-	sharp::ExtendedHypertree* normalized = td->normalize(normalizationType);
-	delete td;
+	std::unique_ptr<sharp::ExtendedHypertree> normalized(td->normalize(normalizationType));
+	td.reset();
 
 	// Transform SHARP's tree decomposition into our format
-	Decomposition tdWithEmptyRoot(DecompositionNode({}), app.getSolverFactory());
-	Hypergraph::Vertices rootBag;
-	for(sharp::Vertex v : normalized->getVertices())
-		rootBag.insert(problem.getVertexName(v));
+	DecompositionPtr transformed = transformTd(*normalized, !optNoEmptyLeaves.isUsed(), problem, app);
 
-	Decomposition::ChildPtr transformedTd(new Decomposition(rootBag, app.getSolverFactory()));
-	for(sharp::Hypertree* child : *normalized->getChildren())
-		transformedTd->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), problem, app));
-	delete normalized;
-
-	// Add empty root
-	tdWithEmptyRoot.addChild(std::move(transformedTd));
-	return tdWithEmptyRoot;
+	// Optionally add empty root
+	if(optNoEmptyRoot.isUsed())
+		return transformed;
+	else {
+		DecompositionPtr result(new Decomposition(DecompositionNode({}), app.getSolverFactory()));
+		result->addChild(std::move(transformed));
+		return result;
+	}
 }
 
 } // namespace decomposer

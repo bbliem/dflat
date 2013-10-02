@@ -28,9 +28,13 @@ const std::string AspFactory::OPTION_SECTION = "ASP solver";
 AspFactory::AspFactory(Application& app, bool newDefault)
 	: SolverFactory(app, "asp", "Answer Set Programming", newDefault)
 	, optEncodingFile("p", "program", "Use <program> as the ASP encoding for solving")
+	, optDefaultJoin("default-join", "Use built-in implementation for join nodes")
 {
 	optEncodingFile.addCondition(selected);
 	app.getOptionHandler().addOption(optEncodingFile, OPTION_SECTION);
+
+	optDefaultJoin.addCondition(selected);
+	app.getOptionHandler().addOption(optDefaultJoin, OPTION_SECTION);
 }
 
 std::unique_ptr<Solver> AspFactory::newSolver(const Decomposition& decomposition) const

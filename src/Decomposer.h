@@ -21,8 +21,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "Module.h"
+#include "Decomposition.h"
 
-class Decomposition;
 class Hypergraph;
 
 class Decomposer : public Module
@@ -30,7 +30,7 @@ class Decomposer : public Module
 public:
 	Decomposer(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
 
-	virtual Decomposition decompose(const Hypergraph& instance) const = 0;
+	virtual DecompositionPtr decompose(const Hypergraph& instance) const = 0;
 
 	virtual void select() override;
 };

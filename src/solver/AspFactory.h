@@ -39,6 +39,7 @@ private:
 	static const std::string OPTION_SECTION;
 
 	options::SingleValueOption optEncodingFile;
+	options::Option            optDefaultJoin;
 };
 
 } // namespace solver

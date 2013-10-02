@@ -128,16 +128,16 @@ int Application::run(int argc, char** argv)
 	Hypergraph instance = parser::Driver(inputString, edgePredicates).parse();
 
 	// Decompose instance
-	Decomposition decomposition = decomposer->decompose(instance);
+	DecompositionPtr decomposition = decomposer->decompose(instance);
 
 	// Print decomposition if requested
 	if(optPrintDecomposition.isUsed())
-		std::cout << "Decomposition:" << std::endl << decomposition << std::endl;
+		std::cout << "Decomposition:" << std::endl << *decomposition << std::endl;
 
 	// Solve
 	// TODO control how computation proceeds and what is computed / printed
 	//decomposition.getSolver().compute().printExtensions(std::cout);
-	ItemTreePtr rootItree = decomposition.getSolver().compute();
+	ItemTreePtr rootItree = decomposition->getSolver().compute();
 
 	if(rootItree)
 		rootItree->printExtensions(std::cout, depth);

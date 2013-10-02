@@ -28,11 +28,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Solver.h"
 
 class SolverFactory;
+typedef std::shared_ptr<Decomposition> DecompositionPtr;
 
 // A decomposition is a (rooted) DAG where each node corresponds to a part of the instance.
 // An instance of this class contains the root node and pointers to its children.
 // Additionally, it contains a solver that is responsible for producing the local item tree of the root.
-class Decomposition : public DirectedAcyclicGraph<DecompositionNode, std::vector<std::shared_ptr<Decomposition>>>
+class Decomposition : public DirectedAcyclicGraph<DecompositionNode, std::vector<DecompositionPtr>>
 {
 public:
 	Decomposition(Node&& leaf, const SolverFactory& solverFactory);

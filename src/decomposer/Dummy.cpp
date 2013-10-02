@@ -29,9 +29,9 @@ Dummy::Dummy(Application& app, bool newDefault)
 {
 }
 
-Decomposition Dummy::decompose(const Hypergraph& instance) const
+DecompositionPtr Dummy::decompose(const Hypergraph& instance) const
 {
-	return Decomposition(instance.getVertices(), app.getSolverFactory());
+	return DecompositionPtr(new Decomposition(instance.getVertices(), app.getSolverFactory()));
 }
 
 } // namespace decomposer

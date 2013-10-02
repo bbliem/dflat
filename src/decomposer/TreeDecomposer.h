@@ -30,13 +30,15 @@ class TreeDecomposer : public Decomposer
 public:
 	TreeDecomposer(Application& app, bool newDefault = false);
 
-	virtual Decomposition decompose(const Hypergraph& instance) const override;
+	virtual DecompositionPtr decompose(const Hypergraph& instance) const override;
 
 private:
 	static const std::string OPTION_SECTION;
 
 	options::Choice optNormalization;
 	options::Choice optEliminationOrdering;
+	options::Option optNoEmptyRoot;
+	options::Option optNoEmptyLeaves;
 };
 
 } // namespace decomposer
