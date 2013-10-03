@@ -26,18 +26,18 @@ namespace parser {
 
 Terms::Terms(std::string* term)
 {
-    terms.push_back(term);
+	terms.push_back(term);
 }
 
 Terms::~Terms()
 {
 	for(auto* t : terms)
-        delete t;
+		delete t;
 }
 
 void Terms::push_back(std::string* term)
 {
-    terms.push_back(term);
+	terms.push_back(term);
 }
 
 const Terms::List& Terms::getTerms() const
@@ -48,11 +48,11 @@ const Terms::List& Terms::getTerms() const
 std::ostream& operator<<(std::ostream& stream, const Terms& terms)
 {
 	Terms::List::const_iterator i = terms.terms.begin();
-    if(i != terms.terms.end())
-        stream << **(i++);
-    while(i != terms.terms.end())
-        stream << ',' << **(i++);
-    return stream;
+	if(i != terms.terms.end())
+		stream << **(i++);
+	while(i != terms.terms.end())
+		stream << ',' << **(i++);
+	return stream;
 }
 
 } // namespace parser

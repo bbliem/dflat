@@ -29,7 +29,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 	class Hypergraph;
 	namespace parser {
 		class Driver;
-    	class Terms;
+		class Terms;
 	}
 }
 
@@ -42,7 +42,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 %code
 {
 	#include "../../src/parser/Driver.h"
-    #include "../../src/parser/Terms.h"
+	#include "../../src/parser/Terms.h"
 }
 
 %union
@@ -65,16 +65,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 %start facts;
 
 simpleterm: "identifier" { $$ = $1; }
-		  | "number"     { $$ = $1; }
-		  | "qstring"    { $$ = $1; }
-		  ;
+          | "number"     { $$ = $1; }
+          | "qstring"    { $$ = $1; }
+          ;
 
 term: simpleterm { $$ = $1; }
     | function   { $$ = $1; }
     ;
 
 terms: term           { $$ = new parser::Terms($1); }
-	 | terms ',' term {
+     | terms ',' term {
                         $1->push_back($3);
                         $$ = $1;
                       }
@@ -101,7 +101,7 @@ fact: "identifier" '.'               {
     ;
 
 facts: /* empty */
-	 | facts fact
+     | facts fact
      ;
 
 %%

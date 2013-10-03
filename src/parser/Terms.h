@@ -28,11 +28,11 @@ class Terms
 {
 public:
 	typedef std::vector<std::string*> List;
-    Terms(std::string* term);
-    ~Terms();
-    void push_back(std::string* term);
+	Terms(std::string* term);
+	~Terms();
+	void push_back(std::string* term);
 	const List& getTerms() const;
-    friend std::ostream& operator<<(std::ostream& stream, const Terms& terms);
+	friend std::ostream& operator<<(std::ostream& stream, const Terms& terms);
 private:
 	List terms;
 };

@@ -51,7 +51,7 @@ public:
 	DirectedAcyclicGraph(DirectedAcyclicGraph&& other)
 		: node(std::move(other.node))
 		, children(std::move(other.children))
-//		, parents(std::move(other.parents)) // XXX does this make sense? Doesn't moving always have to be a root to be reasonable?
+//		, parents(std::move(other.parents)) // XXX does this make sense?
 	{
 		for(auto& child : children)
 			std::replace(child->parents.begin(), child->parents.end(), &other, this);

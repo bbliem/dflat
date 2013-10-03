@@ -19,6 +19,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "DummyFactory.h"
+#include "Dummy.h"
 
 namespace solver {
 

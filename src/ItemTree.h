@@ -43,10 +43,18 @@ public:
 	// If there is a subtree rooted at a child of this node that has equal item sets as the given one, the existing subtree is unified with the given one
 	void addChildAndMerge(ChildPtr&& child);
 
+	// Call this to allow random access to this node's children via getChild(), and also random access for all children of descendants of this node
+	void prepareRandomAccessToChildren();
+
+	// Use this after calling prepareRandomAccessToChildren() to get the i'th child of this node
+	const ItemTree& getChild(size_t i) const;
+
 	// Print the tree that would result from recursively extending all nodes
 	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool root = true, bool lastChild = false, const std::string& indent = "") const;
 
 private:
 	// Recursively unify extension pointers of this itree with the other one's given that the item sets are all equal
 	void merge(const ItemTree& other);
+
+	std::vector<const ItemTree*> childrenVector; // for random access via getChild()
 };

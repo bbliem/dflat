@@ -24,54 +24,47 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <clasp/clasp_facade.h>
 
 #include "../../ItemTree.h"
+#include "GringoOutputProcessor.h"
 
 namespace solver { namespace asp {
-
-class GringoOutputProcessor;
-class ItemTreeBranchLookupTable;
+class ItemSetLookupTable;
 
 // Gets called by clasp whenever a model has been found
-class ClaspCallbackNP : public Clasp::ClaspFacade::Callback
+class ClaspCallback : public Clasp::ClaspFacade::Callback
 {
 public:
-	typedef std::unordered_map<unsigned int, ItemTreeBranchLookupTable> MapChildIdToBranches;
+	template<typename T>
+	struct AtomInfo {
+		AtomInfo(const GringoOutputProcessor::AtomInfo<T>& gringoAtomInfo, const Clasp::SymbolTable& symTab)
+			: arguments(gringoAtomInfo.arguments) // XXX move?
+			, literal(symTab[gringoAtomInfo.symbolTableKey].lit)
+		{
+		}
 
-	ClaspCallbackNP(const GringoOutputProcessor& gringoOutput, const MapChildIdToBranches& itemTreeBranchLookupTables);
+		T arguments;
+		Clasp::Literal literal;
+	};
 
-	// Call this after all answer sets have been processed
+	// Key: Global ID of child node; value: the child node's item tree
+	typedef std::unordered_map<unsigned int, ItemTreePtr> ChildItemTrees;
+
+	ClaspCallback(const ChildItemTrees& childItemTrees);
+
+	// Call this after all answer sets have been processed. It returns the resulting item tree (and calls prepareRandomAccessToChildren() on it).
 	ItemTreePtr getItemTree();
 
 	// Called if the current configuration contains unsafe/unreasonable options
-	virtual void warning(const char* msg);
+	virtual void warning(const char* msg) override;
 
 	// Called on entering/exiting a state
-	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&);
+	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override = 0;
 
 	// Called for important events, e.g. a model has been found
-	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f);
+	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f) override = 0;
 
-private:
+protected:
 	ItemTreePtr itemTree;
-	const GringoOutputProcessor& gringoOutput;
-	const MapChildIdToBranches& itemTreeBranchLookupTables;
-
-	// cf. GringoOutputProcessor.h
-	struct ItemAtom {
-		std::string value;
-		Clasp::Literal literal;
-		ItemAtom(const std::string& value, Clasp::Literal literal)
-			: value(value), literal(literal)
-		{}
-	};
-	std::vector<ItemAtom> itemAtoms;
-
-	typedef std::map<std::string, Clasp::Literal> StringToLiteral;
-	StringToLiteral extendAtoms;
-
-	typedef std::map<long, Clasp::Literal> LongToLiteral;
-	LongToLiteral countAtoms;
-	LongToLiteral currentCostAtoms;
-	LongToLiteral costAtoms;
+	const ChildItemTrees& childItemTrees;
 };
 
 }} // namespace solver::asp

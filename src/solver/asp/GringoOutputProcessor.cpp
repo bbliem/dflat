@@ -45,11 +45,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-GringoOutputProcessor::GringoOutputProcessor(bool ignoreOptimization)
-	: LparseConverter(0, false), b_(0), lastUnnamed_(0), ignoreOptimization(ignoreOptimization)
-#ifndef NDEBUG
-	, itemArity(0)
-#endif
+GringoOutputProcessor::GringoOutputProcessor()
+	: LparseConverter(0, false)
+	, b_(0)
+	, lastUnnamed_(0)
 {
 }
 
@@ -59,6 +58,21 @@ void GringoOutputProcessor::initialize()
 	b_->setCompute(false_, false);
 	lastUnnamed_ = atomUnnamed_.size();
 	atomUnnamed_.clear();
+}
+
+std::vector<std::string> GringoOutputProcessor::getArguments(ValVec::const_iterator start, uint32_t arity) const
+{
+	std::vector<std::string> arguments;
+	arguments.reserve(arity);
+	const ValVec::const_iterator end = start + arity;
+	while(start != end)
+	{
+		std::stringstream ss;
+		start->print(s_, ss);
+		arguments.emplace_back(ss.str());
+		++start;
+	}
+	return arguments;
 }
 
 void GringoOutputProcessor::printBasicRule(int head, const AtomVec &pos, const AtomVec &neg)
@@ -130,88 +144,26 @@ void GringoOutputProcessor::printComputeRule(int models, const AtomVec &pos, con
 
 void GringoOutputProcessor::printSymbolTableEntry(const AtomRef &atom, uint32_t arity, const std::string &name)
 {
+	// Set human-readable atom names
 	std::stringstream ss;
 	ss << name;
 	if(arity > 0)
 	{
 		ValVec::const_iterator k = vals_.begin() + atom.second;
-		ValVec::const_iterator end = k + arity;
-		ss << "(";
-		k->print(s_, ss);
-		for(++k; k != end; ++k)
+		const ValVec::const_iterator end = k + arity;
+		char separator = '(';
+		do
 		{
-			ss << ",";
+			ss << separator;
+			separator = ',';
 			k->print(s_, ss);
-		}
-		ss << ")";
+		} while(++k != end);
+		ss << ')';
 	}
 	b_->setAtomName(atom.first, ss.str().c_str());
 	atomUnnamed_[atom.first - lastUnnamed_] = false;
 
-#ifndef NDEBUG
-	// Arity of item must be used consistently
-	if(name == "item") {
-		assert(!itemArity || itemArity == arity);
-		itemArity = arity;
-	}
-#endif
-
-	if(name == "item") {
-		if(arity == 2) {
-			std::stringstream firstArg; // First argument
-			std::ostringstream secondArg; // Second argument
-			ValVec::const_iterator k = vals_.begin() + atom.second;
-			(k++)->print(s_, firstArg);
-			k->print(s_, secondArg);
-
-			unsigned int firstArgNum = std::stoi(firstArg.str());
-
-			itemAtoms.emplace_back(firstArgNum, secondArg.str(), atom.first);
-		}
-		else if(arity == 1) {
-			std::ostringstream arg;
-			ValVec::const_iterator k = vals_.begin() + atom.second;
-			k->print(s_, arg);
-
-			itemAtoms.emplace_back(0, arg.str(), atom.first);
-		}
-	}
-	else if(name == "extend") {
-		if(arity == 2) {
-			std::stringstream firstArg; // First argument
-			std::ostringstream secondArg; // Second argument
-			ValVec::const_iterator k = vals_.begin() + atom.second;
-			(k++)->print(s_, firstArg);
-			k->print(s_, secondArg);
-
-			unsigned int firstArgNum = std::stoi(firstArg.str());
-
-			extendAtoms.emplace_back(firstArgNum, secondArg.str(), atom.first);
-		}
-		else if(arity == 1) {
-			std::ostringstream arg;
-			ValVec::const_iterator k = vals_.begin() + atom.second;
-			k->print(s_, arg);
-
-			extendAtoms.emplace_back(0, arg.str(), atom.first);
-		}
-	}
-	else if(name == "levels") {
-		assert(arity == 1);
-		storeNumberAtom(atom, levelsAtoms);
-	}
-	else if(name == "count") {
-		assert(arity == 1);
-		storeNumberAtom(atom, countAtoms);
-	}
-	else if(!ignoreOptimization && name == "currentCost") {
-		assert(arity == 1);
-		storeNumberAtom(atom, currentCostAtoms);
-	}
-	else if(!ignoreOptimization && name == "cost") {
-		assert(arity == 1);
-		storeNumberAtom(atom, costAtoms);
-	}
+	storeAtom(name, vals_.begin() + atom.second, arity, atom.first);
 }
 
 void GringoOutputProcessor::printExternalTableEntry(const AtomRef &atom, uint32_t arity, const std::string &name)
@@ -244,14 +196,6 @@ const LparseConverter::SymbolMap &GringoOutputProcessor::symbolMap(uint32_t domI
 ValRng GringoOutputProcessor::vals(Domain *dom, uint32_t offset) const
 {
 	return ValRng(vals_.begin() + offset, vals_.begin() + offset + dom->arity());
-}
-
-inline void GringoOutputProcessor::storeNumberAtom(const AtomRef& atom, LongToSymbolTableKey& store)
-{
-	std::stringstream firstArg; // First argument
-	ValVec::const_iterator k = vals_.begin() + atom.second;
-	k->print(s_, firstArg);
-	store[std::strtol(firstArg.str().c_str(), 0, 0)] = atom.first;
 }
 
 }} // namespace solver::asp

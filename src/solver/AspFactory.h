@@ -22,7 +22,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../SolverFactory.h"
 #include "../options/SingleValueOption.h"
-#include "Asp.h"
 
 namespace solver {
 
@@ -40,6 +39,7 @@ private:
 
 	options::SingleValueOption optEncodingFile;
 	options::Option            optDefaultJoin;
+	options::Option            optTables;
 };
 
 } // namespace solver

@@ -54,6 +54,22 @@ void ItemTree::addChildAndMerge(ChildPtr&& child)
 	}
 }
 
+void ItemTree::prepareRandomAccessToChildren()
+{
+	assert(childrenVector.empty());
+	childrenVector.reserve(children.size());
+	for(const auto& child : children) {
+		childrenVector.push_back(child.get());
+		child->prepareRandomAccessToChildren();
+	}
+}
+
+const ItemTree& ItemTree::getChild(size_t i) const
+{
+	assert(childrenVector.size() == children.size());
+	return *childrenVector[i];
+}
+
 void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool root, bool lastChild, const std::string& indent) const
 {
 	ExtensionIterator it(*node);

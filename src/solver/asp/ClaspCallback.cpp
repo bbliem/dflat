@@ -18,33 +18,25 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include <vector>
-
-#include "../../ItemTree.h"
+#include "ClaspCallback.h"
 
 namespace solver { namespace asp {
 
-// Associates an integer with each branch of an item tree, which allows for random access.
-class ItemTreeBranchLookupTable
+ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees)
+	: childItemTrees(childItemTrees)
 {
-public:
-	typedef std::vector<const ItemTree*> Branches;
+}
 
-	ItemTreeBranchLookupTable(ItemTreePtr itemTree);
+ItemTreePtr ClaspCallback::getItemTree()
+{
+	if(itemTree)
+		itemTree->prepareRandomAccessToChildren();
+	return std::move(itemTree);
+}
 
-	ItemTreePtr&& getItemTree();
-	const Branches& getBranches() const;
-
-	// Returns the leaf of the i'th branch of the managed item tree
-	const ItemTree& operator[](unsigned int i) const;
-
-private:
-	void init(const ItemTree& node);
-
-	ItemTreePtr itemTree;
-	Branches branches;
-};
+void ClaspCallback::warning(const char* msg)
+{
+	std::cerr << "clasp warning: " << msg << std::endl;
+}
 
 }} // namespace solver::asp

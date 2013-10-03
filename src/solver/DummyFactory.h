@@ -21,7 +21,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "../SolverFactory.h"
-#include "Dummy.h"
 
 namespace solver {
 

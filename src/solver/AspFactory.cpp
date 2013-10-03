@@ -19,6 +19,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "AspFactory.h"
+#include "Asp.h"
 #include "../Application.h"
 
 namespace solver {
@@ -29,17 +30,21 @@ AspFactory::AspFactory(Application& app, bool newDefault)
 	: SolverFactory(app, "asp", "Answer Set Programming", newDefault)
 	, optEncodingFile("p", "program", "Use <program> as the ASP encoding for solving")
 	, optDefaultJoin("default-join", "Use built-in implementation for join nodes")
+	, optTables("tables", "Use table mode (for item trees of height at most 1)")
 {
 	optEncodingFile.addCondition(selected);
 	app.getOptionHandler().addOption(optEncodingFile, OPTION_SECTION);
 
 	optDefaultJoin.addCondition(selected);
 	app.getOptionHandler().addOption(optDefaultJoin, OPTION_SECTION);
+
+	optTables.addCondition(selected);
+	app.getOptionHandler().addOption(optTables, OPTION_SECTION);
 }
 
 std::unique_ptr<Solver> AspFactory::newSolver(const Decomposition& decomposition) const
 {
-	return std::unique_ptr<Solver>(new Asp(decomposition, app, optEncodingFile.getValue()));
+	return std::unique_ptr<Solver>(new Asp(decomposition, app, optEncodingFile.getValue(), optTables.isUsed()));
 }
 
 void AspFactory::select()

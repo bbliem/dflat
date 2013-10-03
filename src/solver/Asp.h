@@ -27,12 +27,13 @@ namespace solver {
 class Asp : public Solver
 {
 public:
-	Asp(const Decomposition& decomposition, const Application& app, const std::string& encodingFile);
+	Asp(const Decomposition& decomposition, const Application& app, const std::string& encodingFile, bool tableMode);
 
 	virtual ItemTreePtr compute() override;
 
 protected:
 	std::string encodingFile;
+	bool tableMode;
 };
 
 } // namespace solver

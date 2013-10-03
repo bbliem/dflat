@@ -29,41 +29,14 @@ namespace solver { namespace asp {
 
 class GringoOutputProcessor : public LparseConverter
 {
-	typedef std::vector<bool> BoolVec;
 public:
-	//! @param ignoreOptimization true iff the predicates responsible for optimization problems should be ignored (e.g., cost/1, currentCost/1)
-	GringoOutputProcessor(bool ignoreOptimization = false);
-
-	// Arguments of the item/2 predicate (the item's level and value)
-	struct ItemAtom {
-		unsigned int level;
-		std::string value;
+	template<typename T>
+	struct AtomInfo {
+		T arguments;
 		Clasp::SymbolTable::key_type symbolTableKey;
-
-		ItemAtom(unsigned int level, const std::string& value, Clasp::SymbolTable::key_type symbolTableKey)
-			: level(level), value(value), symbolTableKey(symbolTableKey)
-		{}
 	};
-	const std::vector<ItemAtom>& getItemAtoms() const { return itemAtoms; }
 
-	// Arguments of the extend/2 predicate (the level and predecessor item set / row)
-	struct ExtendAtom {
-		unsigned int level;
-		std::string extended;
-		Clasp::SymbolTable::key_type symbolTableKey;
-
-		ExtendAtom(unsigned int level, const std::string& extended, Clasp::SymbolTable::key_type symbolTableKey)
-			: level(level), extended(extended), symbolTableKey(symbolTableKey)
-		{
-		}
-	};
-	const std::vector<ExtendAtom>& getExtendAtoms() const { return extendAtoms; }
-
-	typedef std::map<long, Clasp::SymbolTable::key_type> LongToSymbolTableKey;
-	const LongToSymbolTableKey& getLevelsAtoms() const { return levelsAtoms; }
-	const LongToSymbolTableKey& getCountAtoms() const { return countAtoms; }
-	const LongToSymbolTableKey& getCurrentCostAtoms() const { return currentCostAtoms; }
-	const LongToSymbolTableKey& getCostAtoms() const { return costAtoms; }
+	GringoOutputProcessor();
 
 	virtual void initialize();
 	virtual void setProgramBuilder(Clasp::ProgramBuilder* api) { b_ = api; }
@@ -71,6 +44,9 @@ public:
 	virtual ValRng vals(Domain *dom, uint32_t offset) const;
 
 protected:
+	std::vector<std::string> getArguments(ValVec::const_iterator firstArg, uint32_t arity) const;
+	virtual void storeAtom(const std::string& name, ValVec::const_iterator firstArg, uint32_t arity, Clasp::SymbolTable::key_type symbolTableKey) = 0;
+
 	virtual void printBasicRule(int head, const AtomVec &pos, const AtomVec &neg);
 	virtual void printConstraintRule(int head, int bound, const AtomVec &pos, const AtomVec &neg);
 	virtual void printChoiceRule(const AtomVec &head, const AtomVec &pos, const AtomVec &neg);
@@ -84,24 +60,9 @@ protected:
 	virtual void doFinalize();
 
 	Clasp::ProgramBuilder *b_;
-	BoolVec  atomUnnamed_;
+	typedef std::vector<bool> BoolVec;
+	BoolVec atomUnnamed_;
 	uint32_t lastUnnamed_;
-
-private:
-	bool ignoreOptimization;
-	std::vector<ItemAtom> itemAtoms;
-	std::vector<ExtendAtom> extendAtoms;
-	LongToSymbolTableKey levelsAtoms;
-	LongToSymbolTableKey countAtoms;
-	LongToSymbolTableKey currentCostAtoms;
-	LongToSymbolTableKey costAtoms;
-
-	void storeNumberAtom(const AtomRef& atom, LongToSymbolTableKey& store);
-
-#ifndef NDEBUG
-	unsigned int itemArity;
-#endif
-
 };
 
 }} // namespace solver::asp
