@@ -27,10 +27,10 @@ ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees)
 {
 }
 
-ItemTreePtr ClaspCallback::getItemTree()
+ItemTreePtr ClaspCallback::finalize()
 {
 	if(itemTree)
-		itemTree->prepareRandomAccessToChildren();
+		itemTree->finalize();
 	return std::move(itemTree);
 }
 

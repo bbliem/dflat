@@ -54,13 +54,13 @@ void ItemTree::addChildAndMerge(ChildPtr&& child)
 	}
 }
 
-void ItemTree::prepareRandomAccessToChildren()
+void ItemTree::finalize()
 {
 	assert(childrenVector.empty());
 	childrenVector.reserve(children.size());
 	for(const auto& child : children) {
 		childrenVector.push_back(child.get());
-		child->prepareRandomAccessToChildren();
+		child->finalize();
 	}
 }
 

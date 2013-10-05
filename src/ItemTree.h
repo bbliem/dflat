@@ -44,9 +44,9 @@ public:
 	void addChildAndMerge(ChildPtr&& child);
 
 	// Call this to allow random access to this node's children via getChild(), and also random access for all children of descendants of this node
-	void prepareRandomAccessToChildren();
+	void finalize();
 
-	// Use this after calling prepareRandomAccessToChildren() to get the i'th child of this node
+	// Use this after calling finalize() to get the i'th child of this node
 	const ItemTree& getChild(size_t i) const;
 
 	// Print the tree that would result from recursively extending all nodes

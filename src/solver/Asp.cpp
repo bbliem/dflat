@@ -78,9 +78,10 @@ void declareChildItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool t
 		if(parent.empty() == false)
 			out << "childRow(" << itemSetName << ',' << nodeId << ")." << std::endl;
 	} else {
-		if(parent.empty())
-			out << "root(" << itemSetName << ")." << std::endl; // XXX need rootOf/2?
-		else
+		if(parent.empty()) {
+			out << "root(" << itemSetName << ")." << std::endl;
+			out << "rootOf(" << itemSetName << ',' << nodeId << ")." << std::endl;
+		} else
 			out << "sub(" << parent << ',' << itemSetName << ")." << std::endl; // XXX need rootOf/2?
 	}
 	for(const auto& item : itemTree->getRoot()->getItems())
@@ -176,7 +177,7 @@ ItemTreePtr Asp::compute()
 	Clasp::ClaspFacade clasp;
 	clasp.solve(inputReader, config, cb.get());
 
-	return cb->getItemTree();
+	return cb->finalize();
 }
 
 } // namespace solver

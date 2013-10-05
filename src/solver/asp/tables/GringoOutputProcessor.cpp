@@ -55,10 +55,11 @@ const GringoOutputProcessor::CostAtomInfos& GringoOutputProcessor::getCostAtomIn
 void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_iterator firstArg, uint32_t arity, Clasp::SymbolTable::key_type symbolTableKey)
 {
 	// Store the atom together with its symbol table key and extracted arguments
-	// TODO check if arity is correct
-	if(name == "item")
+	if(name == "item") {
+		assert(arity == 1);
 		itemAtomInfos.emplace_back(ItemAtomInfo{ItemAtomArguments{getArguments(firstArg, arity).front()}, symbolTableKey});
-	else if(name == "extend") {
+	} else if(name == "extend") {
+		assert(arity == 1);
 		std::string argument = getArguments(firstArg, arity).front();
 		// Child node number is before the first '_' (and after the leading 'n')
 		// Row number is after the first '_'
@@ -67,13 +68,17 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 		unsigned int rowNumber = std::stoi(std::string(argument, underscorePos + 1));
 
 		extendAtomInfos.emplace_back(ExtendAtomInfo{{childId, rowNumber}, symbolTableKey});
-	}
-	else if(name == "count") // TODO mpz_class?
+	} else if(name == "count") {
+		assert(arity == 1);
+		// TODO mpz_class?
 		countAtomInfos.emplace_back(CountAtomInfo{{static_cast<unsigned int>(std::stol(getArguments(firstArg, arity).front()))}, symbolTableKey});
-	else if(name == "currentCost")
+	} else if(name == "currentCost") {
+		assert(arity == 1);
 		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo{{std::stol(getArguments(firstArg, arity).front())}, symbolTableKey});
-	else if(name == "cost")
+	} else if(name == "cost") {
+		assert(arity == 1);
 		costAtomInfos.emplace_back(CostAtomInfo{{std::stol(getArguments(firstArg, arity).front())}, symbolTableKey});
+	}
 }
 
 }}} // namespace solver::asp::tables
