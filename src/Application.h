@@ -45,6 +45,8 @@ public:
 	void setDecomposer(Decomposer& decomposer);
 	void setSolverFactory(SolverFactory& solverFactory);
 
+	bool isDebugEnabled() const;
+
 private:
 	static const std::string MODULE_SECTION;
 
@@ -54,6 +56,7 @@ private:
 	options::OptionHandler opts;
 	options::Choice optDecomposer;
 	options::Choice optSolver;
+	options::Option optDebug;
 
 	Decomposer* decomposer;
 	SolverFactory* solverFactory;

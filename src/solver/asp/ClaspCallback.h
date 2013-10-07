@@ -20,10 +20,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include <unordered_map>
 #include <clasp/clasp_facade.h>
 
-#include "../../ItemTree.h"
 #include "GringoOutputProcessor.h"
 
 namespace solver { namespace asp {
@@ -45,10 +43,9 @@ public:
 		Clasp::Literal literal;
 	};
 
-	// Key: Global ID of child node; value: the child node's item tree
-	typedef std::unordered_map<unsigned int, ItemTreePtr> ChildItemTrees;
+	using ChildItemTrees = GringoOutputProcessor::ChildItemTrees;
 
-	ClaspCallback(const ChildItemTrees& childItemTrees);
+	ClaspCallback(const ChildItemTrees& childItemTrees, bool printModels);
 
 	// Call this after all answer sets have been processed. It returns the resulting item tree (and calls finalize() on it).
 	ItemTreePtr finalize();
@@ -60,11 +57,43 @@ public:
 	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override = 0;
 
 	// Called for important events, e.g. a model has been found
-	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f) override = 0;
+	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f) override;
 
 protected:
+	template<typename T, typename F>
+	static void forEachTrue(const Clasp::Solver& s, const std::vector<AtomInfo<T>>& atomInfos, F function)
+	{
+		for(const auto& atom : atomInfos) {
+			if(s.isTrue(atom.literal))
+				function(atom.arguments);
+		}
+	}
+
+	template<typename T, typename F>
+	static void forEachTrueLimited(const Clasp::Solver& s, const std::vector<AtomInfo<T>>& atomInfos, F function)
+	{
+		for(const auto& atom : atomInfos) {
+			if(s.isTrue(atom.literal)) {
+				if(function(atom.arguments) == false)
+					return;
+			}
+		}
+	}
+
+	template<typename T, typename F>
+	static void forFirstTrue(const Clasp::Solver& s, const std::vector<AtomInfo<T>>& atomInfos, F function)
+	{
+		for(const auto& atom : atomInfos) {
+			if(s.isTrue(atom.literal)) {
+				function(atom.arguments);
+				return;
+			}
+		}
+	}
+
 	ItemTreePtr itemTree;
 	const ChildItemTrees& childItemTrees;
+	bool printModels;
 };
 
 }} // namespace solver::asp

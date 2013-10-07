@@ -22,8 +22,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp { namespace trees {
 
-GringoOutputProcessor::GringoOutputProcessor()
-	: ::solver::asp::GringoOutputProcessor()
+GringoOutputProcessor::GringoOutputProcessor(const ChildItemTrees& childItemTrees)
+	: ::solver::asp::GringoOutputProcessor(childItemTrees)
 {
 }
 
@@ -66,14 +66,25 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 		itemAtomInfos.emplace_back(ItemAtomInfo{ItemAtomArguments{static_cast<unsigned int>(std::stoi(arguments[0])), std::move(arguments[1])}, symbolTableKey});
 	} else if(name == "extend") {
 		assert(arity == 2);
-		std::string argument = getArguments(firstArg, arity).front();
-		// Child node number is before the first '_' (and after the leading 'n')
-		// Row number is after the first '_'
-		unsigned int underscorePos = argument.find('_');
-		unsigned int childId = std::stoi(std::string(argument, 1, underscorePos-1));
-		unsigned int rowNumber = std::stoi(std::string(argument, underscorePos + 1));
+		std::vector<std::string> arguments = getArguments(firstArg, arity);
+		unsigned int level = std::stol(arguments[0]);
+		std::string extended = std::move(arguments[1]);
+		// (Decomposition) child node number is before the first '_' (and after the leading 'n')
+		// '_' then separates item tree child indices
+		unsigned int underscorePos = extended.find('_');
+		unsigned int decompositionChildId = std::stoi(std::string(extended, 1, underscorePos-1));
 
-		extendAtomInfos.emplace_back(ExtendAtomInfo{{childId, rowNumber}, symbolTableKey});
+		const ItemTree* current = childItemTrees.at(decompositionChildId).get();
+		while(underscorePos != std::string::npos) {
+			const unsigned int lastUnderscorePos = underscorePos;
+			underscorePos = extended.find('_', underscorePos+1);
+			unsigned int childNumber = std::stoi(std::string(extended, lastUnderscorePos+1, underscorePos));
+
+			current = &current->getChild(childNumber);
+		}
+		// XXX Instead of the previous loop which runs through all levels, it could be beneficial to assign a globally unique ID to each item tree node and then use a lookup-table. (The globally unique ID could be either an integer, as is already the case in the Decomposition class, but it could also be a string like the one we are already using.)
+
+		extendAtomInfos.emplace_back(ExtendAtomInfo{{level, current->getRoot().get()}, symbolTableKey});
 	} else if(name == "count") {
 		assert(arity == 1);
 		// TODO mpz_class?

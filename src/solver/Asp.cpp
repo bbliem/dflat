@@ -34,7 +34,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "asp/ClaspInputReader.h"
 
 using namespace solver::asp;
-using ChildItemTrees = ClaspCallback::ChildItemTrees;
+using ChildItemTrees = GringoOutputProcessor::ChildItemTrees;
 
 namespace {
 
@@ -104,20 +104,20 @@ void declareChildItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool t
 	}
 }
 
-std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(bool tableMode)
+std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(const ChildItemTrees& childItemTrees, bool tableMode)
 {
 	if(tableMode)
-		return std::unique_ptr<GringoOutputProcessor>(new tables::GringoOutputProcessor);
+		return std::unique_ptr<GringoOutputProcessor>(new tables::GringoOutputProcessor(childItemTrees));
 	else
-		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor);
+		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor(childItemTrees));
 }
 
-std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const GringoOutputProcessor& gringoOutputProcessor, const ChildItemTrees& childItemTrees)
+std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const GringoOutputProcessor& gringoOutputProcessor, const ChildItemTrees& childItemTrees, bool printModels)
 {
 	if(tableMode)
-		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees));
+		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, printModels));
 	else
-		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees));
+		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, printModels));
 }
 
 
@@ -169,15 +169,24 @@ ItemTreePtr Asp::compute()
 	inputStreams.appendStream(Streams::StreamPtr(childItemTreesInput.release()), "<child_itrees>");
 
 	// Call the ASP solver
-	std::unique_ptr<GringoOutputProcessor> outputProcessor(newGringoOutputProcessor(tableMode));
+	std::unique_ptr<GringoOutputProcessor> outputProcessor(newGringoOutputProcessor(childItemTrees, tableMode));
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *outputProcessor, childItemTrees));
+	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *outputProcessor, childItemTrees, app.isDebugEnabled()));
 	Clasp::ClaspConfig config;
 	config.enumerate.numModels = 0;
 	Clasp::ClaspFacade clasp;
 	clasp.solve(inputReader, config, cb.get());
 
-	return cb->finalize();
+	ItemTreePtr result = cb->finalize();
+
+	if(app.isDebugEnabled()) {
+		if(result)
+			std::cerr << "Resulting item tree of node " << decomposition.getRoot().getGlobalId() << ':' << std::endl << *result << std::endl;
+		else
+			std::cerr << "Item tree of node " << decomposition.getRoot().getGlobalId() << " is empty." << std::endl;
+	}
+
+	return result;
 }
 
 } // namespace solver

@@ -22,8 +22,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp { namespace tables {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees)
-	: ::solver::asp::ClaspCallback(childItemTrees)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool printModels)
+	: ::solver::asp::ClaspCallback(childItemTrees, printModels)
 	, gringoOutput(gringoOutput)
 {
 }
@@ -44,76 +44,36 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getCostAtomInfos())
 				costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
-#ifdef PRINT_MODELS
-			std::cout << std::endl;
-#endif
 		}
 	}
 }
 
 void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 {
+	solver::asp::ClaspCallback::event(s, e, f);
+
 	if(e != Clasp::ClaspFacade::event_model)
 		return;
 
-#ifdef PRINT_MODELS
-	Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
-	std::cout << "Model " << f.config()->ctx.enumerator()->enumerated-1 << ": ";
-	for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
-		if(s.isTrue(it->second.lit) && !it->second.name.empty())
-			std::cout << it->second.name.c_str() << ' ';
-	}
-	std::cout << std::endl;
-#endif
-
 	// Get items
 	ItemTreeNode::Items items;
-	for(const auto& atom : itemAtomInfos)
-		if(s.isTrue(atom.literal))
-			items.insert(atom.arguments.item);
+	forEachTrue(s, itemAtomInfos, [&items](const GringoOutputProcessor::ItemAtomArguments& arguments) {
+			items.insert(arguments.item);
+	});
 
 	// Get extension pointers
 	ItemTreeNode::ExtensionPointerTuple extendedRows;
 	extendedRows.reserve(childItemTrees.size());
-
-	for(const auto& atom : extendAtomInfos) {
-		if(s.isTrue(atom.literal)) {
-			// TODO: Instead of the following assertions, throw assertions if invalid extension pointers are given. Also, add a check that ensures that if extension pointers are given, exactly one is given for each child table.
-			assert(childItemTrees.find(atom.arguments.childId) != childItemTrees.end());
-			assert(atom.arguments.rowNumber < childItemTrees.at(atom.arguments.childId)->getChildren().size());
-
-			extendedRows.push_back(childItemTrees.at(atom.arguments.childId)->getChild(atom.arguments.rowNumber).getRoot());
-
-#ifdef DISABLE_ANSWER_SET_CHECKS
-			if(extendedRows.size() == childItemTrees.size())
-				break;
-#endif
-		}
-	}
-
-#ifndef DISABLE_ANSWER_SET_CHECKS
-	if(extendedRows.size() > 0 && extendedRows.size() != childItemTrees.size())
-		throw std::runtime_error("Number of extended rows non-zero and not equal to number of child nodes");
-#endif
+	forEachTrueLimited(s, extendAtomInfos, [&](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
+			extendedRows.emplace_back(ItemTreeNode::ExtensionPointer(arguments.extendedRow));
+			return extendedRows.size() != childItemTrees.size();
+	});
 
 	// Get cost
 	long cost = 0;
-
-	for(const auto& atom : costAtomInfos) {
-		if(s.isTrue(atom.literal)) {
-
-#ifndef DISABLE_ANSWER_SET_CHECKS
-			if(cost != 0)
-				throw std::runtime_error("Multiple costs");
-#endif
-
-			cost = atom.arguments.cost;
-
-#ifdef DISABLE_ANSWER_SET_CHECKS // Otherwise we want to check the condition above
-			break;
-#endif
-		}
-	}
+	forFirstTrue(s, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
+			cost = arguments.cost;
+	});
 
 	// TODO currentCost / count
 

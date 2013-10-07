@@ -63,6 +63,7 @@ Application::Application(const std::string& binaryName)
 	: binaryName(binaryName)
 	, optDecomposer("d", "decomposer", "Use decomposition method <decomposer>")
 	, optSolver("s", "solver", "Use <solver> to compute partial solutions")
+	, optDebug("debug", "Print debugging information (to stderr)")
 	, decomposer(0)
 	, solverFactory(0)
 {
@@ -77,6 +78,8 @@ int Application::run(int argc, char** argv)
 	// Note that we use an observer for this instead of checking manually (right after opts.parse()) if optHelp was used, because other observers might perform actions which are undesired if -h has been passed. This is why helpObserver is the first observer we register.
 	options::HelpObserver helpObserver(*this, optHelp);
 	opts.registerObserver(helpObserver);
+
+	opts.addOption(optDebug);
 
 	options::SingleValueOption optDepth("depth", "d", "Print only item sets of depth at most <d>");
 	opts.addOption(optDepth);
@@ -189,4 +192,9 @@ void Application::setDecomposer(Decomposer& d)
 void Application::setSolverFactory(SolverFactory& s)
 {
 	solverFactory = &s;
+}
+
+bool Application::isDebugEnabled() const
+{
+	return optDebug.isUsed();
 }

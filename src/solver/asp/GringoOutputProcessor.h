@@ -24,6 +24,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <gringo/gringo.h>
 #include <gringo/lparseconverter.h>
 #include <clasp/program_builder.h>
+#include <unordered_map>
+
+#include "../../ItemTree.h"
 
 namespace solver { namespace asp {
 
@@ -36,7 +39,10 @@ public:
 		Clasp::SymbolTable::key_type symbolTableKey;
 	};
 
-	GringoOutputProcessor();
+	// Key: Global ID of child node; value: the child node's item tree
+	typedef std::unordered_map<unsigned int, ItemTreePtr> ChildItemTrees;
+
+	GringoOutputProcessor(const ChildItemTrees& childItemTrees);
 
 	virtual void initialize();
 	virtual void setProgramBuilder(Clasp::ProgramBuilder* api) { b_ = api; }
@@ -59,6 +65,7 @@ protected:
 	virtual uint32_t symbol();
 	virtual void doFinalize();
 
+	const ChildItemTrees& childItemTrees;
 	Clasp::ProgramBuilder *b_;
 	typedef std::vector<bool> BoolVec;
 	BoolVec atomUnnamed_;

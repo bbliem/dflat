@@ -45,8 +45,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-GringoOutputProcessor::GringoOutputProcessor()
+GringoOutputProcessor::GringoOutputProcessor(const ChildItemTrees& childItemTrees)
 	: LparseConverter(0, false)
+	, childItemTrees(childItemTrees)
 	, b_(0)
 	, lastUnnamed_(0)
 {

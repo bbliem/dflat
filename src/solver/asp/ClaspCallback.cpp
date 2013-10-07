@@ -22,8 +22,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees)
+ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, bool printModels)
 	: childItemTrees(childItemTrees)
+	, printModels(printModels)
 {
 }
 
@@ -37,6 +38,19 @@ ItemTreePtr ClaspCallback::finalize()
 void ClaspCallback::warning(const char* msg)
 {
 	std::cerr << "clasp warning: " << msg << std::endl;
+}
+
+void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
+{
+	if(e == Clasp::ClaspFacade::event_model && printModels) {
+		Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
+		std::cerr << "Model " << f.config()->ctx.enumerator()->enumerated-1 << ": ";
+		for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
+			if(s.isTrue(it->second.lit) && !it->second.name.empty())
+				std::cerr << it->second.name.c_str() << ' ';
+		}
+		std::cerr << std::endl;
+	}
 }
 
 }} // namespace solver::asp

@@ -30,7 +30,7 @@ class ItemTree;
 typedef std::unique_ptr<ItemTree> ItemTreePtr;
 
 // The set of children is sorted ascendingly according to the following criterion:
-// A TreePtr is smaller than another if
+// An ItemTreePtr is smaller than another if
 // (a) its item set is (lexicographically) smaller, or
 // (b) its item set is equal to the other's and its set of children is (lexicographically) smaller.
 struct ItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs); };

@@ -60,15 +60,16 @@ add_executable(dflat
 	Solver.cpp
 	solver/DummyFactory.cpp
 	solver/Dummy.cpp
-	solver/asp/GringoOutputProcessor.cpp
 	solver/asp/ClaspCallback.cpp
 	solver/asp/ClaspInputReader.cpp
+	solver/asp/GringoOutputProcessor.cpp
 	solver/AspFactory.cpp
 	solver/Asp.cpp
-	solver/asp/tables/GringoOutputProcessor.cpp
 	solver/asp/tables/ClaspCallback.cpp
-	solver/asp/trees/GringoOutputProcessor.cpp
+	solver/asp/tables/GringoOutputProcessor.cpp
 	solver/asp/trees/ClaspCallback.cpp
+	solver/asp/trees/GringoOutputProcessor.cpp
+	solver/asp/trees/UncompressedItemTree.cpp
 	ItemTreeNode.cpp
 	ItemTree.cpp
 	ExtensionIterator.cpp

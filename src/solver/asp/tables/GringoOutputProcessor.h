@@ -28,8 +28,7 @@ class GringoOutputProcessor : public ::solver::asp::GringoOutputProcessor
 {
 public:
 	struct ExtendAtomArguments {
-		unsigned int childId;
-		unsigned int rowNumber;
+		ItemTreeNode* extendedRow;
 	};
 	typedef AtomInfo<ExtendAtomArguments> ExtendAtomInfo;
 
@@ -59,7 +58,7 @@ public:
 	typedef std::vector<CurrentCostAtomInfo> CurrentCostAtomInfos;
 	typedef std::vector<CostAtomInfo>        CostAtomInfos;
 
-	GringoOutputProcessor();
+	GringoOutputProcessor(const ChildItemTrees& childItemTrees);
 
 	const ItemAtomInfos&        getItemAtomInfos()        const;
 	const ExtendAtomInfos&      getExtendAtomInfos()      const;

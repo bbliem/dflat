@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../ClaspCallback.h"
 #include "GringoOutputProcessor.h"
+#include "UncompressedItemTree.h"
 
 namespace solver { namespace asp { namespace trees {
 
@@ -42,7 +43,7 @@ public:
 	typedef std::vector<CostAtomInfo>        CostAtomInfos;
 	typedef std::vector<LengthAtomInfo>      LengthAtomInfos;
 
-	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees);
+	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool printModels);
 
 	// Called on entering/exiting a state
 	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override;
@@ -51,6 +52,8 @@ public:
 	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f) override;
 
 protected:
+	UncompressedItemTreePtr uncompressedItemTree;
+
 	const GringoOutputProcessor& gringoOutput;
 
 	ItemAtomInfos        itemAtomInfos;

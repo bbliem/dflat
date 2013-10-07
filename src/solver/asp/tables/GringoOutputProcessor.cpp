@@ -22,8 +22,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp { namespace tables {
 
-GringoOutputProcessor::GringoOutputProcessor()
-	: ::solver::asp::GringoOutputProcessor()
+GringoOutputProcessor::GringoOutputProcessor(const ChildItemTrees& childItemTrees)
+	: ::solver::asp::GringoOutputProcessor(childItemTrees)
 {
 }
 
@@ -67,7 +67,11 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 		unsigned int childId = std::stoi(std::string(argument, 1, underscorePos-1));
 		unsigned int rowNumber = std::stoi(std::string(argument, underscorePos + 1));
 
-		extendAtomInfos.emplace_back(ExtendAtomInfo{{childId, rowNumber}, symbolTableKey});
+		// TODO: Instead of the following assertions, throw exceptions if invalid extension pointers are given. Also, add a check that ensures that if extension pointers are given, exactly one is given for each child table.
+		assert(childItemTrees.find(childId) != childItemTrees.end());
+		assert(rowNumber < childItemTrees.at(childId)->getChildren().size());
+
+		extendAtomInfos.emplace_back(ExtendAtomInfo{{childItemTrees.at(childId)->getChild(rowNumber).getRoot().get()}, symbolTableKey});
 	} else if(name == "count") {
 		assert(arity == 1);
 		// TODO mpz_class?
