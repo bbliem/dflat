@@ -47,4 +47,12 @@ void UncompressedItemTree::addBranch(Branch::iterator begin, Branch::iterator en
 	}
 }
 
+ItemTreePtr UncompressedItemTree::compress()
+{
+	ItemTreePtr result(new ItemTree(std::move(node)));
+	for(const auto& child : children)
+		result->addChildAndMerge(child->compress());
+	return result;
+}
+
 }}} // namespace solver::asp::trees

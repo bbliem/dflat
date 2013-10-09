@@ -51,34 +51,8 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				std::cerr << std::endl;
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit) {
-			// TODO
-//			foreach(const Tree::Children::value_type& child, tree.children) {
-//				const ExtendArguments& predecessors = child.first.first;
-//				const Row::Items& topLevelItems = child.first.second;
-//
-//				Row::ExtensionPointerTuple extensionPointers;
-//				extensionPointers.reserve(predecessors.size());
-//				foreach(const string& predecessor, predecessors) {
-//					// Child table number is before, row number is after the first '_'
-//					const unsigned int underscorePos = predecessor.find('_');
-//					unsigned int tableNumber = boost::lexical_cast<unsigned int>(std::string(predecessor, 1, underscorePos-1)); // predecessor starts with 'r'
-//					unsigned int rowNumber = boost::lexical_cast<unsigned int>(std::string(predecessor, underscorePos + 1));
-//					// TODO: Instead of the following assertions, throw assertions if invalid extension pointers are given. Also, add a check that ensures that if extension pointers are given, exactly one is given for each child table.
-//					assert(tableNumber < childTablesVec.size());
-//					assert(rowNumber < childTablesVec[tableNumber].size());
-//					extensionPointers.push_back(dynamic_cast<const Row*>(childTablesVec[tableNumber][rowNumber]));
-//				}
-//				Row* row = new Row(Row::Tree(topLevelItems, child.second.mergeChildren()), extensionPointers);
-//
-//				if(child.second.hasCount)
-//					row->setCount(child.second.count);
-//				if(child.second.hasCurrentCost)
-//					row->setCurrentCost(child.second.currentCost);
-//				if(child.second.hasCost)
-//					row->setCost(child.second.cost);
-//
-//				algorithm.addRowToTable(table, row);
-//			}
+			if(uncompressedItemTree)
+				itemTree = uncompressedItemTree->compress();
 		}
 	}
 }
@@ -119,16 +93,17 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			branchData[arguments.level].extended.emplace_back(ItemTreeNode::ExtensionPointer(arguments.extendedNode));
 	});
 
-	////
-
-	long count = 0, cost = 0; // TODO currentCost
-
+	long count = 0;
 	forFirstTrue(s, countAtomInfos, [&count](const GringoOutputProcessor::CountAtomArguments& arguments) {
 			count = arguments.count;
 	});
+
+	long cost = 0;
 	forFirstTrue(s, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
 			cost = arguments.cost;
 	});
+
+	// TODO currentCost
 
 	// Convert branchData to UncompressedItemTree::Branch
 	UncompressedItemTree::Branch branch;
@@ -143,6 +118,8 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		uncompressedItemTree = std::move(branch.front());
 
 	uncompressedItemTree->addBranch(++branch.begin(), branch.end());
+
+	std::cout << "Uncompressed tree:" << *uncompressedItemTree << '\n';
 }
 
 }}} // namespace solver::asp::trees

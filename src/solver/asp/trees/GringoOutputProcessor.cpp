@@ -66,17 +66,17 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 		itemAtomInfos.emplace_back(ItemAtomInfo{ItemAtomArguments{static_cast<unsigned int>(std::stoi(arguments[0])), std::move(arguments[1])}, symbolTableKey});
 	} else if(name == "extend") {
 		assert(arity == 2);
-		std::vector<std::string> arguments = getArguments(firstArg, arity);
-		unsigned int level = std::stol(arguments[0]);
-		std::string extended = std::move(arguments[1]);
+		const std::vector<std::string> arguments = getArguments(firstArg, arity);
+		const unsigned int level = std::stol(arguments[0]);
+		const std::string extended = std::move(arguments[1]);
 		// (Decomposition) child node number is before the first '_' (and after the leading 'n')
 		// '_' then separates item tree child indices
-		unsigned int underscorePos = extended.find('_');
+		size_t underscorePos = extended.find('_');
 		unsigned int decompositionChildId = std::stoi(std::string(extended, 1, underscorePos-1));
 
 		const ItemTree* current = childItemTrees.at(decompositionChildId).get();
 		while(underscorePos != std::string::npos) {
-			const unsigned int lastUnderscorePos = underscorePos;
+			const size_t lastUnderscorePos = underscorePos;
 			underscorePos = extended.find('_', underscorePos+1);
 			unsigned int childNumber = std::stoi(std::string(extended, lastUnderscorePos+1, underscorePos));
 

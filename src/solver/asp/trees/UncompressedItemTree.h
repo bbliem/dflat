@@ -24,6 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../../DirectedAcyclicGraph.h"
 #include "../../../ItemTreeNode.h"
+#include "../../../ItemTree.h"
 
 namespace solver { namespace asp { namespace trees {
 
@@ -47,6 +48,9 @@ public:
 	// Moves the given branch.
 	// *begin will be a child of *this.
 	void addBranch(Branch::iterator begin, Branch::iterator end);
+
+	// Merges sibling subtrees with equal item sets. Moves each node in this tree to the resulting item tree.
+	ItemTreePtr compress();
 };
 
 }}} // namespace solver::asp::trees
