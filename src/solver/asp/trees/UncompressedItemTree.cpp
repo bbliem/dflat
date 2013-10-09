@@ -38,11 +38,8 @@ bool UncompressedItemTreePtrComparator::operator()(const UncompressedItemTreePtr
 void UncompressedItemTree::addBranch(Branch::iterator begin, Branch::iterator end)
 {
 	if(begin != end) {
-#ifndef NDEBUG
-		Children::iterator it = children.find(*begin);
-		assert(it == children.end() || (!UncompressedItemTreePtrComparator()(*begin, *it) && !UncompressedItemTreePtrComparator()(*it, *begin)));
-#endif
-		std::pair<Children::iterator, bool> result = children.insert(std::move(*begin));
+		// XXX set new parents?
+		std::pair<Children::iterator, bool> result = children.insert(UncompressedItemTreePtr(new UncompressedItemTree(std::move(*begin))));
 		(*result.first)->addBranch(++begin, end);
 	}
 }

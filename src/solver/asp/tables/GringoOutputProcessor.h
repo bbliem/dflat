@@ -20,6 +20,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include <memory>
+
 #include "../GringoOutputProcessor.h"
 
 namespace solver { namespace asp { namespace tables {
@@ -28,7 +30,7 @@ class GringoOutputProcessor : public ::solver::asp::GringoOutputProcessor
 {
 public:
 	struct ExtendAtomArguments {
-		ItemTreeNode* extendedRow;
+		std::weak_ptr<ItemTreeNode> extendedRow;
 	};
 	typedef AtomInfo<ExtendAtomArguments> ExtendAtomInfo;
 

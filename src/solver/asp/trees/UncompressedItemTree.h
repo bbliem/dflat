@@ -41,7 +41,7 @@ struct UncompressedItemTreePtrComparator { bool operator()(const UncompressedIte
 class UncompressedItemTree : public DirectedAcyclicGraph<std::shared_ptr<ItemTreeNode>, std::set<UncompressedItemTreePtr, UncompressedItemTreePtrComparator>>
 {
 public:
-	typedef std::vector<UncompressedItemTreePtr> Branch;
+	typedef std::vector<Node> Branch;
 
 	using DirectedAcyclicGraph::DirectedAcyclicGraph;
 

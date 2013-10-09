@@ -108,18 +108,16 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	// Convert branchData to UncompressedItemTree::Branch
 	UncompressedItemTree::Branch branch;
 	for(BranchNode& node : branchData)
-		branch.emplace_back(UncompressedItemTreePtr(new UncompressedItemTree(UncompressedItemTree::Node(new ItemTreeNode(std::move(node.items), {std::move(node.extended)}))))); // TODO cost etc.
+		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(node.items), {std::move(node.extended)}))); // TODO cost etc.
 
 	// Insert branch into tree
 	// TODO make this an exception
-	assert(!uncompressedItemTree || (uncompressedItemTree->getRoot()->getItems() == branch.front()->getRoot()->getItems() && uncompressedItemTree->getRoot()->getExtensionPointers() == branch.front()->getRoot()->getExtensionPointers()));
+	assert(!uncompressedItemTree || (uncompressedItemTree->getRoot()->getItems() == branch.front()->getItems() && uncompressedItemTree->getRoot()->getExtensionPointers() == branch.front()->getExtensionPointers()));
 
 	if(!uncompressedItemTree)
-		uncompressedItemTree = std::move(branch.front());
+		uncompressedItemTree = UncompressedItemTreePtr(new UncompressedItemTree(std::move(branch.front())));
 
 	uncompressedItemTree->addBranch(++branch.begin(), branch.end());
-
-	std::cout << "Uncompressed tree:" << *uncompressedItemTree << '\n';
 }
 
 }}} // namespace solver::asp::trees

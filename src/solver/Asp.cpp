@@ -48,8 +48,10 @@ void declareDecomposition(const Decomposition& decomposition, std::ostream& out)
 
 	for(const auto& child : decomposition.getChildren()) {
 		out << "childNode(" << child->getRoot().getGlobalId() << ")." << std::endl;
-		for(const auto& v : child->getRoot().getBag())
-			out << "bag(" << child->getRoot().getGlobalId() << ',' << v << ")." << std::endl;
+		for(const auto& v : child->getRoot().getBag()) {
+			out << "bag(" << child->getRoot().getGlobalId() << ',' << v << "). ";
+			out << "-introduced(" << v << ")." << std::endl; // Redundant
+		}
 	}
 
 	if(decomposition.getParents().empty())
@@ -63,9 +65,8 @@ void declareDecomposition(const Decomposition& decomposition, std::ostream& out)
 	}
 
 	// Redundant predicates for convenience...
-	out << "-introduced(X) :- childBag(_,X)." << std::endl;
 	out << "introduced(X) :- current(X), not -introduced(X)." << std::endl;
-	out << "removed(X) :- childBag(_,X), not current(X)." << std::endl;
+	out << "removed(X) :- childNode(N), bag(N,X), not current(X)." << std::endl;
 }
 
 void declareChildItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "")

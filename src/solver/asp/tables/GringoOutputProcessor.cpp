@@ -71,7 +71,7 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 		assert(childItemTrees.find(childId) != childItemTrees.end());
 		assert(rowNumber < childItemTrees.at(childId)->getChildren().size());
 
-		extendAtomInfos.emplace_back(ExtendAtomInfo{{childItemTrees.at(childId)->getChild(rowNumber).getRoot().get()}, symbolTableKey});
+		extendAtomInfos.emplace_back(ExtendAtomInfo{{childItemTrees.at(childId)->getChild(rowNumber).getRoot()}, symbolTableKey});
 	} else if(name == "count") {
 		assert(arity == 1);
 		// TODO mpz_class?

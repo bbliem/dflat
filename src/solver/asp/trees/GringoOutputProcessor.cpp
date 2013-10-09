@@ -84,7 +84,7 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 		}
 		// XXX Instead of the previous loop which runs through all levels, it could be beneficial to assign a globally unique ID to each item tree node and then use a lookup-table. (The globally unique ID could be either an integer, as is already the case in the Decomposition class, but it could also be a string like the one we are already using.)
 
-		extendAtomInfos.emplace_back(ExtendAtomInfo{{level, current->getRoot().get()}, symbolTableKey});
+		extendAtomInfos.emplace_back(ExtendAtomInfo{{level, current->getRoot()}, symbolTableKey});
 	} else if(name == "count") {
 		assert(arity == 1);
 		// TODO mpz_class?
