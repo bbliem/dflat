@@ -138,7 +138,10 @@ ItemTreePtr Asp::compute()
 	// Compute item trees of child nodes
 	ChildItemTrees childItemTrees;
 	for(const auto& child : decomposition.getChildren()) {
-		childItemTrees.emplace(child->getRoot().getGlobalId(), child->getSolver().compute());
+		ItemTreePtr itree = child->getSolver().compute();
+		if(!itree)
+			return itree;
+		childItemTrees.emplace(child->getRoot().getGlobalId(), std::move(itree));
 #ifndef NDEBUG
 		const ItemTreePtr& childItree = childItemTrees.at(child->getRoot().getGlobalId());
 		assert(!childItree || childItree->getRoot()->getItems().empty()); // Root item set must be empty
