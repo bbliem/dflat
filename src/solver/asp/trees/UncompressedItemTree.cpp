@@ -24,15 +24,8 @@ namespace solver { namespace asp { namespace trees {
 
 bool UncompressedItemTreePtrComparator::operator()(const UncompressedItemTreePtr& lhs, const UncompressedItemTreePtr& rhs)
 {
-	if(lhs->getRoot()->getItems() < rhs->getRoot()->getItems())
-		return true;
-	if(lhs->getRoot()->getItems() == rhs->getRoot()->getItems()) {
-		if(lhs->getRoot()->getExtensionPointers() < rhs->getRoot()->getExtensionPointers())
-			return true;
-		if(lhs->getRoot()->getExtensionPointers() == rhs->getRoot()->getExtensionPointers())
-			return std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this);
-	}
-	return false;
+	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems()
+		|| (lhs->getRoot()->getItems() == rhs->getRoot()->getItems() && lhs->getRoot()->getExtensionPointers() < rhs->getRoot()->getExtensionPointers());
 }
 
 void UncompressedItemTree::addBranch(Branch::iterator begin, Branch::iterator end)

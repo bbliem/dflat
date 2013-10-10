@@ -138,8 +138,6 @@ int Application::run(int argc, char** argv)
 		std::cout << "Decomposition:" << std::endl << *decomposition << std::endl;
 
 	// Solve
-	// TODO control how computation proceeds and what is computed / printed
-	//decomposition.getSolver().compute().printExtensions(std::cout);
 	ItemTreePtr rootItree = decomposition->getSolver().compute();
 
 	if(rootItree)

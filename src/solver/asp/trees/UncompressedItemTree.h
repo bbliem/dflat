@@ -34,8 +34,7 @@ typedef std::unique_ptr<UncompressedItemTree> UncompressedItemTreePtr;
 // The set of children is sorted ascendingly according to the following criterion:
 // An UncompressedItemTreePtr is smaller than another if
 // (a) its item set is (lexicographically) smaller, or
-// (b) its item set is equal to the other's and its set of extension pointers is (lexicographically) smaller, or
-// (c) both are equal to the other's and its set of children is (lexicographically) smaller.
+// (b) its item set is equal to the other's and its set of extension pointers is (lexicographically) smaller
 struct UncompressedItemTreePtrComparator { bool operator()(const UncompressedItemTreePtr& lhs, const UncompressedItemTreePtr& rhs); };
 
 class UncompressedItemTree : public DirectedAcyclicGraph<std::shared_ptr<ItemTreeNode>, std::set<UncompressedItemTreePtr, UncompressedItemTreePtrComparator>>
