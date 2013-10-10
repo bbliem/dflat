@@ -1,7 +1,7 @@
 color(red;green;blue).
 criticalColor(red).
 
-length(3).
+length(2).
 
 :- edge(X,Y), item(L,map(X;Y,C)).
 

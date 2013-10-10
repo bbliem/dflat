@@ -68,7 +68,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	unsigned int numLevels = 0;
 	forFirstTrue(s, lengthAtomInfos, [&numLevels](const GringoOutputProcessor::LengthAtomArguments& arguments) {
 			assert(numLevels == 0);
-			numLevels = arguments.length;
+			numLevels = arguments.length+1;
 	});
 	assert(numLevels > 0);
 
