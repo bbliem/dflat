@@ -23,19 +23,33 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <set>
 #include <string>
 
+#ifdef DECOMPOSITION_COMPATIBILITY // Define this to generate the same decompositions as D-FLAT 0.2 when setting the same random seed
+#include <vector>
+#include <algorithm>
+#endif
+
 class Hypergraph
 {
 public:
 	// XXX Maybe using numbers instead of strings for vertices would be an improvement...
 	typedef std::string Vertex;
+#ifdef DECOMPOSITION_COMPATIBILITY // Define this to generate the same decompositions as D-FLAT 0.2 when setting the same random seed
+	typedef std::vector<Vertex> Vertices;
+	typedef std::set<Vertex> Edge;
+#else
 	typedef std::set<Vertex> Vertices;
 	typedef Vertices Edge;
+#endif
 	typedef std::set<Edge> Edges;
 
 	const Vertices& getVertices() const { return vertices; }
 	const Edges& getEdges() const { return edges; }
 
+#ifdef DECOMPOSITION_COMPATIBILITY // Define this to generate the same decompositions as D-FLAT 0.2 when setting the same random seed
+	void addVertex(const Vertex& v) { if(std::find(vertices.begin(), vertices.end(), v) == vertices.end()) vertices.push_back(v); }
+#else
 	void addVertex(const Vertex& v) { vertices.insert(v); }
+#endif
 	void addEdge(const Edge& e) { edges.insert(e); }
 
 private:

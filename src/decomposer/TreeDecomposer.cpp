@@ -70,7 +70,11 @@ namespace {
 	{
 		Hypergraph::Vertices bag;
 		for(sharp::Vertex v : td.getVertices())
+#ifdef DECOMPOSITION_COMPATIBILITY // Define this to generate the same decompositions as D-FLAT 0.2 when setting the same random seed
+			bag.push_back(problem.getVertexName(v));
+#else
 			bag.insert(problem.getVertexName(v));
+#endif
 
 		DecompositionPtr result(new Decomposition(bag, app.getSolverFactory()));
 		// If there are no children, optionally add empty leaves
