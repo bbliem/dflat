@@ -26,12 +26,7 @@ namespace solver {
 
 ItemTreePtr Dummy::compute()
 {
-	ItemTreePtr itree(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({std::to_string(decomposition.getRoot().getGlobalId())}))));
-
-	for(const Decomposition::ChildPtr& child : decomposition.getChildren())
-		itree->addChild(child->getSolver().compute());
-
-	return itree;
+	return ItemTreePtr();
 }
 
 } // namespace solver

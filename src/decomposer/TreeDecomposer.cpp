@@ -93,7 +93,7 @@ const std::string TreeDecomposer::OPTION_SECTION = "Tree decomposition";
 TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	: Decomposer(app, "td", "Tree decomposition (bucket elimination)", newDefault)
 	, optNormalization("n", "normalization", "Use normal form <normalization> for the tree decomposition")
-	, optEliminationOrdering("elimination-ordering", "o", "Use elimination ordering <o> for bucket elimination")
+	, optEliminationOrdering("elimination", "h", "Use heuristic <h> for bucket elimination")
 	, optNoEmptyRoot("no-empty-root", "Do not add an empty root to the tree decomposition")
 	, optNoEmptyLeaves("no-empty-leaves", "Do not add empty leaves to the tree decomposition")
 {

@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver {
 
 DummyFactory::DummyFactory(Application& app, bool newDefault)
-	: SolverFactory(app, "dummy", "Do nothing", newDefault)
+	: SolverFactory(app, "dummy", "Always report the empty item tree", newDefault)
 {
 }
 
