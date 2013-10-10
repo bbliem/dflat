@@ -2,12 +2,12 @@
 % PREPARATION
 % Label the nodes of the children's semantic trees.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-itemSet(0,R) :- root, childRow(R,_).
+itemSet(0,R) :- final, childRow(R,_).
 itemSet(L+1,S) :- itemSet(L,R), sub(R,S).
 
 % Leaves can be evaluated right away (by means of true/1), so they get labeled neither "forall" nor "exists".
 % In particular, an "exists" item set is bad only if it has children and all of them are bad, so we do not label leaves with "exist".
-forall(S) :- root, childRow(S,_), sub(S,_).
+forall(S) :- final, childRow(S,_), sub(S,_).
 forall(S) :- exists(R), sub(R,S), sub(S,_).
 exists(S) :- forall(R), sub(R,S), sub(S,_).
 
@@ -28,7 +28,7 @@ good(S) :- exists(S), sub(S,T), not invalid(T), not bad(T).
 % that concerns still-current input graph vertices, and set individual
 % variables whose value has been removed to the wildcard "_nn".
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-1 { extend(0,R) : childRow(R,N) } 1 :- childNode(N).
+1 { extend(0,R) : rootOf(R,N) } 1 :- childNode(N).
 1 { extend(L+1,S) : sub(R,S) } 1 :- extend(L,R), sub(R,_).
 :- extend(_,S), bad(S).
 :- extend(_,S), invalid(S).
@@ -80,4 +80,4 @@ item(L-1,true(C)) :- levels(L), true(C).
 #hide.
 #show item/2.
 #show extend/2.
-#show levels/1.
+#show length/1.

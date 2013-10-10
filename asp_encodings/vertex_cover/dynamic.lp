@@ -1,5 +1,5 @@
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
-:- extend(A;B), childItem(A,X), childRow(B,N), childBag(N,X), not childItem(B,X).
+:- extend(A;B), childItem(A,X), childRow(B,N), childNode(N), bag(N,X), not childItem(B,X).
 
 item(X) :- extend(R), childItem(R,X), current(X).
 

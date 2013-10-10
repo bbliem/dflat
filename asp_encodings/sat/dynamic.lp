@@ -1,5 +1,5 @@
 % Make explicit that a row interprets an atom as false or a clause as unsatisfied
-false(R,X) :- childRow(R,N), childBag(N,X), not childItem(R,X).
+false(R,X) :- childRow(R,N), bag(N,X), not childItem(R,X).
 
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
 

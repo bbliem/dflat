@@ -5,7 +5,7 @@ color(red;green;blue).
 
 noMatch(R) :- childRow(R,_), item(map(X,C)), childItem(R,map(X,OldC)), C != OldC.
 match :- childRow(R,_), not noMatch(R).
-:- not match.
+:- childNode(_), not match.
 
 #hide.
 #show item/1.

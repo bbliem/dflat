@@ -11,18 +11,18 @@ assigned(S,X) :- childItem(S,taken(X)).
 isRemoved(S,X) :- childItem(S,is(X,V)), removed(V).
 
 % Make implicit negative information explicit
--is(S,X,V) :- individualVar(X,L), itemSet(L,S,N), childBag(N,V), not childItem(S,is(X,V)).
--contains(S,X,V) :- setVar(X,L), itemSet(L,S,N), childBag(N,V), not childItem(S,contains(X,V)).
+-is(S,X,V) :- individualVar(X,L), itemSet(L,S,N), bag(N,V), not childItem(S,is(X,V)).
+-contains(S,X,V) :- setVar(X,L), itemSet(L,S,N), bag(N,V), not childItem(S,contains(X,V)).
 
 % A node in the characteristic tree is invalid if it does not assign a variable
-invalidItemSet(S) :- root, individualVar(X,L), itemSet(L,S,_), not assigned(S,X).
+invalidItemSet(S) :- final, individualVar(X,L), itemSet(L,S,_), not assigned(S,X).
 invalidItemSet(S) :- invalidItemSet(R), sub(R,S).
 
-forallItemSet(S) :- root, childRow(S,_),        sub(S,_), not invalidItemSet(S).
+forallItemSet(S) :- final, childRow(S,_),        sub(S,_), not invalidItemSet(S).
 forallItemSet(S) :- existsItemSet(R), sub(R,S), sub(S,_), not invalidItemSet(S).
 existsItemSet(S) :- forallItemSet(R), sub(R,S), sub(S,_), not invalidItemSet(S).
 
-bad(S) :- root, levels(L), itemSet(L-1,S,_), not invalidItemSet(S), clause(C), not childItem(S,satisfied(C)).
+bad(S) :- final, length(L), itemSet(L,S,_), not invalidItemSet(S), clause(C), not childItem(S,satisfied(C)).
 bad(S)  :- forallItemSet(S), sub(S,T),     bad(T), not invalidItemSet(T).
 -bad(S) :- existsItemSet(S), sub(S,T), not bad(T), not invalidItemSet(T).
 bad(S) :- existsItemSet(S), not -bad(S).
@@ -30,7 +30,7 @@ bad(S) :- existsItemSet(S), not -bad(S).
 % Actual solving part...
 
 % Guess a path
-1 { extend(0,R) : childRow(R,N) } 1 :- childNode(N).
+1 { extend(0,R) : rootOf(R,N) } 1 :- childNode(N).
 1 { extend(L+1,S) : sub(R,S) } 1 :- extend(L,R), sub(R,_).
 
 % Joined rows must agree on common vertices, i.e., if a common vertex is assigned to some (resp. no) variables in a row, it must also be assigned to those (resp. no) variables in the matching row. If a common vertex is contained in the interpretation of some set variables, it must also be contained in those sets of the matching row.
@@ -51,8 +51,8 @@ is(X,V)       :- extend(L,S), childItem(S,is(X,V)),       current(V).
 taken(X)      :- extend(L,S), isRemoved(S,X).
 taken(X)      :- extend(L,S), childItem(S,taken(X)).
 
-:- root, extend(0,R), bad(R).
-:- root, individualVar(X,_), not taken(X).
+:- final, extend(1,R), bad(R).
+:- final, individualVar(X,_), not taken(X).
 
 % Vertex introduction
 
@@ -84,7 +84,7 @@ satisfied(C) :- neg(C,edge(X,Y)), extend(L,S), isRemoved(S,Y), itemSet(L,S,N), n
 satisfied(C) :- pos(C,in(X,Y)), is(X,V), contains(Y,V).
 satisfied(C) :- neg(C,in(X,Y)), is(X,V), not contains(Y,V).
 
-item(L-1,satisfied(C)) :- levels(L), satisfied(C).
+item(L,satisfied(C))   :- length(L), satisfied(C).
 item(L,is(X,V))        :- individualVar(X,L), is(X,V).
 item(L,taken(X))       :- individualVar(X,L), taken(X).
 item(L,contains(X,V))  :- setVar(X,L), contains(X,V).
@@ -94,4 +94,4 @@ item(L,contains(X,V))  :- setVar(X,L), contains(X,V).
 #hide.
 #show item/2.
 #show extend/2.
-#show levels/1.
+#show length/1.

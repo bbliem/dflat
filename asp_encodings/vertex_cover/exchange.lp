@@ -1,4 +1,4 @@
-1 { extend(R) : childRow(R,_) } 1.
+1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
 item(X) :- current(X), extend(R), childItem(R,X).
 
 { item(X) : introduced(X) }.
