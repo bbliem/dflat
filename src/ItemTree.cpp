@@ -23,6 +23,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "ItemTree.h"
 #include "ExtensionIterator.h"
 
+#include <iostream> // XXX
+
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
 	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() || (lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
@@ -52,6 +54,85 @@ void ItemTree::addChildAndMerge(ChildPtr&& child)
 		children.insert(hint, std::move(child));
 		// TODO check that origChild is deleted properly
 	}
+}
+
+ItemTreeNode::Type ItemTree::prune()
+{
+	// Can we determine acceptance status already without propagating?
+	switch(node->getType()) {
+		case ItemTreeNode::Type::UNDEFINED:
+		case ItemTreeNode::Type::OR:
+		case ItemTreeNode::Type::AND:
+			break;
+
+		case ItemTreeNode::Type::ACCEPT:
+			std::cout << "Leaf accepts\n";
+			assert(children.empty()); // Must only be in leaves
+			return ItemTreeNode::Type::ACCEPT;
+
+		case ItemTreeNode::Type::REJECT:
+			std::cout << "Leaf rejects\n";
+			assert(children.empty()); // Must only be in leaves
+			return ItemTreeNode::Type::REJECT;
+	}
+
+	// Prune children recursively
+	bool allAccepting = true;
+	bool allRejecting = true;
+	bool someAccepting = false;
+	bool someRejecting = false;
+
+	Children::const_iterator it = children.begin();
+	while(it != children.end()) {
+		ItemTreeNode::Type childResult = (*it)->prune();
+		switch(childResult) {
+			case ItemTreeNode::Type::OR:
+			case ItemTreeNode::Type::AND:
+				assert(false); // Only UNDEFINED, ACCEPT or REJECT are allowed
+				break;
+
+			case ItemTreeNode::Type::UNDEFINED:
+				allRejecting = false;
+				allAccepting = false;
+				++it;
+				break;
+
+			case ItemTreeNode::Type::ACCEPT:
+				someAccepting = true;
+				allRejecting = false;
+				++it;
+				break;
+
+			case ItemTreeNode::Type::REJECT:
+				someRejecting = true;
+				allAccepting = false;
+				std::cout << "Pruning child " << (*it)->node << '\n';
+				children.erase(it++); // Remove that child
+				break;
+		}
+	}
+
+	// Determine acceptance status of this configuration, if possible
+	switch(node->getType()) {
+		case ItemTreeNode::Type::OR:
+			if(someAccepting)
+				return ItemTreeNode::Type::ACCEPT;
+			if(allRejecting)
+				return ItemTreeNode::Type::REJECT;
+			break;
+
+		case ItemTreeNode::Type::AND:
+			if(allAccepting)
+				return ItemTreeNode::Type::ACCEPT;
+			if(someRejecting)
+				return ItemTreeNode::Type::REJECT;
+			break;
+
+		default:
+			break;
+	}
+
+	return ItemTreeNode::Type::UNDEFINED;
 }
 
 void ItemTree::finalize()

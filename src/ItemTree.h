@@ -43,6 +43,10 @@ public:
 	// If there is a subtree rooted at a child of this node that has equal item sets as the given one, the existing subtree is unified with the given one
 	void addChildAndMerge(ChildPtr&& child);
 
+	// This propagates acceptance statuses from the leaves toward this node and prunes in the course of this if children are found to be rejecting. If this configuration can be determined to be accepting or rejecting, returns ACCEPT or REJECT, respectively; otherwise returns UNDEFINED.
+	// Do not call this after finalize().
+	ItemTreeNode::Type prune();
+
 	// Call this to allow random access to this node's children via getChild(), and also random access for all children of descendants of this node
 	void finalize();
 

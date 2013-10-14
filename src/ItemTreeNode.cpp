@@ -23,10 +23,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ItemTreeNode.h"
 
-ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers, int cost)
+#include <iostream> // XXX
+
+ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
 	: items(std::move(items))
 	, extensionPointers(std::move(extensionPointers))
-	, cost(cost)
 {
 	if(this->extensionPointers.empty())
 		count = 1;
@@ -39,6 +40,21 @@ ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers,
 			count += product;
 		}
 	}
+
+	// TODO for performance, we could recognize these special items during grounding and then set the type from ClaspCallback instead of always going through the items
+	assert(std::count_if(this->items.begin(), this->items.end(), [](const std::string& item){
+		return item == "_or" || item == "_and" || item == "_accept" || item == "_reject";
+	}) <= 1);
+	if(this->items.find("_or") != this->items.end())
+		type = Type::OR;
+	else if(this->items.find("_and") != this->items.end())
+		type = Type::AND;
+	else if(this->items.find("_accept") != this->items.end())
+		type = Type::ACCEPT;
+	else if(this->items.find("_reject") != this->items.end())
+		type = Type::REJECT;
+
+	std::cout << "type: " << static_cast<std::underlying_type<Type>::type>(type) << '\n';
 }
 
 const ItemTreeNode::Items& ItemTreeNode::getItems() const
@@ -64,6 +80,11 @@ int ItemTreeNode::getCost() const
 void ItemTreeNode::setCost(int cost)
 {
 	this->cost = cost;
+}
+
+ItemTreeNode::Type ItemTreeNode::getType() const
+{
+	return type;
 }
 
 void ItemTreeNode::merge(ItemTreeNode&& other)
@@ -93,6 +114,13 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 		while(++it != node.items.end())
 			os << ' ' << *it;
 	}
+
+	for(const auto& tuple : node.extensionPointers) {
+		os << " tuple ";
+		for(const auto& extended : tuple)
+			os << extended.get() << ' ';
+	}
+	os << "(this: " << &node << ")";
 
 	// Print cost
 	if(node.cost != 0)

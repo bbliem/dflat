@@ -80,7 +80,9 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	if(!itemTree)
 		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode)));
 
-	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode(std::move(items), {std::move(extendedRows)}, cost)))));
+	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), {std::move(extendedRows)}));
+	node->setCost(cost);
+	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 }
 
 }}} // namespace solver::asp::tables

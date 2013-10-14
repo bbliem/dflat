@@ -120,4 +120,18 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	uncompressedItemTree->addBranch(++branch.begin(), branch.end());
 }
 
+ItemTreePtr ClaspCallback::finalize()
+{
+	// Prune the resulting tree
+	//if(itemTree && itemTree->prune() == ItemTreeNode::Type::REJECT)
+	//	itemTree.reset();
+	if(itemTree) {
+		std::cout << "Before pruning:\n" << *itemTree << '\n';
+		if(itemTree->prune() == ItemTreeNode::Type::REJECT)
+			itemTree.reset();
+	}
+
+	return ::solver::asp::ClaspCallback::finalize();
+}
+
 }}} // namespace solver::asp::trees

@@ -69,7 +69,7 @@ void declareDecomposition(const Decomposition& decomposition, std::ostream& out)
 	out << "removed(X) :- childNode(N), bag(N,X), not current(X)." << std::endl;
 }
 
-void declareChildItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "")
+void declareChildItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0)
 {
 	if(!itemTree)
 		return;
@@ -79,11 +79,18 @@ void declareChildItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool t
 		if(parent.empty() == false)
 			out << "childRow(" << itemSetName << ',' << nodeId << ")." << std::endl;
 	} else {
+		out << "atLevel(" << itemSetName << ',' << level << ")." << std::endl;
+		out << "atNode(" << itemSetName << ',' << nodeId << ")." << std::endl;
 		if(parent.empty()) {
 			out << "root(" << itemSetName << ")." << std::endl;
 			out << "rootOf(" << itemSetName << ',' << nodeId << ")." << std::endl;
-		} else
-			out << "sub(" << parent << ',' << itemSetName << ")." << std::endl; // XXX need rootOf/2?
+		} else {
+			out << "sub(" << parent << ',' << itemSetName << ")." << std::endl;
+			if(itemTree->getChildren().empty()) {
+				out << "leaf(" << itemSetName << ")." << std::endl;
+				out << "leafOf(" << itemSetName << ',' << nodeId << ")." << std::endl;
+			}
+		}
 	}
 	for(const auto& item : itemTree->getRoot()->getItems())
 		out << "childItem(" << itemSetName << ',' << item << ")." << std::endl;
@@ -100,7 +107,7 @@ void declareChildItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool t
 		for(const auto& child : children) {
 			std::ostringstream childName;
 			childName << itemSetName << '_' << i++;
-			declareChildItemTree(out, child, tableMode, nodeId, childName.str(), itemSetName);
+			declareChildItemTree(out, child, tableMode, nodeId, childName.str(), itemSetName, level+1);
 		}
 	}
 }
@@ -142,10 +149,6 @@ ItemTreePtr Asp::compute()
 		if(!itree)
 			return itree;
 		childItemTrees.emplace(child->getRoot().getGlobalId(), std::move(itree));
-#ifndef NDEBUG
-		const ItemTreePtr& childItree = childItemTrees.at(child->getRoot().getGlobalId());
-		assert(!childItree || childItree->getRoot()->getItems().empty()); // Root item set must be empty
-#endif
 	}
 
 	// Input: Child item trees
@@ -184,8 +187,12 @@ ItemTreePtr Asp::compute()
 	ItemTreePtr result = cb->finalize();
 
 	if(app.isDebugEnabled()) {
-		if(result)
+		if(result) {
 			std::cerr << "Resulting item tree of node " << decomposition.getRoot().getGlobalId() << ':' << std::endl << *result << std::endl;
+			// XXX
+			std::cerr << "Extensions:\n";
+			result->printExtensions(std::cerr);
+		}
 		else
 			std::cerr << "Item tree of node " << decomposition.getRoot().getGlobalId() << " is empty." << std::endl;
 	}

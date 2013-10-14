@@ -34,7 +34,15 @@ public:
 	typedef std::vector<ExtensionPointer> ExtensionPointerTuple;
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
 
-	ItemTreeNode(Items&& items = {}, ExtensionPointers&& extensionPointers = {}, int cost = 0);
+	enum class Type {
+		UNDEFINED,
+		OR,
+		AND,
+		ACCEPT,
+		REJECT
+	};
+
+	ItemTreeNode(Items&& items = {}, ExtensionPointers&& extensionPointers = {});
 
 	const Items& getItems() const;
 	const ExtensionPointers& getExtensionPointers() const;
@@ -42,6 +50,8 @@ public:
 
 	int getCost() const;
 	void setCost(int cost);
+
+	Type getType() const;
 
 	// Unify extension pointers of this node with the other one's given that the item sets are equal.
 	// "other" will subsequently be thrown away and only "this" will be retained.
@@ -54,7 +64,9 @@ private:
 	Items items;
 	ExtensionPointers extensionPointers;
 	mpz_class count; // number of possible extensions of this node
-	int cost;
+	int cost = 0;
+
+	Type type = Type::UNDEFINED;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::shared_ptr<ItemTreeNode>& node);
