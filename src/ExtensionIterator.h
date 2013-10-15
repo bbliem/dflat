@@ -49,6 +49,6 @@ private:
 	ItemTreeNode::Items items;
 	const ItemTreeNode& itemTreeNode;
 	bool valid;
-	ItemTreeNode::ExtensionPointers::const_iterator curExtension; // current ExtensionPointerTuple in row
-	std::vector<std::unique_ptr<ExtensionIterator>> extensionIts; // for each extended row in *eptIt one iterator
+	ItemTreeNode::ExtensionPointers::const_iterator curTuple; // current ExtensionPointerTuple in ItemTreeNode
+	std::vector<std::unique_ptr<ExtensionIterator>> extensionIts; // one iterator for each node in the extension pointer tuple *curTuple
 };

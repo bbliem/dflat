@@ -23,11 +23,11 @@ along with D-FLAT. If not, see <http://www.gnu.org/licenses/>.
 #include "ExtensionIterator.h"
 
 ExtensionIterator::ExtensionIterator(const ItemTreeNode& itemTreeNode)
-: itemTreeNode(itemTreeNode), valid(true), curExtension(itemTreeNode.getExtensionPointers().begin())
+: itemTreeNode(itemTreeNode), valid(true), curTuple(itemTreeNode.getExtensionPointers().begin())
 {
-	if(curExtension != itemTreeNode.getExtensionPointers().end()) {
-		extensionIts.reserve(curExtension->size());
-		for(const auto& extendedItemTreeNode : *curExtension)
+	if(curTuple != itemTreeNode.getExtensionPointers().end()) {
+		extensionIts.reserve(curTuple->size());
+		for(const auto& extendedItemTreeNode : *curTuple)
 			extensionIts.emplace_back(new ExtensionIterator(*extendedItemTreeNode));
 	}
 	materializeItems();
@@ -35,22 +35,22 @@ ExtensionIterator::ExtensionIterator(const ItemTreeNode& itemTreeNode)
 
 void ExtensionIterator::reset()
 {
-	curExtension = itemTreeNode.getExtensionPointers().begin();
+	curTuple = itemTreeNode.getExtensionPointers().begin();
 	valid = true;
 	resetExtensionPointers();
 }
 
-inline void ExtensionIterator::resetExtensionPointers()
+void ExtensionIterator::resetExtensionPointers()
 {
-	if(curExtension != itemTreeNode.getExtensionPointers().end()) {
-		assert(curExtension->size() == extensionIts.size());
+	if(curTuple != itemTreeNode.getExtensionPointers().end()) {
+		assert(curTuple->size() == extensionIts.size());
 
-		for(unsigned i = 0; i < curExtension->size(); ++i)
-			extensionIts[i].reset(new ExtensionIterator(*(*curExtension)[i]));
+		for(unsigned i = 0; i < curTuple->size(); ++i)
+			extensionIts[i].reset(new ExtensionIterator(*(*curTuple)[i]));
 	}
 }
 
-inline void ExtensionIterator::materializeItems()
+void ExtensionIterator::materializeItems()
 {
 	items.clear();
 	items.insert(itemTreeNode.getItems().begin(), itemTreeNode.getItems().end());
@@ -70,7 +70,7 @@ ExtensionIterator& ExtensionIterator::operator++()
 {
 	assert(valid);
 
-	if(curExtension == itemTreeNode.getExtensionPointers().end())
+	if(curTuple == itemTreeNode.getExtensionPointers().end())
 		valid = false;
 	else {
 		incrementExtensionIterator(0);
@@ -85,8 +85,8 @@ void ExtensionIterator::incrementExtensionIterator(unsigned int i) {
 	if(i == extensionIts.size()) {
 		// The last one was the rightmost extension iterator.
 		// Use next extension pointer tuple.
-		++curExtension;
-		if(curExtension == itemTreeNode.getExtensionPointers().end())
+		++curTuple;
+		if(curTuple == itemTreeNode.getExtensionPointers().end())
 			valid = false;
 		else
 			resetExtensionPointers();
