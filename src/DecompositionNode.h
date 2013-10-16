@@ -32,12 +32,12 @@ public:
 	const Hypergraph::Vertices& getBag() const;
 
 	// Each DecompositionNode object that is created gets assigned a unique number starting from 1. This can, for instance, be used for printing when nodes should have unique names.
-	int getGlobalId() const;
+	unsigned int getGlobalId() const;
 
 	// Print this node (no newlines)
 	friend std::ostream& operator<<(std::ostream& os, const DecompositionNode& node);
 
 private:
-	int globalId;
+	unsigned int globalId;
 	Hypergraph::Vertices bag;
 };

@@ -28,6 +28,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 class ItemTree;
 typedef std::unique_ptr<ItemTree> ItemTreePtr;
+class ExtensionIterator;
 
 // The set of children is sorted ascendingly according to the following criterion:
 // An ItemTreePtr is smaller than another if
@@ -54,7 +55,7 @@ public:
 	const ItemTree& getChild(size_t i) const;
 
 	// Print the tree that would result from recursively extending all nodes
-	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool root = true, bool lastChild = false, const std::string& indent = "") const;
+	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool root = true, bool lastChild = false, const std::string& indent = "", const ExtensionIterator* parent = nullptr) const;
 
 private:
 	// Recursively unify extension pointers of this itree with the other one's given that the item sets are all equal

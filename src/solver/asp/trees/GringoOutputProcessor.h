@@ -31,6 +31,7 @@ class GringoOutputProcessor : public ::solver::asp::GringoOutputProcessor
 public:
 	struct ExtendAtomArguments {
 		unsigned int level;
+		unsigned int decompositionNodeId;
 		std::weak_ptr<ItemTreeNode> extendedNode;
 	};
 	typedef AtomInfo<ExtendAtomArguments> ExtendAtomInfo;

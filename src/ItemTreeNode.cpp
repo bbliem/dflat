@@ -23,11 +23,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ItemTreeNode.h"
 
-#include <iostream> // XXX
-
 ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
 	: items(std::move(items))
 	, extensionPointers(std::move(extensionPointers))
+	, parent(nullptr)
 {
 	if(this->extensionPointers.empty())
 		count = 1;
@@ -35,8 +34,8 @@ ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
 		count = 0;
 		for(const ExtensionPointerTuple& tuple : this->extensionPointers) {
 			mpz_class product = 1;
-			for(const ExtensionPointer& predecessor : tuple)
-				product *= predecessor->getCount();
+			for(const auto& predecessor : tuple)
+				product *= predecessor.second->getCount();
 			count += product;
 		}
 	}
@@ -53,8 +52,6 @@ ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
 		type = Type::ACCEPT;
 	else if(this->items.find("_reject") != this->items.end())
 		type = Type::REJECT;
-
-	std::cout << "type: " << static_cast<std::underlying_type<Type>::type>(type) << '\n';
 }
 
 const ItemTreeNode::Items& ItemTreeNode::getItems() const
@@ -65,6 +62,16 @@ const ItemTreeNode::Items& ItemTreeNode::getItems() const
 const ItemTreeNode::ExtensionPointers& ItemTreeNode::getExtensionPointers() const
 {
 	return extensionPointers;
+}
+
+const ItemTreeNode* ItemTreeNode::getParent() const
+{
+	return parent;
+}
+
+void ItemTreeNode::setParent(const ItemTreeNode* parent)
+{
+	this->parent = parent;
 }
 
 const mpz_class& ItemTreeNode::getCount() const
@@ -92,11 +99,13 @@ void ItemTreeNode::merge(ItemTreeNode&& other)
 	assert(items == other.items);
 
 	if(other.cost < cost) {
+		// Throw away this node's data and retain the other one's
 		extensionPointers.swap(other.extensionPointers);
 		count = other.count;
 		cost = other.cost;
 	}
 	else if(other.cost == cost) {
+		// Merge other node's data into this
 		extensionPointers.insert(extensionPointers.end(), other.extensionPointers.begin(), other.extensionPointers.end());
 		count += other.count;
 	}
@@ -115,12 +124,13 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 			os << ' ' << *it;
 	}
 
-	for(const auto& tuple : node.extensionPointers) {
-		os << " tuple ";
-		for(const auto& extended : tuple)
-			os << extended.get() << ' ';
-	}
-	os << "(this: " << &node << ")";
+//	for(const auto& tuple : node.extensionPointers) {
+//		os << " (";
+//		for(const auto& extended : tuple)
+//			os << extended.first << ':' << extended.second.get() << ',';
+//		os << ") ";
+//	}
+//	os << "(this: " << &node << ", parent: " << node.parent << ")";
 
 	// Print cost
 	if(node.cost != 0)

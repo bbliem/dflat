@@ -32,7 +32,7 @@ const Hypergraph::Vertices& DecompositionNode::getBag() const
 	return bag;
 }
 
-int DecompositionNode::getGlobalId() const
+unsigned int DecompositionNode::getGlobalId() const
 {
 	return globalId;
 }

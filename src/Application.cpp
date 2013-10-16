@@ -140,6 +140,7 @@ int Application::run(int argc, char** argv)
 	// Solve
 	ItemTreePtr rootItree = decomposition->getSolver().compute();
 
+	std::cout << "Solutions:" << std::endl;
 	if(rootItree)
 		rootItree->printExtensions(std::cout, depth);
 	else {

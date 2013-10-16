@@ -78,8 +78,6 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		ItemTreeNode::Items items;
 	};
 	std::vector<BranchNode> branchData(numLevels);
-	for(BranchNode& node : branchData)
-		node.extended.reserve(childItemTrees.size());
 
 	// Get items
 	forEachTrue(s, itemAtomInfos, [&branchData](const GringoOutputProcessor::ItemAtomArguments& arguments) {
@@ -88,9 +86,12 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	});
 
 	// Get extension pointers
+//	for(int i = 0; i < branchData.size(); ++i)
+//		branchData[i].extended.reserve(childItemTrees.size());
+
 	forEachTrue(s, extendAtomInfos, [&](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
 			assert(arguments.level < branchData.size());
-			branchData[arguments.level].extended.emplace_back(ItemTreeNode::ExtensionPointer(arguments.extendedNode));
+			branchData[arguments.level].extended.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedNode));
 	});
 
 	long count = 0;
@@ -107,8 +108,12 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 
 	// Convert branchData to UncompressedItemTree::Branch
 	UncompressedItemTree::Branch branch;
-	for(BranchNode& node : branchData)
-		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(node.items), {std::move(node.extended)}))); // TODO cost etc.
+	for(BranchNode& nodeData : branchData) {
+		// The current enumeration implementation requires the extension pointers to be sorted (for quicker comparison)
+		// XXX Check if we can improve this...
+//		std::sort(nodeData.extended.begin(), nodeData.extended.end());
+		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(nodeData.items), {std::move(nodeData.extended)}))); // TODO cost etc.
+	}
 
 	// Insert branch into tree
 	// TODO make this an exception
@@ -126,7 +131,7 @@ ItemTreePtr ClaspCallback::finalize()
 	//if(itemTree && itemTree->prune() == ItemTreeNode::Type::REJECT)
 	//	itemTree.reset();
 	if(itemTree) {
-		std::cout << "Before pruning:\n" << *itemTree << '\n';
+//		std::cout << "Before pruning:\n" << *itemTree << '\n';
 		if(itemTree->prune() == ItemTreeNode::Type::REJECT)
 			itemTree.reset();
 	}

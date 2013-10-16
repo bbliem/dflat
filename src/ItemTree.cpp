@@ -23,8 +23,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "ItemTree.h"
 #include "ExtensionIterator.h"
 
-#include <iostream> // XXX
-
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
 	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() || (lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
@@ -66,12 +64,10 @@ ItemTreeNode::Type ItemTree::prune()
 			break;
 
 		case ItemTreeNode::Type::ACCEPT:
-			std::cout << "Leaf accepts\n";
 			assert(children.empty()); // Must only be in leaves
 			return ItemTreeNode::Type::ACCEPT;
 
 		case ItemTreeNode::Type::REJECT:
-			std::cout << "Leaf rejects\n";
 			assert(children.empty()); // Must only be in leaves
 			return ItemTreeNode::Type::REJECT;
 	}
@@ -106,7 +102,6 @@ ItemTreeNode::Type ItemTree::prune()
 			case ItemTreeNode::Type::REJECT:
 				someRejecting = true;
 				allAccepting = false;
-				std::cout << "Pruning child " << (*it)->node << '\n';
 				children.erase(it++); // Remove that child
 				break;
 		}
@@ -151,18 +146,15 @@ const ItemTree& ItemTree::getChild(size_t i) const
 	return *childrenVector[i];
 }
 
-void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool root, bool lastChild, const std::string& indent) const
+void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool root, bool lastChild, const std::string& indent, const ExtensionIterator* parent) const
 {
-	ExtensionIterator it(*node);
-
-	while(it.isValid()) {
+	for(ExtensionIterator it(*node, parent); it.isValid(); ++it) {
 		std::string childIndent = indent;
 		os << indent;
 		ItemTreeNode::Items items = std::move(*it);
-		++it;
 
 		if(!root) {
-			if(lastChild && !it.isValid()) {
+			if(lastChild && !it.hasNext()) {
 #ifndef NO_UNICODE
 				os << "┗━ ";
 				childIndent += "   ";
@@ -203,7 +195,7 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 		if(maxDepth > 0) {
 			size_t i = 0;
 			for(const auto& child : children)
-				child->printExtensions(os, maxDepth - 1, false, ++i == children.size(), childIndent);
+				child->printExtensions(os, maxDepth - 1, false, ++i == children.size(), childIndent, &it);
 		}
 	}
 }

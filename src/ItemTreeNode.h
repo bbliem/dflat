@@ -23,6 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <ostream>
 #include <vector>
 #include <set>
+#include <map>
 #include <string>
 #include <gmpxx.h>
 
@@ -31,7 +32,7 @@ class ItemTreeNode
 public:
 	typedef std::set<std::string> Items; // We need the sortedness for, e.g., the default join.
 	typedef std::shared_ptr<ItemTreeNode> ExtensionPointer;
-	typedef std::vector<ExtensionPointer> ExtensionPointerTuple;
+	typedef std::map<unsigned int, ExtensionPointer> ExtensionPointerTuple; // key: ID of the decomposition node at which value is located
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
 
 	enum class Type {
@@ -46,6 +47,8 @@ public:
 
 	const Items& getItems() const;
 	const ExtensionPointers& getExtensionPointers() const;
+	const ItemTreeNode* getParent() const;
+	void setParent(const ItemTreeNode*);
 	const mpz_class& getCount() const;
 
 	int getCost() const;
@@ -63,6 +66,7 @@ public:
 private:
 	Items items;
 	ExtensionPointers extensionPointers;
+	const ItemTreeNode* parent;
 	mpz_class count; // number of possible extensions of this node
 	int cost = 0;
 

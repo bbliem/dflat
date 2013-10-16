@@ -63,9 +63,9 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 
 	// Get extension pointers
 	ItemTreeNode::ExtensionPointerTuple extendedRows;
-	extendedRows.reserve(childItemTrees.size());
+//	extendedRows.reserve(childItemTrees.size());
 	forEachTrueLimited(s, extendAtomInfos, [&](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
-			extendedRows.emplace_back(ItemTreeNode::ExtensionPointer(arguments.extendedRow));
+			extendedRows.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedRow));
 			return extendedRows.size() != childItemTrees.size();
 	});
 
