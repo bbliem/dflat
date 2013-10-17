@@ -78,10 +78,15 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 
 	// TODO currentCost / count
 
-	if(!itemTree)
-		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode)));
+	if(!itemTree) {
+		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
+		for(const auto& childItemTree : childItemTrees)
+			rootExtensionPointers.emplace(childItemTree.first, childItemTree.second->getRoot());
+		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {std::move(rootExtensionPointers)}))));
+	}
 
 	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), {std::move(extendedRows)}));
+	node->setParent(itemTree->getRoot().get());
 	node->setCost(cost);
 	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 }
