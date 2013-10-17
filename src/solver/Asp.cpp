@@ -188,12 +188,13 @@ ItemTreePtr Asp::compute()
 
 	if(app.isDebugEnabled()) {
 		if(result) {
-			std::cerr << "Resulting item tree of node " << decomposition.getRoot().getGlobalId() << ':' << std::endl << *result << std::endl;
-			std::cerr << "Extensions:" << std::endl;
-			result->printExtensions(std::cerr);
+			std::cout << "Resulting item tree at node " << decomposition.getRoot().getGlobalId() << ':' << std::endl << *result << std::endl;
+			std::cout << "Extensions of item tree at node " << decomposition.getRoot().getGlobalId() << ':' << std::endl;
+			result->printExtensions(std::cout);
+			std::cout << std::endl;
 		}
 		else
-			std::cerr << "Item tree of node " << decomposition.getRoot().getGlobalId() << " is empty." << std::endl;
+			std::cout << "Item tree of node " << decomposition.getRoot().getGlobalId() << " is empty." << std::endl;
 	}
 
 	return result;

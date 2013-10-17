@@ -30,6 +30,8 @@ ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Ch
 
 void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 {
+	::solver::asp::ClaspCallback::state(e, f);
+
 	if(f.state() == Clasp::ClaspFacade::state_solve) {
 		if(e == Clasp::ClaspFacade::event_state_enter) {
 			Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
@@ -46,9 +48,6 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getLengthAtomInfos())
 				lengthAtomInfos.emplace_back(LengthAtomInfo(atom, symTab));
-
-			if(printModels)
-				std::cerr << std::endl;
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit) {
 			if(uncompressedItemTree)
@@ -86,9 +85,6 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	});
 
 	// Get extension pointers
-//	for(int i = 0; i < branchData.size(); ++i)
-//		branchData[i].extended.reserve(childItemTrees.size());
-
 	forEachTrue(s, extendAtomInfos, [&](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
 			assert(arguments.level < branchData.size());
 			branchData[arguments.level].extended.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedNode));
@@ -108,12 +104,8 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 
 	// Convert branchData to UncompressedItemTree::Branch
 	UncompressedItemTree::Branch branch;
-	for(BranchNode& nodeData : branchData) {
-		// The current enumeration implementation requires the extension pointers to be sorted (for quicker comparison)
-		// XXX Check if we can improve this...
-//		std::sort(nodeData.extended.begin(), nodeData.extended.end());
+	for(BranchNode& nodeData : branchData)
 		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(nodeData.items), {std::move(nodeData.extended)}))); // TODO cost etc.
-	}
 
 	// Insert branch into tree
 	// TODO make this an exception
@@ -128,13 +120,8 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 ItemTreePtr ClaspCallback::finalize()
 {
 	// Prune the resulting tree
-	//if(itemTree && itemTree->prune() == ItemTreeNode::Type::REJECT)
-	//	itemTree.reset();
-	if(itemTree) {
-//		std::cout << "Before pruning:\n" << *itemTree << '\n';
-		if(itemTree->prune() == ItemTreeNode::Type::REJECT)
-			itemTree.reset();
-	}
+	if(itemTree && itemTree->prune() == ItemTreeNode::Type::REJECT)
+		itemTree.reset();
 
 	return ::solver::asp::ClaspCallback::finalize();
 }

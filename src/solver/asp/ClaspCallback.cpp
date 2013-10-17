@@ -40,16 +40,22 @@ void ClaspCallback::warning(const char* msg)
 	std::cerr << "clasp warning: " << msg << std::endl;
 }
 
+void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
+{
+	if(f.state() == Clasp::ClaspFacade::state_solve && e == Clasp::ClaspFacade::event_state_exit && printModels)
+		std::cout << std::endl;
+}
+
 void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 {
 	if(e == Clasp::ClaspFacade::event_model && printModels) {
 		Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
-		std::cerr << "Model " << f.config()->ctx.enumerator()->enumerated-1 << ": ";
+		std::cout << "Model " << f.config()->ctx.enumerator()->enumerated-1 << ": ";
 		for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
 			if(s.isTrue(it->second.lit) && !it->second.name.empty())
-				std::cerr << it->second.name.c_str() << ' ';
+				std::cout << it->second.name.c_str() << ' ';
 		}
-		std::cerr << std::endl;
+		std::cout << std::endl;
 	}
 }
 

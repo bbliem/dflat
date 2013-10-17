@@ -30,6 +30,8 @@ ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Ch
 
 void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 {
+	::solver::asp::ClaspCallback::state(e, f);
+
 	if(f.state() == Clasp::ClaspFacade::state_solve) {
 		if(e == Clasp::ClaspFacade::event_state_enter) {
 			Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
@@ -63,7 +65,6 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 
 	// Get extension pointers
 	ItemTreeNode::ExtensionPointerTuple extendedRows;
-//	extendedRows.reserve(childItemTrees.size());
 	forEachTrueLimited(s, extendAtomInfos, [&](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
 			extendedRows.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedRow));
 			return extendedRows.size() != childItemTrees.size();

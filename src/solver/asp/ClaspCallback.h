@@ -54,7 +54,7 @@ public:
 	virtual void warning(const char* msg) override;
 
 	// Called on entering/exiting a state
-	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override = 0;
+	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override;
 
 	// Called for important events, e.g. a model has been found
 	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f) override;
