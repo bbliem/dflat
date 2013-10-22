@@ -148,13 +148,19 @@ const ItemTree& ItemTree::getChild(size_t i) const
 
 void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool root, bool lastChild, const std::string& indent, const ExtensionIterator* parent) const
 {
-	for(ExtensionIterator it(*node, parent); it.isValid(); ++it) {
+	std::unique_ptr<ExtensionIterator> it(new ExtensionIterator(*node, parent));
+
+	while(it->isValid()) {
 		std::string childIndent = indent;
 		os << indent;
-		ItemTreeNode::Items items = std::move(*it);
+		ItemTreeNode::Items items = std::move(**it);
+
+		// XXX All this ugly stuff just for pretty printing... (Otherwise ExtensionIterator would not need to be copyable and it might use unique_ptr instead of shared_ptr internally.)
+		std::unique_ptr<ExtensionIterator> currentIt(new ExtensionIterator(*it));
+		++*it;
 
 		if(!root) {
-			if(lastChild && !it.hasNext()) {
+			if(lastChild && !it->isValid()) {
 #ifndef NO_UNICODE
 				os << "┗━ ";
 				childIndent += "   ";
@@ -195,7 +201,7 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 		if(maxDepth > 0) {
 			size_t i = 0;
 			for(const auto& child : children)
-				child->printExtensions(os, maxDepth - 1, false, ++i == children.size(), childIndent, &it);
+				child->printExtensions(os, maxDepth - 1, false, ++i == children.size(), childIndent, currentIt.get());
 		}
 	}
 }

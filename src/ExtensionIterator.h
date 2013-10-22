@@ -56,7 +56,8 @@ private:
 	bool valid;
 	ItemTreeNode::ExtensionPointers::const_iterator curTuple; // current ExtensionPointerTuple in ItemTreeNode
 
-	typedef std::vector<std::unique_ptr<ExtensionIterator>> ExtensionIterators;
+	//typedef std::vector<std::unique_ptr<ExtensionIterator>> ExtensionIterators;
+	typedef std::vector<std::shared_ptr<ExtensionIterator>> ExtensionIterators; // XXX unique_ptr would be more efficient, but then we can't copy the iterator -- but this is currently not strictly necessary anyway (except for pretty-printing)
 
 	ExtensionIterators extensionIts; // one iterator for each node in the extension pointer tuple *curTuple
 };
