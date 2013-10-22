@@ -22,8 +22,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp { namespace trees {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool printModels)
-	: ::solver::asp::ClaspCallback(childItemTrees, printModels)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool printModels, bool prune)
+	: ::solver::asp::ClaspCallback(childItemTrees, printModels, prune)
 	, gringoOutput(gringoOutput)
 {
 }
@@ -120,7 +120,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 ItemTreePtr ClaspCallback::finalize()
 {
 	// Prune the resulting tree
-	if(itemTree && itemTree->prune() == ItemTreeNode::Type::REJECT)
+	if(prune && itemTree && itemTree->prune() == ItemTreeNode::Type::REJECT)
 		itemTree.reset();
 
 	return ::solver::asp::ClaspCallback::finalize();

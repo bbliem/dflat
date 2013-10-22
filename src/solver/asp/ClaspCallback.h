@@ -45,7 +45,7 @@ public:
 
 	using ChildItemTrees = GringoOutputProcessor::ChildItemTrees;
 
-	ClaspCallback(const ChildItemTrees& childItemTrees, bool printModels);
+	ClaspCallback(const ChildItemTrees& childItemTrees, bool printModels, bool prune);
 
 	// Call this after all answer sets have been processed. It returns the resulting item tree (and calls finalize() on it).
 	virtual ItemTreePtr finalize();
@@ -94,6 +94,7 @@ protected:
 	ItemTreePtr itemTree;
 	const ChildItemTrees& childItemTrees;
 	bool printModels;
+	bool prune;
 };
 
 }} // namespace solver::asp

@@ -22,9 +22,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, bool printModels)
+ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, bool printModels, bool prune)
 	: childItemTrees(childItemTrees)
 	, printModels(printModels)
+	, prune(prune)
 {
 }
 

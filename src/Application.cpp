@@ -64,6 +64,7 @@ Application::Application(const std::string& binaryName)
 	, optDecomposer("d", "decomposer", "Use decomposition method <decomposer>")
 	, optSolver("s", "solver", "Use <solver> to compute partial solutions")
 	, optDebug("debug", "Print debugging information (to stderr)")
+	, optNoPruning("no-pruning", "Do not prune rejecting subtrees")
 	, decomposer(0)
 	, solverFactory(0)
 {
@@ -86,6 +87,8 @@ int Application::run(int argc, char** argv)
 
 	options::MultiValueOption optEdge("e", "edge", "Predicate <edge> declares (hyper)edges");
 	opts.addOption(optEdge);
+
+	opts.addOption(optNoPruning);
 
 	options::Option optPrintDecomposition("print-decomposition", "Print the decomposition");
 	opts.addOption(optPrintDecomposition);
@@ -196,4 +199,9 @@ void Application::setSolverFactory(SolverFactory& s)
 bool Application::isDebugEnabled() const
 {
 	return optDebug.isUsed();
+}
+
+bool Application::isPruningDisabled() const
+{
+	return optNoPruning.isUsed();
 }

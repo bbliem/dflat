@@ -46,6 +46,7 @@ public:
 	void setSolverFactory(SolverFactory& solverFactory);
 
 	bool isDebugEnabled() const;
+	bool isPruningDisabled() const;
 
 private:
 	static const std::string MODULE_SECTION;
@@ -57,6 +58,7 @@ private:
 	options::Choice optDecomposer;
 	options::Choice optSolver;
 	options::Option optDebug;
+	options::Option optNoPruning;
 
 	Decomposer* decomposer;
 	SolverFactory* solverFactory;

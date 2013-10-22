@@ -120,12 +120,12 @@ std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(const ChildItemT
 		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor(childItemTrees));
 }
 
-std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const GringoOutputProcessor& gringoOutputProcessor, const ChildItemTrees& childItemTrees, bool printModels)
+std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const GringoOutputProcessor& gringoOutputProcessor, const ChildItemTrees& childItemTrees, bool printModels, bool prune)
 {
 	if(tableMode)
-		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, printModels));
+		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, printModels, prune));
 	else
-		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, printModels));
+		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, printModels, prune));
 }
 
 
@@ -178,7 +178,7 @@ ItemTreePtr Asp::compute()
 	// Call the ASP solver
 	std::unique_ptr<GringoOutputProcessor> outputProcessor(newGringoOutputProcessor(childItemTrees, tableMode));
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *outputProcessor, childItemTrees, app.isDebugEnabled()));
+	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *outputProcessor, childItemTrees, app.isDebugEnabled(), app.isPruningDisabled() == false));
 	Clasp::ClaspConfig config;
 	config.enumerate.numModels = 0;
 	Clasp::ClaspFacade clasp;

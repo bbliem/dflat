@@ -43,7 +43,7 @@ public:
 	typedef std::vector<CostAtomInfo>        CostAtomInfos;
 	typedef std::vector<LengthAtomInfo>      LengthAtomInfos;
 
-	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool printModels);
+	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool printModels, bool prune);
 
 	// Called on entering/exiting a state
 	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override;

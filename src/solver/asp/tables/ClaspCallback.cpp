@@ -22,8 +22,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp { namespace tables {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool printModels)
-	: ::solver::asp::ClaspCallback(childItemTrees, printModels)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool printModels, bool prune)
+	: ::solver::asp::ClaspCallback(childItemTrees, printModels, prune)
 	, gringoOutput(gringoOutput)
 {
 }
