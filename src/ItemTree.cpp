@@ -180,12 +180,21 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 			}
 		}
 
-		// Print number of accepting children
-		if(children.empty() == false) {
+		// When limiting the depth causes children not to be extended, print the number of accepting children
+		if(maxDepth == 0 && children.empty() == false) {
 			os << '[';
-			mpz_class count = 0;
-			for(const auto& child : children)
-				count += child->node->getCount();
+			mpz_class count;
+			assert(count == 0);
+			// On the first level we can use the counts inside the nodes
+			// XXX This redundancy is a bit ugly but maybe offers better performance than recalculating the number of accepting children (like below in the "else" branch).
+			if(!parent) {
+				for(const auto& child : children)
+					count += child->node->getCount();
+			}
+			else {
+				for(const auto& child : children)
+					count += child->node->countExtensions(*currentIt);
+			}
 			os << count << "] ";
 		}
 

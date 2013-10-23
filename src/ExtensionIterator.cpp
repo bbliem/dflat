@@ -34,7 +34,7 @@ bool ExtensionIterator::hasNext() const
 	assert(valid);
 	assert(curTuple != itemTreeNode.getExtensionPointers().end());
 
-	for(const auto& it : extensionIts)
+	for(const auto& it : subIts)
 		if(it->hasNext() == true)
 			return true;
 
@@ -77,12 +77,12 @@ void ExtensionIterator::reset()
 	valid = true;
 	curTuple = itemTreeNode.getExtensionPointers().begin();
 	assert(curTuple != itemTreeNode.getExtensionPointers().end()); // If there are no decomposition children, *curTuple should be a vector of size 0
-	assert(curTuple->empty() == false || extensionIts.empty()); // If the current tuple is empty, there should also be no extensionIts
+	assert(curTuple->empty() == false || subIts.empty()); // If the current tuple is empty, there should also be no subIts
 
 	if(parent && forwardCurTuple() == false)
 		return;
 
-	extensionIts.resize(curTuple->size());
+	subIts.resize(curTuple->size());
 	resetExtensionPointers();
 
 	materializeItems();
@@ -91,20 +91,20 @@ void ExtensionIterator::reset()
 void ExtensionIterator::resetExtensionPointers()
 {
 	assert(curTuple != itemTreeNode.getExtensionPointers().end());
-	assert(curTuple->size() == extensionIts.size());
+	assert(curTuple->size() == subIts.size());
 
 	if(parent) {
-		assert(curTuple->size() == parent->extensionIts.size());
+		assert(curTuple->size() == parent->subIts.size());
 		ItemTreeNode::ExtensionPointerTuple::const_iterator tupleIt = curTuple->begin();
 		for(unsigned i = 0; i < curTuple->size(); ++i) {
-			extensionIts[i].reset(new ExtensionIterator(*tupleIt->second, parent->extensionIts[i].get()));
+			subIts[i].reset(new ExtensionIterator(*tupleIt->second, parent->subIts[i].get()));
 			++tupleIt;
 		}
 	}
 	else {
 		ItemTreeNode::ExtensionPointerTuple::const_iterator tupleIt = curTuple->begin();
 		for(unsigned i = 0; i < curTuple->size(); ++i) {
-			extensionIts[i].reset(new ExtensionIterator(*tupleIt->second));
+			subIts[i].reset(new ExtensionIterator(*tupleIt->second));
 			++tupleIt;
 		}
 	}
@@ -114,7 +114,7 @@ void ExtensionIterator::materializeItems()
 {
 	items.clear();
 	items.insert(itemTreeNode.getItems().begin(), itemTreeNode.getItems().end());
-	for(const auto& it : extensionIts) {
+	for(const auto& it : subIts) {
 		assert(it);
 		const ItemTreeNode::Items& extension = **it;
 		items.insert(extension.begin(), extension.end());
@@ -139,8 +139,23 @@ ExtensionIterator& ExtensionIterator::operator++()
 	return *this;
 }
 
+const ExtensionIterator* ExtensionIterator::getParentIterator() const
+{
+	return parent;
+}
+
+const ItemTreeNode& ExtensionIterator::getItemTreeNode() const
+{
+	return itemTreeNode;
+}
+
+const ExtensionIterator::SubIterators& ExtensionIterator::getSubIterators() const
+{
+	return subIts;
+}
+
 void ExtensionIterator::incrementExtensionIterator(unsigned int i) {
-	if(i == extensionIts.size()) {
+	if(i == subIts.size()) {
 		// The last one was the rightmost extension iterator.
 		// Use next extension pointer tuple.
 		++curTuple;
@@ -152,10 +167,10 @@ void ExtensionIterator::incrementExtensionIterator(unsigned int i) {
 		}
 	}
 	else {
-		++(*extensionIts[i]);
-		if(!extensionIts[i]->valid) {
+		++(*subIts[i]);
+		if(!subIts[i]->valid) {
 			// Now we need to advance the next iterator left of it ("carry operation")
-			extensionIts[i]->reset();
+			subIts[i]->reset();
 			incrementExtensionIterator(i + 1);
 		}
 	}

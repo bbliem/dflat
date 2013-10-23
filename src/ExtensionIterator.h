@@ -28,6 +28,8 @@ along with D-FLAT. If not, see <http://www.gnu.org/licenses/>.
 class ExtensionIterator
 {
 public:
+	typedef std::vector<std::shared_ptr<ExtensionIterator>> SubIterators; // XXX unique_ptr would be more efficient, but then we can't copy the iterator -- but this is currently not strictly necessary anyway (except for pretty-printing)
+
 	explicit ExtensionIterator(const ItemTreeNode&, const ExtensionIterator* parent = nullptr);
 
 	//! @return true iff this iterator can be dereferenced
@@ -36,6 +38,10 @@ public:
 
 	ItemTreeNode::Items& operator*(); // dereference
 	ExtensionIterator& operator++(); // Point to next child of what results from dereferencing "parent"
+
+	const ExtensionIterator* getParentIterator() const;
+	const ItemTreeNode& getItemTreeNode() const;
+	const SubIterators& getSubIterators() const;
 
 private:
 	bool curTupleAreChildrenOfParent() const;
@@ -56,8 +62,5 @@ private:
 	bool valid;
 	ItemTreeNode::ExtensionPointers::const_iterator curTuple; // current ExtensionPointerTuple in ItemTreeNode
 
-	//typedef std::vector<std::unique_ptr<ExtensionIterator>> ExtensionIterators;
-	typedef std::vector<std::shared_ptr<ExtensionIterator>> ExtensionIterators; // XXX unique_ptr would be more efficient, but then we can't copy the iterator -- but this is currently not strictly necessary anyway (except for pretty-printing)
-
-	ExtensionIterators extensionIts; // one iterator for each node in the extension pointer tuple *curTuple
+	SubIterators subIts; // one iterator for each node in the extension pointer tuple *curTuple
 };

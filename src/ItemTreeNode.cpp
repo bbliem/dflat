@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <memory>
 
 #include "ItemTreeNode.h"
+#include "ExtensionIterator.h"
 
 ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
 	: items(std::move(items))
@@ -92,6 +93,33 @@ void ItemTreeNode::setCost(int cost)
 ItemTreeNode::Type ItemTreeNode::getType() const
 {
 	return type;
+}
+
+mpz_class ItemTreeNode::countExtensions(const ExtensionIterator& parentIterator) const
+{
+	mpz_class result;
+	assert(result == 0);
+
+	if(&parentIterator.getItemTreeNode() == parent) {
+		// XXX This is strikingly similar to what's happening in the constructor. What to do?
+		if(extensionPointers.empty())
+			result = 1;
+		else {
+			for(const ExtensionPointerTuple& tuple : extensionPointers) {
+				mpz_class product = 1;
+
+				assert(parentIterator.getSubIterators().size() == tuple.size());
+				ExtensionIterator::SubIterators::const_iterator subIt = parentIterator.getSubIterators().begin();
+				for(const auto& predecessor : tuple) {
+					product *= predecessor.second->countExtensions(**subIt);
+					++subIt;
+				}
+				result += product;
+			}
+		}
+	}
+
+	return result;
 }
 
 void ItemTreeNode::merge(ItemTreeNode&& other)

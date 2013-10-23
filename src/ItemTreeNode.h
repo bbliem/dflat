@@ -27,6 +27,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <gmpxx.h>
 
+class ExtensionIterator;
+
 class ItemTreeNode
 {
 public:
@@ -55,6 +57,12 @@ public:
 	void setCost(int cost);
 
 	Type getType() const;
+
+	// Calculate the number of extensions of this node given an iterator pointing to an extension of this node's parent.
+	// This is different from getCount() since getCount() returns the number of extensions for *any* possible extension of the parent.
+	// This method traverses the entire decomposition.
+	// If parentIterator does not point to this node's parent, returns 0.
+	mpz_class countExtensions(const ExtensionIterator& parentIterator) const;
 
 	// Unify extension pointers of this node with the other one's given that the item sets are equal.
 	// "other" will subsequently be thrown away and only "this" will be retained.
