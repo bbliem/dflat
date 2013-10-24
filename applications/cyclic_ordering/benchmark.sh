@@ -1,11 +1,13 @@
 #!/bin/bash
+DIR=$(cd "$( dirname "$0" )" && pwd)
+ROOT=$DIR/../..
 
-dflat=build/release/dflat
-gringo=../gringo
-clasp=../clasp
+dflat=$ROOT/build/release/dflat
+gringo=gringo
+clasp=clasp
 
-exchangeDecEnc=applications/cyclic_ordering/exchange_decision.lp
-monolithicEnc=applications/cyclic_ordering/monolithic.lp
+exchangeDecEnc=$DIR/exchange_decision.lp
+monolithicEnc=$DIR/monolithic.lp
 
 echo "width,elements,num,extra_triples,seed,co_decision,monolithic_decision,consistent"
 

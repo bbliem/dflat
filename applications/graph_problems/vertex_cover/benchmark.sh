@@ -1,12 +1,13 @@
 #!/bin/bash
+DIR=$(cd "$( dirname "$0" )" && pwd)
+ROOT=$DIR/../../..
+dflat=$ROOT/build/release/dflat
+gringo=gringo
+clasp=clasp
 
-dflat=build/release/dflat
-gringo=../gringo
-clasp=../clasp
-
-exchangeEnc=applications/graph_problems/vertex_cover/exchange.lp
-exchangeDecEnc=applications/graph_problems/vertex_cover/exchange_decision.lp
-monolithicEnc=applications/graph_problems/vertex_cover/monolithic.lp
+exchangeEnc=$DIR/exchange.lp
+exchangeDecEnc=$DIR/exchange_decision.lp
+monolithicEnc=$DIR/monolithic.lp
 
 echo "width,nodes,num,edges,seed,vc_opt-value,monolithic_opt-value,vc_opt-counting,monolithic_opt-counting_value_given,vc_opt-enum,monolithic_opt-enum_value_given,optimum,optimal_vcs"
 

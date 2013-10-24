@@ -1,10 +1,10 @@
 #!/bin/bash
-
+DIR=$(cd "$( dirname "$0" )" && pwd)
 numNodes=6
 numEdges=18
-export instanceGen="applications/graph_problems/instance_generator.py $numNodes $numEdges"
-#export instanceGen="applications/graph_problems/tree_instance_generator.py $numNodes $numEdges"
-export monolithicEncoding=applications/graph_problems/hamiltonian_cycle/monolithic.lp
-export dflatArguments="-e edge applications/graph_problems/hamiltonian_cycle/dynamic.lp"
+export instanceGen="$DIR/../instance_generator.py $numNodes $numEdges"
+#export instanceGen="$DIR/../tree_instance_generator.py $numNodes $numEdges"
+export monolithicEncoding=$DIR/monolithic.lp
+export dflatArguments="-e edge $DIR/dynamic.lp"
 
-applications/test_counting.sh
+$DIR/../../test_counting.sh

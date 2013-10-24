@@ -1,8 +1,8 @@
 #!/bin/bash
-
-gringo=../gringo
-clasp=../clasp-2.0.2-st-x86-linux
-exchangegen=applications/sat/exchange_generator.py
+DIR=$(cd "$( dirname "$0" )" && pwd)
+gringo=gringo
+clasp=clasp
+exchangegen=$DIR/exchange_generator.py
 
 numInstances=10
 
@@ -23,8 +23,8 @@ for i in $(seq 1 $numInstances); do
 	trap "rm -f $instance" EXIT
 	$exchangegen $bagSize $childBagSize $numIntroduced $numChildTuples > $instance || exit
 
-	\time -f "%U" bash -c "$gringo exchange_decision.lp $instance 2>/dev/null | $clasp 0 >/dev/null" 2>&1 | tail -n1
-	\time -f "%U" bash -c "$gringo exchange.lp $instance 2>/dev/null | $clasp 0 >/dev/null" 2>&1 | tail -n1
+	\time -f "%U" bash -c "$gringo $DIR/exchange_decision.lp $instance 2>/dev/null | $clasp 0 >/dev/null" 2>&1 | tail -n1
+	\time -f "%U" bash -c "$gringo $DIR/exchange.lp $instance 2>/dev/null | $clasp 0 >/dev/null" 2>&1 | tail -n1
 	echo
 
 	rm -f $instance

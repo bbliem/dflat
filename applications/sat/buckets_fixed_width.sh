@@ -1,9 +1,9 @@
 #!/bin/bash
-
 # generate SAT problem instances and put them into buckets according to width of tree decomposition
-
-generator=applications/sat/tree_instance_generator.py
-solver=build/release/dflat
+DIR=$(cd "$( dirname "$0" )" && pwd)
+ROOT=$DIR/../..
+generator=$DIR/tree_instance_generator.py
+solver=$ROOT/build/release/dflat
 
 minNumVars=17
 maxNumVars=44
@@ -36,7 +36,7 @@ for numVars in $(seq $minNumVars $stepNumVars $maxNumVars); do
 		$generator $numVars $numExtraClauses $seed > $instance
 
 		width=$($solver -e pos -e neg -s $seed --only-decompose --stats < $instance | awk '/Width:/ {print $2}' | head -n1)
-		directory=instances/sat/width${width}
+		directory=$ROOT/instances/sat/width${width}
 
 		if [ $width -eq $tw ]; then
 			echo -n "x"

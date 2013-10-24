@@ -1,9 +1,9 @@
 #!/bin/bash
-
+DIR=$(cd "$( dirname "$0" )" && pwd)
 numClauses=12
 numVars=6
-export instanceGen="applications/sat/instance_generator.py $numClauses $numVars"
-export monolithicEncoding=applications/sat/monolithic.lp
-export dflatArguments="-x applications/sat/exchange_decision.lp -j applications/sat/join.lp -e pos -e neg -n semi"
+export instanceGen="$DIR/instance_generator.py $numClauses $numVars"
+export monolithicEncoding=$DIR/monolithic.lp
+export dflatArguments="-x $DIR/exchange_decision.lp -j $DIR/join.lp -e pos -e neg -n semi"
 
-applications/test_decision.sh
+$DIR/../test_decision.sh

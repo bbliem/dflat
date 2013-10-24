@@ -1,9 +1,9 @@
 #!/bin/bash
-
+DIR=$(cd "$( dirname "$0" )" && pwd)
 numNodes=10
 numEdges=20
-export instanceGen="applications/graph_problems/instance_generator.py $numNodes $numEdges"
-export monolithicEncoding=applications/graph_problems/vertex_cover/monolithic.lp
-export dflatArguments="applications/graph_problems/vertex_cover/dynamic.lp -e edge"
+export instanceGen="$DIR/../instance_generator.py $numNodes $numEdges"
+export monolithicEncoding=$DIR/monolithic.lp
+export dflatArguments="$DIR/dynamic.lp -e edge"
 
-applications/test_opt_counting.sh
+$DIR/../../test_opt_counting.sh

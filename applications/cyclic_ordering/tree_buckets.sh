@@ -1,9 +1,10 @@
 #!/bin/bash
-
 # generate cyclic_ordering instances and put them into buckets according to width of tree decomposition
+DIR=$(cd "$( dirname "$0" )" && pwd)
+ROOT=$DIR/../..
 
-generator=applications/cyclic_ordering/tree_instance_generator.py
-solver=build/release/cyclic_ordering
+generator=$DIR/tree_instance_generator.py
+solver=$ROOT/build/release/dflat
 
 minN=6
 maxN=98
@@ -37,7 +38,7 @@ for n in $(seq $minN $stepN $maxN); do
 
 			width=$($solver -s $seed --only-decompose --stats < $instance | awk '/Width:/ {print $2}' | head -n1)
 			[[ $width -ge $minWidth && $width -le $maxWidth ]] || continue
-			directory=instances/cyclic_ordering/width${width}
+			directory=$ROOT/instances/cyclic_ordering/width${width}
 
 			# does an instance for this width/size already exist?
 			if [ -e ${directory}/${n}_${o}_*.lp ]; then

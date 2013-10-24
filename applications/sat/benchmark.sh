@@ -1,13 +1,14 @@
 #!/bin/bash
+DIR=$(cd "$( dirname "$0" )" && pwd)
+ROOT=$DIR/../..
+dflat=$ROOT/build/release/dflat
+gringo=gringo
+clasp=clasp
 
-dflat=build/release/dflat
-gringo=../gringo
-clasp=../clasp
-
-exchangeEnc=applications/sat/exchange.lp
-exchangeDecEnc=applications/sat/exchange_decision.lp
-joinEnc=applications/sat/join.lp
-monolithicEnc=applications/sat/monolithic.lp
+exchangeEnc=$DIR/exchange.lp
+exchangeDecEnc=$DIR/exchange_decision.lp
+joinEnc=$DIR/join.lp
+monolithicEnc=$DIR/monolithic.lp
 
 echo "width,vars,num,extraclauses,seed,sat_enum,monolithic_enum,sat_counting,monolithic_counting,sat_decision,monolithic_decision,models"
 

@@ -1,9 +1,11 @@
 #!/bin/bash
+DIR=$(cd "$( dirname "$0" )" && pwd)
+ROOT=$DIR/../..
 
 # generate graph problem instances and put them into buckets according to width of tree decomposition
 
-generator=applications/graph_problems/tree_instance_generator.py
-solver=build/release/dflat
+generator=$DIR/tree_instance_generator.py
+solver=$ROOT/build/release/dflat
 
 # Observation for 3-COL: If the number of edges is roughly 2.5 times the number of nodes, hardly any instance has 3-colorings anymore. Up to 2.25, most instances have 3-colorings.
 
@@ -34,7 +36,7 @@ for numNodes in $(seq $minNumNodes $stepNumNodes $maxNumNodes); do
 			$generator $numNodes $numRandomEdges $seed > $instance
 
 			width=$($solver -e edge -s $seed --only-decompose --stats < $instance | awk '/Width:/ {print $2}' | head -n1)
-			directory=instances/graphs/width${width}
+			directory=$ROOT/instances/graphs/width${width}
 
 			# does an instance for this width/size already exist?
 			if [ -e ${directory}/${numNodes}_${numRandomEdges}_*.lp ]; then

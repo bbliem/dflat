@@ -16,7 +16,7 @@ if len(sys.argv) == 4:
 else:
 	seed = ''
 
-ret = os.system('applications/graph_problems/instance_generator.py {} {} {}'.format(numNodes, numEdges, seed))
+ret = os.system('./instance_generator.py {} {} {}'.format(numNodes, numEdges, seed))
 ret == 0 or sys.exit(ret >> 8)
 
 for i in random.sample(range(numNodes), random.randrange(numNodes+1)):

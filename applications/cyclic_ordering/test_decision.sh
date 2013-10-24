@@ -1,10 +1,11 @@
 #!/bin/bash
+DIR=$(cd "$( dirname "$0" )" && pwd)
 
 numElements=10
 numOrderings=14
-export instanceGen="applications/cyclic_ordering/instance_generator.py $numElements $numOrderings"
-export monolithicEncoding=applications/cyclic_ordering/monolithic.lp
-#export dflatArguments="-x applications/cyclic_ordering/exchange_decision.lp -e order -n semi"
-export dflatArguments="-p applications/cyclic_ordering/dynamic_decision.lp -e order"
+export instanceGen="$DIR/instance_generator.py $numElements $numOrderings"
+export monolithicEncoding=$DIR/monolithic.lp
+#export dflatArguments="-x $DIR/exchange_decision.lp -e order -n semi"
+export dflatArguments="-p $DIR/dynamic_decision.lp -e order"
 
-applications/test_decision.sh
+$DIR/../test_decision.sh

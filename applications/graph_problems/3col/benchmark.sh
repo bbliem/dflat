@@ -1,12 +1,13 @@
 #!/bin/bash
+DIR=$(cd "$( dirname "$0" )" && pwd)
+ROOT=$DIR/../../..
+dflat=$ROOT/build/release/dflat
+gringo=gringo
+clasp=clasp
 
-dflat=build/release/dflat
-gringo=../gringo
-clasp=../clasp
-
-exchangeEnc=applications/graph_problems/3col/exchange.lp
-exchangeDecEnc=applications/graph_problems/3col/exchange_decision.lp
-monolithicEnc=applications/graph_problems/3col/monolithic.lp
+exchangeEnc=$DIR/exchange.lp
+exchangeDecEnc=$DIR/exchange_decision.lp
+monolithicEnc=$DIR/monolithic.lp
 
 echo "width,nodes,num,edges,seed,3col_enum,monolithic_enum,3col_counting,monolithic_counting,3col_decision,monolithic_decision,colorings"
 

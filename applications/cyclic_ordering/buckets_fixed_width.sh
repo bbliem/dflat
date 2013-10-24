@@ -1,9 +1,11 @@
 #!/bin/bash
+DIR=$(cd "$( dirname "$0" )" && pwd)
+ROOT=$DIR/../..
 
 # generate cyclic ordering problem instances and put them into buckets according to width of tree decomposition
 
-generator=applications/cyclic_ordering/tree_instance_generator.py
-solver=build/release/dflat
+generator=$DIR/tree_instance_generator.py
+solver=$ROOT/build/release/dflat
 
 minNumElements=9
 maxNumElements=60
@@ -37,7 +39,7 @@ for numElements in $(seq $minNumElements $stepNumElements $maxNumElements); do
 		$generator $numElements $numExtraTriples $seed > $instance || exit
 
 		width=$($solver -e order -s $seed --only-decompose --stats < $instance | awk '/Width:/ {print $2}' | head -n1)
-		directory=instances/cyclic_ordering/width${width}
+		directory=$ROOT/instances/cyclic_ordering/width${width}
 
 		if [ $width -eq $tw ]; then
 			echo -n "x"

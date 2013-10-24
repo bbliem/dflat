@@ -1,9 +1,9 @@
 #!/bin/bash
-
 # generate SAT instances and put them into buckets according to width of tree decomposition
-
-satgen=applications/sat/instance_generator.py
-sat=build/release/sat
+DIR=$(cd "$( dirname "$0" )" && pwd)
+ROOT=$DIR/../..
+satgen=$DIR/instance_generator.py
+sat=$ROOT/build/release/sat
 
 minNumClauses=6
 maxNumClauses=100
@@ -36,7 +36,7 @@ for numClauses in $(seq $minNumClauses $stepNumClauses $maxNumClauses); do
 
 			[[ $width < 20 ]] || continue
 
-			directory=instances/sat/width${width}
+			directory=$ROOT/instances/sat/width${width}
 
 			# does an instance for this width/size already exist?
 			if [ -e ${directory}/${numClauses}_${numVars}_*.lp ]; then

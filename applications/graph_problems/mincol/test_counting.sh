@@ -1,9 +1,10 @@
 #!/bin/bash
+DIR=$(cd "$( dirname "$0" )" && pwd)
 
 numNodes=8
 numEdges=16
-export instanceGen="applications/graph_problems/mincol/instance_generator.py $numNodes $numEdges"
-export monolithicEncoding=applications/graph_problems/mincol/monolithic.lp
-export dflatArguments="applications/graph_problems/mincol/dynamic.lp -e edge --multi-level"
+export instanceGen="$DIR/instance_generator.py $numNodes $numEdges"
+export monolithicEncoding=$DIR/monolithic.lp
+export dflatArguments="$DIR/dynamic.lp -e edge --multi-level"
 
-applications/test_counting_metasp.sh
+$DIR/../../test_counting_metasp.sh

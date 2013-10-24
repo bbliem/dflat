@@ -1,9 +1,9 @@
 #!/bin/bash
-
+DIR=$(cd "$( dirname "$0" )" && pwd)
 numNodes=10
 numEdges=20
-export instanceGen="applications/graph_problems/instance_generator.py $numNodes $numEdges"
-export monolithicEncoding=applications/graph_problems/3col/monolithic.lp
-export dflatArguments="-x applications/graph_problems/3col/exchange_decision.lp -e edge -n semi"
+export instanceGen="$DIR/../instance_generator.py $numNodes $numEdges"
+export monolithicEncoding=$DIR/monolithic.lp
+export dflatArguments="-x $DIR/exchange_decision.lp -e edge -n semi"
 
-applications/test_decision.sh
+$DIR/../../test_decision.sh
