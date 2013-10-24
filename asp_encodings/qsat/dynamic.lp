@@ -1,43 +1,25 @@
-% Suppose that the top level quantifier is \exists
-itemSet(0,S,N)   :- childRow(S,N).
-itemSet(L+1,S,N) :- itemSet(L,R,N), sub(R,S).
+item(L,_or)  :- length(M), L = 0..M-1, L #mod 2 == 0. % existential nodes
+item(L,_and) :- length(M), L = 0..M-1, L #mod 2 == 1. % universal nodes
 
-false(S,A) :- atom(L,A), itemSet(L,S,N), bag(N,A), not childItem(S,A).
-
-forallItemSet(S) :- childRow(S,_),              sub(S,_).
-forallItemSet(S) :- existsItemSet(R), sub(R,S), sub(S,_).
-existsItemSet(S) :- forallItemSet(R), sub(R,S), sub(S,_).
-
-bad(S)  :- childItem(S,fail). % Has already been bad
-bad(S)  :- clause(C), removed(C), length(L), itemSet(L-1,S,N), bag(N,C), not childItem(S,C). % Becomes bad due to clause removal
-bad(S)  :- forallItemSet(S), sub(S,T),     bad(T).
--bad(S) :- existsItemSet(S), sub(S,T), not bad(T).
-bad(S)  :- existsItemSet(S), not -bad(S).
-
-% Actual solving part...
-
-% Guess a path
-1 { extend(L-1,S) : itemSet(L-1,S,N) } 1 :- childNode(N), length(L).
+% Guess a branch
+1 { extend(L,S) : leafOf(S,N) : atLevel(S,L) } 1 :- childNode(N).
 extend(L-1,R) :- extend(L,S), sub(R,S).
 
-% Only join root-to-leaf paths that coincide on common atoms
-:- extend(L,X;Y), atom(L,A), childItem(X,A), false(Y,A).
+% Only join branches that coincide on common atoms
+:- extend(L,X;Y), atom(L,A), childItem(X,t(A)), childItem(Y,f(A)).
 
-item(L,X) :- extend(L,S), childItem(S,X), not removed(X).
-
-% The leaves (and only they) can contain "fail"
-item(L,fail) :- length(L), extend(L,S), bad(S).
-
-:- extend(1,S), bad(S).
+item(L,t(X)) :- extend(L,S), childItem(S,t(X)), not removed(X).
+item(L,f(X)) :- extend(L,S), childItem(S,f(X)), not removed(X).
 
 % Guess truth value of introduced atoms
-{ item(L,A) : atom(L,A) : introduced(A) }.
+1 { item(L,t(A);f(A)) } 1 :- atom(L,A), introduced(A). % XXX are two guessing rules without the aggregate faster?
 
 % Through the guess, clauses may become satisfied
-item(L-1,C) :- length(L), pos(C,A), atom(LA,A), current(C;A), item(LA,A).
-item(L-1,C) :- length(L), neg(C,A), atom(LA,A), current(C;A), not item(LA,A).
+item(L,t(C)) :- length(L), pos(C,A), atom(LA,A), current(C;A), item(LA,t(A)).
+item(L,t(C)) :- length(L), neg(C,A), atom(LA,A), current(C;A), item(LA,f(A)).
+% XXX what if clauses become false? Can we optimize?
 
-
+item(L,_reject) :- length(L), clause(C), removed(C), bag(N,C), atNode(S,N), extend(L,S), not childItem(S,t(C)).
 
 #hide.
 #show length/1.

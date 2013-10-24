@@ -8,7 +8,7 @@ instanceGen="../blocksqbf/blocksqbf -c 20 -b 5 -bs 1 -bs 2 -bs 1 -bs 2 -bs 1 -bc
 qdimacs2lp=tools/qsat/qdimacs2lp.awk
 depqbf=../depqbf/depqbf
 dflat=build/release/dflat
-dflatArguments="asp_encodings/qsat/dynamic.lp -e pos -e neg --multi-level"
+dflatArguments="-p asp_encodings/qsat/dynamic.lp -e pos -e neg --no-empty-leaves"
 
 for instance in $(seq 1 $numInstances); do
 	seed=$RANDOM
@@ -20,11 +20,12 @@ for instance in $(seq 1 $numInstances); do
 
 	$depqbf $instance &>/dev/null
 	depQbfExit=$?
-	awk -f $qdimacs2lp $instance | $dflat $dflatArguments -p decision -s $seed >/dev/null
+	awk -f $qdimacs2lp $instance | $dflat $dflatArguments --depth 0 --seed $seed >/dev/null
 	dflatExit=$?
 
 	if [ $depQbfExit -ne $dflatExit ]; then
-		cp $instance mismatch${seed}.lp
+		cp $instance mismatch${seed}.qdimacs
+		awk -f $qdimacs2lp $instance > mismatch${seed}.lp
 		echo
 		echo "Mismatch for seed $seed (dflat: ${dflatExit}, DepQBF: ${depQbfExit})"
 		exit 1

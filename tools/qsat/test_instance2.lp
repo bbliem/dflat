@@ -1,9 +1,9 @@
 % Expect 1 solution
-levels(3).
+length(3).
 
-atom(0,a).
-atom(1,b).
-atom(2,c).
+atom(1,a).
+atom(2,b).
+atom(3,c).
 
 clause(c0).
 clause(c1).

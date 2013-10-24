@@ -1,5 +1,5 @@
-% Ex Ay Ez: -x & (x | -y | z)
-% Expect 1 solution
+% Ex Ay Ez: (-x | x) & (x | -y | z)
+% Expect 2 solutions
 length(3).
 
 atom(1,x).
@@ -10,6 +10,7 @@ clause(c0).
 clause(c1).
 
 neg(c0,x).
+pos(c0,x).
 
 pos(c1,x).
 neg(c1,y).

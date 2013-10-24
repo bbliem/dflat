@@ -11,9 +11,9 @@
 }
 
 /^(e|a) / {
+	++level
 	for(i = 2; $i != 0; ++i)
 		print("atom(" level ",a" $i ").")
-	++level
 	next
 }
 
@@ -31,5 +31,5 @@
 }
 
 END {
-	print("levels(" level ").")
+	print("length(" level ").")
 }
