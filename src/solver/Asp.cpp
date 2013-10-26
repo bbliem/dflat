@@ -189,6 +189,11 @@ ItemTreePtr Asp::compute()
 	if(app.isDebugEnabled()) {
 		if(result) {
 			std::cout << "Resulting item tree at node " << decomposition.getRoot().getGlobalId() << ':' << std::endl << *result << std::endl;
+			std::cout << "Resulting item tree at node " << decomposition.getRoot().getGlobalId() << " as a set of facts:" << std::endl;
+			std::ostringstream rootItemSetName;
+			rootItemSetName << 'n' << decomposition.getRoot().getGlobalId();
+			declareChildItemTree(std::cout, result, tableMode, decomposition.getRoot().getGlobalId(), rootItemSetName.str());
+			std::cout << std::endl;
 			std::cout << "Extensions of item tree at node " << decomposition.getRoot().getGlobalId() << ':' << std::endl;
 			result->printExtensions(std::cout);
 			std::cout << std::endl;
