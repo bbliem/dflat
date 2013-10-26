@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <vector>
 #include <map>
+#include <string>
 
 namespace options {
 
