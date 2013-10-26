@@ -3,9 +3,6 @@ project(dflat)
 
 add_definitions("-Wall -pedantic -std=c++11 -DDISABLE_MULTI_THREADING")
 
-# XXX This is a workaround because SHARP generates these warnings
-#add_definitions("-Wno-write-strings")
-
 # XXX This is a workaround because flex generates these warnings
 add_definitions("-Wno-sign-compare")
 
