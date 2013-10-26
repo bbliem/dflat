@@ -43,7 +43,11 @@ public:
 		Clasp::Literal literal;
 	};
 
+#ifndef GCC46_COMPATIBILITY
 	using ChildItemTrees = GringoOutputProcessor::ChildItemTrees;
+#else
+	typedef GringoOutputProcessor::ChildItemTrees ChildItemTrees;
+#endif
 
 	ClaspCallback(const ChildItemTrees& childItemTrees, bool printModels, bool prune);
 
@@ -51,13 +55,25 @@ public:
 	virtual ItemTreePtr finalize();
 
 	// Called if the current configuration contains unsafe/unreasonable options
+#ifndef GCC46_COMPATIBILITY
 	virtual void warning(const char* msg) override;
+#else
+	virtual void warning(const char* msg);
+#endif
 
 	// Called on entering/exiting a state
+#ifndef GCC46_COMPATIBILITY
 	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override;
+#else
+	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&);
+#endif
 
 	// Called for important events, e.g. a model has been found
+#ifndef GCC46_COMPATIBILITY
 	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f) override;
+#else
+	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f);
+#endif
 
 protected:
 	template<typename T, typename F>

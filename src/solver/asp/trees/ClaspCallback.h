@@ -46,12 +46,24 @@ public:
 	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool printModels, bool prune);
 
 	// Called on entering/exiting a state
+#ifndef GCC46_COMPATIBILITY
 	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override;
+#else
+	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&);
+#endif
 
 	// Called for important events, e.g. a model has been found
+#ifndef GCC46_COMPATIBILITY
 	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f) override;
+#else
+	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f);
+#endif
 
+#ifndef GCC46_COMPATIBILITY
 	virtual ItemTreePtr finalize() override;
+#else
+	virtual ItemTreePtr finalize();
+#endif
 
 protected:
 	UncompressedItemTreePtr uncompressedItemTree;

@@ -30,9 +30,17 @@ class AspFactory : public SolverFactory
 public:
 	AspFactory(Application& app, bool newDefault = false);
 
+#ifndef GCC46_COMPATIBILITY
 	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const override;
+#else
+	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const;
+#endif
 
+#ifndef GCC46_COMPATIBILITY
 	virtual void select() override;
+#else
+	virtual void select();
+#endif
 
 private:
 	static const std::string OPTION_SECTION;

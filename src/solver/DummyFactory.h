@@ -29,7 +29,11 @@ class DummyFactory : public SolverFactory
 public:
 	DummyFactory(Application& app, bool newDefault = false);
 
+#ifndef GCC46_COMPATIBILITY
 	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const override;
+#else
+	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const;
+#endif
 };
 
 } // namespace solver

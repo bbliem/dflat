@@ -42,7 +42,12 @@ class UncompressedItemTree : public DirectedAcyclicGraph<std::shared_ptr<ItemTre
 public:
 	typedef std::vector<Node> Branch;
 
+#ifndef GCC46_COMPATIBILITY
 	using DirectedAcyclicGraph::DirectedAcyclicGraph;
+#else
+	UncompressedItemTree(Node&& leaf);
+	UncompressedItemTree(DirectedAcyclicGraph&& other); // XXX Is that actually used?
+#endif
 
 	// Moves the given branch.
 	// *begin will be a child of *this.

@@ -33,7 +33,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "asp/ClaspInputReader.h"
 
 using namespace solver::asp;
+#ifndef GCC46_COMPATIBILITY
 using ChildItemTrees = GringoOutputProcessor::ChildItemTrees;
+#else
+typedef GringoOutputProcessor::ChildItemTrees ChildItemTrees;
+#endif
 
 namespace {
 

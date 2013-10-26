@@ -35,5 +35,9 @@ public:
 	// Construct a solver responsible for the root of the given decomposition
 	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const = 0;
 
+#ifndef GCC46_COMPATIBILITY
 	virtual void select() override;
+#else
+	virtual void select();
+#endif
 };

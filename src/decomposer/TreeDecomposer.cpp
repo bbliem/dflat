@@ -42,9 +42,17 @@ namespace {
 		{
 		}
 
+#ifndef GCC46_COMPATIBILITY
 		virtual void parse() override {}
+#else
+		virtual void parse() {}
+#endif
 
+#ifndef GCC46_COMPATIBILITY
 		virtual sharp::Hypergraph* buildHypergraphRepresentation() override
+#else
+		virtual sharp::Hypergraph* buildHypergraphRepresentation()
+#endif
 		{
 			sharp::VertexSet vertices;
 			sharp::HyperedgeSet hyperedges;

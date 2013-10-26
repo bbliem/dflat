@@ -29,7 +29,11 @@ class Asp : public Solver
 public:
 	Asp(const Decomposition& decomposition, const Application& app, const std::string& encodingFile, bool tableMode);
 
+#ifndef GCC46_COMPATIBILITY
 	virtual ItemTreePtr compute() override;
+#else
+	virtual ItemTreePtr compute();
+#endif
 
 protected:
 	std::string encodingFile;

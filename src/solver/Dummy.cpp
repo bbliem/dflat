@@ -24,6 +24,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver {
 
+#ifdef GCC46_COMPATIBILITY
+Dummy::Dummy(const Decomposition& decomposition, const Application& app) : Solver(decomposition, app) {}
+#endif
+
 ItemTreePtr Dummy::compute()
 {
 	return ItemTreePtr();

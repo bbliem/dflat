@@ -34,9 +34,21 @@ public:
 	//! This should only be called before setValue() has been called
 	void addChoice(const std::string& choiceName, const std::string& description, bool newDefault = false);
 
+#ifndef GCC46_COMPATIBILITY
 	virtual void setValue(const std::string& v) override;
+#else
+	virtual void setValue(const std::string& v);
+#endif
+#ifndef GCC46_COMPATIBILITY
 	virtual void checkConditions() const override;
+#else
+	virtual void checkConditions() const;
+#endif
+#ifndef GCC46_COMPATIBILITY
 	virtual void printHelp() const override;
+#else
+	virtual void printHelp() const;
+#endif
 
 private:
 	struct Possibility

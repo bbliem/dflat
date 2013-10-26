@@ -34,7 +34,11 @@ public:
 	typedef std::vector<std::string> Values;
 
 	const Values& getValues() const { return values; }
+#ifndef GCC46_COMPATIBILITY
 	virtual void setValue(const std::string& value) override;
+#else
+	virtual void setValue(const std::string& value);
+#endif
 
 protected:
 	Values values;

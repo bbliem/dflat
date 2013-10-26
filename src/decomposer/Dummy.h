@@ -29,7 +29,11 @@ class Dummy : public Decomposer
 public:
 	Dummy(Application& app, bool newDefault = false);
 
+#ifndef GCC46_COMPATIBILITY
 	virtual DecompositionPtr decompose(const Hypergraph& instance) const override;
+#else
+	virtual DecompositionPtr decompose(const Hypergraph& instance) const;
+#endif
 };
 
 } // namespace decomposer

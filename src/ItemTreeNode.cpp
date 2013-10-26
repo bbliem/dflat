@@ -28,6 +28,10 @@ ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
 	: items(std::move(items))
 	, extensionPointers(std::move(extensionPointers))
 	, parent(nullptr)
+#ifdef GCC46_COMPATIBILITY
+	, cost(0)
+	, type(Type::UNDEFINED)
+#endif
 {
 	if(this->extensionPointers.empty())
 		count = 1;

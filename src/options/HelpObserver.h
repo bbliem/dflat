@@ -34,7 +34,11 @@ class HelpObserver : public Observer
 public:
 	HelpObserver(const Application& app, const Option& help);
 
+#ifndef GCC46_COMPATIBILITY
 	virtual void notify() override;
+#else
+	virtual void notify();
+#endif
 
 private:
 	const Application& app;

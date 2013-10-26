@@ -45,7 +45,12 @@ public:
 		REJECT
 	};
 
+#ifndef GCC46_COMPATIBILITY
 	ItemTreeNode(Items&& items = {}, ExtensionPointers&& extensionPointers = {});
+#else
+	// FIXME this is not equivalent but apparently does not break in the current state of the code
+	ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers);
+#endif
 
 	const Items& getItems() const;
 	const ExtensionPointers& getExtensionPointers() const;
@@ -76,9 +81,13 @@ private:
 	ExtensionPointers extensionPointers;
 	const ItemTreeNode* parent;
 	mpz_class count; // number of possible extensions of this node
+#ifndef GCC46_COMPATIBILITY
 	int cost = 0;
-
 	Type type = Type::UNDEFINED;
+#else
+	int cost;
+	Type type;
+#endif
 };
 
 std::ostream& operator<<(std::ostream& os, const std::shared_ptr<ItemTreeNode>& node);

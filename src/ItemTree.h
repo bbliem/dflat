@@ -39,7 +39,12 @@ struct ItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const Ite
 class ItemTree : public DirectedAcyclicGraph<std::shared_ptr<ItemTreeNode>, std::set<ItemTreePtr, ItemTreePtrComparator>>
 {
 public:
+#ifndef GCC46_COMPATIBILITY
 	using DirectedAcyclicGraph::DirectedAcyclicGraph;
+#else
+	ItemTree(Node&& leaf);
+	ItemTree(DirectedAcyclicGraph&& other); // XXX Is that actually used?
+#endif
 
 	// If there is a subtree rooted at a child of this node that has equal item sets as the given one, the existing subtree is unified with the given one
 	void addChildAndMerge(ChildPtr&& child);

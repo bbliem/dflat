@@ -27,9 +27,17 @@ namespace solver {
 class Dummy : public Solver
 {
 public:
+#ifndef GCC46_COMPATIBILITY
 	using Solver::Solver;
+#else
+	Dummy(const Decomposition& decomposition, const Application& app);
+#endif
 
+#ifndef GCC46_COMPATIBILITY
 	virtual ItemTreePtr compute() override;
+#else
+	virtual ItemTreePtr compute();
+#endif
 };
 
 } // namespace solver

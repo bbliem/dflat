@@ -32,5 +32,9 @@ public:
 
 	virtual DecompositionPtr decompose(const Hypergraph& instance) const = 0;
 
+#ifndef GCC46_COMPATIBILITY
 	virtual void select() override;
+#else
+	virtual void select();
+#endif
 };

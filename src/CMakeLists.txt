@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(dflat)
 
-add_definitions("-Wall -pedantic -std=c++11 -DDISABLE_MULTI_THREADING")
+add_definitions("-Wall -pedantic -std=c++0x -DDISABLE_MULTI_THREADING")
 
 # XXX This is a workaround because flex generates these warnings
 add_definitions("-Wno-sign-compare")

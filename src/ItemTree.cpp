@@ -30,6 +30,11 @@ bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr
 			);
 }
 
+#ifdef GCC46_COMPATIBILITY
+ItemTree::ItemTree(Node&& leaf) : DirectedAcyclicGraph(leaf) {}
+ItemTree::ItemTree(DirectedAcyclicGraph&& other) : DirectedAcyclicGraph(other) {}
+#endif
+
 void ItemTree::addChildAndMerge(ChildPtr&& child)
 {
 	child->parents.push_back(this);

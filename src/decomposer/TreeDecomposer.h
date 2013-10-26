@@ -30,7 +30,11 @@ class TreeDecomposer : public Decomposer
 public:
 	TreeDecomposer(Application& app, bool newDefault = false);
 
+#ifndef GCC46_COMPATIBILITY
 	virtual DecompositionPtr decompose(const Hypergraph& instance) const override;
+#else
+	virtual DecompositionPtr decompose(const Hypergraph& instance) const;
+#endif
 
 private:
 	static const std::string OPTION_SECTION;

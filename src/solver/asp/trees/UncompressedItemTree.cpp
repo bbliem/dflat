@@ -28,6 +28,11 @@ bool UncompressedItemTreePtrComparator::operator()(const UncompressedItemTreePtr
 		|| (lhs->getRoot()->getItems() == rhs->getRoot()->getItems() && lhs->getRoot()->getExtensionPointers() < rhs->getRoot()->getExtensionPointers());
 }
 
+#ifdef GCC46_COMPATIBILITY
+UncompressedItemTree::UncompressedItemTree(Node&& leaf) : DirectedAcyclicGraph(leaf) {}
+UncompressedItemTree::UncompressedItemTree(DirectedAcyclicGraph&& other) : DirectedAcyclicGraph(other) {}
+#endif
+
 void UncompressedItemTree::addBranch(Branch::iterator begin, Branch::iterator end)
 {
 	if(begin != end) {
