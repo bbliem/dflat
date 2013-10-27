@@ -19,7 +19,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include <sstream>
-#include <cassert>
 #include <gringo/streams.h>
 #include <clasp/clasp_facade.h>
 
@@ -166,6 +165,11 @@ ItemTreePtr Asp::compute()
 	// Input: Decomposition
 	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
 	declareDecomposition(decomposition, *decompositionInput);
+
+	if(app.isDebugEnabled()) {
+		std::cout << "Facts describing the tree decomposition for the ASP call at node " << decomposition.getRoot().getGlobalId() << ':' << std::endl;
+		std::cout << decompositionInput->str() << std::endl;
+	}
 
 	// Put these inputs together
 	Streams inputStreams;
