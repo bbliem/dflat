@@ -56,31 +56,28 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 {
 	// Store the atom together with its symbol table key and extracted arguments
 	if(name == "item") {
-		assert(arity == 1);
+		ASP_CHECK(arity == 1, "'item' predicate does not have arity 1");
 		itemAtomInfos.emplace_back(ItemAtomInfo{ItemAtomArguments{getArguments(firstArg, arity).front()}, symbolTableKey});
 	} else if(name == "extend") {
-		assert(arity == 1);
+		ASP_CHECK(arity == 1, "'extend' predicate does not have arity 1");
 		std::string argument = getArguments(firstArg, arity).front();
 		// Child node number is before the first '_' (and after the leading 'n')
 		// Row number is after the first '_'
 		unsigned int underscorePos = argument.find('_');
 		unsigned int childId = std::stoi(std::string(argument, 1, underscorePos-1));
 		unsigned int rowNumber = std::stoi(std::string(argument, underscorePos + 1));
-
-		// TODO: Instead of the following assertions, throw exceptions if invalid extension pointers are given. Also, add a check that ensures that if extension pointers are given, exactly one is given for each child table.
-		assert(childItemTrees.find(childId) != childItemTrees.end());
-		assert(rowNumber < childItemTrees.at(childId)->getChildren().size());
-
+		ASP_CHECK(childItemTrees.find(childId) != childItemTrees.end(), "Extension pointer references invalid child of current decomposition node");
+		ASP_CHECK(rowNumber < childItemTrees.at(childId)->getChildren().size(), "Extension pointer references invalid row number");
 		extendAtomInfos.emplace_back(ExtendAtomInfo{{childId, childItemTrees.at(childId)->getChild(rowNumber).getRoot()}, symbolTableKey});
 	} else if(name == "count") {
-		assert(arity == 1);
+		ASP_CHECK(arity == 1, "'count' predicate does not have arity 1");
 		// TODO mpz_class?
 		countAtomInfos.emplace_back(CountAtomInfo{{static_cast<unsigned int>(std::stol(getArguments(firstArg, arity).front()))}, symbolTableKey});
 	} else if(name == "currentCost") {
-		assert(arity == 1);
+		ASP_CHECK(arity == 1, "'currentCost' predicate does not have arity 1");
 		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo{{std::stol(getArguments(firstArg, arity).front())}, symbolTableKey});
 	} else if(name == "cost") {
-		assert(arity == 1);
+		ASP_CHECK(arity == 1, "'cost' predicate does not have arity 1");
 		costAtomInfos.emplace_back(CostAtomInfo{{std::stol(getArguments(firstArg, arity).front())}, symbolTableKey});
 	}
 }

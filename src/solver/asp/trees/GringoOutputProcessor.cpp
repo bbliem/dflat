@@ -61,11 +61,11 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 {
 	// Store the atom together with its symbol table key and extracted arguments
 	if(name == "item") {
-		assert(arity == 2);
+		ASP_CHECK(arity == 2, "'item' predicate does not have arity 2");
 		std::vector<std::string> arguments = getArguments(firstArg, arity);
 		itemAtomInfos.emplace_back(ItemAtomInfo{ItemAtomArguments{static_cast<unsigned int>(std::stoi(arguments[0])), std::move(arguments[1])}, symbolTableKey});
 	} else if(name == "extend") {
-		assert(arity == 2);
+		ASP_CHECK(arity == 2, "'extend' predicate does not have arity 2");
 		const std::vector<std::string> arguments = getArguments(firstArg, arity);
 		const unsigned int level = std::stol(arguments[0]);
 		const std::string extended = std::move(arguments[1]);
@@ -86,17 +86,17 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 
 		extendAtomInfos.emplace_back(ExtendAtomInfo{{level, decompositionChildId, current->getRoot()}, symbolTableKey});
 	} else if(name == "count") {
-		assert(arity == 1);
+		ASP_CHECK(arity == 1, "'count' predicate does not have arity 1");
 		// TODO mpz_class?
 		countAtomInfos.emplace_back(CountAtomInfo{{static_cast<unsigned int>(std::stol(getArguments(firstArg, arity).front()))}, symbolTableKey});
 	} else if(name == "currentCost") {
-		assert(arity == 1);
+		ASP_CHECK(arity == 1, "'currentCost' predicate does not have arity 1");
 		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo{{std::stol(getArguments(firstArg, arity).front())}, symbolTableKey});
 	} else if(name == "cost") {
-		assert(arity == 1);
+		ASP_CHECK(arity == 1, "'cost' predicate does not have arity 1");
 		costAtomInfos.emplace_back(CostAtomInfo{{std::stol(getArguments(firstArg, arity).front())}, symbolTableKey});
 	} else if(name == "length") {
-		assert(arity == 1);
+		ASP_CHECK(arity == 1, "'length' predicate does not have arity 1");
 		lengthAtomInfos.emplace_back(LengthAtomInfo{{static_cast<unsigned int>(std::stol(getArguments(firstArg, arity).front()))}, symbolTableKey});
 	}
 }
