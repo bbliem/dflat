@@ -68,7 +68,7 @@ void declareDecomposition(const Decomposition& decomposition, std::ostream& out)
 	out << "removed(X) :- childNode(N), bag(N,X), not current(X)." << std::endl;
 }
 
-void declareChildItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0)
+void declareItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0)
 {
 	if(!itemTree)
 		return;
@@ -106,8 +106,45 @@ void declareChildItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool t
 		for(const auto& child : children) {
 			std::ostringstream childName;
 			childName << itemSetName << '_' << i++;
-			declareChildItemTree(out, child, tableMode, nodeId, childName.str(), itemSetName, level+1);
+			declareItemTree(out, child, tableMode, nodeId, childName.str(), itemSetName, level+1);
 		}
+	}
+}
+
+void declareItemTreeNodeMemoryAddresses(std::ostream& out, const ItemTreePtr& itemTree, const std::string& itemSetName)
+{
+	if(!itemTree)
+		return;
+
+	out << "itemTreeNodeHasAddress(" << itemSetName << ',' << itemTree->getRoot().get() << ")." << std::endl;
+	size_t i = 0;
+	for(const auto& child : itemTree->getChildren()) {
+		std::ostringstream childName;
+		childName << itemSetName << '_' << i++;
+		declareItemTreeNodeMemoryAddresses(out, child, childName.str());
+	}
+}
+
+void declareExtensionPointers(std::ostream& out, const ItemTreePtr& itemTree, const std::string& itemSetName)
+{
+	if(!itemTree)
+		return;
+
+	for(const auto& tuple : itemTree->getRoot()->getExtensionPointers()) {
+		out << "itemTreeNodeExtends(" << itemSetName << ",tuple(";
+		std::string sep;
+		for(const auto& ep : tuple) {
+			out << sep << ep.second.get();
+			sep = ",";
+		}
+		out << "))." << std::endl;
+	}
+
+	size_t i = 0;
+	for(const auto& child : itemTree->getChildren()) {
+		std::ostringstream childName;
+		childName << itemSetName << '_' << i++;
+		declareExtensionPointers(out, child, childName.str());
 	}
 }
 
@@ -155,7 +192,7 @@ ItemTreePtr Asp::compute()
 	for(const auto& childItemTree : childItemTrees) {
 		std::ostringstream rootItemSetName;
 		rootItemSetName << 'n' << childItemTree.first;
-		declareChildItemTree(*childItemTreesInput, childItemTree.second, tableMode, childItemTree.first, rootItemSetName.str());
+		declareItemTree(*childItemTreesInput, childItemTree.second, tableMode, childItemTree.first, rootItemSetName.str());
 	}
 
 	// Input: Original problem instance
@@ -191,19 +228,30 @@ ItemTreePtr Asp::compute()
 	ItemTreePtr result = cb->finalize();
 
 	if(app.isDebugEnabled()) {
+		const auto id = decomposition.getRoot().getGlobalId();
 		if(result) {
-			std::cout << "Resulting item tree at node " << decomposition.getRoot().getGlobalId() << ':' << std::endl << *result << std::endl;
-			std::cout << "Facts describing the resulting item tree at node " << decomposition.getRoot().getGlobalId() << ':' << std::endl;
+			std::cout << "Resulting item tree at node " << id << ':' << std::endl << *result << std::endl;
+
+			std::cout << "Facts describing the resulting item tree at node " << id << ':' << std::endl;
 			std::ostringstream rootItemSetName;
-			rootItemSetName << 'n' << decomposition.getRoot().getGlobalId();
-			declareChildItemTree(std::cout, result, tableMode, decomposition.getRoot().getGlobalId(), rootItemSetName.str());
+			rootItemSetName << 'n' << id;
+			declareItemTree(std::cout, result, tableMode, id, rootItemSetName.str());
 			std::cout << std::endl;
-			std::cout << "Extensions of item tree at node " << decomposition.getRoot().getGlobalId() << ':' << std::endl;
+
+			std::cout << "Memory locations of the item tree nodes at decomposition node " << id << " (not passed to ASP):" << std::endl;
+			declareItemTreeNodeMemoryAddresses(std::cout, result, rootItemSetName.str());
+			std::cout << std::endl;
+
+			std::cout << "Extension pointers at decomposition node " << id << " (not passed to ASP):" << std::endl;
+			declareExtensionPointers(std::cout, result, rootItemSetName.str());
+			std::cout << std::endl;
+
+			std::cout << "Extensions of item tree at node " << id << ':' << std::endl;
 			result->printExtensions(std::cout);
 			std::cout << std::endl;
 		}
 		else
-			std::cout << "Item tree of node " << decomposition.getRoot().getGlobalId() << " is empty." << std::endl;
+			std::cout << "Item tree of node " << id << " is empty." << std::endl;
 	}
 
 	return result;

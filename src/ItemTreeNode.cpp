@@ -152,19 +152,19 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 			os << ' ' << *it;
 	}
 
-	os << "; extend: {";
-	std::string tupleSep;
-	for(const auto& tuple : node.extensionPointers) {
-		os << tupleSep << '(';
-		std::string ptrSep;
-		for(const auto& extended : tuple) {
-			os << ptrSep << extended.first << ':' << extended.second.get();
-			ptrSep = ", ";
-		}
-		os << ')';
-		tupleSep = ", ";
-	}
-	os << "}, this: " << &node << ", parent: " << node.parent;
+//	os << "; extend: {";
+//	std::string tupleSep;
+//	for(const auto& tuple : node.extensionPointers) {
+//		os << tupleSep << '(';
+//		std::string ptrSep;
+//		for(const auto& extended : tuple) {
+//			os << ptrSep << extended.first << ':' << extended.second.get();
+//			ptrSep = ", ";
+//		}
+//		os << ')';
+//		tupleSep = ", ";
+//	}
+//	os << "}, this: " << &node << ", parent: " << node.parent;
 
 	// Print cost
 	if(node.cost != 0)
