@@ -33,6 +33,7 @@ bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr
 void ItemTree::addChildAndMerge(ChildPtr&& child)
 {
 	child->parents.push_back(this);
+	child->getRoot()->setParent(node.get());
 	std::pair<Children::iterator, bool> result = children.insert(std::move(child));
 	// XXX If an equivalent element already exists in "children", it is unclear to me whether "child" is actually moved or not. (Maybe it depends on the implementation?)
 	// For the time being, pray that it isn't moved in such a case.

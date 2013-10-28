@@ -31,7 +31,6 @@ bool UncompressedItemTreePtrComparator::operator()(const UncompressedItemTreePtr
 void UncompressedItemTree::addBranch(Branch::iterator begin, Branch::iterator end)
 {
 	if(begin != end) {
-		(*begin)->setParent(node.get());
 		std::pair<Children::iterator, bool> result = children.insert(UncompressedItemTreePtr(new UncompressedItemTree(std::move(*begin))));
 		(*result.first)->addBranch(++begin, end);
 	}

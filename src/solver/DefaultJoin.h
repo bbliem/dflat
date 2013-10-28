@@ -18,26 +18,18 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Decomposition.h"
-#include "SolverFactory.h"
+#pragma once
 
-Decomposition::Decomposition(Node&& leaf, const SolverFactory& solverFactory)
-	: DirectedAcyclicGraph(std::move(leaf))
-	, solverFactory(solverFactory)
+#include "../Solver.h"
+
+namespace solver {
+
+class DefaultJoin : public Solver
 {
-}
+public:
+	DefaultJoin(const Decomposition& decomposition, const Application& app);
 
-Solver& Decomposition::getSolver()
-{
-	if(!solver)
-		solver = solverFactory.newSolver(*this);
+	virtual ItemTreePtr compute() override;
+};
 
-	return *solver;
-}
-
-bool Decomposition::isJoinNode() const
-{
-	return children.size() > 1 && std::all_of(children.begin(), children.end(), [&](const ChildPtr& child) {
-			return child->getRoot().getBag() == node.getBag();
-	});
-}
+} // namespace solver

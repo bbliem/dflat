@@ -106,10 +106,13 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	while(curNode != branchData.end()) {
 		ASP_CHECK(std::all_of(curNode->extended.begin(), curNode->extended.end(), [&prevNode](const ItemTreeNode::ExtensionPointerTuple::value_type& pair) {
 				return pair.second->getParent() == prevNode->extended.at(pair.first).get();
-		}), "Extension pointer at level n+1 does not point to a child of an extended level-n node");
+		}), "Extension pointer at level n+1 does not point to a child of the extended level-n node");
 		++prevNode;
 		++curNode;
 	}
+
+	assert(!uncompressedItemTree || uncompressedItemTree->getRoot()->getExtensionPointers().size() == 1);
+	ASP_CHECK(!uncompressedItemTree || (uncompressedItemTree->getRoot()->getItems() == branchData.front().items && uncompressedItemTree->getRoot()->getExtensionPointers().front() == branchData.front().extended), "Item tree branches specify different roots");
 #endif
 
 	long count = 0;
@@ -126,12 +129,16 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 
 	// Convert branchData to UncompressedItemTree::Branch
 	UncompressedItemTree::Branch branch;
-	for(BranchNode& nodeData : branchData)
-		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(nodeData.items), {std::move(nodeData.extended)}))); // TODO cost etc.
+	branch.reserve(numLevels);
+	if(uncompressedItemTree)
+		branch.emplace_back(uncompressedItemTree->getRoot());
+	else
+		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData.front().items), {std::move(branchData.front().extended)})));
+
+	for(size_t i = 1; i < branchData.size(); ++i)
+		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), {std::move(branchData[i].extended)}))); // TODO cost etc.
 
 	// Insert branch into tree
-	ASP_CHECK(!uncompressedItemTree || (uncompressedItemTree->getRoot()->getItems() == branch.front()->getItems() && uncompressedItemTree->getRoot()->getExtensionPointers() == branch.front()->getExtensionPointers()), "Item tree branches specify different roots");
-
 	if(!uncompressedItemTree)
 		uncompressedItemTree = UncompressedItemTreePtr(new UncompressedItemTree(std::move(branch.front())));
 

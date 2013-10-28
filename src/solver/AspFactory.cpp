@@ -20,7 +20,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "AspFactory.h"
 #include "Asp.h"
+#include "DefaultJoin.h"
 #include "../Application.h"
+#include "../Decomposition.h"
 
 namespace solver {
 
@@ -44,7 +46,10 @@ AspFactory::AspFactory(Application& app, bool newDefault)
 
 std::unique_ptr<Solver> AspFactory::newSolver(const Decomposition& decomposition) const
 {
-	return std::unique_ptr<Solver>(new Asp(decomposition, app, optEncodingFile.getValue(), optTables.isUsed()));
+	if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
+		return std::unique_ptr<Solver>(new DefaultJoin(decomposition, app));
+	else
+		return std::unique_ptr<Solver>(new Asp(decomposition, app, optEncodingFile.getValue(), optTables.isUsed()));
 }
 
 void AspFactory::select()

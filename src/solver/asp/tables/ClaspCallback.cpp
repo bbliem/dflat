@@ -86,7 +86,6 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	}
 
 	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), {std::move(extendedRows)}));
-	node->setParent(itemTree->getRoot().get());
 	node->setCost(cost);
 	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 }
