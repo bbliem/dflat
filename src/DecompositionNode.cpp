@@ -23,7 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 DecompositionNode::DecompositionNode(const Hypergraph::Vertices& bag)
 	: bag(bag)
 {
-	static int nextGlobalId = 1;
+	static unsigned int nextGlobalId = 1;
 	globalId = nextGlobalId++;
 }
 
