@@ -90,6 +90,17 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			branchData[arguments.level].extended.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedNode));
 	});
 
+	// Check that all extension pointer tuples of this branch have arity n, where n is the number of children in the decomposition
+#ifndef DISABLE_ASP_CHECKS
+	assert(branchData.empty() == false);
+//	std::vector<BranchNode>::const_iterator it = branchData.begin();
+//	const size_t arity = it->extended.size();
+//	for(++it; it != branchData.end(); ++it)
+//		ASP_CHECK(it->extended.size() == arity, "Not all extension pointer tuples within a branch have the same arity");
+	for(const BranchNode& node : branchData)
+		ASP_CHECK(node.extended.size() == childItemTrees.size(), "Not all extension pointer tuples within a branch have arity n, where n is the number of children in the decomposition");
+#endif
+
 	long count = 0;
 	forFirstTrue(s, countAtomInfos, [&count](const GringoOutputProcessor::CountAtomArguments& arguments) {
 			count = arguments.count;

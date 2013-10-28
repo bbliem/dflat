@@ -142,7 +142,7 @@ void ItemTreeNode::merge(ItemTreeNode&& other)
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 {
 	// Print count
-	os << '[' << node.count << "] ";
+//	os << '[' << node.count << "] ";
 
 	// Print items
 	ItemTreeNode::Items::const_iterator it = node.items.begin();
@@ -152,13 +152,19 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 			os << ' ' << *it;
 	}
 
-//	for(const auto& tuple : node.extensionPointers) {
-//		os << " (";
-//		for(const auto& extended : tuple)
-//			os << extended.first << ':' << extended.second.get() << ',';
-//		os << ") ";
-//	}
-//	os << "(this: " << &node << ", parent: " << node.parent << ")";
+	os << "; extend: {";
+	std::string tupleSep;
+	for(const auto& tuple : node.extensionPointers) {
+		os << tupleSep << '(';
+		std::string ptrSep;
+		for(const auto& extended : tuple) {
+			os << ptrSep << extended.first << ':' << extended.second.get();
+			ptrSep = ", ";
+		}
+		os << ')';
+		tupleSep = ", ";
+	}
+	os << "}, this: " << &node << ", parent: " << node.parent;
 
 	// Print cost
 	if(node.cost != 0)
