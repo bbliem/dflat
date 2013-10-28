@@ -3,9 +3,6 @@ project(dflat)
 
 add_definitions("-Wall -pedantic -std=c++11 -DDISABLE_MULTI_THREADING")
 
-# XXX This is a workaround because flex generates these warnings
-add_definitions("-Wno-sign-compare")
-
 set(CMAKE_CXX_FLAGS_GPROF "-O3 -g -pg")
 set(CMAKE_LINKER_FLAGS_GPROF "-pg")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -DDEBUG") # Without -D_DEBUG there will be voodoo in libclasp's pod_vector.h, since then the size of our Clasp::PodVector is different than when we built clasp's debug release
@@ -32,6 +29,8 @@ find_package(BISON)
 FLEX_TARGET(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/parser/scanner.ll  ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
 BISON_TARGET(Parser ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp)
 ADD_FLEX_BISON_DEPENDENCY(Scanner Parser)
+# XXX This is a workaround because flex causes these warnings with GCC
+set_source_files_properties(${FLEX_Scanner_OUTPUTS} PROPERTIES COMPILE_FLAGS -Wno-sign-compare)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
