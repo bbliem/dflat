@@ -60,15 +60,15 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 		itemAtomInfos.emplace_back(ItemAtomInfo{ItemAtomArguments{getArguments(firstArg, arity).front()}, symbolTableKey});
 	} else if(name == "extend") {
 		ASP_CHECK(arity == 1, "'extend' predicate does not have arity 1");
-		std::string argument = getArguments(firstArg, arity).front();
+		const std::string argument = getArguments(firstArg, arity).front();
 		// Child node number is before the first '_' (and after the leading 'n')
 		// Row number is after the first '_'
-		unsigned int underscorePos = argument.find('_');
-		unsigned int childId = std::stoi(std::string(argument, 1, underscorePos-1));
-		unsigned int rowNumber = std::stoi(std::string(argument, underscorePos + 1));
-		ASP_CHECK(childItemTrees.find(childId) != childItemTrees.end(), "Extension pointer references invalid child of current decomposition node");
-		ASP_CHECK(rowNumber < childItemTrees.at(childId)->getChildren().size(), "Extension pointer references invalid row number");
-		extendAtomInfos.emplace_back(ExtendAtomInfo{{childId, childItemTrees.at(childId)->getChild(rowNumber).getRoot()}, symbolTableKey});
+		const unsigned int underscorePos = argument.find('_');
+		const unsigned int decompositionChildId = std::stoi(std::string(argument, 1, underscorePos-1));
+		const unsigned int rowNumber = std::stoi(std::string(argument, underscorePos + 1));
+		ASP_CHECK(childItemTrees.find(decompositionChildId) != childItemTrees.end(), "Extension pointer refers to nonexistent decomposition child");
+		ASP_CHECK(rowNumber < childItemTrees.at(decompositionChildId)->getChildren().size(), "Extension pointer references invalid row number");
+		extendAtomInfos.emplace_back(ExtendAtomInfo{{decompositionChildId, childItemTrees.at(decompositionChildId)->getChild(rowNumber).getRoot()}, symbolTableKey});
 	} else if(name == "count") {
 		ASP_CHECK(arity == 1, "'count' predicate does not have arity 1");
 		// TODO mpz_class?

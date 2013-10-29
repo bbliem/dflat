@@ -72,13 +72,16 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 		// (Decomposition) child node number is before the first '_' (and after the leading 'n')
 		// '_' then separates item tree child indices
 		size_t underscorePos = extended.find('_');
-		unsigned int decompositionChildId = std::stoi(std::string(extended, 1, underscorePos-1));
+		const unsigned int decompositionChildId = std::stoi(std::string(extended, 1, underscorePos-1));
+		ASP_CHECK(childItemTrees.find(decompositionChildId) != childItemTrees.end(), "Extension pointer refers to nonexistent decomposition child");
 
 		const ItemTree* current = childItemTrees.at(decompositionChildId).get();
 		while(underscorePos != std::string::npos) {
+			assert(current);
 			const size_t lastUnderscorePos = underscorePos;
 			underscorePos = extended.find('_', underscorePos+1);
 			unsigned int childNumber = std::stoi(std::string(extended, lastUnderscorePos+1, underscorePos));
+			ASP_CHECK(childNumber < current->getChildren().size(), "Extension pointer refers to nonexistent item tree node");
 
 			current = &current->getChild(childNumber);
 		}

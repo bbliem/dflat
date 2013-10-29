@@ -143,6 +143,7 @@ void ItemTree::finalize()
 const ItemTree& ItemTree::getChild(size_t i) const
 {
 	assert(childrenVector.size() == children.size());
+	assert(i < childrenVector.size());
 	return *childrenVector[i];
 }
 

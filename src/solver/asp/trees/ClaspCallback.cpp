@@ -90,15 +90,26 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			branchData[arguments.level].extended.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedNode));
 	});
 
-	// Check that all extension pointer tuples of this branch have arity n, where n is the number of children in the decomposition
 #ifndef DISABLE_ASP_CHECKS
 	assert(branchData.empty() == false);
-//	std::vector<BranchNode>::const_iterator it = branchData.begin();
-//	const size_t arity = it->extended.size();
-//	for(++it; it != branchData.end(); ++it)
-//		ASP_CHECK(it->extended.size() == arity, "Not all extension pointer tuples within a branch have the same arity");
+	// Check that all extension pointer tuples of this branch have arity n, where n is the number of children in the decomposition
 	for(const BranchNode& node : branchData)
 		ASP_CHECK(node.extended.size() == childItemTrees.size(), "Not all extension pointer tuples within a branch have arity n, where n is the number of children in the decomposition");
+
+	// Check that extension pointers at the root only point to root item tree nodes
+	for(const auto& pair : branchData[0].extended)
+		ASP_CHECK(pair.second->getParent() == nullptr, "Level 0 extension pointer does not point to the root of an item tree");
+
+	// Check that extension pointers at level n+1 only point to children of the nodes extended at level n
+	auto curNode = branchData.begin();
+	auto prevNode = curNode++;
+	while(curNode != branchData.end()) {
+		ASP_CHECK(std::all_of(curNode->extended.begin(), curNode->extended.end(), [&prevNode](const ItemTreeNode::ExtensionPointerTuple::value_type& pair) {
+				return pair.second->getParent() == prevNode->extended.at(pair.first).get();
+		}), "Extension pointer at level n+1 does not point to a child of an extended level-n node");
+		++prevNode;
+		++curNode;
+	}
 #endif
 
 	long count = 0;
