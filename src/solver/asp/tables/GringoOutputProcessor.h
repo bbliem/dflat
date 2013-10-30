@@ -45,11 +45,6 @@ public:
 	};
 	typedef AtomInfo<ConsequentItemAtomArguments> ConsequentItemAtomInfo;
 
-	struct CountAtomArguments {
-		unsigned int count; // XXX better use mpz_class
-	};
-	typedef AtomInfo<CountAtomArguments> CountAtomInfo;
-
 	struct CurrentCostAtomArguments {
 		long currentCost;
 	};
@@ -63,7 +58,6 @@ public:
 	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
 	typedef std::vector<ConsequentItemAtomInfo> ConsequentItemAtomInfos;
 	typedef std::vector<ExtendAtomInfo>         ExtendAtomInfos;
-	typedef std::vector<CountAtomInfo>          CountAtomInfos;
 	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
 	typedef std::vector<CostAtomInfo>           CostAtomInfos;
 
@@ -72,7 +66,6 @@ public:
 	const ItemAtomInfos&           getItemAtomInfos()           const;
 	const ConsequentItemAtomInfos& getConsequentItemAtomInfos() const;
 	const ExtendAtomInfos&         getExtendAtomInfos()         const;
-	const CountAtomInfos&          getCountAtomInfos()          const;
 	const CurrentCostAtomInfos&    getCurrentCostAtomInfos()    const;
 	const CostAtomInfos&           getCostAtomInfos()           const;
 
@@ -82,7 +75,6 @@ protected:
 	ItemAtomInfos           itemAtomInfos;
 	ConsequentItemAtomInfos consequentItemAtomInfos;
 	ExtendAtomInfos         extendAtomInfos;
-	CountAtomInfos          countAtomInfos;
 	CurrentCostAtomInfos    currentCostAtomInfos;
 	CostAtomInfos           costAtomInfos;
 };

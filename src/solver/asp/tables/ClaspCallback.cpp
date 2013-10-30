@@ -42,8 +42,6 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				consequentItemAtomInfos.emplace_back(ConsequentItemAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getExtendAtomInfos())
 				extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
-			for(const auto& atom : gringoOutput.getCountAtomInfos())
-				countAtomInfos.emplace_back(CountAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
 				currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getCostAtomInfos())
@@ -69,21 +67,19 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			consequentItems.insert(arguments.item);
 	});
 
+	ASP_CHECK(std::find_if(items.begin(), items.end(), [&consequentItems](const std::string& item) {
+			   return consequentItems.find(item) != consequentItems.end();
+	}) == items.end(), "Items and consequent items not disjoint");
+
 	// Get extension pointers
 	ItemTreeNode::ExtensionPointerTuple extendedRows;
+	ASP_CHECK(countTrue(s, extendAtomInfos) == childItemTrees.size(), "Not as many extension pointers as there are child item trees");
 	forEachTrueLimited(s, extendAtomInfos, [&](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
 			extendedRows.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedRow));
 			return extendedRows.size() != childItemTrees.size();
 	});
 
-	// Get cost
-	long cost = 0;
-	forFirstTrue(s, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
-			cost = arguments.cost;
-	});
-
-	// TODO currentCost / count
-
+	// Create item tree root if it doesn't exist yet
 	if(!itemTree) {
 		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
 		for(const auto& childItemTree : childItemTrees)
@@ -91,8 +87,25 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}))));
 	}
 
+	// Create item tree node
 	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(consequentItems), {std::move(extendedRows)}));
+
+	// Set (current) cost
+	ASP_CHECK(countTrue(s, costAtomInfos) <= 1, "More than one true cost/1 atom");
+	long cost = 0;
+	forFirstTrue(s, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
+			cost = arguments.cost;
+	});
 	node->setCost(cost);
+	ASP_CHECK(countTrue(s, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
+	ASP_CHECK(countTrue(s, currentCostAtomInfos) == 0 || countTrue(s, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
+	long currentCost = 0;
+	forFirstTrue(s, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
+			currentCost = arguments.currentCost;
+	});
+	node->setCurrentCost(currentCost);
+
+	// Add node to item tree
 	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 }
 

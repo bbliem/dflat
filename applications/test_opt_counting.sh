@@ -1,8 +1,8 @@
 #!/bin/bash
 
 numInstances=100
-gringo=../gringo
-clasp=../clasp
+gringo=gringo
+clasp=clasp
 dflat=build/release/dflat
 
 if [[ -z "$instanceGen" || -z "$dflatArguments" || -z "$monolithicEncoding" ]]; then
@@ -25,7 +25,7 @@ for instance in $(seq 1 $numInstances); do
 	claspExit=${PIPESTATUS[1]}
 	claspOptVal=$(<$claspOptValFile)
 
-	$dflat $dflatArguments -p opt-counting -s $seed < $instance | tail -n2 | awk '{ print $3 }' > $dflatOptValAndCountFile
+	$dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n2 | awk '{ print $3 }' > $dflatOptValAndCountFile
 	dflatExit=${PIPESTATUS[0]}
 	OLDIFS=$IFS
 	IFS=$'\n'

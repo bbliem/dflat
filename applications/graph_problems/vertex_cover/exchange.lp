@@ -6,6 +6,8 @@ item(X) :- current(X), extend(R), childItem(R,X).
 
 currentCost(C) :- C = #count{ item(_) }. % Cost of current vertices
 cost(CC + IC) :- extend(R), childCost(R,CC), IC = #count{ item(X) : introduced(X) }.
+-leaf :- childNode(_).
+cost(C) :- not -leaf, currentCost(C).
 
 #hide.
 #show extend/1.

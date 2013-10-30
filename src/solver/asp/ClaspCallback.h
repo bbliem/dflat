@@ -91,6 +91,16 @@ protected:
 		}
 	}
 
+#ifndef DISABLE_ASP_CHECKS
+	template<typename T>
+	static size_t countTrue(const Clasp::Solver& s, const std::vector<AtomInfo<T>>& atomInfos)
+	{
+		return std::count_if(atomInfos.begin(), atomInfos.end(), [&s](const AtomInfo<T>& atom) {
+			return s.isTrue(atom.literal);
+		});
+	}
+#endif
+
 	ItemTreePtr itemTree;
 	const ChildItemTrees& childItemTrees;
 	bool printModels;

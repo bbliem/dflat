@@ -59,8 +59,11 @@ public:
 	void setParent(const ItemTreeNode*);
 	const mpz_class& getCount() const;
 
-	int getCost() const;
-	void setCost(int cost);
+	long getCost() const;
+	void setCost(long cost);
+
+	long getCurrentCost() const;
+	void setCurrentCost(long currentCost);
 
 	Type getType() const;
 
@@ -83,7 +86,8 @@ private:
 	ExtensionPointers extensionPointers;
 	const ItemTreeNode* parent;
 	mpz_class count; // number of possible extensions of this node
-	int cost = 0;
+	long cost = 0;
+	long currentCost = 0;
 
 	Type type = Type::UNDEFINED;
 };

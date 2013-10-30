@@ -86,14 +86,24 @@ const mpz_class& ItemTreeNode::getCount() const
 	return count;
 }
 
-int ItemTreeNode::getCost() const
+long ItemTreeNode::getCost() const
 {
 	return cost;
 }
 
-void ItemTreeNode::setCost(int cost)
+void ItemTreeNode::setCost(long cost)
 {
 	this->cost = cost;
+}
+
+long ItemTreeNode::getCurrentCost() const
+{
+	return currentCost;
+}
+
+void ItemTreeNode::setCurrentCost(long currentCost)
+{
+	this->currentCost = currentCost;
 }
 
 ItemTreeNode::Type ItemTreeNode::getType() const
@@ -138,8 +148,10 @@ void ItemTreeNode::merge(ItemTreeNode&& other)
 		extensionPointers.swap(other.extensionPointers);
 		count = other.count;
 		cost = other.cost;
+		currentCost = other.currentCost;
 	}
 	else if(other.cost == cost) {
+		assert(other.currentCost == currentCost);
 		// Merge other node's data into this
 		extensionPointers.insert(extensionPointers.end(), other.extensionPointers.begin(), other.extensionPointers.end());
 		count += other.count;

@@ -32,7 +32,6 @@ public:
 	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments>           ItemAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::ConsequentItemAtomArguments> ConsequentItemAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::ExtendAtomArguments>         ExtendAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CountAtomArguments>          CountAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments>    CurrentCostAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments>           CostAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::LengthAtomArguments>         LengthAtomInfo;
@@ -40,7 +39,6 @@ public:
 	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
 	typedef std::vector<ConsequentItemAtomInfo> ConsequentItemAtomInfos;
 	typedef std::vector<ExtendAtomInfo>         ExtendAtomInfos;
-	typedef std::vector<CountAtomInfo>          CountAtomInfos;
 	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
 	typedef std::vector<CostAtomInfo>           CostAtomInfos;
 	typedef std::vector<LengthAtomInfo>         LengthAtomInfos;
@@ -63,7 +61,6 @@ protected:
 	ItemAtomInfos           itemAtomInfos;
 	ConsequentItemAtomInfos consequentItemAtomInfos;
 	ExtendAtomInfos         extendAtomInfos;
-	CountAtomInfos          countAtomInfos;
 	CurrentCostAtomInfos    currentCostAtomInfos;
 	CostAtomInfos           costAtomInfos;
 	LengthAtomInfos         lengthAtomInfos;

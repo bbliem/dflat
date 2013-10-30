@@ -42,11 +42,6 @@ const GringoOutputProcessor::ExtendAtomInfos& GringoOutputProcessor::getExtendAt
 	return extendAtomInfos;
 }
 
-const GringoOutputProcessor::CountAtomInfos& GringoOutputProcessor::getCountAtomInfos() const
-{
-	return countAtomInfos;
-}
-
 const GringoOutputProcessor::CurrentCostAtomInfos& GringoOutputProcessor::getCurrentCostAtomInfos() const
 {
 	return currentCostAtomInfos;
@@ -97,10 +92,6 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 		// XXX Instead of the previous loop which runs through all levels, it could be beneficial to assign a globally unique ID to each item tree node and then use a lookup-table. (The globally unique ID could be either an integer, as is already the case in the Decomposition class, but it could also be a string like the one we are already using.)
 
 		extendAtomInfos.emplace_back(ExtendAtomInfo{{level, decompositionChildId, current->getRoot()}, symbolTableKey});
-	} else if(name == "count") {
-		ASP_CHECK(arity == 1, "'count' predicate does not have arity 1");
-		// TODO mpz_class?
-		countAtomInfos.emplace_back(CountAtomInfo{{static_cast<unsigned int>(std::stol(getArguments(firstArg, arity).front()))}, symbolTableKey});
 	} else if(name == "currentCost") {
 		ASP_CHECK(arity == 1, "'currentCost' predicate does not have arity 1");
 		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo{{std::stol(getArguments(firstArg, arity).front())}, symbolTableKey});

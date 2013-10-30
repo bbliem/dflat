@@ -42,8 +42,6 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				consequentItemAtomInfos.emplace_back(ConsequentItemAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getExtendAtomInfos())
 				extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
-			for(const auto& atom : gringoOutput.getCountAtomInfos())
-				countAtomInfos.emplace_back(CountAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
 				currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getCostAtomInfos())
@@ -65,20 +63,20 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	if(e != Clasp::ClaspFacade::event_model)
 		return;
 
-	// Get number of levels in the branch corresponding to this answer set
-	unsigned int numLevels = 0;
-	forFirstTrue(s, lengthAtomInfos, [&numLevels](const GringoOutputProcessor::LengthAtomArguments& arguments) {
-			ASP_CHECK(numLevels == 0, "Multiple true length/1 atoms");
-			numLevels = arguments.length+1;
-	});
-	ASP_CHECK(numLevels > 0, "No true length/1 atom");
-
 	struct BranchNode
 	{
 		ItemTreeNode::Items items;
 		ItemTreeNode::Items consequentItems;
 		ItemTreeNode::ExtensionPointerTuple extended;
 	};
+
+	// Get number of levels in the branch corresponding to this answer set
+	ASP_CHECK(countTrue(s, lengthAtomInfos) == 0, "No true length/1 atom");
+	ASP_CHECK(countTrue(s, lengthAtomInfos) > 1, "Multiple true length/1 atoms");
+	unsigned int numLevels;
+	forFirstTrue(s, lengthAtomInfos, [&numLevels](const GringoOutputProcessor::LengthAtomArguments& arguments) {
+			numLevels = arguments.length+1;
+	});
 	std::vector<BranchNode> branchData(numLevels);
 
 	// Get items
@@ -97,17 +95,19 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			branchData[arguments.level].extended.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedNode));
 	});
 
+	// Checks on extension pointers and item sets
 #ifndef DISABLE_ASP_CHECKS
-	assert(branchData.empty() == false);
-	// Check that all extension pointer tuples of this branch have arity n, where n is the number of children in the decomposition
-	for(const BranchNode& node : branchData)
+	for(const BranchNode& node : branchData) {
 		ASP_CHECK(node.extended.size() == childItemTrees.size(), "Not all extension pointer tuples within a branch have arity n, where n is the number of children in the decomposition");
 
-	// Check that extension pointers at the root only point to root item tree nodes
+		ASP_CHECK(std::find_if(node.items.begin(), node.items.end(), [&node](const std::string& item) {
+				   return node.consequentItems.find(item) != node.consequentItems.end();
+		}) == node.items.end(), "Items and consequent items not disjoint");
+	}
+
 	for(const auto& pair : branchData[0].extended)
 		ASP_CHECK(pair.second->getParent() == nullptr, "Level 0 extension pointer does not point to the root of an item tree");
 
-	// Check that extension pointers at level n+1 only point to children of the nodes extended at level n
 	auto curNode = branchData.begin();
 	auto prevNode = curNode++;
 	while(curNode != branchData.end()) {
@@ -126,18 +126,6 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			"Item tree branches specify different roots");
 #endif
 
-	long count = 0;
-	forFirstTrue(s, countAtomInfos, [&count](const GringoOutputProcessor::CountAtomArguments& arguments) {
-			count = arguments.count;
-	});
-
-	long cost = 0;
-	forFirstTrue(s, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
-			cost = arguments.cost;
-	});
-
-	// TODO currentCost
-
 	// Convert branchData to UncompressedItemTree::Branch
 	UncompressedItemTree::Branch branch;
 	branch.reserve(numLevels);
@@ -147,7 +135,22 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData.front().items), std::move(branchData.front().consequentItems), {std::move(branchData.front().extended)})));
 
 	for(size_t i = 1; i < branchData.size(); ++i)
-		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), std::move(branchData[i].consequentItems), {std::move(branchData[i].extended)}))); // TODO cost etc.
+		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), std::move(branchData[i].consequentItems), {std::move(branchData[i].extended)})));
+
+	// Set (current) cost
+	long cost = 0;
+	ASP_CHECK(countTrue(s, costAtomInfos) <= 1, "More than one true cost/1 atom");
+	forFirstTrue(s, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
+			cost = arguments.cost;
+	});
+	branch.back()->setCost(cost);
+	long currentCost = 0;
+	ASP_CHECK(countTrue(s, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
+	ASP_CHECK(countTrue(s, currentCostAtomInfos) == 0 || countTrue(s, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
+	forFirstTrue(s, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
+			currentCost = arguments.currentCost;
+	});
+	branch.back()->setCurrentCost(currentCost);
 
 	// Insert branch into tree
 	if(!uncompressedItemTree)
