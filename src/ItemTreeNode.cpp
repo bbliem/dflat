@@ -24,8 +24,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "ItemTreeNode.h"
 #include "ExtensionIterator.h"
 
-ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
+ItemTreeNode::ItemTreeNode(Items&& items, Items&& consequentItems, ExtensionPointers&& extensionPointers)
 	: items(std::move(items))
+	, consequentItems(std::move(consequentItems))
 	, extensionPointers(std::move(extensionPointers))
 	, parent(nullptr)
 {
@@ -58,6 +59,11 @@ ItemTreeNode::ItemTreeNode(Items&& items, ExtensionPointers&& extensionPointers)
 const ItemTreeNode::Items& ItemTreeNode::getItems() const
 {
 	return items;
+}
+
+const ItemTreeNode::Items& ItemTreeNode::getConsequentItems() const
+{
+	return consequentItems;
 }
 
 const ItemTreeNode::ExtensionPointers& ItemTreeNode::getExtensionPointers() const
@@ -125,6 +131,7 @@ mpz_class ItemTreeNode::countExtensions(const ExtensionIterator& parentIterator)
 void ItemTreeNode::merge(ItemTreeNode&& other)
 {
 	assert(items == other.items);
+	assert(consequentItems == other.consequentItems);
 
 	if(other.cost < cost) {
 		// Throw away this node's data and retain the other one's
@@ -145,12 +152,10 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 //	os << '[' << node.count << "] ";
 
 	// Print items
-	ItemTreeNode::Items::const_iterator it = node.items.begin();
-	if(it != node.items.end()) {
-		os << *it;
-		while(++it != node.items.end())
-			os << ' ' << *it;
-	}
+	for(const auto& item : node.items)
+		os << item << ' ';
+	for(const auto& item : node.consequentItems)
+		os << item << ' ';
 
 //	os << "; extend: {";
 //	std::string tupleSep;

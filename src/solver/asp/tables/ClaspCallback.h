@@ -28,17 +28,19 @@ namespace solver { namespace asp { namespace tables {
 class ClaspCallback : public ::solver::asp::ClaspCallback
 {
 public:
-	typedef AtomInfo<GringoOutputProcessor::ExtendAtomArguments>      ExtendAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments>        ItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CountAtomArguments>       CountAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments>        CostAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments>           ItemAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::ConsequentItemAtomArguments> ConsequentItemAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::ExtendAtomArguments>         ExtendAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::CountAtomArguments>          CountAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments>    CurrentCostAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments>           CostAtomInfo;
 
-	typedef std::vector<ItemAtomInfo>        ItemAtomInfos;
-	typedef std::vector<ExtendAtomInfo>      ExtendAtomInfos;
-	typedef std::vector<CountAtomInfo>       CountAtomInfos;
-	typedef std::vector<CurrentCostAtomInfo> CurrentCostAtomInfos;
-	typedef std::vector<CostAtomInfo>        CostAtomInfos;
+	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
+	typedef std::vector<ConsequentItemAtomInfo> ConsequentItemAtomInfos;
+	typedef std::vector<ExtendAtomInfo>         ExtendAtomInfos;
+	typedef std::vector<CountAtomInfo>          CountAtomInfos;
+	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
+	typedef std::vector<CostAtomInfo>           CostAtomInfos;
 
 	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool printModels, bool prune);
 
@@ -51,11 +53,12 @@ public:
 protected:
 	const GringoOutputProcessor& gringoOutput;
 
-	ItemAtomInfos        itemAtomInfos;
-	ExtendAtomInfos      extendAtomInfos;
-	CountAtomInfos       countAtomInfos;
-	CurrentCostAtomInfos currentCostAtomInfos;
-	CostAtomInfos        costAtomInfos;
+	ItemAtomInfos           itemAtomInfos;
+	ConsequentItemAtomInfos consequentItemAtomInfos;
+	ExtendAtomInfos         extendAtomInfos;
+	CountAtomInfos          countAtomInfos;
+	CurrentCostAtomInfos    currentCostAtomInfos;
+	CostAtomInfos           costAtomInfos;
 };
 
 }}} // namespace solver::asp::tables

@@ -24,7 +24,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Application.h"
 #include "Decomposition.h"
-#include "ItemTree.h" // XXX still actually needed in this file?
 
 #include "options/MultiValueOption.h"
 #include "options/SingleValueOption.h"

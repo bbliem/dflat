@@ -38,6 +38,8 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 
 			for(const auto& atom : gringoOutput.getItemAtomInfos())
 				itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
+			for(const auto& atom : gringoOutput.getConsequentItemAtomInfos())
+				consequentItemAtomInfos.emplace_back(ConsequentItemAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getExtendAtomInfos())
 				extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getCountAtomInfos())
@@ -73,8 +75,9 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 
 	struct BranchNode
 	{
-		ItemTreeNode::ExtensionPointerTuple extended;
 		ItemTreeNode::Items items;
+		ItemTreeNode::Items consequentItems;
+		ItemTreeNode::ExtensionPointerTuple extended;
 	};
 	std::vector<BranchNode> branchData(numLevels);
 
@@ -82,6 +85,10 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	forEachTrue(s, itemAtomInfos, [&branchData](const GringoOutputProcessor::ItemAtomArguments& arguments) {
 			ASP_CHECK(arguments.level < branchData.size(), "Item at level higher than branch length");
 			branchData[arguments.level].items.insert(arguments.item);
+	});
+	forEachTrue(s, consequentItemAtomInfos, [&branchData](const GringoOutputProcessor::ConsequentItemAtomArguments& arguments) {
+			ASP_CHECK(arguments.level < branchData.size(), "Consequent item at level higher than branch length");
+			branchData[arguments.level].consequentItems.insert(arguments.item);
 	});
 
 	// Get extension pointers
@@ -112,7 +119,11 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	}
 
 	assert(!uncompressedItemTree || uncompressedItemTree->getRoot()->getExtensionPointers().size() == 1);
-	ASP_CHECK(!uncompressedItemTree || (uncompressedItemTree->getRoot()->getItems() == branchData.front().items && uncompressedItemTree->getRoot()->getExtensionPointers().front() == branchData.front().extended), "Item tree branches specify different roots");
+	ASP_CHECK(!uncompressedItemTree ||
+			(uncompressedItemTree->getRoot()->getItems() == branchData.front().items &&
+			 uncompressedItemTree->getRoot()->getConsequentItems() == branchData.front().consequentItems &&
+			 uncompressedItemTree->getRoot()->getExtensionPointers().front() == branchData.front().extended),
+			"Item tree branches specify different roots");
 #endif
 
 	long count = 0;
@@ -133,10 +144,10 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	if(uncompressedItemTree)
 		branch.emplace_back(uncompressedItemTree->getRoot());
 	else
-		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData.front().items), {std::move(branchData.front().extended)})));
+		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData.front().items), std::move(branchData.front().consequentItems), {std::move(branchData.front().extended)})));
 
 	for(size_t i = 1; i < branchData.size(); ++i)
-		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), {std::move(branchData[i].extended)}))); // TODO cost etc.
+		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), std::move(branchData[i].consequentItems), {std::move(branchData[i].extended)}))); // TODO cost etc.
 
 	// Insert branch into tree
 	if(!uncompressedItemTree)

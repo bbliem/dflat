@@ -40,6 +40,11 @@ public:
 	};
 	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
 
+	struct ConsequentItemAtomArguments {
+		std::string item;
+	};
+	typedef AtomInfo<ConsequentItemAtomArguments> ConsequentItemAtomInfo;
+
 	struct CountAtomArguments {
 		unsigned int count; // XXX better use mpz_class
 	};
@@ -55,28 +60,31 @@ public:
 	};
 	typedef AtomInfo<CostAtomArguments> CostAtomInfo;
 
-	typedef std::vector<ItemAtomInfo>        ItemAtomInfos;
-	typedef std::vector<ExtendAtomInfo>      ExtendAtomInfos;
-	typedef std::vector<CountAtomInfo>       CountAtomInfos;
-	typedef std::vector<CurrentCostAtomInfo> CurrentCostAtomInfos;
-	typedef std::vector<CostAtomInfo>        CostAtomInfos;
+	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
+	typedef std::vector<ConsequentItemAtomInfo> ConsequentItemAtomInfos;
+	typedef std::vector<ExtendAtomInfo>         ExtendAtomInfos;
+	typedef std::vector<CountAtomInfo>          CountAtomInfos;
+	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
+	typedef std::vector<CostAtomInfo>           CostAtomInfos;
 
 	GringoOutputProcessor(const ChildItemTrees& childItemTrees);
 
-	const ItemAtomInfos&        getItemAtomInfos()        const;
-	const ExtendAtomInfos&      getExtendAtomInfos()      const;
-	const CountAtomInfos&       getCountAtomInfos()       const;
-	const CurrentCostAtomInfos& getCurrentCostAtomInfos() const;
-	const CostAtomInfos&        getCostAtomInfos()        const;
+	const ItemAtomInfos&           getItemAtomInfos()           const;
+	const ConsequentItemAtomInfos& getConsequentItemAtomInfos() const;
+	const ExtendAtomInfos&         getExtendAtomInfos()         const;
+	const CountAtomInfos&          getCountAtomInfos()          const;
+	const CurrentCostAtomInfos&    getCurrentCostAtomInfos()    const;
+	const CostAtomInfos&           getCostAtomInfos()           const;
 
 protected:
 	virtual void storeAtom(const std::string& name, ValVec::const_iterator firstArg, uint32_t arity, Clasp::SymbolTable::key_type symbolTableKey);
 
-	ItemAtomInfos        itemAtomInfos;
-	ExtendAtomInfos      extendAtomInfos;
-	CountAtomInfos       countAtomInfos;
-	CurrentCostAtomInfos currentCostAtomInfos;
-	CostAtomInfos        costAtomInfos;
+	ItemAtomInfos           itemAtomInfos;
+	ConsequentItemAtomInfos consequentItemAtomInfos;
+	ExtendAtomInfos         extendAtomInfos;
+	CountAtomInfos          countAtomInfos;
+	CurrentCostAtomInfos    currentCostAtomInfos;
+	CostAtomInfos           costAtomInfos;
 };
 
 }}} // namespace solver::asp::tables

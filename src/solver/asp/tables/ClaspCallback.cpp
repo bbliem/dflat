@@ -38,6 +38,8 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 
 			for(const auto& atom : gringoOutput.getItemAtomInfos())
 				itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
+			for(const auto& atom : gringoOutput.getConsequentItemAtomInfos())
+				consequentItemAtomInfos.emplace_back(ConsequentItemAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getExtendAtomInfos())
 				extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getCountAtomInfos())
@@ -62,6 +64,10 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	forEachTrue(s, itemAtomInfos, [&items](const GringoOutputProcessor::ItemAtomArguments& arguments) {
 			items.insert(arguments.item);
 	});
+	ItemTreeNode::Items consequentItems;
+	forEachTrue(s, consequentItemAtomInfos, [&consequentItems](const GringoOutputProcessor::ConsequentItemAtomArguments& arguments) {
+			consequentItems.insert(arguments.item);
+	});
 
 	// Get extension pointers
 	ItemTreeNode::ExtensionPointerTuple extendedRows;
@@ -82,10 +88,10 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
 		for(const auto& childItemTree : childItemTrees)
 			rootExtensionPointers.emplace(childItemTree.first, childItemTree.second->getRoot());
-		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {std::move(rootExtensionPointers)}))));
+		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}))));
 	}
 
-	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), {std::move(extendedRows)}));
+	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(consequentItems), {std::move(extendedRows)}));
 	node->setCost(cost);
 	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 }

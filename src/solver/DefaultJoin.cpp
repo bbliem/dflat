@@ -38,8 +38,10 @@ namespace {
 		if(isJoinable(*left->getRoot(), *right->getRoot())) {
 			// Join left and right
 			ItemTreeNode::Items items = left->getRoot()->getItems();
+			ItemTreeNode::Items consequentItems = left->getRoot()->getConsequentItems();
+			consequentItems.insert(right->getRoot()->getConsequentItems().begin(), right->getRoot()->getConsequentItems().end());
 			ItemTreeNode::ExtensionPointers extensionPointers = {{{leftNodeIndex, left->getRoot()}, {rightNodeIndex, right->getRoot()}}};
-			result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(extensionPointers)))));
+			result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(consequentItems), std::move(extensionPointers)))));
 			// TODO What about count or cost?
 
 			// Join children recursively
