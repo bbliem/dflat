@@ -10,18 +10,20 @@ extend(L-1,R) :- extend(L,S), sub(R,S).
 
 item(L,t(X)) :- extend(L,S), childItem(S,t(X)), not removed(X).
 item(L,f(X)) :- extend(L,S), childItem(S,f(X)), not removed(X).
+consequentItem(L,sat(C)) :- extend(L,S), childConsequentItem(S,sat(C)), not removed(C).
 
 % Guess truth value of introduced atoms
 1 { item(L,t(A);f(A)) } 1 :- atom(L,A), introduced(A). % XXX are two guessing rules without the aggregate faster?
 
 % Through the guess, clauses may become satisfied
-item(L,t(C)) :- length(L), pos(C,A), atom(LA,A), current(C;A), item(LA,t(A)).
-item(L,t(C)) :- length(L), neg(C,A), atom(LA,A), current(C;A), item(LA,f(A)).
+consequentItem(L,sat(C)) :- length(L), pos(C,A), atom(LA,A), current(C;A), item(LA,t(A)).
+consequentItem(L,sat(C)) :- length(L), neg(C,A), atom(LA,A), current(C;A), item(LA,f(A)).
 % XXX what if clauses become false? Can we optimize?
 
-item(L,_reject) :- length(L), clause(C), removed(C), bag(N,C), atNode(S,N), extend(L,S), not childItem(S,t(C)).
+item(L,_reject) :- length(L), clause(C), removed(C), bag(N,C), atNode(S,N), extend(L,S), not childConsequentItem(S,sat(C)).
 
 #hide.
 #show length/1.
 #show item/2.
+#show consequentItem/2.
 #show extend/2.
