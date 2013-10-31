@@ -42,7 +42,6 @@ namespace {
 			consequentItems.insert(right->getRoot()->getConsequentItems().begin(), right->getRoot()->getConsequentItems().end());
 			ItemTreeNode::ExtensionPointers extensionPointers = {{{leftNodeIndex, left->getRoot()}, {rightNodeIndex, right->getRoot()}}};
 			result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(consequentItems), std::move(extensionPointers)))));
-			result->getRoot()->setCost(left->getRoot()->getCost() - left->getRoot()->getCurrentCost() + right->getRoot()->getCost());
 
 			// Join children recursively
 			auto lit = left->getChildren().begin();
@@ -86,9 +85,13 @@ namespace {
 			}
 		}
 
-		// Two branches can only be joined if they have the same length
-		if(result && result->getChildren().empty() && (!left->getChildren().empty() || !right->getChildren().empty()))
-			result.reset();
+		// In leafs, set cost and make sure two branches can only be joined if they have the same length
+		if(result && result->getChildren().empty()) {
+			if(!left->getChildren().empty() || !right->getChildren().empty())
+				result.reset();
+			else
+				result->getRoot()->setCost(left->getRoot()->getCost() - left->getRoot()->getCurrentCost() + right->getRoot()->getCost());
+		}
 
 		return result;
 	}

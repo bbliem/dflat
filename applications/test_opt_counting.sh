@@ -25,7 +25,7 @@ for instance in $(seq 1 $numInstances); do
 	claspExit=${PIPESTATUS[1]}
 	claspOptVal=$(<$claspOptValFile)
 
-	$dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n2 | awk '{ print $3 }' > $dflatOptValAndCountFile
+	$dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | awk '{ print substr($3,1,length($3)-1); print substr($1,2,length($1)-2) }' > $dflatOptValAndCountFile
 	dflatExit=${PIPESTATUS[0]}
 	OLDIFS=$IFS
 	IFS=$'\n'
@@ -51,6 +51,8 @@ for instance in $(seq 1 $numInstances); do
 	$gringo $monolithicEncoding $instance | $clasp -q 0 --opt-all=${claspOptVal} | awk '/Models/ { print $3 }' > $claspCountFile
 	claspExit=${PIPESTATUS[1]}
 	claspCount=$(<$claspCountFile)
+
+	[ $claspExit -ne 30 ] || claspExit=10
 
 	if [ $claspExit -ne $dflatExit ]; then
 		cp $instance mismatch${seed}.lp

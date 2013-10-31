@@ -48,7 +48,8 @@ public:
 	// Do not call this after finalize().
 	ItemTreeNode::Type prune();
 
-	// Call this to allow random access to this node's children via getChild(), and also random access for all children of descendants of this node
+	// Enables random access to this node's children via getChild(), and also random access for all children of descendants of this node.
+	// Propagates costs from the leaves toward this node.
 	void finalize();
 
 	// Use this after calling finalize() to get the i'th child of this node

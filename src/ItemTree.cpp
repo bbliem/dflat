@@ -135,11 +135,21 @@ ItemTreeNode::Type ItemTree::prune()
 
 void ItemTree::finalize()
 {
-	assert(childrenVector.empty());
-	childrenVector.reserve(children.size());
-	for(const auto& child : children) {
-		childrenVector.push_back(child.get());
-		child->finalize();
+	if(children.empty() == false) {
+		// Fill children vector for random access to children
+		// Propagate cost of children toward this node
+		assert(childrenVector.empty());
+		childrenVector.reserve(children.size());
+		const bool maximize = node->getType() == ItemTreeNode::Type::AND;
+		assert(node->getCost() == 0);
+		node->setCost(maximize ? std::numeric_limits<long>::min() : std::numeric_limits<long>::max());
+		for(const auto& child : children) {
+			childrenVector.push_back(child.get());
+			child->finalize();
+
+			// In "or" nodes (or if no type is given), we keep the lowest value; in "and" nodes the highest one.
+			node->setCost(maximize ? std::max(node->getCost(), child->getRoot()->getCost()) : std::min(node->getCost(), child->getRoot()->getCost()));
+		}
 	}
 }
 
@@ -184,7 +194,15 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 			}
 		}
 
-		// When limiting the depth causes children not to be extended, print the number of accepting children
+		// We only print or count children with cost equal to this node's
+		std::vector<ItemTree*> bestChildren;
+		bestChildren.reserve(children.size());
+		for(const auto& child : children)
+			if(child->node->getCost() == node->getCost())
+				bestChildren.push_back(child.get());
+		assert(children.empty() || bestChildren.empty() == false);
+
+		// When limiting the depth causes children not to be extended, print the number of accepting children (with optimum cost)
 		if(maxDepth == 0 && children.empty() == false) {
 			os << '[';
 			mpz_class count;
@@ -192,11 +210,11 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 			// On the first level we can use the counts inside the nodes
 			// XXX This redundancy is a bit ugly but maybe offers better performance than recalculating the number of accepting children (like below in the "else" branch).
 			if(!parent) {
-				for(const auto& child : children)
+				for(const auto& child : bestChildren)
 					count += child->node->getCount();
 			}
 			else {
-				for(const auto& child : children)
+				for(const auto& child : bestChildren)
 					count += child->node->countExtensions(*currentIt);
 			}
 			os << count << "] ";
@@ -206,15 +224,15 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 			os << item << ' ';
 
 		// Print cost
-		if(node->getCost() != 0)
+		if(node->getCost() != 0 && (maxDepth == 0 || children.empty()))
 			os << "(cost: " << node->getCost() << ')';
 
 		os << std::endl;
 
 		if(maxDepth > 0) {
 			size_t i = 0;
-			for(const auto& child : children)
-				child->printExtensions(os, maxDepth - 1, false, ++i == children.size(), childIndent, currentIt.get());
+			for(const auto& child : bestChildren)
+				child->printExtensions(os, maxDepth - 1, false, ++i == bestChildren.size(), childIndent, currentIt.get());
 		}
 	}
 }
