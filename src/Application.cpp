@@ -30,13 +30,15 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "options/OptionHandler.h"
 #include "options/HelpObserver.h"
 
-#include "Decomposer.h"
 #include "decomposer/Dummy.h"
 #include "decomposer/TreeDecomposer.h"
 
-#include "Solver.h"
 #include "solver/DummyFactory.h"
 #include "solver/AspFactory.h"
+
+#include "debugger/Dummy.h"
+#include "debugger/HumanReadable.h"
+#include "debugger/MachineReadable.h"
 
 #include "parser/Driver.h"
 
@@ -62,7 +64,7 @@ Application::Application(const std::string& binaryName)
 	: binaryName(binaryName)
 	, optDecomposer("d", "decomposer", "Use decomposition method <decomposer>")
 	, optSolver("s", "solver", "Use <solver> to compute partial solutions")
-	, optDebug("debug", "Print debugging information")
+	, optDebugger("debug", "module", "Use <module> to print debugging information")
 	, optNoPruning("no-pruning", "Do not prune rejecting subtrees")
 	, decomposer(0)
 	, solverFactory(0)
@@ -79,8 +81,6 @@ int Application::run(int argc, char** argv)
 	options::HelpObserver helpObserver(*this, optHelp);
 	opts.registerObserver(helpObserver);
 
-	opts.addOption(optDebug);
-
 	options::SingleValueOption optDepth("depth", "d", "Print only item sets of depth at most <d>");
 	opts.addOption(optDepth);
 
@@ -88,9 +88,6 @@ int Application::run(int argc, char** argv)
 	opts.addOption(optEdge);
 
 	opts.addOption(optNoPruning);
-
-	options::Option optPrintDecomposition("print-decomposition", "Print the decomposition");
-	opts.addOption(optPrintDecomposition);
 
 	options::SingleValueOption optSeed("seed", "n", "Initialize random number generator with seed <n>");
 	opts.addOption(optSeed);
@@ -104,8 +101,19 @@ int Application::run(int argc, char** argv)
 	solver::DummyFactory dummySolverFactory(*this);
 	solver::AspFactory aspSolverFactory(*this, true);
 
+	opts.addOption(optDebugger, MODULE_SECTION);
+	debugger::Dummy dummyDebugger(*this, true);
+	debugger::HumanReadable humanReadableDebugger(*this);
+	debugger::MachineReadable machineReadableDebugger(*this);
+
 	// Parse command line
-	opts.parse(argc, argv);
+	try {
+		opts.parse(argc, argv);
+	}
+	catch(...) {
+		usage();
+		throw;
+	}
 
 	assert(decomposer);
 	assert(solverFactory);
@@ -135,10 +143,6 @@ int Application::run(int argc, char** argv)
 	// Decompose instance
 	DecompositionPtr decomposition = decomposer->decompose(instance);
 
-	// Print decomposition if requested
-	if(optPrintDecomposition.isUsed())
-		std::cout << "Decomposition:" << std::endl << *decomposition << std::endl;
-
 	// Solve
 	ItemTreePtr rootItree = decomposition->getSolver().compute();
 
@@ -152,11 +156,10 @@ int Application::run(int argc, char** argv)
 	return 10;
 }
 
-void Application::usage(int exitCode) const
+void Application::usage() const
 {
 	std::cerr << "Usage: " << binaryName << " [options] < instance" << std::endl;
 	opts.printHelp();
-	std::exit(exitCode);
 }
 
 const std::string& Application::getInputString() const
@@ -179,10 +182,21 @@ options::Choice& Application::getSolverChoice()
 	return optSolver;
 }
 
+options::Choice& Application::getDebuggerChoice()
+{
+	return optDebugger;
+}
+
 const SolverFactory& Application::getSolverFactory() const
 {
 	assert(solverFactory);
 	return *solverFactory;
+}
+
+const Debugger& Application::getDebugger() const
+{
+	assert(debugger);
+	return *debugger;
 }
 
 void Application::setDecomposer(Decomposer& d)
@@ -195,9 +209,9 @@ void Application::setSolverFactory(SolverFactory& s)
 	solverFactory = &s;
 }
 
-bool Application::isDebugEnabled() const
+void Application::setDebugger(Debugger& d)
 {
-	return optDebug.isUsed();
+	debugger = &d;
 }
 
 bool Application::isPruningDisabled() const

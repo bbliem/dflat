@@ -24,6 +24,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "GringoOutputProcessor.h"
 
+class Debugger;
+
 namespace solver { namespace asp {
 class ItemSetLookupTable;
 
@@ -45,16 +47,13 @@ public:
 
 	using ChildItemTrees = GringoOutputProcessor::ChildItemTrees;
 
-	ClaspCallback(const ChildItemTrees& childItemTrees, bool printModels, bool prune);
+	ClaspCallback(const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger);
 
 	// Call this after all answer sets have been processed. It returns the resulting item tree (and calls finalize() on it).
 	virtual ItemTreePtr finalize();
 
 	// Called if the current configuration contains unsafe/unreasonable options
 	virtual void warning(const char* msg) override;
-
-	// Called on entering/exiting a state
-	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override;
 
 	// Called for important events, e.g. a model has been found
 	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f) override;
@@ -103,7 +102,7 @@ protected:
 
 	ItemTreePtr itemTree;
 	const ChildItemTrees& childItemTrees;
-	bool printModels;
+	const Debugger& debugger;
 	bool prune;
 };
 

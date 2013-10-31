@@ -20,82 +20,86 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "DefaultJoin.h"
 #include "../Decomposition.h"
+#include "../Application.h"
+#include "../Debugger.h"
 
 namespace {
-	bool isJoinable(const ItemTreeNode& left, const ItemTreeNode& right)
-	{
-		return left.getItems() == right.getItems();
-	}
 
-	ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned int rightNodeIndex, const ItemTreePtr& right)
-	{
-		assert(left);
-		assert(right);
-		assert(left->getRoot());
-		assert(right->getRoot());
-		ItemTreePtr result;
+bool isJoinable(const ItemTreeNode& left, const ItemTreeNode& right)
+{
+	return left.getItems() == right.getItems();
+}
 
-		if(isJoinable(*left->getRoot(), *right->getRoot())) {
-			// Join left and right
-			ItemTreeNode::Items items = left->getRoot()->getItems();
-			ItemTreeNode::Items consequentItems = left->getRoot()->getConsequentItems();
-			consequentItems.insert(right->getRoot()->getConsequentItems().begin(), right->getRoot()->getConsequentItems().end());
-			ItemTreeNode::ExtensionPointers extensionPointers = {{{leftNodeIndex, left->getRoot()}, {rightNodeIndex, right->getRoot()}}};
-			result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(consequentItems), std::move(extensionPointers)))));
+ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned int rightNodeIndex, const ItemTreePtr& right)
+{
+	assert(left);
+	assert(right);
+	assert(left->getRoot());
+	assert(right->getRoot());
+	ItemTreePtr result;
 
-			// Join children recursively
-			auto lit = left->getChildren().begin();
-			auto rit = right->getChildren().begin();
-			while(lit != left->getChildren().end() && rit != right->getChildren().end()) {
-				ItemTreePtr childResult = join(leftNodeIndex, *lit, rightNodeIndex, *rit);
-				if(childResult) {
-					// lit and rit match
-					// Remember position of rit. We will later advance rit until is doesn't match with lit anymore.
-					auto mark = rit;
+	if(isJoinable(*left->getRoot(), *right->getRoot())) {
+		// Join left and right
+		ItemTreeNode::Items items = left->getRoot()->getItems();
+		ItemTreeNode::Items consequentItems = left->getRoot()->getConsequentItems();
+		consequentItems.insert(right->getRoot()->getConsequentItems().begin(), right->getRoot()->getConsequentItems().end());
+		ItemTreeNode::ExtensionPointers extensionPointers = {{{leftNodeIndex, left->getRoot()}, {rightNodeIndex, right->getRoot()}}};
+		result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(consequentItems), std::move(extensionPointers)))));
+
+		// Join children recursively
+		auto lit = left->getChildren().begin();
+		auto rit = right->getChildren().begin();
+		while(lit != left->getChildren().end() && rit != right->getChildren().end()) {
+			ItemTreePtr childResult = join(leftNodeIndex, *lit, rightNodeIndex, *rit);
+			if(childResult) {
+				// lit and rit match
+				// Remember position of rit. We will later advance rit until is doesn't match with lit anymore.
+				auto mark = rit;
+				do {
+					// Join lit will all partners starting at rit
 					do {
-						// Join lit will all partners starting at rit
-						do {
-							result->addChildAndMerge(std::move(childResult));
-							++rit;
-							if(rit == right->getChildren().end())
-								break;
-							childResult = join(leftNodeIndex, *lit, rightNodeIndex, *rit);
-						} while(childResult);
-
-						// lit and rit don't match anymore (or rit is past the end)
-						// Advance lit. If it joins with mark, reset rit to mark.
-						++lit;
-						if(lit == left->getChildren().end())
-							break;
-						childResult = join(leftNodeIndex, *lit, rightNodeIndex, *mark);
-						if(childResult) {
-							rit = mark;
-							continue;
-						}
-					} while(false);
-				}
-				else {
-					// lit and rit don't match
-					// Advance iterator pointing to smaller value
-					if((*lit)->getRoot()->getItems() < (*rit)->getRoot()->getItems())
-						++lit;
-					else
+						result->addChildAndMerge(std::move(childResult));
 						++rit;
-				}
+						if(rit == right->getChildren().end())
+							break;
+						childResult = join(leftNodeIndex, *lit, rightNodeIndex, *rit);
+					} while(childResult);
+
+					// lit and rit don't match anymore (or rit is past the end)
+					// Advance lit. If it joins with mark, reset rit to mark.
+					++lit;
+					if(lit == left->getChildren().end())
+						break;
+					childResult = join(leftNodeIndex, *lit, rightNodeIndex, *mark);
+					if(childResult) {
+						rit = mark;
+						continue;
+					}
+				} while(false);
+			}
+			else {
+				// lit and rit don't match
+				// Advance iterator pointing to smaller value
+				if((*lit)->getRoot()->getItems() < (*rit)->getRoot()->getItems())
+					++lit;
+				else
+					++rit;
 			}
 		}
-
-		// In leafs, set cost and make sure two branches can only be joined if they have the same length
-		if(result && result->getChildren().empty()) {
-			if(!left->getChildren().empty() || !right->getChildren().empty())
-				result.reset();
-			else
-				result->getRoot()->setCost(left->getRoot()->getCost() - left->getRoot()->getCurrentCost() + right->getRoot()->getCost());
-		}
-
-		return result;
 	}
+
+	// In leafs, set cost and make sure two branches can only be joined if they have the same length
+	if(result && result->getChildren().empty()) {
+		if(!left->getChildren().empty() || !right->getChildren().empty())
+			result.reset();
+		else
+			result->getRoot()->setCost(left->getRoot()->getCost() - left->getRoot()->getCurrentCost() + right->getRoot()->getCost());
+	}
+
+	return result;
 }
+
+} // anonymous namespace
 
 namespace solver {
 
@@ -125,6 +129,8 @@ ItemTreePtr DefaultJoin::compute()
 
 	if(result)
 		result->finalize();
+
+	app.getDebugger().solverInvocationResult(decomposition.getRoot(), result.get());
 
 	return result;
 }

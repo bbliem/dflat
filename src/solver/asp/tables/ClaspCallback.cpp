@@ -22,16 +22,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp { namespace tables {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool printModels, bool prune)
-	: ::solver::asp::ClaspCallback(childItemTrees, printModels, prune)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger)
+	: ::solver::asp::ClaspCallback(childItemTrees, prune, debugger)
 	, gringoOutput(gringoOutput)
 {
 }
 
 void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 {
-	::solver::asp::ClaspCallback::state(e, f);
-
 	if(f.state() == Clasp::ClaspFacade::state_solve) {
 		if(e == Clasp::ClaspFacade::event_state_enter) {
 			Clasp::SymbolTable& symTab = f.config()->ctx.symTab();

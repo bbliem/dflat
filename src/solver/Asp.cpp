@@ -26,6 +26,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../Application.h"
 #include "../ItemTree.h"
 #include "../Decomposition.h"
+#include "../Debugger.h"
 #include "asp/tables/GringoOutputProcessor.h"
 #include "asp/tables/ClaspCallback.h"
 #include "asp/trees/GringoOutputProcessor.h"
@@ -37,8 +38,93 @@ using ChildItemTrees = GringoOutputProcessor::ChildItemTrees;
 
 namespace {
 
-void declareDecomposition(const Decomposition& decomposition, std::ostream& out)
+std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(const ChildItemTrees& childItemTrees, bool tableMode)
 {
+	if(tableMode)
+		return std::unique_ptr<GringoOutputProcessor>(new tables::GringoOutputProcessor(childItemTrees));
+	else
+		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor(childItemTrees));
+}
+
+std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const GringoOutputProcessor& gringoOutputProcessor, const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger)
+{
+	if(tableMode)
+		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, prune, debugger));
+	else
+		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, prune, debugger));
+}
+
+} // anonymous namespace
+
+namespace solver {
+
+Asp::Asp(const Decomposition& decomposition, const Application& app, const std::string& encodingFile, bool tableMode)
+	: Solver(decomposition, app)
+	, encodingFile(encodingFile)
+	, tableMode(tableMode)
+{
+}
+
+ItemTreePtr Asp::compute()
+{
+	// Compute item trees of child nodes
+	ChildItemTrees childItemTrees;
+	for(const auto& child : decomposition.getChildren()) {
+		ItemTreePtr itree = child->getSolver().compute();
+		if(!itree)
+			return itree;
+		childItemTrees.emplace(child->getRoot().getGlobalId(), std::move(itree));
+	}
+
+	// Input: Child item trees
+	std::unique_ptr<std::stringstream> childItemTreesInput(new std::stringstream);
+	*childItemTreesInput << "% Child item tree facts" << std::endl;
+
+	for(const auto& childItemTree : childItemTrees) {
+		std::ostringstream rootItemSetName;
+		rootItemSetName << 'n' << childItemTree.first;
+		declareItemTree(*childItemTreesInput, childItemTree.second.get(), tableMode, childItemTree.first, rootItemSetName.str());
+	}
+
+	app.getDebugger().solverInvocationInput(decomposition.getRoot(), childItemTreesInput->str());
+
+	// Input: Original problem instance
+	std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
+	*instanceInput << app.getInputString();
+
+	// Input: Decomposition
+	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
+	declareDecomposition(decomposition, *decompositionInput);
+
+	app.getDebugger().solverInvocationInput(decomposition.getRoot(), decompositionInput->str());
+
+	// Put these inputs together
+	Streams inputStreams;
+	inputStreams.addFile(encodingFile, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
+	// Remember: "Streams" deletes the appended streams -_-
+	inputStreams.appendStream(Streams::StreamPtr(instanceInput.release()), "<instance>");
+	inputStreams.appendStream(Streams::StreamPtr(decompositionInput.release()), "<decomposition>");
+	inputStreams.appendStream(Streams::StreamPtr(childItemTreesInput.release()), "<child_itrees>");
+
+	// Call the ASP solver
+	std::unique_ptr<GringoOutputProcessor> outputProcessor(newGringoOutputProcessor(childItemTrees, tableMode));
+	ClaspInputReader inputReader(inputStreams, *outputProcessor);
+	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *outputProcessor, childItemTrees, app.isPruningDisabled() == false, app.getDebugger()));
+	Clasp::ClaspConfig config;
+	config.enumerate.numModels = 0;
+	Clasp::ClaspFacade clasp;
+	clasp.solve(inputReader, config, cb.get());
+
+	ItemTreePtr result = cb->finalize();
+
+	app.getDebugger().solverInvocationResult(decomposition.getRoot(), result.get());
+
+	return result;
+}
+
+void Asp::declareDecomposition(const Decomposition& decomposition, std::ostream& out)
+{
+	out << "% Decomposition facts" << std::endl;
 	out << "currentNode(" << decomposition.getRoot().getGlobalId() << ")." << std::endl;
 	for(const auto& v : decomposition.getRoot().getBag()) {
 		out << "bag(" << decomposition.getRoot().getGlobalId() << ',' << v << "). ";
@@ -68,7 +154,7 @@ void declareDecomposition(const Decomposition& decomposition, std::ostream& out)
 	out << "removed(X) :- childNode(N), bag(N,X), not current(X)." << std::endl;
 }
 
-void declareItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0)
+void Asp::declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent, unsigned int level)
 {
 	if(!itemTree)
 		return;
@@ -97,7 +183,6 @@ void declareItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool tableM
 		out << "childConsequentItem(" << itemSetName << ',' << item << ")." << std::endl;
 
 	// If this is a leaf, declare cost
-	// TODO count etc.
 	const ItemTree::Children& children = itemTree->getChildren();
 	if(children.empty()) {
 		out << "childCost(" << itemSetName << ',' << itemTree->getRoot()->getCost() << ")." << std::endl;
@@ -108,155 +193,9 @@ void declareItemTree(std::ostream& out, const ItemTreePtr& itemTree, bool tableM
 		for(const auto& child : children) {
 			std::ostringstream childName;
 			childName << itemSetName << '_' << i++;
-			declareItemTree(out, child, tableMode, nodeId, childName.str(), itemSetName, level+1);
+			declareItemTree(out, child.get(), tableMode, nodeId, childName.str(), itemSetName, level+1);
 		}
 	}
-}
-
-void declareItemTreeNodeMemoryAddresses(std::ostream& out, const ItemTreePtr& itemTree, const std::string& itemSetName)
-{
-	if(!itemTree)
-		return;
-
-	out << "itemTreeNodeHasAddress(" << itemSetName << ',' << itemTree->getRoot().get() << ")." << std::endl;
-	size_t i = 0;
-	for(const auto& child : itemTree->getChildren()) {
-		std::ostringstream childName;
-		childName << itemSetName << '_' << i++;
-		declareItemTreeNodeMemoryAddresses(out, child, childName.str());
-	}
-}
-
-void declareExtensionPointers(std::ostream& out, const ItemTreePtr& itemTree, const std::string& itemSetName)
-{
-	if(!itemTree)
-		return;
-
-	for(const auto& tuple : itemTree->getRoot()->getExtensionPointers()) {
-		out << "itemTreeNodeExtends(" << itemSetName << ",tuple(";
-		std::string sep;
-		for(const auto& ep : tuple) {
-			out << sep << ep.second.get();
-			sep = ",";
-		}
-		out << "))." << std::endl;
-	}
-
-	size_t i = 0;
-	for(const auto& child : itemTree->getChildren()) {
-		std::ostringstream childName;
-		childName << itemSetName << '_' << i++;
-		declareExtensionPointers(out, child, childName.str());
-	}
-}
-
-std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(const ChildItemTrees& childItemTrees, bool tableMode)
-{
-	if(tableMode)
-		return std::unique_ptr<GringoOutputProcessor>(new tables::GringoOutputProcessor(childItemTrees));
-	else
-		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor(childItemTrees));
-}
-
-std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const GringoOutputProcessor& gringoOutputProcessor, const ChildItemTrees& childItemTrees, bool printModels, bool prune)
-{
-	if(tableMode)
-		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, printModels, prune));
-	else
-		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, printModels, prune));
-}
-
-
-} // anonymous namespace
-
-namespace solver {
-
-Asp::Asp(const Decomposition& decomposition, const Application& app, const std::string& encodingFile, bool tableMode)
-	: Solver(decomposition, app)
-	, encodingFile(encodingFile)
-	, tableMode(tableMode)
-{
-}
-
-ItemTreePtr Asp::compute()
-{
-	// Compute item trees of child nodes
-	ChildItemTrees childItemTrees;
-	for(const auto& child : decomposition.getChildren()) {
-		ItemTreePtr itree = child->getSolver().compute();
-		if(!itree)
-			return itree;
-		childItemTrees.emplace(child->getRoot().getGlobalId(), std::move(itree));
-	}
-
-	// Input: Child item trees
-	std::unique_ptr<std::stringstream> childItemTreesInput(new std::stringstream);
-	for(const auto& childItemTree : childItemTrees) {
-		std::ostringstream rootItemSetName;
-		rootItemSetName << 'n' << childItemTree.first;
-		declareItemTree(*childItemTreesInput, childItemTree.second, tableMode, childItemTree.first, rootItemSetName.str());
-	}
-
-	// Input: Original problem instance
-	std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
-	*instanceInput << app.getInputString();
-
-	// Input: Decomposition
-	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
-	declareDecomposition(decomposition, *decompositionInput);
-
-	if(app.isDebugEnabled()) {
-		std::cout << "Facts describing the tree decomposition for the ASP call at node " << decomposition.getRoot().getGlobalId() << ':' << std::endl;
-		std::cout << decompositionInput->str() << std::endl;
-	}
-
-	// Put these inputs together
-	Streams inputStreams;
-	inputStreams.addFile(encodingFile, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
-	// Remember: "Streams" deletes the appended streams -_-
-	inputStreams.appendStream(Streams::StreamPtr(instanceInput.release()), "<instance>");
-	inputStreams.appendStream(Streams::StreamPtr(decompositionInput.release()), "<decomposition>");
-	inputStreams.appendStream(Streams::StreamPtr(childItemTreesInput.release()), "<child_itrees>");
-
-	// Call the ASP solver
-	std::unique_ptr<GringoOutputProcessor> outputProcessor(newGringoOutputProcessor(childItemTrees, tableMode));
-	ClaspInputReader inputReader(inputStreams, *outputProcessor);
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *outputProcessor, childItemTrees, app.isDebugEnabled(), app.isPruningDisabled() == false));
-	Clasp::ClaspConfig config;
-	config.enumerate.numModels = 0;
-	Clasp::ClaspFacade clasp;
-	clasp.solve(inputReader, config, cb.get());
-
-	ItemTreePtr result = cb->finalize();
-
-	if(app.isDebugEnabled()) {
-		const auto id = decomposition.getRoot().getGlobalId();
-		if(result) {
-			std::cout << "Resulting item tree at node " << id << ':' << std::endl << *result << std::endl;
-
-			std::cout << "Facts describing the resulting item tree at node " << id << ':' << std::endl;
-			std::ostringstream rootItemSetName;
-			rootItemSetName << 'n' << id;
-			declareItemTree(std::cout, result, tableMode, id, rootItemSetName.str());
-			std::cout << std::endl;
-
-			std::cout << "Memory locations of the item tree nodes at decomposition node " << id << " (not passed to ASP):" << std::endl;
-			declareItemTreeNodeMemoryAddresses(std::cout, result, rootItemSetName.str());
-			std::cout << std::endl;
-
-			std::cout << "Extension pointers at decomposition node " << id << " (not passed to ASP):" << std::endl;
-			declareExtensionPointers(std::cout, result, rootItemSetName.str());
-			std::cout << std::endl;
-
-			std::cout << "Extensions of item tree at node " << id << ':' << std::endl;
-			result->printExtensions(std::cout);
-			std::cout << std::endl;
-		}
-		else
-			std::cout << "Item tree of node " << id << " is empty." << std::endl;
-	}
-
-	return result;
 }
 
 } // namespace solver

@@ -25,6 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 class Decomposer;
 class SolverFactory;
+class Debugger;
 
 class Application
 {
@@ -33,19 +34,22 @@ public:
 
 	int run(int argc, char** argv);
 
-	// Print usage and exit
-	void usage(int exitCode = 0) const;
+	// Print usage (but don't exit)
+	void usage() const;
 
 	const std::string& getInputString() const;
 	options::OptionHandler& getOptionHandler();
 	options::Choice& getDecomposerChoice();
 	options::Choice& getSolverChoice();
+	options::Choice& getDebuggerChoice();
 
 	const SolverFactory& getSolverFactory() const;
+	const Debugger& getDebugger() const;
+
 	void setDecomposer(Decomposer& decomposer);
 	void setSolverFactory(SolverFactory& solverFactory);
+	void setDebugger(Debugger& debugger);
 
-	bool isDebugEnabled() const;
 	bool isPruningDisabled() const;
 
 private:
@@ -57,9 +61,10 @@ private:
 	options::OptionHandler opts;
 	options::Choice optDecomposer;
 	options::Choice optSolver;
-	options::Option optDebug;
+	options::Choice optDebugger;
 	options::Option optNoPruning;
 
 	Decomposer* decomposer;
 	SolverFactory* solverFactory;
+	Debugger* debugger;
 };

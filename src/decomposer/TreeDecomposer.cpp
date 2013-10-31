@@ -31,6 +31,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../Hypergraph.h"
 #include "../Decomposition.h"
 #include "../Application.h"
+#include "../Debugger.h"
 
 namespace {
 	class SharpProblem : public sharp::Problem
@@ -154,13 +155,16 @@ DecompositionPtr TreeDecomposer::decompose(const Hypergraph& instance) const
 	DecompositionPtr transformed = transformTd(*normalized, !optNoEmptyLeaves.isUsed(), problem, app);
 
 	// Optionally add empty root
+	DecompositionPtr result;
 	if(optNoEmptyRoot.isUsed())
-		return transformed;
+		result = transformed;
 	else {
-		DecompositionPtr result(new Decomposition(DecompositionNode({}), app.getSolverFactory()));
+		result.reset(new Decomposition(DecompositionNode({}), app.getSolverFactory()));
 		result->addChild(std::move(transformed));
-		return result;
 	}
+
+	app.getDebugger().decomposerResult(*result);
+	return result;
 }
 
 } // namespace decomposer

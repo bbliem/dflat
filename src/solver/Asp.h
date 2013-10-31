@@ -31,6 +31,9 @@ public:
 
 	virtual ItemTreePtr compute() override;
 
+	static void declareDecomposition(const Decomposition& decomposition, std::ostream& out);
+	static void declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0);
+
 protected:
 	std::string encodingFile;
 	bool tableMode;

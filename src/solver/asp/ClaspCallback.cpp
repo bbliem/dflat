@@ -19,12 +19,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "ClaspCallback.h"
+#include "../../Debugger.h"
 
 namespace solver { namespace asp {
 
-ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, bool printModels, bool prune)
+ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger)
 	: childItemTrees(childItemTrees)
-	, printModels(printModels)
+	, debugger(debugger)
 	, prune(prune)
 {
 }
@@ -41,22 +42,17 @@ void ClaspCallback::warning(const char* msg)
 	std::cerr << "clasp warning: " << msg << std::endl;
 }
 
-void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
-{
-	if(f.state() == Clasp::ClaspFacade::state_solve && e == Clasp::ClaspFacade::event_state_exit && printModels)
-		std::cout << std::endl;
-}
-
 void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 {
-	if(e == Clasp::ClaspFacade::event_model && printModels) {
+	if(e == Clasp::ClaspFacade::event_model && debugger.listensForSolverEvents()) {
 		Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
-		std::cout << "Model " << f.config()->ctx.enumerator()->enumerated-1 << ": ";
+		std::ostringstream msg;
+		msg << "Model " << f.config()->ctx.enumerator()->enumerated-1 << ": ";
 		for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
 			if(s.isTrue(it->second.lit) && !it->second.name.empty())
-				std::cout << it->second.name.c_str() << ' ';
+				msg << it->second.name.c_str() << ' ';
 		}
-		std::cout << std::endl;
+		debugger.solverEvent(msg.str());
 	}
 }
 

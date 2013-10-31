@@ -21,20 +21,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Dummy.h"
 #include "../Decomposition.h"
 #include "../Application.h"
-#include "../Debugger.h"
 
-namespace decomposer {
+namespace debugger {
 
 Dummy::Dummy(Application& app, bool newDefault)
-	: Decomposer(app, "dummy", "Do not decompose", newDefault)
+	: Debugger(app, "dummy", "No debugging output", newDefault)
 {
 }
 
-DecompositionPtr Dummy::decompose(const Hypergraph& instance) const
-{
-	DecompositionPtr result(new Decomposition(instance.getVertices(), app.getSolverFactory()));
-	app.getDebugger().decomposerResult(*result);
-	return result;
-}
-
-} // namespace decomposer
+} // namespace debugger

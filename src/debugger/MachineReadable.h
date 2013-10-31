@@ -18,23 +18,22 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Dummy.h"
-#include "../Decomposition.h"
-#include "../Application.h"
+#pragma once
+
 #include "../Debugger.h"
 
-namespace decomposer {
+namespace debugger {
 
-Dummy::Dummy(Application& app, bool newDefault)
-	: Decomposer(app, "dummy", "Do not decompose", newDefault)
+class MachineReadable : public Debugger
 {
-}
+public:
+	MachineReadable(Application& app, bool newDefault = false);
 
-DecompositionPtr Dummy::decompose(const Hypergraph& instance) const
-{
-	DecompositionPtr result(new Decomposition(instance.getVertices(), app.getSolverFactory()));
-	app.getDebugger().decomposerResult(*result);
-	return result;
-}
+	virtual void decomposerResult(const Decomposition& result) const;
+	virtual void solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input) const;
+	virtual void solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result) const;
+	virtual bool listensForSolverEvents() const;
+	virtual void solverEvent(const std::string& msg) const;
+};
 
-} // namespace decomposer
+} // namespace debugger

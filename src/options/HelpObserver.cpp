@@ -34,8 +34,10 @@ HelpObserver::HelpObserver(const Application& app, const Option& help)
 
 void HelpObserver::notify()
 {
-	if(help.isUsed())
+	if(help.isUsed()) {
 		app.usage();
+		std::exit(0);
+	}
 }
 
 } // namespace options
