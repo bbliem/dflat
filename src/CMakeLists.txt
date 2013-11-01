@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(dflat)
+set(USE_STATIC_LIBS "${USE_STATIC_LIBS}" CACHE BOOL "Link statically")
 
 add_definitions("-Wall -pedantic -std=c++11 -DDISABLE_MULTI_THREADING")
 
@@ -12,6 +13,18 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -DDEBUG") # Without
 # i.e., warnings are suppressed for the clasp headers.
 include_directories(SYSTEM ${clasp_dir}/libclasp)
 include_directories(${sharp_dir}/include ${gringo_dir}/libgringo)
+
+if(USE_STATIC_LIBS)
+	set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)
+	set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
+	set(Boost_USE_STATIC_LIBS TRUE)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
+	if(WIN32)
+		set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+	else()
+		set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+	endif()
+endif()
 
 add_library(gringo STATIC IMPORTED)
 set_target_properties(gringo PROPERTIES IMPORTED_LOCATION ${gringo_lib})
@@ -77,4 +90,4 @@ add_executable(dflat
 	Application.cpp
 	main.cpp)
 
-target_link_libraries(dflat sharp gringo clasp gmp gmpxx ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+target_link_libraries(dflat gringo clasp sharp gmpxx gmp ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
