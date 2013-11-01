@@ -69,8 +69,8 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	};
 
 	// Get number of levels in the branch corresponding to this answer set
-	ASP_CHECK(countTrue(s, lengthAtomInfos) == 0, "No true length/1 atom");
-	ASP_CHECK(countTrue(s, lengthAtomInfos) > 1, "Multiple true length/1 atoms");
+	ASP_CHECK(countTrue(s, lengthAtomInfos) != 0, "No true length/1 atom");
+	ASP_CHECK(countTrue(s, lengthAtomInfos) <= 1, "Multiple true length/1 atoms");
 	unsigned int numLevels;
 	forFirstTrue(s, lengthAtomInfos, [&numLevels](const GringoOutputProcessor::LengthAtomArguments& arguments) {
 			numLevels = arguments.length+1;
