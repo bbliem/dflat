@@ -51,8 +51,6 @@ public:
 	// Called for important events, e.g. a model has been found
 	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f) override;
 
-	virtual ItemTreePtr finalize() override;
-
 protected:
 	UncompressedItemTreePtr uncompressedItemTree;
 

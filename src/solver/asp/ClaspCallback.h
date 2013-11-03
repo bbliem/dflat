@@ -50,7 +50,7 @@ public:
 	ClaspCallback(const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger);
 
 	// Call this after all answer sets have been processed. It returns the resulting item tree (and calls finalize() on it).
-	virtual ItemTreePtr finalize();
+	ItemTreePtr finalize();
 
 	// Called if the current configuration contains unsafe/unreasonable options
 	virtual void warning(const char* msg) override;

@@ -32,6 +32,8 @@ ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, bool prune, c
 
 ItemTreePtr ClaspCallback::finalize()
 {
+	if(prune && itemTree && itemTree->prune() == ItemTreeNode::Type::REJECT)
+		itemTree.reset();
 	if(itemTree)
 		itemTree->finalize();
 	return std::move(itemTree);
