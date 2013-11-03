@@ -67,7 +67,7 @@ namespace {
 		const Hypergraph& instance;
 	};
 
-	DecompositionPtr transformTd(sharp::ExtendedHypertree& td, bool emptyLeaves, sharp::Problem& problem, const Application& app)
+	DecompositionPtr transformTd(sharp::ExtendedHypertree& td, bool emptyLeaves, sharp::NormalizationType normalizationType, sharp::Problem& problem, const Application& app)
 	{
 		Hypergraph::Vertices bag;
 		for(sharp::Vertex v : td.getVertices())
@@ -80,12 +80,24 @@ namespace {
 		DecompositionPtr result(new Decomposition(bag, app.getSolverFactory()));
 		// If there are no children, optionally add empty leaves
 		if(td.getChildren()->empty()) {
-			if(emptyLeaves)
-				result->addChild(DecompositionPtr(new Decomposition(DecompositionNode({}), app.getSolverFactory())));
+			if(emptyLeaves) {
+				if(normalizationType == sharp::DefaultNormalization) {
+					Decomposition* currentNode = result.get();
+					while(bag.empty() == false) {
+						bag.erase(bag.begin());
+						DecompositionPtr child(new Decomposition(DecompositionNode(bag), app.getSolverFactory()));
+						Decomposition* nextNode = child.get();
+						currentNode->addChild(std::move(child));
+						currentNode = nextNode;
+					}
+				}
+				else
+					result->addChild(DecompositionPtr(new Decomposition(DecompositionNode({}), app.getSolverFactory())));
+			}
 		}
 		else {
 			for(sharp::Hypertree* child : *td.getChildren())
-				result->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), emptyLeaves, problem, app));
+				result->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), emptyLeaves, normalizationType, problem, app));
 		}
 		return result;
 	}
@@ -152,15 +164,26 @@ DecompositionPtr TreeDecomposer::decompose(const Hypergraph& instance) const
 	td.reset();
 
 	// Transform SHARP's tree decomposition into our format
-	DecompositionPtr transformed = transformTd(*normalized, !optNoEmptyLeaves.isUsed(), problem, app);
+	DecompositionPtr transformed = transformTd(*normalized, !optNoEmptyLeaves.isUsed(), normalizationType, problem, app);
 
 	// Optionally add empty root
 	DecompositionPtr result;
 	if(optNoEmptyRoot.isUsed())
 		result = transformed;
 	else {
-		result.reset(new Decomposition(DecompositionNode({}), app.getSolverFactory()));
-		result->addChild(std::move(transformed));
+		if(normalizationType == sharp::DefaultNormalization) {
+			Hypergraph::Vertices bag = transformed->getRoot().getBag();
+			while(bag.empty() == false) {
+				bag.erase(bag.begin());
+				result.reset(new Decomposition(DecompositionNode(bag), app.getSolverFactory()));
+				result->addChild(std::move(transformed));
+				transformed = result;
+			}
+		}
+		else {
+			result.reset(new Decomposition(DecompositionNode({}), app.getSolverFactory()));
+			result->addChild(std::move(transformed));
+		}
 	}
 
 	app.getDebugger().decomposerResult(*result);
