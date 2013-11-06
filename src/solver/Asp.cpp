@@ -182,6 +182,24 @@ void Asp::declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tabl
 	for(const auto& item : itemTree->getRoot()->getAuxItems())
 		out << "childAuxItem(" << itemSetName << ',' << item << ")." << std::endl;
 
+	// Declare item tree node type
+	switch(itemTree->getRoot()->getType()) {
+		case ItemTreeNode::Type::UNDEFINED:
+			break;
+		case ItemTreeNode::Type::OR:
+			out << "childOr(" << itemSetName << ")." << std::endl;
+			break;
+		case ItemTreeNode::Type::AND:
+			out << "childAnd(" << itemSetName << ")." << std::endl;
+			break;
+		case ItemTreeNode::Type::ACCEPT:
+			out << "childAccept(" << itemSetName << ")." << std::endl;
+			break;
+		case ItemTreeNode::Type::REJECT:
+			out << "childReject(" << itemSetName << ")." << std::endl;
+			break;
+	}
+
 	// If this is a leaf, declare cost
 	const ItemTree::Children& children = itemTree->getChildren();
 	if(children.empty()) {

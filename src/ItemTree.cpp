@@ -27,9 +27,11 @@ bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr
 {
 	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() ||
 		(lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
-		 (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
-		  (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
-		   std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this))));
+		 (lhs->getRoot()->getType() < rhs->getRoot()->getType() ||
+		  (lhs->getRoot()->getType() == rhs->getRoot()->getType() &&
+		   (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
+		    (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
+		     std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this))))));
 }
 
 void ItemTree::addChildAndMerge(ChildPtr&& child)
@@ -105,7 +107,15 @@ ItemTreeNode::Type ItemTree::prune()
 			case ItemTreeNode::Type::REJECT:
 				someRejecting = true;
 				allAccepting = false;
-				children.erase(it++); // Remove that child
+				// We may only erase the child if the current node has type AND or OR.
+				// (If this type is still undefined, it might turn out to be AND and therefore the current node would have to reject.)
+				if(node->getType() != ItemTreeNode::Type::UNDEFINED) {
+					assert(node->getType() == ItemTreeNode::Type::AND || node->getType() == ItemTreeNode::Type::OR);
+					// Remove that child
+					children.erase(it++);
+				}
+				else
+					++it;
 				break;
 		}
 	}

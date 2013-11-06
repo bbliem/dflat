@@ -1,5 +1,5 @@
-item(L,_or)  :- length(M), L = 0..M-1, L #mod 2 == 0. % existential nodes
-item(L,_and) :- length(M), L = 0..M-1, L #mod 2 == 1. % universal nodes
+or(L)  :- length(M), L = 0..M-1, L #mod 2 == 0. % existential nodes
+and(L) :- length(M), L = 0..M-1, L #mod 2 == 1. % universal nodes
 
 % Guess a branch
 1 { extend(L,S) : leafOf(S,N) : atLevel(S,L) } 1 :- childNode(N).
@@ -20,10 +20,13 @@ auxItem(L,sat(C)) :- length(L), pos(C,A), atom(LA,A), current(C;A), item(LA,t(A)
 auxItem(L,sat(C)) :- length(L), neg(C,A), atom(LA,A), current(C;A), item(LA,f(A)).
 % XXX what if clauses become false? Can we optimize?
 
-item(L,_reject) :- length(L), clause(C), removed(C), bag(N,C), atNode(S,N), extend(L,S), not childAuxItem(S,sat(C)).
+reject :- length(L), clause(C), removed(C), bag(N,C), atNode(S,N), extend(L,S), not childAuxItem(S,sat(C)).
 
 #hide.
 #show length/1.
 #show item/2.
 #show auxItem/2.
 #show extend/2.
+#show or/1.
+#show and/1.
+#show reject/0.

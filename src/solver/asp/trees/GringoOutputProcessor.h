@@ -63,12 +63,24 @@ public:
 	};
 	typedef AtomInfo<LengthAtomArguments> LengthAtomInfo;
 
+	struct OrAtomArguments {
+		unsigned int level;
+	};
+	typedef AtomInfo<OrAtomArguments> OrAtomInfo;
+
+	struct AndAtomArguments {
+		unsigned int level;
+	};
+	typedef AtomInfo<AndAtomArguments> AndAtomInfo;
+
 	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
 	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;
 	typedef std::vector<ExtendAtomInfo>         ExtendAtomInfos;
 	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
 	typedef std::vector<CostAtomInfo>           CostAtomInfos;
 	typedef std::vector<LengthAtomInfo>         LengthAtomInfos;
+	typedef std::vector<OrAtomInfo>             OrAtomInfos;
+	typedef std::vector<AndAtomInfo>            AndAtomInfos;
 
 	GringoOutputProcessor(const ChildItemTrees& childItemTrees);
 
@@ -78,6 +90,11 @@ public:
 	const CurrentCostAtomInfos&    getCurrentCostAtomInfos()    const;
 	const CostAtomInfos&           getCostAtomInfos()           const;
 	const LengthAtomInfos&         getLengthAtomInfos()         const;
+	const OrAtomInfos&             getOrAtomInfos()             const;
+	const AndAtomInfos&            getAndAtomInfos()            const;
+
+	const Clasp::SymbolTable::key_type* getAcceptAtomKey() const;
+	const Clasp::SymbolTable::key_type* getRejectAtomKey() const;
 
 protected:
 	virtual void storeAtom(const std::string& name, ValVec::const_iterator firstArg, uint32_t arity, Clasp::SymbolTable::key_type symbolTableKey);
@@ -88,6 +105,11 @@ protected:
 	CurrentCostAtomInfos    currentCostAtomInfos;
 	CostAtomInfos           costAtomInfos;
 	LengthAtomInfos         lengthAtomInfos;
+	OrAtomInfos             orAtomInfos;
+	AndAtomInfos            andAtomInfos;
+
+	std::unique_ptr<Clasp::SymbolTable::key_type> acceptAtomKey;
+	std::unique_ptr<Clasp::SymbolTable::key_type> rejectAtomKey;
 };
 
 }}} // namespace solver::asp::trees

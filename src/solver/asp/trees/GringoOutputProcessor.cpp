@@ -57,6 +57,26 @@ const GringoOutputProcessor::LengthAtomInfos& GringoOutputProcessor::getLengthAt
 	return lengthAtomInfos;
 }
 
+const GringoOutputProcessor::OrAtomInfos& GringoOutputProcessor::getOrAtomInfos() const
+{
+	return orAtomInfos;
+}
+
+const GringoOutputProcessor::AndAtomInfos& GringoOutputProcessor::getAndAtomInfos() const
+{
+	return andAtomInfos;
+}
+
+const Clasp::SymbolTable::key_type* GringoOutputProcessor::getAcceptAtomKey() const
+{
+	return acceptAtomKey.get();
+}
+
+const Clasp::SymbolTable::key_type* GringoOutputProcessor::getRejectAtomKey() const
+{
+	return rejectAtomKey.get();
+}
+
 void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_iterator firstArg, uint32_t arity, Clasp::SymbolTable::key_type symbolTableKey)
 {
 	// Store the atom together with its symbol table key and extracted arguments
@@ -101,6 +121,20 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 	} else if(name == "length") {
 		ASP_CHECK(arity == 1, "'length' predicate does not have arity 1");
 		lengthAtomInfos.emplace_back(LengthAtomInfo{{static_cast<unsigned int>(std::stol(getArguments(firstArg, arity).front()))}, symbolTableKey});
+	} else if(name == "or") {
+		ASP_CHECK(arity == 1, "'or' predicate does not have arity 1");
+		orAtomInfos.emplace_back(OrAtomInfo{{static_cast<unsigned int>(std::stol(getArguments(firstArg, arity).front()))}, symbolTableKey});
+	} else if(name == "and") {
+		ASP_CHECK(arity == 1, "'and' predicate does not have arity 1");
+		andAtomInfos.emplace_back(AndAtomInfo{{static_cast<unsigned int>(std::stol(getArguments(firstArg, arity).front()))}, symbolTableKey});
+	} else if(name == "accept") {
+		ASP_CHECK(arity == 0, "'accept' predicate does not have arity 0");
+		assert(!acceptAtomKey);
+		acceptAtomKey.reset(new Clasp::SymbolTable::key_type(symbolTableKey));
+	} else if(name == "reject") {
+		ASP_CHECK(arity == 0, "'reject' predicate does not have arity 0");
+		assert(!rejectAtomKey);
+		rejectAtomKey.reset(new Clasp::SymbolTable::key_type(symbolTableKey));
 	}
 }
 

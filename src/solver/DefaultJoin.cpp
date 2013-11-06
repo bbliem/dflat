@@ -27,7 +27,8 @@ namespace {
 
 bool isJoinable(const ItemTreeNode& left, const ItemTreeNode& right)
 {
-	return left.getItems() == right.getItems();
+	return left.getItems() == right.getItems() &&
+		(left.getType() == ItemTreeNode::Type::UNDEFINED || right.getType() == ItemTreeNode::Type::UNDEFINED || left.getType() == right.getType());
 }
 
 ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned int rightNodeIndex, const ItemTreePtr& right)
@@ -44,7 +45,8 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 		ItemTreeNode::Items auxItems = left->getRoot()->getAuxItems();
 		auxItems.insert(right->getRoot()->getAuxItems().begin(), right->getRoot()->getAuxItems().end());
 		ItemTreeNode::ExtensionPointers extensionPointers = {{{leftNodeIndex, left->getRoot()}, {rightNodeIndex, right->getRoot()}}};
-		result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), std::move(extensionPointers)))));
+		ItemTreeNode::Type type = left->getRoot()->getType() == ItemTreeNode::Type::UNDEFINED ? right->getRoot()->getType() : left->getRoot()->getType();
+		result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), std::move(extensionPointers), type))));
 
 		// Join children recursively
 		auto lit = left->getChildren().begin();

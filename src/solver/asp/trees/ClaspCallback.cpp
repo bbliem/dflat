@@ -46,6 +46,15 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getLengthAtomInfos())
 				lengthAtomInfos.emplace_back(LengthAtomInfo(atom, symTab));
+			for(const auto& atom : gringoOutput.getOrAtomInfos())
+				orAtomInfos.emplace_back(OrAtomInfo(atom, symTab));
+			for(const auto& atom : gringoOutput.getAndAtomInfos())
+				andAtomInfos.emplace_back(AndAtomInfo(atom, symTab));
+
+			if(gringoOutput.getAcceptAtomKey())
+				acceptLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getAcceptAtomKey()].lit));
+			if(gringoOutput.getRejectAtomKey())
+				rejectLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getRejectAtomKey()].lit));
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit) {
 			if(uncompressedItemTree)
@@ -66,6 +75,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		ItemTreeNode::Items items;
 		ItemTreeNode::Items auxItems;
 		ItemTreeNode::ExtensionPointerTuple extended;
+		ItemTreeNode::Type type = ItemTreeNode::Type::UNDEFINED;
 	};
 
 	// Get number of levels in the branch corresponding to this answer set
@@ -88,7 +98,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	});
 
 	// Get extension pointers
-	forEachTrue(s, extendAtomInfos, [&](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
+	forEachTrue(s, extendAtomInfos, [&branchData](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
 			ASP_CHECK(arguments.level < branchData.size(), "Extension pointer at level higher than branch length");
 			branchData[arguments.level].extended.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedNode));
 	});
@@ -124,16 +134,36 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			"Item tree branches specify different roots");
 #endif
 
+	// Set item tree node types (or, and, accept or reject)
+	forEachTrue(s, orAtomInfos, [&branchData](const GringoOutputProcessor::OrAtomArguments& arguments) {
+			ASP_CHECK(arguments.level + 1 < branchData.size(), "Item tree node type specificiation 'or' at level higher than or equal to branch length");
+			ASP_CHECK(branchData[arguments.level].type == ItemTreeNode::Type::UNDEFINED, "More than one type specified for an item tree node");
+			branchData[arguments.level].type = ItemTreeNode::Type::OR;
+	});
+	forEachTrue(s, andAtomInfos, [&branchData](const GringoOutputProcessor::AndAtomArguments& arguments) {
+			ASP_CHECK(arguments.level + 1 < branchData.size(), "Item tree node type specificiation 'and' at level higher than or equal to branch length");
+			ASP_CHECK(branchData[arguments.level].type == ItemTreeNode::Type::UNDEFINED, "More than one type specified for an item tree node");
+			branchData[arguments.level].type = ItemTreeNode::Type::AND;
+	});
+	if(acceptLiteral && s.isTrue(*acceptLiteral)) {
+		ASP_CHECK(branchData.back().type == ItemTreeNode::Type::UNDEFINED, "More than one type specified for an item tree leaf");
+		branchData.back().type = ItemTreeNode::Type::ACCEPT;
+	}
+	if(rejectLiteral && s.isTrue(*rejectLiteral)) {
+		ASP_CHECK(branchData.back().type == ItemTreeNode::Type::UNDEFINED, "More than one type specified for an item tree leaf");
+		branchData.back().type = ItemTreeNode::Type::REJECT;
+	}
+
 	// Convert branchData to UncompressedItemTree::Branch
 	UncompressedItemTree::Branch branch;
 	branch.reserve(numLevels);
 	if(uncompressedItemTree)
 		branch.emplace_back(uncompressedItemTree->getRoot());
 	else
-		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData.front().items), std::move(branchData.front().auxItems), {std::move(branchData.front().extended)})));
+		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData.front().items), std::move(branchData.front().auxItems), {std::move(branchData.front().extended)}, branchData.front().type)));
 
 	for(size_t i = 1; i < branchData.size(); ++i)
-		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), std::move(branchData[i].auxItems), {std::move(branchData[i].extended)})));
+		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), std::move(branchData[i].auxItems), {std::move(branchData[i].extended)}, branchData[i].type)));
 
 	// Set (current) cost
 	long cost = 0;

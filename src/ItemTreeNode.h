@@ -45,7 +45,7 @@ public:
 		REJECT
 	};
 
-	ItemTreeNode(Items&& items = {}, Items&& auxItems = {}, ExtensionPointers&& extensionPointers = {});
+	ItemTreeNode(Items&& items = {}, Items&& auxItems = {}, ExtensionPointers&& extensionPointers = {}, Type type = Type::UNDEFINED);
 
 	// Returns the items of this node (but not the auxiliary items, see below).
 	const Items& getItems() const;
@@ -88,8 +88,7 @@ private:
 	mpz_class count; // number of possible extensions of this node
 	long cost = 0;
 	long currentCost = 0;
-
-	Type type = Type::UNDEFINED;
+	Type type;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::shared_ptr<ItemTreeNode>& node);

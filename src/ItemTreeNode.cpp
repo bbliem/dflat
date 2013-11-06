@@ -24,11 +24,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "ItemTreeNode.h"
 #include "ExtensionIterator.h"
 
-ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& extensionPointers)
+ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& extensionPointers, Type type)
 	: items(std::move(items))
 	, auxItems(std::move(auxItems))
 	, extensionPointers(std::move(extensionPointers))
 	, parent(nullptr)
+	, type(type)
 {
 	if(this->extensionPointers.empty())
 		count = 1;
@@ -42,18 +43,13 @@ ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& 
 		}
 	}
 
-	// TODO for performance, we could recognize these special items during grounding and then set the type from ClaspCallback instead of always going through the items
-	assert(std::count_if(this->items.begin(), this->items.end(), [](const std::string& item){
-		return item == "_or" || item == "_and" || item == "_accept" || item == "_reject";
-	}) <= 1);
-	if(this->items.find("_or") != this->items.end())
-		type = Type::OR;
-	else if(this->items.find("_and") != this->items.end())
-		type = Type::AND;
-	else if(this->items.find("_accept") != this->items.end())
-		type = Type::ACCEPT;
-	else if(this->items.find("_reject") != this->items.end())
-		type = Type::REJECT;
+#ifndef NDEBUG
+	// XXX Maybe use a special compile flag other than NDEBUG (similar to DISABLE_ASP_CHECKS)
+	for(const ExtensionPointerTuple& tuple : this->extensionPointers)
+		for(const auto& predecessor : tuple)
+			if(predecessor.second->type != Type::UNDEFINED && type != predecessor.second->type)
+				throw std::runtime_error("Type of extended item tree node not retained");
+#endif
 }
 
 const ItemTreeNode::Items& ItemTreeNode::getItems() const
@@ -162,6 +158,24 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 {
 	// Print count
 //	os << '[' << node.count << "] ";
+
+	// Print type
+	switch(node.type) {
+		case ItemTreeNode::Type::UNDEFINED:
+			break;
+		case ItemTreeNode::Type::OR:
+			os << "<OR> ";
+			break;
+		case ItemTreeNode::Type::AND:
+			os << "<AND> ";
+			break;
+		case ItemTreeNode::Type::ACCEPT:
+			os << "<ACCEPT> ";
+			break;
+		case ItemTreeNode::Type::REJECT:
+			os << "<REJECT> ";
+			break;
+	}
 
 	// Print items
 	for(const auto& item : node.items)

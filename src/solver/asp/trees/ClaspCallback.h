@@ -35,6 +35,8 @@ public:
 	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments>    CurrentCostAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments>           CostAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::LengthAtomArguments>         LengthAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::OrAtomArguments>             OrAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::AndAtomArguments>            AndAtomInfo;
 
 	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
 	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;
@@ -42,6 +44,8 @@ public:
 	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
 	typedef std::vector<CostAtomInfo>           CostAtomInfos;
 	typedef std::vector<LengthAtomInfo>         LengthAtomInfos;
+	typedef std::vector<OrAtomInfo>             OrAtomInfos;
+	typedef std::vector<AndAtomInfo>            AndAtomInfos;
 
 	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger);
 
@@ -62,6 +66,11 @@ protected:
 	CurrentCostAtomInfos    currentCostAtomInfos;
 	CostAtomInfos           costAtomInfos;
 	LengthAtomInfos         lengthAtomInfos;
+	OrAtomInfos             orAtomInfos;
+	AndAtomInfos            andAtomInfos;
+
+	std::unique_ptr<Clasp::Literal> acceptLiteral;
+	std::unique_ptr<Clasp::Literal> rejectLiteral;
 };
 
 }}} // namespace solver::asp::trees
