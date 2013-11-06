@@ -29,13 +29,13 @@ class ClaspCallback : public ::solver::asp::ClaspCallback
 {
 public:
 	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments>           ItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::ConsequentItemAtomArguments> ConsequentItemAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::AuxItemAtomArguments>        AuxItemAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::ExtendAtomArguments>         ExtendAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments>    CurrentCostAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments>           CostAtomInfo;
 
 	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
-	typedef std::vector<ConsequentItemAtomInfo> ConsequentItemAtomInfos;
+	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;
 	typedef std::vector<ExtendAtomInfo>         ExtendAtomInfos;
 	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
 	typedef std::vector<CostAtomInfo>           CostAtomInfos;
@@ -52,7 +52,7 @@ protected:
 	const GringoOutputProcessor& gringoOutput;
 
 	ItemAtomInfos           itemAtomInfos;
-	ConsequentItemAtomInfos consequentItemAtomInfos;
+	AuxItemAtomInfos        auxItemAtomInfos;
 	ExtendAtomInfos         extendAtomInfos;
 	CurrentCostAtomInfos    currentCostAtomInfos;
 	CostAtomInfos           costAtomInfos;

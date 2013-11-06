@@ -179,8 +179,8 @@ void Asp::declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tabl
 	}
 	for(const auto& item : itemTree->getRoot()->getItems())
 		out << "childItem(" << itemSetName << ',' << item << ")." << std::endl;
-	for(const auto& item : itemTree->getRoot()->getConsequentItems())
-		out << "childConsequentItem(" << itemSetName << ',' << item << ")." << std::endl;
+	for(const auto& item : itemTree->getRoot()->getAuxItems())
+		out << "childAuxItem(" << itemSetName << ',' << item << ")." << std::endl;
 
 	// If this is a leaf, declare cost
 	const ItemTree::Children& children = itemTree->getChildren();

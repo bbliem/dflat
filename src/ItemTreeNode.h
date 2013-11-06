@@ -45,14 +45,14 @@ public:
 		REJECT
 	};
 
-	ItemTreeNode(Items&& items = {}, Items&& consequentItems = {}, ExtensionPointers&& extensionPointers = {});
+	ItemTreeNode(Items&& items = {}, Items&& auxItems = {}, ExtensionPointers&& extensionPointers = {});
 
-	// Returns the items of this node (but not the consequent items, see below).
+	// Returns the items of this node (but not the auxiliary items, see below).
 	const Items& getItems() const;
 
-	// Returns the items that have been declared as deterministic consequences.
+	// Returns the items that have been declared as auxiliary.
 	// These items are disregarded in the default join.
-	const Items& getConsequentItems() const;
+	const Items& getAuxItems() const;
 
 	const ExtensionPointers& getExtensionPointers() const;
 	const ItemTreeNode* getParent() const;
@@ -82,7 +82,7 @@ public:
 
 private:
 	Items items;
-	Items consequentItems;
+	Items auxItems;
 	ExtensionPointers extensionPointers;
 	const ItemTreeNode* parent;
 	mpz_class count; // number of possible extensions of this node

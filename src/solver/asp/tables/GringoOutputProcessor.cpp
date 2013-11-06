@@ -32,9 +32,9 @@ const GringoOutputProcessor::ItemAtomInfos& GringoOutputProcessor::getItemAtomIn
 	return itemAtomInfos;
 }
 
-const GringoOutputProcessor::ConsequentItemAtomInfos& GringoOutputProcessor::getConsequentItemAtomInfos() const
+const GringoOutputProcessor::AuxItemAtomInfos& GringoOutputProcessor::getAuxItemAtomInfos() const
 {
-	return consequentItemAtomInfos;
+	return auxItemAtomInfos;
 }
 
 const GringoOutputProcessor::ExtendAtomInfos& GringoOutputProcessor::getExtendAtomInfos() const
@@ -58,9 +58,9 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 	if(name == "item") {
 		ASP_CHECK(arity == 1, "'item' predicate does not have arity 1");
 		itemAtomInfos.emplace_back(ItemAtomInfo{ItemAtomArguments{getArguments(firstArg, arity).front()}, symbolTableKey});
-	} else if(name == "consequentItem") {
-		ASP_CHECK(arity == 1, "'consequentItem' predicate does not have arity 1");
-		consequentItemAtomInfos.emplace_back(ConsequentItemAtomInfo{ConsequentItemAtomArguments{getArguments(firstArg, arity).front()}, symbolTableKey});
+	} else if(name == "auxItem") {
+		ASP_CHECK(arity == 1, "'auxItem' predicate does not have arity 1");
+		auxItemAtomInfos.emplace_back(AuxItemAtomInfo{AuxItemAtomArguments{getArguments(firstArg, arity).front()}, symbolTableKey});
 	} else if(name == "extend") {
 		ASP_CHECK(arity == 1, "'extend' predicate does not have arity 1");
 		const std::string argument = getArguments(firstArg, arity).front();

@@ -40,10 +40,10 @@ public:
 	};
 	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
 
-	struct ConsequentItemAtomArguments {
+	struct AuxItemAtomArguments {
 		std::string item;
 	};
-	typedef AtomInfo<ConsequentItemAtomArguments> ConsequentItemAtomInfo;
+	typedef AtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
 
 	struct CurrentCostAtomArguments {
 		long currentCost;
@@ -56,7 +56,7 @@ public:
 	typedef AtomInfo<CostAtomArguments> CostAtomInfo;
 
 	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
-	typedef std::vector<ConsequentItemAtomInfo> ConsequentItemAtomInfos;
+	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;
 	typedef std::vector<ExtendAtomInfo>         ExtendAtomInfos;
 	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
 	typedef std::vector<CostAtomInfo>           CostAtomInfos;
@@ -64,7 +64,7 @@ public:
 	GringoOutputProcessor(const ChildItemTrees& childItemTrees);
 
 	const ItemAtomInfos&           getItemAtomInfos()           const;
-	const ConsequentItemAtomInfos& getConsequentItemAtomInfos() const;
+	const AuxItemAtomInfos&        getAuxItemAtomInfos()        const;
 	const ExtendAtomInfos&         getExtendAtomInfos()         const;
 	const CurrentCostAtomInfos&    getCurrentCostAtomInfos()    const;
 	const CostAtomInfos&           getCostAtomInfos()           const;
@@ -73,7 +73,7 @@ protected:
 	virtual void storeAtom(const std::string& name, ValVec::const_iterator firstArg, uint32_t arity, Clasp::SymbolTable::key_type symbolTableKey);
 
 	ItemAtomInfos           itemAtomInfos;
-	ConsequentItemAtomInfos consequentItemAtomInfos;
+	AuxItemAtomInfos        auxItemAtomInfos;
 	ExtendAtomInfos         extendAtomInfos;
 	CurrentCostAtomInfos    currentCostAtomInfos;
 	CostAtomInfos           costAtomInfos;

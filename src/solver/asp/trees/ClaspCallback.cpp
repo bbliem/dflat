@@ -36,8 +36,8 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 
 			for(const auto& atom : gringoOutput.getItemAtomInfos())
 				itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
-			for(const auto& atom : gringoOutput.getConsequentItemAtomInfos())
-				consequentItemAtomInfos.emplace_back(ConsequentItemAtomInfo(atom, symTab));
+			for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
+				auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getExtendAtomInfos())
 				extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
@@ -64,7 +64,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	struct BranchNode
 	{
 		ItemTreeNode::Items items;
-		ItemTreeNode::Items consequentItems;
+		ItemTreeNode::Items auxItems;
 		ItemTreeNode::ExtensionPointerTuple extended;
 	};
 
@@ -82,9 +82,9 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			ASP_CHECK(arguments.level < branchData.size(), "Item at level higher than branch length");
 			branchData[arguments.level].items.insert(arguments.item);
 	});
-	forEachTrue(s, consequentItemAtomInfos, [&branchData](const GringoOutputProcessor::ConsequentItemAtomArguments& arguments) {
-			ASP_CHECK(arguments.level < branchData.size(), "Consequent item at level higher than branch length");
-			branchData[arguments.level].consequentItems.insert(arguments.item);
+	forEachTrue(s, auxItemAtomInfos, [&branchData](const GringoOutputProcessor::AuxItemAtomArguments& arguments) {
+			ASP_CHECK(arguments.level < branchData.size(), "Auxiliary item at level higher than branch length");
+			branchData[arguments.level].auxItems.insert(arguments.item);
 	});
 
 	// Get extension pointers
@@ -99,8 +99,8 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		ASP_CHECK(node.extended.size() == childItemTrees.size(), "Not all extension pointer tuples within a branch have arity n, where n is the number of children in the decomposition");
 
 		ASP_CHECK(std::find_if(node.items.begin(), node.items.end(), [&node](const std::string& item) {
-				   return node.consequentItems.find(item) != node.consequentItems.end();
-		}) == node.items.end(), "Items and consequent items not disjoint");
+				   return node.auxItems.find(item) != node.auxItems.end();
+		}) == node.items.end(), "Items and auxiliary items not disjoint");
 	}
 
 	for(const auto& pair : branchData[0].extended)
@@ -119,7 +119,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	assert(!uncompressedItemTree || uncompressedItemTree->getRoot()->getExtensionPointers().size() == 1);
 	ASP_CHECK(!uncompressedItemTree ||
 			(uncompressedItemTree->getRoot()->getItems() == branchData.front().items &&
-			 uncompressedItemTree->getRoot()->getConsequentItems() == branchData.front().consequentItems &&
+			 uncompressedItemTree->getRoot()->getAuxItems() == branchData.front().auxItems &&
 			 uncompressedItemTree->getRoot()->getExtensionPointers().front() == branchData.front().extended),
 			"Item tree branches specify different roots");
 #endif
@@ -130,10 +130,10 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	if(uncompressedItemTree)
 		branch.emplace_back(uncompressedItemTree->getRoot());
 	else
-		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData.front().items), std::move(branchData.front().consequentItems), {std::move(branchData.front().extended)})));
+		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData.front().items), std::move(branchData.front().auxItems), {std::move(branchData.front().extended)})));
 
 	for(size_t i = 1; i < branchData.size(); ++i)
-		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), std::move(branchData[i].consequentItems), {std::move(branchData[i].extended)})));
+		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), std::move(branchData[i].auxItems), {std::move(branchData[i].extended)})));
 
 	// Set (current) cost
 	long cost = 0;

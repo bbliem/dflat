@@ -27,8 +27,8 @@ bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr
 {
 	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() ||
 		(lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
-		 (lhs->getRoot()->getConsequentItems() < rhs->getRoot()->getConsequentItems() ||
-		  (lhs->getRoot()->getConsequentItems() == rhs->getRoot()->getConsequentItems() &&
+		 (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
+		  (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
 		   std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this))));
 }
 
@@ -240,7 +240,7 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 void ItemTree::merge(const ItemTree& other)
 {
 	assert(node->getItems() == other.node->getItems());
-	assert(node->getConsequentItems() == other.node->getConsequentItems());
+	assert(node->getAuxItems() == other.node->getAuxItems());
 	node->merge(std::move(*other.node));
 	assert(children.size() == other.children.size());
 	Children::const_iterator it = other.children.begin();

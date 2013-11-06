@@ -36,8 +36,8 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 
 			for(const auto& atom : gringoOutput.getItemAtomInfos())
 				itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
-			for(const auto& atom : gringoOutput.getConsequentItemAtomInfos())
-				consequentItemAtomInfos.emplace_back(ConsequentItemAtomInfo(atom, symTab));
+			for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
+				auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getExtendAtomInfos())
 				extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
 			for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
@@ -60,14 +60,14 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	forEachTrue(s, itemAtomInfos, [&items](const GringoOutputProcessor::ItemAtomArguments& arguments) {
 			items.insert(arguments.item);
 	});
-	ItemTreeNode::Items consequentItems;
-	forEachTrue(s, consequentItemAtomInfos, [&consequentItems](const GringoOutputProcessor::ConsequentItemAtomArguments& arguments) {
-			consequentItems.insert(arguments.item);
+	ItemTreeNode::Items auxItems;
+	forEachTrue(s, auxItemAtomInfos, [&auxItems](const GringoOutputProcessor::AuxItemAtomArguments& arguments) {
+			auxItems.insert(arguments.item);
 	});
 
-	ASP_CHECK(std::find_if(items.begin(), items.end(), [&consequentItems](const std::string& item) {
-			   return consequentItems.find(item) != consequentItems.end();
-	}) == items.end(), "Items and consequent items not disjoint");
+	ASP_CHECK(std::find_if(items.begin(), items.end(), [&auxItems](const std::string& item) {
+			   return auxItems.find(item) != auxItems.end();
+	}) == items.end(), "Items and auxiliary items not disjoint");
 
 	// Get extension pointers
 	ItemTreeNode::ExtensionPointerTuple extendedRows;
@@ -86,7 +86,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	}
 
 	// Create item tree node
-	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(consequentItems), {std::move(extendedRows)}));
+	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {std::move(extendedRows)}));
 
 	// Set (current) cost
 	ASP_CHECK(countTrue(s, costAtomInfos) <= 1, "More than one true cost/1 atom");

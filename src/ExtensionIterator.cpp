@@ -114,7 +114,7 @@ void ExtensionIterator::materializeItems()
 {
 	items.clear();
 	items.insert(itemTreeNode.getItems().begin(), itemTreeNode.getItems().end());
-	items.insert(itemTreeNode.getConsequentItems().begin(), itemTreeNode.getConsequentItems().end());
+	items.insert(itemTreeNode.getAuxItems().begin(), itemTreeNode.getAuxItems().end());
 	for(const auto& it : subIts) {
 		assert(it);
 		const ItemTreeNode::Items& extension = **it;

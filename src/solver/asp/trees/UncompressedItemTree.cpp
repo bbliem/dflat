@@ -26,8 +26,8 @@ bool UncompressedItemTreePtrComparator::operator()(const UncompressedItemTreePtr
 {
 	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() ||
 		(lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
-		 (lhs->getRoot()->getConsequentItems() < rhs->getRoot()->getConsequentItems() ||
-		  (lhs->getRoot()->getConsequentItems() == rhs->getRoot()->getConsequentItems() &&
+		 (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
+		  (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
 		   lhs->getRoot()->getExtensionPointers() < rhs->getRoot()->getExtensionPointers())));
 }
 

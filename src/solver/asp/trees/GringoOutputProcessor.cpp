@@ -32,9 +32,9 @@ const GringoOutputProcessor::ItemAtomInfos& GringoOutputProcessor::getItemAtomIn
 	return itemAtomInfos;
 }
 
-const GringoOutputProcessor::ConsequentItemAtomInfos& GringoOutputProcessor::getConsequentItemAtomInfos() const
+const GringoOutputProcessor::AuxItemAtomInfos& GringoOutputProcessor::getAuxItemAtomInfos() const
 {
-	return consequentItemAtomInfos;
+	return auxItemAtomInfos;
 }
 
 const GringoOutputProcessor::ExtendAtomInfos& GringoOutputProcessor::getExtendAtomInfos() const
@@ -64,10 +64,10 @@ void GringoOutputProcessor::storeAtom(const std::string& name, ValVec::const_ite
 		ASP_CHECK(arity == 2, "'item' predicate does not have arity 2");
 		std::vector<std::string> arguments = getArguments(firstArg, arity);
 		itemAtomInfos.emplace_back(ItemAtomInfo{ItemAtomArguments{static_cast<unsigned int>(std::stoi(arguments[0])), std::move(arguments[1])}, symbolTableKey});
-	} else if(name == "consequentItem") {
-		ASP_CHECK(arity == 2, "'consequentItem' predicate does not have arity 2");
+	} else if(name == "auxItem") {
+		ASP_CHECK(arity == 2, "'auxItem' predicate does not have arity 2");
 		std::vector<std::string> arguments = getArguments(firstArg, arity);
-		consequentItemAtomInfos.emplace_back(ConsequentItemAtomInfo{ConsequentItemAtomArguments{static_cast<unsigned int>(std::stoi(arguments[0])), std::move(arguments[1])}, symbolTableKey});
+		auxItemAtomInfos.emplace_back(AuxItemAtomInfo{AuxItemAtomArguments{static_cast<unsigned int>(std::stoi(arguments[0])), std::move(arguments[1])}, symbolTableKey});
 	} else if(name == "extend") {
 		ASP_CHECK(arity == 2, "'extend' predicate does not have arity 2");
 		const std::vector<std::string> arguments = getArguments(firstArg, arity);

@@ -41,10 +41,10 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 	if(isJoinable(*left->getRoot(), *right->getRoot())) {
 		// Join left and right
 		ItemTreeNode::Items items = left->getRoot()->getItems();
-		ItemTreeNode::Items consequentItems = left->getRoot()->getConsequentItems();
-		consequentItems.insert(right->getRoot()->getConsequentItems().begin(), right->getRoot()->getConsequentItems().end());
+		ItemTreeNode::Items auxItems = left->getRoot()->getAuxItems();
+		auxItems.insert(right->getRoot()->getAuxItems().begin(), right->getRoot()->getAuxItems().end());
 		ItemTreeNode::ExtensionPointers extensionPointers = {{{leftNodeIndex, left->getRoot()}, {rightNodeIndex, right->getRoot()}}};
-		result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(consequentItems), std::move(extensionPointers)))));
+		result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), std::move(extensionPointers)))));
 
 		// Join children recursively
 		auto lit = left->getChildren().begin();

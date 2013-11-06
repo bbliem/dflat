@@ -24,9 +24,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "ItemTreeNode.h"
 #include "ExtensionIterator.h"
 
-ItemTreeNode::ItemTreeNode(Items&& items, Items&& consequentItems, ExtensionPointers&& extensionPointers)
+ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& extensionPointers)
 	: items(std::move(items))
-	, consequentItems(std::move(consequentItems))
+	, auxItems(std::move(auxItems))
 	, extensionPointers(std::move(extensionPointers))
 	, parent(nullptr)
 {
@@ -61,9 +61,9 @@ const ItemTreeNode::Items& ItemTreeNode::getItems() const
 	return items;
 }
 
-const ItemTreeNode::Items& ItemTreeNode::getConsequentItems() const
+const ItemTreeNode::Items& ItemTreeNode::getAuxItems() const
 {
-	return consequentItems;
+	return auxItems;
 }
 
 const ItemTreeNode::ExtensionPointers& ItemTreeNode::getExtensionPointers() const
@@ -141,7 +141,7 @@ mpz_class ItemTreeNode::countExtensions(const ExtensionIterator& parentIterator)
 void ItemTreeNode::merge(ItemTreeNode&& other)
 {
 	assert(items == other.items);
-	assert(consequentItems == other.consequentItems);
+	assert(auxItems == other.auxItems);
 
 	if(other.cost < cost) {
 		// Throw away this node's data and retain the other one's
@@ -166,7 +166,7 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 	// Print items
 	for(const auto& item : node.items)
 		os << item << ' ';
-	for(const auto& item : node.consequentItems)
+	for(const auto& item : node.auxItems)
 		os << item << ' ';
 
 //	os << "; extend: {";
