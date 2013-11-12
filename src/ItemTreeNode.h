@@ -29,6 +29,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 class ExtensionIterator;
 
+// IMPORTANT NOTE: Remember that when you change something here it might
+// require changing other classes like ItemTreePtrComparator (and
+// solver::asp::trees::UncompressedItemTreePtrComparator).
+
 class ItemTreeNode
 {
 public:
@@ -67,6 +71,11 @@ public:
 
 	Type getType() const;
 
+	bool getHasAcceptingChild() const;
+	void setHasAcceptingChild();
+	bool getHasRejectingChild() const;
+	void setHasRejectingChild();
+
 	// Calculate the number of extensions of this node given an iterator pointing to an extension of this node's parent.
 	// This is different from getCount() since getCount() returns the number of extensions for *any* possible extension of the parent.
 	// This method traverses the entire decomposition.
@@ -84,11 +93,15 @@ private:
 	Items items;
 	Items auxItems;
 	ExtensionPointers extensionPointers;
-	const ItemTreeNode* parent;
+	const ItemTreeNode* parent = nullptr;
 	mpz_class count; // number of possible extensions of this node
 	long cost = 0;
 	long currentCost = 0;
 	Type type;
+	// Whether this node has a child whose acceptance status (either due to ACCEPT/REJECT in leaves or propagation in AND/OR nodes) is ACCEPT or REJECT, respectively.
+	// We must keep track of this explicitly since accepting/rejecting children might have been pruned.
+	bool hasAcceptingChild = false;
+	bool hasRejectingChild = false;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::shared_ptr<ItemTreeNode>& node);

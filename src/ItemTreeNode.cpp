@@ -28,7 +28,6 @@ ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& 
 	: items(std::move(items))
 	, auxItems(std::move(auxItems))
 	, extensionPointers(std::move(extensionPointers))
-	, parent(nullptr)
 	, type(type)
 {
 	if(this->extensionPointers.empty())
@@ -43,13 +42,22 @@ ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& 
 		}
 	}
 
-#ifndef NDEBUG
-	// XXX Maybe use a special compile flag other than NDEBUG (similar to DISABLE_ASP_CHECKS)
+#ifndef DISABLE_ASP_CHECKS
+	// XXX This is not an ASP check; use different compile flag
 	for(const ExtensionPointerTuple& tuple : this->extensionPointers)
 		for(const auto& predecessor : tuple)
 			if(predecessor.second->type != Type::UNDEFINED && type != predecessor.second->type)
 				throw std::runtime_error("Type of extended item tree node not retained");
 #endif
+
+	// Retain the information about accepting / rejecting children
+	// TODO Check if necessary? Correct? Play around with hiding/showing the or/and predicates as well as only deriving them in the final node.
+	for(const ExtensionPointerTuple& tuple : this->extensionPointers) {
+		for(const auto& predecessor : tuple) {
+			hasAcceptingChild = hasAcceptingChild || predecessor.second->hasAcceptingChild;
+			hasRejectingChild = hasRejectingChild || predecessor.second->hasRejectingChild;
+		}
+	}
 }
 
 const ItemTreeNode::Items& ItemTreeNode::getItems() const
@@ -105,6 +113,26 @@ void ItemTreeNode::setCurrentCost(long currentCost)
 ItemTreeNode::Type ItemTreeNode::getType() const
 {
 	return type;
+}
+
+bool ItemTreeNode::getHasAcceptingChild() const
+{
+	return hasAcceptingChild;
+}
+
+void ItemTreeNode::setHasAcceptingChild()
+{
+	hasAcceptingChild = true;
+}
+
+bool ItemTreeNode::getHasRejectingChild() const
+{
+	return hasRejectingChild;
+}
+
+void ItemTreeNode::setHasRejectingChild()
+{
+	hasRejectingChild = true;
 }
 
 mpz_class ItemTreeNode::countExtensions(const ExtensionIterator& parentIterator) const
@@ -176,6 +204,11 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 			os << "<REJECT> ";
 			break;
 	}
+
+	if(node.hasAcceptingChild)
+		os << "(a) ";
+	if(node.hasRejectingChild)
+		os << "(r) ";
 
 	// Print items
 	for(const auto& item : node.items)

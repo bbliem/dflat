@@ -29,9 +29,13 @@ bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr
 		(lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
 		 (lhs->getRoot()->getType() < rhs->getRoot()->getType() ||
 		  (lhs->getRoot()->getType() == rhs->getRoot()->getType() &&
-		   (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
-		    (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
-		     std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this))))));
+		   (lhs->getRoot()->getHasAcceptingChild() < rhs->getRoot()->getHasAcceptingChild() ||
+		    (lhs->getRoot()->getHasAcceptingChild() == rhs->getRoot()->getHasAcceptingChild() &&
+		     (lhs->getRoot()->getHasRejectingChild() < rhs->getRoot()->getHasRejectingChild() ||
+		      (lhs->getRoot()->getHasRejectingChild() == rhs->getRoot()->getHasRejectingChild() &&
+		       (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
+		        (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
+		         std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this))))))))));
 }
 
 void ItemTree::addChildAndMerge(ChildPtr&& child)
@@ -61,27 +65,9 @@ void ItemTree::addChildAndMerge(ChildPtr&& child)
 
 ItemTreeNode::Type ItemTree::prune()
 {
-	// Can we determine acceptance status already without propagating?
-	switch(node->getType()) {
-		case ItemTreeNode::Type::UNDEFINED:
-		case ItemTreeNode::Type::OR:
-		case ItemTreeNode::Type::AND:
-			break;
-
-		case ItemTreeNode::Type::ACCEPT:
-			assert(children.empty()); // Must only be in leaves
-			return ItemTreeNode::Type::ACCEPT;
-
-		case ItemTreeNode::Type::REJECT:
-			assert(children.empty()); // Must only be in leaves
-			return ItemTreeNode::Type::REJECT;
-	}
-
 	// Prune children recursively
 	bool allAccepting = true;
 	bool allRejecting = true;
-	bool someAccepting = false;
-	bool someRejecting = false;
 
 	Children::const_iterator it = children.begin();
 	while(it != children.end()) {
@@ -99,31 +85,27 @@ ItemTreeNode::Type ItemTree::prune()
 				break;
 
 			case ItemTreeNode::Type::ACCEPT:
-				someAccepting = true;
+				node->setHasAcceptingChild();
 				allRejecting = false;
 				++it;
 				break;
 
 			case ItemTreeNode::Type::REJECT:
-				someRejecting = true;
+				node->setHasRejectingChild();
 				allAccepting = false;
-				// We may only erase the child if the current node has type AND or OR.
-				// (If this type is still undefined, it might turn out to be AND and therefore the current node would have to reject.)
-				if(node->getType() != ItemTreeNode::Type::UNDEFINED) {
-					assert(node->getType() == ItemTreeNode::Type::AND || node->getType() == ItemTreeNode::Type::OR);
-					// Remove that child
-					children.erase(it++);
-				}
-				else
-					++it;
+				// Remove that child
+				children.erase(it++);
 				break;
 		}
 	}
 
 	// Determine acceptance status of this configuration, if possible
 	switch(node->getType()) {
+		case ItemTreeNode::Type::UNDEFINED:
+			break;
+
 		case ItemTreeNode::Type::OR:
-			if(someAccepting)
+			if(node->getHasAcceptingChild())
 				return ItemTreeNode::Type::ACCEPT;
 			if(allRejecting)
 				return ItemTreeNode::Type::REJECT;
@@ -132,12 +114,17 @@ ItemTreeNode::Type ItemTree::prune()
 		case ItemTreeNode::Type::AND:
 			if(allAccepting)
 				return ItemTreeNode::Type::ACCEPT;
-			if(someRejecting)
+			if(node->getHasRejectingChild())
 				return ItemTreeNode::Type::REJECT;
 			break;
 
-		default:
-			break;
+		case ItemTreeNode::Type::ACCEPT:
+			assert(children.empty()); // Must only be in leaves
+			return ItemTreeNode::Type::ACCEPT;
+
+		case ItemTreeNode::Type::REJECT:
+			assert(children.empty()); // Must only be in leaves
+			return ItemTreeNode::Type::REJECT;
 	}
 
 	return ItemTreeNode::Type::UNDEFINED;
