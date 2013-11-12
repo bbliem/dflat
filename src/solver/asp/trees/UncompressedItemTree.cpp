@@ -26,9 +26,11 @@ bool UncompressedItemTreePtrComparator::operator()(const UncompressedItemTreePtr
 {
 	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() ||
 		(lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
-		 (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
-		  (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
-		   lhs->getRoot()->getExtensionPointers() < rhs->getRoot()->getExtensionPointers())));
+		 (lhs->getRoot()->getType() < rhs->getRoot()->getType() ||
+		  (lhs->getRoot()->getType() == rhs->getRoot()->getType() &&
+		   (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
+		    (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
+		     lhs->getRoot()->getExtensionPointers() < rhs->getRoot()->getExtensionPointers())))));
 }
 
 void UncompressedItemTree::addBranch(Branch::iterator begin, Branch::iterator end)
