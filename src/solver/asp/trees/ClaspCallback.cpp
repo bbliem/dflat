@@ -104,7 +104,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	});
 
 	// Checks on extension pointers and item sets
-#ifndef DISABLE_ASP_CHECKS
+#ifndef DISABLE_CHECKS
 	for(const BranchNode& node : branchData) {
 		ASP_CHECK(node.extended.size() == childItemTrees.size(), "Not all extension pointer tuples within a branch have arity n, where n is the number of children in the decomposition");
 

@@ -42,8 +42,7 @@ ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& 
 		}
 	}
 
-#ifndef DISABLE_ASP_CHECKS
-	// XXX This is not an ASP check; use different compile flag
+#ifndef DISABLE_CHECKS
 	for(const ExtensionPointerTuple& tuple : this->extensionPointers)
 		for(const auto& predecessor : tuple)
 			if(predecessor.second->type != Type::UNDEFINED && type != predecessor.second->type)
@@ -51,7 +50,6 @@ ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& 
 #endif
 
 	// Retain the information about accepting / rejecting children
-	// TODO Check if necessary? Correct? Play around with hiding/showing the or/and predicates as well as only deriving them in the final node.
 	for(const ExtensionPointerTuple& tuple : this->extensionPointers) {
 		for(const auto& predecessor : tuple) {
 			hasAcceptingChild = hasAcceptingChild || predecessor.second->hasAcceptingChild;

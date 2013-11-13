@@ -54,12 +54,10 @@ void ItemTree::addChildAndMerge(ChildPtr&& child)
 
 		// Unify child with origChild
 		child->merge(std::move(*origChild));
-		// TODO optimization values as in the old D-FLAT's Row class. (Here or in ItemTreeNode?)
 		Children::const_iterator hint = result.first;
 		++hint;
 		children.erase(result.first);
 		children.insert(hint, std::move(child));
-		// TODO check that origChild is deleted properly
 	}
 }
 

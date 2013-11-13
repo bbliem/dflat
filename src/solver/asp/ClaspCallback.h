@@ -90,7 +90,7 @@ protected:
 		}
 	}
 
-#ifndef DISABLE_ASP_CHECKS
+#ifndef DISABLE_CHECKS
 	template<typename T>
 	static size_t countTrue(const Clasp::Solver& s, const std::vector<AtomInfo<T>>& atomInfos)
 	{

@@ -28,7 +28,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../ItemTree.h"
 
-#ifdef DISABLE_ASP_CHECKS
+#ifdef DISABLE_CHECKS
 #	define ASP_CHECK(cond, error)
 #else
 #	define ASP_CHECK(cond, error)\

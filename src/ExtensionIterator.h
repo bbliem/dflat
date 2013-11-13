@@ -24,7 +24,6 @@ along with D-FLAT. If not, see <http://www.gnu.org/licenses/>.
 
 #include "ItemTreeNode.h"
 
-// TODO: Maybe make it a "proper" iterator?
 class ExtensionIterator
 {
 public:
