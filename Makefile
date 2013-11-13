@@ -19,12 +19,12 @@ clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
 clasp_lib_static=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_static32=$(clasp_dir)/build/release_static_m32/libclasp/lib/libclasp.a
 
-sharp_dir=$(CURDIR)/../sharp-1.1
+sharp_dir=$(CURDIR)/../sharp-1.1.1
 sharp_lib=$(sharp_dir)/src/.libs/libsharp.a
 sharp_lib_debug=$(sharp_dir)/src/.libs/libsharp.a
 sharp_lib_gprof=$(sharp_dir)/src/.libs/libsharp.a
 sharp_lib_static=$(sharp_dir)/src/.libs/libsharp.a
-sharp_lib_static32=$(CURDIR)/../sharp-1.1-32bit/src/.libs/libsharp.a
+sharp_lib_static32=$(CURDIR)/../sharp-1.1.1-32bit/src/.libs/libsharp.a
 
 ifeq ($(CXX),clang++)
 	cmake_extra_options=\

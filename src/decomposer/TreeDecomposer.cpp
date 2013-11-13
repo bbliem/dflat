@@ -116,6 +116,7 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 {
 	optNormalization.addCondition(selected);
 	optNormalization.addChoice("none", "No normalization", true);
+	optNormalization.addChoice("weak", "Weak normalization");
 	optNormalization.addChoice("semi", "Semi-normalization");
 	optNormalization.addChoice("normalized", "Normalization");
 	app.getOptionHandler().addOption(optNormalization, OPTION_SECTION);
@@ -156,6 +157,8 @@ DecompositionPtr TreeDecomposer::decompose(const Hypergraph& instance) const
 	sharp::NormalizationType normalizationType;
 	if(optNormalization.getValue() == "semi")
 		normalizationType = sharp::SemiNormalization;
+	else if(optNormalization.getValue() == "weak")
+		normalizationType = sharp::WeakNormalization;
 	else if(optNormalization.getValue() == "normalized")
 		normalizationType = sharp::DefaultNormalization;
 	else
