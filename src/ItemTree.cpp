@@ -38,26 +38,26 @@ bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr
 		         std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this))))))))));
 }
 
-void ItemTree::addChildAndMerge(ChildPtr&& child)
+void ItemTree::addChildAndMerge(ChildPtr&& subtree)
 {
-	child->parents.push_back(this);
-	child->getRoot()->setParent(node.get());
-	std::pair<Children::iterator, bool> result = children.insert(std::move(child));
-	// XXX If an equivalent element already exists in "children", it is unclear to me whether "child" is actually moved or not. (Maybe it depends on the implementation?)
+	subtree->parents.push_back(this);
+	subtree->getRoot()->setParent(node.get());
+	std::pair<Children::iterator, bool> result = children.insert(std::move(subtree));
+	// XXX If an equivalent element already exists in "children", it is unclear to me whether "subtree" is actually moved or not. (Maybe it depends on the implementation?)
 	// For the time being, pray that it isn't moved in such a case.
 	// http://stackoverflow.com/questions/10043716/stdunordered-settinsertt-is-argument-moved-if-it-exists
 
 	if(!result.second) {
 		// A subtree rooted at a child with all equal item sets already exists
-		assert(child); // XXX See remark above -- child was set to null if it was indeed moved...
+		assert(subtree); // XXX See remark above -- subtree was set to null if it was indeed moved...
 		const ItemTreePtr& origChild = *result.first;
 
-		// Unify child with origChild
-		child->merge(std::move(*origChild));
+		// Unify subtree with origChild
+		subtree->merge(std::move(*origChild));
 		Children::const_iterator hint = result.first;
 		++hint;
 		children.erase(result.first);
-		children.insert(hint, std::move(child));
+		children.insert(hint, std::move(subtree));
 	}
 }
 
