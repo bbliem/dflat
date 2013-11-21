@@ -23,17 +23,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger)
+ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, const Debugger& debugger)
 	: childItemTrees(childItemTrees)
 	, debugger(debugger)
-	, prune(prune)
 {
 }
 
 ItemTreePtr ClaspCallback::finalize()
 {
-	if(prune && itemTree && itemTree->prune() == ItemTreeNode::Type::REJECT)
-		itemTree.reset();
 	if(itemTree)
 		itemTree->finalize();
 	return std::move(itemTree);

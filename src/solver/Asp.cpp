@@ -49,7 +49,7 @@ std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(const ChildItemT
 std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const GringoOutputProcessor& gringoOutputProcessor, const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger)
 {
 	if(tableMode)
-		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, prune, debugger));
+		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, debugger));
 	else
 		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, prune, debugger));
 }

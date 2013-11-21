@@ -71,6 +71,8 @@ protected:
 
 	std::unique_ptr<Clasp::Literal> acceptLiteral;
 	std::unique_ptr<Clasp::Literal> rejectLiteral;
+
+	bool prune;
 };
 
 }}} // namespace solver::asp::trees

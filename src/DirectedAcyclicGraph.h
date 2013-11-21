@@ -57,6 +57,18 @@ public:
 			std::replace(child->parents.begin(), child->parents.end(), &other, this);
 	}
 
+	DirectedAcyclicGraph& operator=(DirectedAcyclicGraph&& other)
+	{
+		assert(this != &other);
+		node = std::move(other.node);
+		children = std::move(other.children);
+//		parents = std::move(other.parents); // XXX does this make sense?
+		for(auto& child : children)
+			std::replace(child->parents.begin(), child->parents.end(), &other, this);
+		return *this;
+	}
+
+
 	DirectedAcyclicGraph(const DirectedAcyclicGraph&) = delete;
 
 	const Node& getRoot() const { return node; }

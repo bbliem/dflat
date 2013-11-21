@@ -47,7 +47,7 @@ public:
 
 	using ChildItemTrees = GringoOutputProcessor::ChildItemTrees;
 
-	ClaspCallback(const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger);
+	ClaspCallback(const ChildItemTrees& childItemTrees, const Debugger& debugger);
 
 	// Call this after all answer sets have been processed. It returns the resulting item tree (and calls finalize() on it).
 	ItemTreePtr finalize();

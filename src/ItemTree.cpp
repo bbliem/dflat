@@ -25,6 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
+	// XXX Make this more maintainable. Maybe use something like std::tie?
 	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() ||
 		(lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
 		 (lhs->getRoot()->getType() < rhs->getRoot()->getType() ||
@@ -53,97 +54,24 @@ void ItemTree::addChildAndMerge(ChildPtr&& subtree)
 		const ItemTreePtr& origChild = *result.first;
 
 		// Unify subtree with origChild
-		subtree->merge(std::move(*origChild));
-		Children::const_iterator hint = result.first;
-		++hint;
-		children.erase(result.first);
-		children.insert(hint, std::move(subtree));
+//		subtree->merge(std::move(*origChild));
+//		Children::const_iterator hint = result.first;
+//		++hint;
+//		children.erase(result.first);
+//		children.insert(hint, std::move(subtree));
+		origChild->merge(std::move(*subtree));
 	}
-}
-
-ItemTreeNode::Type ItemTree::prune()
-{
-	// Prune children recursively
-	bool allAccepting = true;
-	bool allRejecting = true;
-
-	Children::const_iterator it = children.begin();
-	while(it != children.end()) {
-		ItemTreeNode::Type childResult = (*it)->prune();
-		switch(childResult) {
-			case ItemTreeNode::Type::OR:
-			case ItemTreeNode::Type::AND:
-				assert(false); // Only UNDEFINED, ACCEPT or REJECT are allowed
-				break;
-
-			case ItemTreeNode::Type::UNDEFINED:
-				allRejecting = false;
-				allAccepting = false;
-				++it;
-				break;
-
-			case ItemTreeNode::Type::ACCEPT:
-				node->setHasAcceptingChild();
-				allRejecting = false;
-				++it;
-				break;
-
-			case ItemTreeNode::Type::REJECT:
-				node->setHasRejectingChild();
-				allAccepting = false;
-				// Remove that child
-				children.erase(it++);
-				break;
-		}
-	}
-
-	// Determine acceptance status of this configuration, if possible
-	switch(node->getType()) {
-		case ItemTreeNode::Type::UNDEFINED:
-			break;
-
-		case ItemTreeNode::Type::OR:
-			if(node->getHasAcceptingChild())
-				return ItemTreeNode::Type::ACCEPT;
-			if(allRejecting)
-				return ItemTreeNode::Type::REJECT;
-			break;
-
-		case ItemTreeNode::Type::AND:
-			if(allAccepting)
-				return ItemTreeNode::Type::ACCEPT;
-			if(node->getHasRejectingChild())
-				return ItemTreeNode::Type::REJECT;
-			break;
-
-		case ItemTreeNode::Type::ACCEPT:
-			assert(children.empty()); // Must only be in leaves
-			return ItemTreeNode::Type::ACCEPT;
-
-		case ItemTreeNode::Type::REJECT:
-			assert(children.empty()); // Must only be in leaves
-			return ItemTreeNode::Type::REJECT;
-	}
-
-	return ItemTreeNode::Type::UNDEFINED;
 }
 
 void ItemTree::finalize()
 {
 	if(children.empty() == false) {
 		// Fill children vector for random access to children
-		// Propagate cost of children toward this node
 		assert(childrenVector.empty());
 		childrenVector.reserve(children.size());
-		const bool maximize = node->getType() == ItemTreeNode::Type::AND;
-		assert(node->getCost() == 0);
-		node->setCost(maximize ? std::numeric_limits<long>::min() : std::numeric_limits<long>::max());
 		for(const auto& child : children) {
 			childrenVector.push_back(child.get());
 			child->finalize();
-
-			// In "or" nodes (or if no type is given), we keep the lowest value; in "and" nodes the highest one.
-			node->setCost(maximize ? std::max(node->getCost(), child->getRoot()->getCost()) : std::min(node->getCost(), child->getRoot()->getCost()));
 		}
 	}
 }
@@ -232,16 +160,49 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 	}
 }
 
-void ItemTree::merge(const ItemTree& other)
+void ItemTree::merge(ItemTree&& other)
 {
 	assert(node->getItems() == other.node->getItems());
 	assert(node->getAuxItems() == other.node->getAuxItems());
+	assert(node->getType() == other.node->getType());
+	assert(node->getParent());
+
+	// If the other node is better, throw away this node's data and retain the other one's.
+	// If this node is better, do nothing (the other node is thrown away anyway).
+	switch(node->getParent()->getType()) {
+		case ItemTreeNode::Type::UNDEFINED:
+			break;
+
+		case ItemTreeNode::Type::OR:
+			if(other.getRoot()->getCost() < node->getCost()) {
+//				node = std::move(other.getRoot());
+				*this = std::move(other);
+				return;
+			}
+			else if(other.getRoot()->getCost() > node->getCost())
+				return;
+			break;
+
+		case ItemTreeNode::Type::AND:
+			if(other.getRoot()->getCost() > node->getCost()) {
+//				node = std::move(other.getRoot());
+				*this = std::move(other);
+				return;
+			}
+			else if(other.getRoot()->getCost() < node->getCost())
+				return;
+			break;
+
+		default:
+			assert(false);
+	}
+
 	node->merge(std::move(*other.node));
 	assert(children.size() == other.children.size());
 	Children::const_iterator it = other.children.begin();
-	for(const ItemTreePtr& child : children) {
+	for(const ItemTreePtr& subtree : children) {
 		assert(it != other.children.end());
-		child->merge(**it);
+		subtree->merge(std::move(**it));
 		++it;
 	}
 }

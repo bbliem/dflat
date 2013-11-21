@@ -44,12 +44,7 @@ public:
 	// If there is a subtree rooted at a child of this node that has equal item sets as the given one, the existing subtree is unified with the given one
 	void addChildAndMerge(ChildPtr&& subtree);
 
-	// This propagates acceptance statuses from the leaves toward this node and prunes in the course of this if children are found to be rejecting. If this configuration can be determined to be accepting or rejecting, returns ACCEPT or REJECT, respectively; otherwise returns UNDEFINED.
-	// Do not call this after finalize().
-	ItemTreeNode::Type prune();
-
 	// Enables random access to this node's children via getChild(), and also random access for all children of descendants of this node.
-	// Propagates costs from the leaves toward this node.
 	void finalize();
 
 	// Use this after calling finalize() to get the i'th child of this node
@@ -60,7 +55,7 @@ public:
 
 private:
 	// Recursively unify extension pointers of this itree with the other one's given that the item sets are all equal
-	void merge(const ItemTree& other);
+	void merge(ItemTree&& other);
 
 	std::vector<const ItemTree*> childrenVector; // for random access via getChild()
 };

@@ -22,8 +22,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp { namespace tables {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger)
-	: ::solver::asp::ClaspCallback(childItemTrees, prune, debugger)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Debugger& debugger)
+	: ::solver::asp::ClaspCallback(childItemTrees, debugger)
 	, gringoOutput(gringoOutput)
 {
 }
@@ -82,19 +82,23 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
 		for(const auto& childItemTree : childItemTrees)
 			rootExtensionPointers.emplace(childItemTree.first, childItemTree.second->getRoot());
-		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}))));
+		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
+		// Set cost to "infinity"
+		itemTree->getRoot()->setCost(std::numeric_limits<decltype(itemTree->getRoot()->getCost())>::max());
 	}
 
 	// Create item tree node
 	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {std::move(extendedRows)}));
 
-	// Set (current) cost
+	// Set cost
 	ASP_CHECK(countTrue(s, costAtomInfos) <= 1, "More than one true cost/1 atom");
 	long cost = 0;
 	forFirstTrue(s, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
 			cost = arguments.cost;
 	});
 	node->setCost(cost);
+
+	// Set current cost
 	ASP_CHECK(countTrue(s, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
 	ASP_CHECK(countTrue(s, currentCostAtomInfos) == 0 || countTrue(s, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
 	long currentCost = 0;
@@ -102,6 +106,9 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			currentCost = arguments.currentCost;
 	});
 	node->setCurrentCost(currentCost);
+
+	// Possibly update cost of root
+	itemTree->getRoot()->setCost(std::min(itemTree->getRoot()->getCost(), cost));
 
 	// Add node to item tree
 	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));

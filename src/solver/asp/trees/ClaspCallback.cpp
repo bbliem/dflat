@@ -23,8 +23,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver { namespace asp { namespace trees {
 
 ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger)
-	: ::solver::asp::ClaspCallback(childItemTrees, prune, debugger)
+	: ::solver::asp::ClaspCallback(childItemTrees, debugger)
 	, gringoOutput(gringoOutput)
+	, prune(prune)
 {
 }
 
@@ -57,6 +58,8 @@ void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 				rejectLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getRejectAtomKey()].lit));
 		}
 		else if(e == Clasp::ClaspFacade::event_state_exit) {
+			if(prune && uncompressedItemTree && uncompressedItemTree->prune() == ItemTreeNode::Type::REJECT)
+				uncompressedItemTree.reset();
 			if(uncompressedItemTree)
 				itemTree = uncompressedItemTree->compress();
 		}
@@ -165,16 +168,21 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	for(size_t i = 1; i < branchData.size(); ++i)
 		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), std::move(branchData[i].auxItems), {std::move(branchData[i].extended)}, branchData[i].type)));
 
-	// Set (current) cost
-	long cost = 0;
+	// Set cost
 	ASP_CHECK(countTrue(s, costAtomInfos) <= 1, "More than one true cost/1 atom");
+	ASP_CHECK(countTrue(s, costAtomInfos) == 0 || std::all_of(branchData.begin(), branchData.end()-1, [](const BranchNode& node) {
+			return node.type != ItemTreeNode::Type::UNDEFINED;
+	}), "Cost specified but not all types of (non-leaf) nodes are defined");
+	long cost = 0;
 	forFirstTrue(s, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
 			cost = arguments.cost;
 	});
 	branch.back()->setCost(cost);
-	long currentCost = 0;
+
+	// Set current cost
 	ASP_CHECK(countTrue(s, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
 	ASP_CHECK(countTrue(s, currentCostAtomInfos) == 0 || countTrue(s, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
+	long currentCost = 0;
 	forFirstTrue(s, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
 			currentCost = arguments.currentCost;
 	});
