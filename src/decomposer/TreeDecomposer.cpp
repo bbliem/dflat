@@ -78,27 +78,8 @@ namespace {
 #endif
 
 		DecompositionPtr result(new Decomposition(bag, app.getSolverFactory()));
-		// If there are no children, optionally add empty leaves
-		if(td.getChildren()->empty()) {
-			if(emptyLeaves) {
-				if(normalizationType == sharp::DefaultNormalization) {
-					Decomposition* currentNode = result.get();
-					while(bag.empty() == false) {
-						bag.erase(bag.begin());
-						DecompositionPtr child(new Decomposition(DecompositionNode(bag), app.getSolverFactory()));
-						Decomposition* nextNode = child.get();
-						currentNode->addChild(std::move(child));
-						currentNode = nextNode;
-					}
-				}
-				else
-					result->addChild(DecompositionPtr(new Decomposition(DecompositionNode({}), app.getSolverFactory())));
-			}
-		}
-		else {
-			for(sharp::Hypertree* child : *td.getChildren())
-				result->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), emptyLeaves, normalizationType, problem, app));
-		}
+		for(sharp::Hypertree* child : *td.getChildren())
+			result->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), emptyLeaves, normalizationType, problem, app));
 		return result;
 	}
 }
@@ -163,32 +144,11 @@ DecompositionPtr TreeDecomposer::decompose(const Hypergraph& instance) const
 		normalizationType = sharp::DefaultNormalization;
 	else
 		normalizationType = sharp::NoNormalization;
-	std::unique_ptr<sharp::ExtendedHypertree> normalized(td->normalize(normalizationType));
+	std::unique_ptr<sharp::ExtendedHypertree> normalized(td->normalize(normalizationType, !optNoEmptyLeaves.isUsed(), !optNoEmptyRoot.isUsed()));
 	td.reset();
 
 	// Transform SHARP's tree decomposition into our format
-	DecompositionPtr transformed = transformTd(*normalized, !optNoEmptyLeaves.isUsed(), normalizationType, problem, app);
-
-	// Optionally add empty root
-	DecompositionPtr result;
-	if(optNoEmptyRoot.isUsed())
-		result = transformed;
-	else {
-		if(normalizationType == sharp::DefaultNormalization) {
-			Hypergraph::Vertices bag = transformed->getRoot().getBag();
-			while(bag.empty() == false) {
-				bag.erase(bag.begin());
-				result.reset(new Decomposition(DecompositionNode(bag), app.getSolverFactory()));
-				result->addChild(std::move(transformed));
-				transformed = result;
-			}
-		}
-		else {
-			result.reset(new Decomposition(DecompositionNode({}), app.getSolverFactory()));
-			result->addChild(std::move(transformed));
-		}
-	}
-
+	DecompositionPtr result = transformTd(*normalized, !optNoEmptyLeaves.isUsed(), normalizationType, problem, app);
 	app.getDebugger().decomposerResult(*result);
 	return result;
 }
