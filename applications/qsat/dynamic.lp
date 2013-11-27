@@ -13,7 +13,7 @@ item(L,f(X)) :- extend(L,S), childItem(S,f(X)), not removed(X).
 auxItem(L,sat(C)) :- extend(L,S), childAuxItem(S,sat(C)), not removed(C).
 
 % Guess truth value of introduced atoms
-1 { item(L,t(A);f(A)) } 1 :- atom(L,A), introduced(A). % XXX are two guessing rules without the aggregate faster?
+1 { item(L,t(A);f(A)) } 1 :- atom(L,A), introduced(A).
 
 % Through the guess, clauses may become satisfied
 auxItem(L,sat(C)) :- length(L), pos(C,A), atom(LA,A), current(C;A), item(LA,t(A)).
