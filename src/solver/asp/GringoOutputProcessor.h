@@ -1,4 +1,4 @@
-/*
+/*{{{
 Copyright 2012-2013, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
@@ -20,7 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 // Taken from gringo (GPL), made some modifications.
 #pragma once
-
+//}}}
 #include <gringo/gringo.h>
 #include <gringo/lparseconverter.h>
 #include <clasp/program_builder.h>

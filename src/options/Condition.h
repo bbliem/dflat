@@ -1,4 +1,4 @@
-/*
+/*{{{
 Copyright 2012-2013, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
@@ -19,7 +19,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #pragma once
-
+//}}}
 namespace options {
 
 // This is used for checking dependencies of options. Some options may only be used when other options have a certain value.

@@ -1,4 +1,4 @@
-/*
+/*{{{
 Copyright 2012-2013, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
@@ -17,7 +17,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 // Originally from gringo. A few modifications were made.
 // Copyright (c) 2010, Roland Kaminski <kaminski@cs.uni-potsdam.de>
 //
@@ -35,7 +34,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //
 // You should have received a copy of the GNU General Public License
 // along with gringo.  If not, see <http://www.gnu.org/licenses/>.
-
+//}}}
 #include <clasp/program_builder.h>
 #include <clasp/shared_context.h>
 #include <gringo/storage.h>
