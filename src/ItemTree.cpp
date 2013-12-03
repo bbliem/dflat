@@ -197,7 +197,12 @@ void ItemTree::merge(ItemTree&& other)
 			assert(false);
 	}
 
+	// Inform other.node's children that this->node will be their new parent
+	for(const ItemTreePtr& child : other.children)
+		child->getRoot()->setParent(node.get());
+
 	node->merge(std::move(*other.node));
+
 	assert(children.size() == other.children.size());
 	Children::const_iterator it = other.children.begin();
 	for(const ItemTreePtr& subtree : children) {
