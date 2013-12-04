@@ -55,7 +55,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	if(e != Clasp::ClaspFacade::event_model)
 		return;
 
-	// Get items
+	// Get items {{{
 	ItemTreeNode::Items items;
 	forEachTrue(s, itemAtomInfos, [&items](const GringoOutputProcessor::ItemAtomArguments& arguments) {
 			items.insert(arguments.item);
@@ -68,16 +68,16 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	ASP_CHECK(std::find_if(items.begin(), items.end(), [&auxItems](const std::string& item) {
 			   return auxItems.find(item) != auxItems.end();
 	}) == items.end(), "Items and auxiliary items not disjoint");
-
-	// Get extension pointers
+	// }}}
+	// Get extension pointers {{{
 	ItemTreeNode::ExtensionPointerTuple extendedRows;
 	ASP_CHECK(countTrue(s, extendAtomInfos) == childItemTrees.size(), "Not as many extension pointers as there are child item trees");
 	forEachTrueLimited(s, extendAtomInfos, [&](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
 			extendedRows.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedRow));
 			return extendedRows.size() != childItemTrees.size();
 	});
-
-	// Create item tree root if it doesn't exist yet
+	// }}}
+	// Create item tree root if it doesn't exist yet {{{
 	if(!itemTree) {
 		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
 		for(const auto& childItemTree : childItemTrees)
@@ -86,19 +86,19 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		// Set cost to "infinity"
 		itemTree->getRoot()->setCost(std::numeric_limits<decltype(itemTree->getRoot()->getCost())>::max());
 	}
-
-	// Create item tree node
+	// }}}
+	// Create item tree node {{{
 	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {std::move(extendedRows)}));
-
-	// Set cost
+	// }}}
+	// Set cost {{{
 	ASP_CHECK(countTrue(s, costAtomInfos) <= 1, "More than one true cost/1 atom");
 	long cost = 0;
 	forFirstTrue(s, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
 			cost = arguments.cost;
 	});
 	node->setCost(cost);
-
-	// Set current cost
+	// }}}
+	// Set current cost {{{
 	ASP_CHECK(countTrue(s, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
 	ASP_CHECK(countTrue(s, currentCostAtomInfos) == 0 || countTrue(s, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
 	long currentCost = 0;
@@ -106,12 +106,13 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			currentCost = arguments.currentCost;
 	});
 	node->setCurrentCost(currentCost);
-
-	// Possibly update cost of root
+	// }}}
+	// Possibly update cost of root {{{
 	itemTree->getRoot()->setCost(std::min(itemTree->getRoot()->getCost(), cost));
-
-	// Add node to item tree
+	// }}}
+	// Add node to item tree {{{
 	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
+	// }}}
 }
 
 }}} // namespace solver::asp::tables
