@@ -30,11 +30,9 @@ class ItemTree;
 typedef std::unique_ptr<ItemTree> ItemTreePtr;
 class ExtensionIterator;
 
-// The set of children is sorted ascendingly according to the following criterion:
-// An ItemTreePtr is smaller than another if
-// (a) its item set is (lexicographically) smaller, or
-// (b) its item set is equal to the other's and its set of children is (lexicographically) smaller.
+// ItemTreePtrComparator compares the roots of lhs and rhs without regarding costs but then uses CostDiscriminatingItemTreePtrComparator for all descendants of these roots
 struct ItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs); };
+struct CostDiscriminatingItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs); };
 
 class ItemTree : public DirectedAcyclicGraph<std::shared_ptr<ItemTreeNode>, std::set<ItemTreePtr, ItemTreePtrComparator>>
 {

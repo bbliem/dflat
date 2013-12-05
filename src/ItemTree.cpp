@@ -36,7 +36,25 @@ bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr
 		      (lhs->getRoot()->getHasRejectingChild() == rhs->getRoot()->getHasRejectingChild() &&
 		       (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
 		        (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
-		         std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this))))))))));
+		         std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), CostDiscriminatingItemTreePtrComparator()))))))))));
+}
+
+bool CostDiscriminatingItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
+{
+	// XXX Make this more maintainable. Maybe use something like std::tie?
+	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() ||
+		(lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
+		 (lhs->getRoot()->getType() < rhs->getRoot()->getType() ||
+		  (lhs->getRoot()->getType() == rhs->getRoot()->getType() &&
+		   (lhs->getRoot()->getHasAcceptingChild() < rhs->getRoot()->getHasAcceptingChild() ||
+		    (lhs->getRoot()->getHasAcceptingChild() == rhs->getRoot()->getHasAcceptingChild() &&
+		     (lhs->getRoot()->getHasRejectingChild() < rhs->getRoot()->getHasRejectingChild() ||
+		      (lhs->getRoot()->getHasRejectingChild() == rhs->getRoot()->getHasRejectingChild() &&
+		       (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
+		        (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
+		         (lhs->getRoot()->getCost() < rhs->getRoot()->getCost() ||
+		          (lhs->getRoot()->getCost() == rhs->getRoot()->getCost() &&
+		           std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this))))))))))));
 }
 
 void ItemTree::addChildAndMerge(ChildPtr&& subtree)
