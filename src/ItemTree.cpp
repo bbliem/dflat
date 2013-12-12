@@ -120,8 +120,8 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 				os << "┗━ ";
 				childIndent += "   ";
 #else
-				os << "\\-";
-				childIndent += "  ";
+				os << "\\- ";
+				childIndent += "   ";
 #endif
 			}
 			else {
@@ -129,8 +129,8 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 				os << "┣━ ";
 				childIndent += "┃  ";
 #else
-				os << "|-";
-				childIndent += "| ";
+				os << "|- ";
+				childIndent += "|  ";
 #endif
 			}
 		}
