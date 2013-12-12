@@ -2,6 +2,41 @@ cmake_minimum_required(VERSION 2.8)
 project(dflat)
 set(USE_STATIC_LIBS "${USE_STATIC_LIBS}" CACHE BOOL "Link statically")
 
+# Set BOOST_ROOT.
+set(ENV{BOOST_ROOT} /files/abseher/boost_1_55_0/)
+
+# Set BISON_PKGDATADIR.
+set(ENV{BISON_PKGDATADIR} /files/abseher/bison-3.0.1/data/)
+
+# Add gcc to PATH.
+set(ENV{PATH} /files/abseher/gcc-4.8.2/bin/:$ENV{PATH})
+
+# Add bison to PATH.
+set(ENV{PATH} /files/abseher/bison-3.0.1/bin/:$ENV{PATH})
+
+# Add boost to PATH.
+set(ENV{PATH} /files/abseher/boost_1_55_0/:$ENV{PATH})
+
+# Add cmake to PATH.
+set(ENV{PATH} /files/abseher/cmake-2.8.12.1-Linux-i386/bin/:$ENV{PATH})
+
+# Enable linker to access the gcc-Libraries.
+set(ENV{LD_LIBRARY_PATH} /files/abseher/gcc-4.8.2/lib:$ENV{LD_LIBRARY_PATH})
+
+# Enable linker to access the mpc-Libraries.
+set(ENV{LD_LIBRARY_PATH} /files/abseher/mpc-1.0.1/lib:$ENV{LD_LIBRARY_PATH})
+
+# Enable linker to access the GNU-MP-Libraries.
+set(ENV{LD_LIBRARY_PATH} /files/abseher/gmp-5.1.3/lib:$ENV{LD_LIBRARY_PATH})
+
+# Enable linker to access the sharp-Libraries.
+set(ENV{LD_LIBRARY_PATH} /files/abseher/sharp-1.1.1/lib:$ENV{LD_LIBRARY_PATH})
+
+# Enable linker to access the boost-Libraries.
+set(ENV{LD_LIBRARY_PATH} /files/abseher/boost_1_55_0/lib:$ENV{LD_LIBRARY_PATH})
+
+set(ENV{CMAKE_ROOT} /files/abseher/cmake-2.8.12.1-Linux-i386)
+
 add_definitions("-Wall -pedantic -std=c++11 -DDISABLE_MULTI_THREADING")
 
 set(CMAKE_CXX_FLAGS_GPROF "-O3 -g -pg")
@@ -47,7 +82,12 @@ set_source_files_properties(${FLEX_Scanner_OUTPUTS} PROPERTIES COMPILE_FLAGS -Wn
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+#ADDED
+include_directories(/files/abseher/boost_1_55_0/include)
+set(SOURCES /files/abseher/boost_1_55_0/include/boost/functional/hash/hash.hpp)
+
 add_executable(dflat
+        ${SOURCES} #ADDED
 	${FLEX_Scanner_OUTPUTS}
 	${BISON_Parser_OUTPUTS}
 	parser/Driver.cpp

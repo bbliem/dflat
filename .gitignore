@@ -1,3 +1,12 @@
 .*.swp
 build
 instances
+/nbproject/private/Default-build.log.log
+/nbproject/configurations.xml
+/nbproject/private/launcher.properties
+/nbproject/private/Default.properties
+/nbproject/private/CodeAssistancePathMapper.properties
+/nbproject/project.xml
+/nbproject/private/private.xml
+/nbproject/private/configurations.xml
+/nbproject/private/Default-exec.log.log

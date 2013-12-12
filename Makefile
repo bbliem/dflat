@@ -5,21 +5,21 @@ cxxflags_gprof=$(cxxflags_debug)
 cxxflags_static=$(cxxflags_release)
 cxxflags_static32="-DWITH_THREADS=0 -m32"
 
-gringo_dir=$(CURDIR)/../gringo-3.0.5-source
+gringo_dir=/files/abseher/gringo-3.0.5
 gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a
 gringo_lib_debug=$(gringo_dir)/build/debug/lib/libgringo.a
-gringo_lib_gprof=$(gringo_dir)/build/gprof/lib/libgringo.a
+gringo_lib_gprof=$(gringo_dir)/build/release/lib/libgringo.a
 gringo_lib_static=$(gringo_dir)/build/release/lib/libgringo.a
 gringo_lib_static32=$(gringo_dir)/build/static32/lib/libgringo.a
 
-clasp_dir=$(CURDIR)/../clasp-2.1.3
+clasp_dir=/files/abseher/clasp-2.1.4
 clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
-clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
+clasp_lib_gprof=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_static=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_static32=$(clasp_dir)/build/release_static_m32/libclasp/lib/libclasp.a
 
-sharp_dir=$(CURDIR)/../sharp-1.1.1
+sharp_dir=/files/abseher/sharp-1.1.1
 sharp_lib=$(sharp_dir)/src/.libs/libsharp.a
 sharp_lib_debug=$(sharp_dir)/src/.libs/libsharp.a
 sharp_lib_gprof=$(sharp_dir)/src/.libs/libsharp.a
