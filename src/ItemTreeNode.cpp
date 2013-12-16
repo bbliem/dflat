@@ -172,6 +172,12 @@ void ItemTreeNode::merge(ItemTreeNode&& other)
 	count += other.count;
 }
 
+bool ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
+{
+	// XXX Check that this is not less efficient than a long boolean expression
+	return std::tie(items, type, hasAcceptingChild, hasRejectingChild, auxItems) < std::tie(other.items, other.type, other.hasAcceptingChild, other.hasRejectingChild, other.auxItems);
+}
+
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 {
 	// Print count

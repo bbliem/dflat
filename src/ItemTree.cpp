@@ -25,36 +25,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
-	// XXX Make this more maintainable. Maybe use something like std::tie?
-	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() ||
-		(lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
-		 (lhs->getRoot()->getType() < rhs->getRoot()->getType() ||
-		  (lhs->getRoot()->getType() == rhs->getRoot()->getType() &&
-		   (lhs->getRoot()->getHasAcceptingChild() < rhs->getRoot()->getHasAcceptingChild() ||
-		    (lhs->getRoot()->getHasAcceptingChild() == rhs->getRoot()->getHasAcceptingChild() &&
-		     (lhs->getRoot()->getHasRejectingChild() < rhs->getRoot()->getHasRejectingChild() ||
-		      (lhs->getRoot()->getHasRejectingChild() == rhs->getRoot()->getHasRejectingChild() &&
-		       (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
-		        (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
-		         std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), CostDiscriminatingItemTreePtrComparator()))))))))));
-}
-
-bool CostDiscriminatingItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
-{
-	// XXX Make this more maintainable. Maybe use something like std::tie?
-	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() ||
-		(lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
-		 (lhs->getRoot()->getType() < rhs->getRoot()->getType() ||
-		  (lhs->getRoot()->getType() == rhs->getRoot()->getType() &&
-		   (lhs->getRoot()->getHasAcceptingChild() < rhs->getRoot()->getHasAcceptingChild() ||
-		    (lhs->getRoot()->getHasAcceptingChild() == rhs->getRoot()->getHasAcceptingChild() &&
-		     (lhs->getRoot()->getHasRejectingChild() < rhs->getRoot()->getHasRejectingChild() ||
-		      (lhs->getRoot()->getHasRejectingChild() == rhs->getRoot()->getHasRejectingChild() &&
-		       (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
-		        (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
-		         (lhs->getRoot()->getCost() < rhs->getRoot()->getCost() ||
-		          (lhs->getRoot()->getCost() == rhs->getRoot()->getCost() &&
-		           std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this))))))))))));
+	return lhs->getRoot()->compareCostInsensitive(*rhs->getRoot()) ||
+		(!rhs->getRoot()->compareCostInsensitive(*lhs->getRoot()) &&
+		 (std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this) ||
+		  (!std::lexicographical_compare(rhs->getChildren().begin(), rhs->getChildren().end(), lhs->getChildren().begin(), lhs->getChildren().end(), *this) &&
+		   lhs->costDifferenceSignIncrease(rhs))));
 }
 
 void ItemTree::addChildAndMerge(ChildPtr&& subtree)
@@ -176,6 +151,44 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 				child->printExtensions(os, maxDepth - 1, false, ++i == bestChildren.size(), childIndent, currentIt.get());
 		}
 	}
+}
+
+bool ItemTree::costDifferenceSignIncrease(const ItemTreePtr& other) const
+{
+	assert(items == other->items);
+	assert(children.size() == other->children.size());
+
+	if(children.size() < 2)
+		return false;
+
+	Children::const_iterator it1 = children.begin();
+	Children::const_iterator it2 = other->children.begin();
+
+	const int difference = (*it1)->getRoot()->getCost() - (*it2)->getRoot()->getCost(); // Actually we are only interested if this is greater, equal to, or smaller than 0
+
+	while(++it1 != children.end()) {
+		++it2;
+		assert(it2 != other->children.end());
+		const auto cost1 = (*it1)->getRoot()->getCost();
+		const auto cost2 = (*it2)->getRoot()->getCost();
+
+		if(cost1 < cost2) {
+			if(difference >= 0)
+				return false; // but other->costDifferenceSignIncrease(this) will hold
+		}
+		else if(cost1 == cost2) {
+			if(difference < 0)
+				return true;
+			if(difference > 0)
+				return false; // but other->costDifferenceSignIncrease(this) will hold
+		}
+		else if(difference <= 0)
+			return true;
+
+		if((*it1)->costDifferenceSignIncrease(*it2))
+			return true;
+	}
+	return false;
 }
 
 void ItemTree::merge(ItemTree&& other)
