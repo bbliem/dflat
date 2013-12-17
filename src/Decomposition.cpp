@@ -41,3 +41,11 @@ bool Decomposition::isJoinNode() const
 			return child->getRoot().getBag() == node.getBag();
 	});
 }
+
+int Decomposition::getWidth() const
+{
+	int width = node.getBag().size() - 1;
+	for(const auto& child : children)
+		width = std::max(child->getWidth(), width);
+	return width;
+}
