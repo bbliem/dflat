@@ -59,6 +59,8 @@ public:
 	const Items& getAuxItems() const;
 
 	const ExtensionPointers& getExtensionPointers() const;
+	void clearExtensionPointers();
+
 	const ItemTreeNode* getParent() const;
 	void setParent(const ItemTreeNode*);
 	const mpz_class& getCount() const;

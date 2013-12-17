@@ -68,6 +68,7 @@ Application::Application(const std::string& binaryName)
 	, optNoPruning("no-pruning", "Do not prune rejecting subtrees")
 	, decomposer(0)
 	, solverFactory(0)
+	, depth(std::numeric_limits<unsigned int>::max())
 {
 }
 
@@ -125,7 +126,6 @@ int Application::run(int argc, char** argv)
 	srand(seed);
 
 	// Set materialization depth
-	unsigned int depth = std::numeric_limits<unsigned int>::max();
 	if(optDepth.isUsed())
 		depth = strToInt(optDepth.getValue(), "Invalid depth");
 
@@ -217,4 +217,9 @@ void Application::setDebugger(Debugger& d)
 bool Application::isPruningDisabled() const
 {
 	return optNoPruning.isUsed();
+}
+
+unsigned int Application::getMaterializationDepth() const
+{
+	return depth;
 }

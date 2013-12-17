@@ -24,9 +24,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Asp.h"
 #include "../Application.h"
+#include "../Debugger.h"
 #include "../ItemTree.h"
 #include "../Decomposition.h"
-#include "../Debugger.h"
+#include "../Application.h"
 #include "asp/tables/GringoOutputProcessor.h"
 #include "asp/tables/ClaspCallback.h"
 #include "asp/trees/GringoOutputProcessor.h"
@@ -46,12 +47,12 @@ std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(const ChildItemT
 		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor(childItemTrees));
 }
 
-std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const GringoOutputProcessor& gringoOutputProcessor, const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger)
+std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const GringoOutputProcessor& gringoOutputProcessor, const ChildItemTrees& childItemTrees, bool prune, const Application& app)
 {
 	if(tableMode)
-		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, debugger));
+		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, app));
 	else
-		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, prune, debugger));
+		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, prune, app));
 }
 
 } // anonymous namespace
@@ -109,7 +110,7 @@ ItemTreePtr Asp::compute()
 	// Call the ASP solver
 	std::unique_ptr<GringoOutputProcessor> outputProcessor(newGringoOutputProcessor(childItemTrees, tableMode));
 	ClaspInputReader inputReader(inputStreams, *outputProcessor);
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *outputProcessor, childItemTrees, app.isPruningDisabled() == false, app.getDebugger()));
+	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *outputProcessor, childItemTrees, app.isPruningDisabled() == false, app));
 	Clasp::ClaspConfig config;
 	config.enumerate.numModels = 0;
 	Clasp::ClaspFacade clasp;
@@ -118,6 +119,8 @@ ItemTreePtr Asp::compute()
 	ItemTreePtr result = cb->finalize();
 
 	app.getDebugger().solverInvocationResult(decomposition.getRoot(), result.get());
+	if(result)
+		result->clearExtensionPointersBelow(app.getMaterializationDepth());
 
 	return result;
 }

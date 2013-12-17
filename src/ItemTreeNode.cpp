@@ -73,6 +73,11 @@ const ItemTreeNode::ExtensionPointers& ItemTreeNode::getExtensionPointers() cons
 	return extensionPointers;
 }
 
+void ItemTreeNode::clearExtensionPointers()
+{
+	extensionPointers.clear();
+}
+
 const ItemTreeNode* ItemTreeNode::getParent() const
 {
 	return parent;

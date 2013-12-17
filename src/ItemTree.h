@@ -46,6 +46,9 @@ public:
 	// Use this after calling finalize() to get the i'th child of this node
 	const ItemTree& getChild(size_t i) const;
 
+	// Removes extension pointers of all nodes below (but not including) the given depth in order to allow non-extended nodes to be deleted. (They are not going to be needed anymore.)
+	void clearExtensionPointersBelow(unsigned int depth);
+
 	// Print the tree that would result from recursively extending all nodes
 	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool root = true, bool lastChild = false, const std::string& indent = "", const ExtensionIterator* parent = nullptr) const;
 

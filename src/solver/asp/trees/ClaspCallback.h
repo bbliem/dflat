@@ -47,7 +47,7 @@ public:
 	typedef std::vector<OrAtomInfo>             OrAtomInfos;
 	typedef std::vector<AndAtomInfo>            AndAtomInfos;
 
-	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, const Debugger& debugger);
+	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, const Application& app);
 
 	// Called on entering/exiting a state
 	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override;

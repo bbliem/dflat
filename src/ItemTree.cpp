@@ -76,6 +76,18 @@ const ItemTree& ItemTree::getChild(size_t i) const
 	return *childrenVector[i];
 }
 
+void ItemTree::clearExtensionPointersBelow(unsigned int depth)
+{
+	for(const auto& child : children) {
+		if(depth == 0) {
+			child->getRoot()->clearExtensionPointers();
+			child->clearExtensionPointersBelow(0);
+		}
+		else
+			child->clearExtensionPointersBelow(depth-1);
+	}
+}
+
 void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool root, bool lastChild, const std::string& indent, const ExtensionIterator* parent) const
 {
 	std::unique_ptr<ExtensionIterator> it(new ExtensionIterator(*node, parent));
