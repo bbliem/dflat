@@ -155,7 +155,7 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 
 bool ItemTree::costDifferenceSignIncrease(const ItemTreePtr& other) const
 {
-	assert(items == other->items);
+	assert(node->getItems() == other->node->getItems());
 	assert(children.size() == other->children.size());
 
 	if(children.size() < 2)
