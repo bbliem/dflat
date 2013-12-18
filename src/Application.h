@@ -50,6 +50,7 @@ public:
 	void setSolverFactory(SolverFactory& solverFactory);
 	void setDebugger(Debugger& debugger);
 
+	bool isCountingDisabled() const;
 	bool isPruningDisabled() const;
 
 	// Returns the depth until which the solution item tree should be materialized.
@@ -66,6 +67,7 @@ private:
 	options::Choice optDecomposer;
 	options::Choice optSolver;
 	options::Choice optDebugger;
+	options::Option optNoCounting;
 	options::Option optNoPruning;
 
 	Decomposer* decomposer;

@@ -21,6 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <cassert>
 
 #include "ItemTree.h"
+#include "Application.h"
 #include "ExtensionIterator.h"
 
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
@@ -76,19 +77,26 @@ const ItemTree& ItemTree::getChild(size_t i) const
 	return *childrenVector[i];
 }
 
-void ItemTree::clearExtensionPointersBelow(unsigned int depth)
+void ItemTree::clearUnneededExtensionPointers(const Application& app, unsigned int currentDepth)
 {
-	for(const auto& child : children) {
-		if(depth == 0) {
-			child->getRoot()->clearExtensionPointers();
-			child->clearExtensionPointersBelow(0);
-		}
-		else
-			child->clearExtensionPointersBelow(depth-1);
+	if(app.isCountingDisabled()) {
+		++currentDepth;
+		if(currentDepth > app.getMaterializationDepth())
+			for(const auto& child : children)
+				child->getRoot()->clearExtensionPointers();
 	}
+	else {
+		if(currentDepth > app.getMaterializationDepth())
+			for(const auto& child : children)
+				child->getRoot()->clearExtensionPointers();
+		++currentDepth;
+	}
+
+	for(const auto& child : children)
+		child->clearUnneededExtensionPointers(app, currentDepth);
 }
 
-void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool root, bool lastChild, const std::string& indent, const ExtensionIterator* parent) const
+void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool printCount, bool root, bool lastChild, const std::string& indent, const ExtensionIterator* parent) const
 {
 	std::unique_ptr<ExtensionIterator> it(new ExtensionIterator(*node, parent));
 
@@ -133,6 +141,8 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 		// When limiting the depth causes children not to be extended, print the number of accepting children (with optimum cost)
 		if(maxDepth == 0 && children.empty() == false) {
 			os << '[';
+			if(!printCount)
+				os << ">=";
 			mpz_class count;
 			assert(count == 0);
 			// On the first level we can use the counts inside the nodes
@@ -160,7 +170,7 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool roo
 		if(maxDepth > 0) {
 			size_t i = 0;
 			for(const auto& child : bestChildren)
-				child->printExtensions(os, maxDepth - 1, false, ++i == bestChildren.size(), childIndent, currentIt.get());
+				child->printExtensions(os, maxDepth - 1, printCount, false, ++i == bestChildren.size(), childIndent, currentIt.get());
 		}
 	}
 }

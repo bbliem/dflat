@@ -29,6 +29,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 class ItemTree;
 typedef std::unique_ptr<ItemTree> ItemTreePtr;
 class ExtensionIterator;
+class Application;
 
 struct ItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs); };
 
@@ -46,11 +47,12 @@ public:
 	// Use this after calling finalize() to get the i'th child of this node
 	const ItemTree& getChild(size_t i) const;
 
-	// Removes extension pointers of all nodes below (but not including) the given depth in order to allow non-extended nodes to be deleted. (They are not going to be needed anymore.)
-	void clearExtensionPointersBelow(unsigned int depth);
+	// If counting is not required, removes extension pointers of all nodes below (but not including) the materialization depth in order to allow non-extended nodes to be deleted. (They are not going to be needed anymore.)
+	// Otherwise, removes extension pointers of all nodes below (but not including) the materialization depth plus one.
+	void clearUnneededExtensionPointers(const Application& app, unsigned int currentDepth = 0);
 
 	// Print the tree that would result from recursively extending all nodes
-	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool root = true, bool lastChild = false, const std::string& indent = "", const ExtensionIterator* parent = nullptr) const;
+	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool printCount = true, bool root = true, bool lastChild = false, const std::string& indent = "", const ExtensionIterator* parent = nullptr) const;
 
 	// The children of each item tree node are considered ordered.
 	// Let A and B be item trees having the same item sets.

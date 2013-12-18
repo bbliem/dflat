@@ -120,7 +120,7 @@ ItemTreePtr Asp::compute()
 
 	app.getDebugger().solverInvocationResult(decomposition.getRoot(), result.get());
 	if(result)
-		result->clearExtensionPointersBelow(app.getMaterializationDepth());
+		result->clearUnneededExtensionPointers(app);
 
 	return result;
 }

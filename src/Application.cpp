@@ -65,6 +65,7 @@ Application::Application(const std::string& binaryName)
 	, optDecomposer("d", "decomposer", "Use decomposition method <decomposer>")
 	, optSolver("s", "solver", "Use <solver> to compute partial solutions")
 	, optDebugger("debug", "module", "Use <module> to print debugging information")
+	, optNoCounting("no-counting", "Do not count the number of solutions")
 	, optNoPruning("no-pruning", "Do not prune rejecting subtrees")
 	, decomposer(0)
 	, solverFactory(0)
@@ -88,6 +89,7 @@ int Application::run(int argc, char** argv)
 	options::MultiValueOption optEdge("e", "edge", "Predicate <edge> declares (hyper)edges");
 	opts.addOption(optEdge);
 
+	opts.addOption(optNoCounting);
 	opts.addOption(optNoPruning);
 
 	options::SingleValueOption optSeed("seed", "n", "Initialize random number generator with seed <n>");
@@ -148,7 +150,7 @@ int Application::run(int argc, char** argv)
 
 	std::cout << "Solutions:" << std::endl;
 	if(rootItree)
-		rootItree->printExtensions(std::cout, depth);
+		rootItree->printExtensions(std::cout, depth, !isCountingDisabled());
 	else {
 		std::cout << "[0]" << std::endl;
 		return 20;
@@ -212,6 +214,11 @@ void Application::setSolverFactory(SolverFactory& s)
 void Application::setDebugger(Debugger& d)
 {
 	debugger = &d;
+}
+
+bool Application::isCountingDisabled() const
+{
+	return optNoCounting.isUsed();
 }
 
 bool Application::isPruningDisabled() const
