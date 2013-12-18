@@ -33,7 +33,6 @@ public:
 
 	//! @return true iff this iterator can be dereferenced
 	bool isValid() const { return valid; }
-	bool hasNext() const;
 
 	ItemTreeNode::Items& operator*(); // dereference
 	ExtensionIterator& operator++(); // Point to next child of what results from dereferencing "parent"

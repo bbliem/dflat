@@ -29,18 +29,6 @@ ExtensionIterator::ExtensionIterator(const ItemTreeNode& itemTreeNode, const Ext
 	reset();
 }
 
-bool ExtensionIterator::hasNext() const
-{
-	assert(valid);
-	assert(curTuple != itemTreeNode.getExtensionPointers().end());
-
-	for(const auto& it : subIts)
-		if(it->hasNext() == true)
-			return true;
-
-	return std::next(curTuple) != itemTreeNode.getExtensionPointers().end();
-}
-
 bool ExtensionIterator::curTupleAreChildrenOfParent() const
 {
 	assert(parent);
