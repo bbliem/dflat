@@ -21,7 +21,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 //}}}
 #include "../ClaspCallback.h"
-#include "GringoOutputProcessor.h"
 #include "UncompressedItemTree.h"
 
 namespace solver { namespace asp { namespace trees {
@@ -29,14 +28,49 @@ namespace solver { namespace asp { namespace trees {
 class ClaspCallback : public ::solver::asp::ClaspCallback
 {
 public:
-	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments>           ItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::AuxItemAtomArguments>        AuxItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::ExtendAtomArguments>         ExtendAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments>    CurrentCostAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments>           CostAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::LengthAtomArguments>         LengthAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::OrAtomArguments>             OrAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::AndAtomArguments>            AndAtomInfo;
+	struct ExtendAtomArguments {
+		unsigned int level;
+		unsigned int decompositionNodeId;
+		std::weak_ptr<ItemTreeNode> extendedNode;
+	};
+	typedef AtomInfo<ExtendAtomArguments> ExtendAtomInfo;
+
+	struct ItemAtomArguments {
+		unsigned int level;
+		std::string item;
+	};
+	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
+
+	struct AuxItemAtomArguments {
+		unsigned int level;
+		std::string item;
+	};
+	typedef AtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
+
+	struct CurrentCostAtomArguments {
+		long currentCost;
+	};
+	typedef AtomInfo<CurrentCostAtomArguments> CurrentCostAtomInfo;
+
+	struct CostAtomArguments {
+		long cost;
+	};
+	typedef AtomInfo<CostAtomArguments> CostAtomInfo;
+
+	struct LengthAtomArguments {
+		unsigned int length;
+	};
+	typedef AtomInfo<LengthAtomArguments> LengthAtomInfo;
+
+	struct OrAtomArguments {
+		unsigned int level;
+	};
+	typedef AtomInfo<OrAtomArguments> OrAtomInfo;
+
+	struct AndAtomArguments {
+		unsigned int level;
+	};
+	typedef AtomInfo<AndAtomArguments> AndAtomInfo;
 
 	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
 	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;
@@ -47,18 +81,16 @@ public:
 	typedef std::vector<OrAtomInfo>             OrAtomInfos;
 	typedef std::vector<AndAtomInfo>            AndAtomInfos;
 
-	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, const Application& app);
+	ClaspCallback(const ChildItemTrees&, bool prune, const Application&, const Clasp::ClaspFacade&);
 
 	// Called on entering/exiting a state
-	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override;
+//	virtual void state(Clasp::ClaspFacade::Event, Clasp::ClaspFacade&) override;
 
 	// Called for important events, e.g. a model has been found
-	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f) override;
+	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
 
 protected:
 	UncompressedItemTreePtr uncompressedItemTree;
-
-	const GringoOutputProcessor& gringoOutput;
 
 	ItemAtomInfos           itemAtomInfos;
 	AuxItemAtomInfos        auxItemAtomInfos;

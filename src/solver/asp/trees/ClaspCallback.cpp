@@ -22,56 +22,53 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp { namespace trees {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, const Application& app)
+ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, bool prune, const Application& app, const Clasp::ClaspFacade& clasp)
 	: ::solver::asp::ClaspCallback(childItemTrees, app)
-	, gringoOutput(gringoOutput)
 	, prune(prune)
 {
+	throw std::logic_error("no support for multi-level mode yet");
 }
 
-void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
+//void ClaspCallback::state(Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
+//{
+//	if(f.state() == Clasp::ClaspFacade::state_solve) {
+//		if(e == Clasp::ClaspFacade::event_state_enter) {
+//			Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
+//
+//			for(const auto& atom : gringoOutput.getItemAtomInfos())
+//				itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
+//			for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
+//				auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, symTab));
+//			for(const auto& atom : gringoOutput.getExtendAtomInfos())
+//				extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
+//			for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
+//				currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
+//			for(const auto& atom : gringoOutput.getCostAtomInfos())
+//				costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
+//			for(const auto& atom : gringoOutput.getLengthAtomInfos())
+//				lengthAtomInfos.emplace_back(LengthAtomInfo(atom, symTab));
+//			for(const auto& atom : gringoOutput.getOrAtomInfos())
+//				orAtomInfos.emplace_back(OrAtomInfo(atom, symTab));
+//			for(const auto& atom : gringoOutput.getAndAtomInfos())
+//				andAtomInfos.emplace_back(AndAtomInfo(atom, symTab));
+//
+//			if(gringoOutput.getAcceptAtomKey())
+//				acceptLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getAcceptAtomKey()].lit));
+//			if(gringoOutput.getRejectAtomKey())
+//				rejectLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getRejectAtomKey()].lit));
+//		}
+//		else if(e == Clasp::ClaspFacade::event_state_exit) {
+//			if(prune && uncompressedItemTree && uncompressedItemTree->prune() == ItemTreeNode::Type::REJECT)
+//				uncompressedItemTree.reset();
+//			if(uncompressedItemTree)
+//				itemTree = uncompressedItemTree->compress();
+//		}
+//	}
+//}
+
+bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 {
-	if(f.state() == Clasp::ClaspFacade::state_solve) {
-		if(e == Clasp::ClaspFacade::event_state_enter) {
-			Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
-
-			for(const auto& atom : gringoOutput.getItemAtomInfos())
-				itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
-			for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
-				auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, symTab));
-			for(const auto& atom : gringoOutput.getExtendAtomInfos())
-				extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
-			for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
-				currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
-			for(const auto& atom : gringoOutput.getCostAtomInfos())
-				costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
-			for(const auto& atom : gringoOutput.getLengthAtomInfos())
-				lengthAtomInfos.emplace_back(LengthAtomInfo(atom, symTab));
-			for(const auto& atom : gringoOutput.getOrAtomInfos())
-				orAtomInfos.emplace_back(OrAtomInfo(atom, symTab));
-			for(const auto& atom : gringoOutput.getAndAtomInfos())
-				andAtomInfos.emplace_back(AndAtomInfo(atom, symTab));
-
-			if(gringoOutput.getAcceptAtomKey())
-				acceptLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getAcceptAtomKey()].lit));
-			if(gringoOutput.getRejectAtomKey())
-				rejectLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getRejectAtomKey()].lit));
-		}
-		else if(e == Clasp::ClaspFacade::event_state_exit) {
-			if(prune && uncompressedItemTree && uncompressedItemTree->prune() == ItemTreeNode::Type::REJECT)
-				uncompressedItemTree.reset();
-			if(uncompressedItemTree)
-				itemTree = uncompressedItemTree->compress();
-		}
-	}
-}
-
-void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
-{
-	solver::asp::ClaspCallback::event(s, e, f);
-
-	if(e != Clasp::ClaspFacade::event_model)
-		return;
+	solver::asp::ClaspCallback::onModel(s, m);
 
 	struct BranchNode
 	{
@@ -82,27 +79,27 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 	};
 
 	// Get number of levels in the branch corresponding to this answer set {{{
-	ASP_CHECK(countTrue(s, lengthAtomInfos) != 0, "No true length/1 atom");
-	ASP_CHECK(countTrue(s, lengthAtomInfos) <= 1, "Multiple true length/1 atoms");
+	ASP_CHECK(countTrue(m, lengthAtomInfos) != 0, "No true length/1 atom");
+	ASP_CHECK(countTrue(m, lengthAtomInfos) <= 1, "Multiple true length/1 atoms");
 	unsigned int numLevels = 0;
-	forFirstTrue(s, lengthAtomInfos, [&numLevels](const GringoOutputProcessor::LengthAtomArguments& arguments) {
+	forFirstTrue(m, lengthAtomInfos, [&numLevels](const LengthAtomArguments& arguments) {
 			numLevels = arguments.length+1;
 	});
 	assert(numLevels > 0);
 	std::vector<BranchNode> branchData(numLevels);
 	// }}}
 	// Get items {{{
-	forEachTrue(s, itemAtomInfos, [&branchData](const GringoOutputProcessor::ItemAtomArguments& arguments) {
+	forEachTrue(m, itemAtomInfos, [&branchData](const ItemAtomArguments& arguments) {
 			ASP_CHECK(arguments.level < branchData.size(), "Item at level higher than branch length");
 			branchData[arguments.level].items.insert(arguments.item);
 	});
-	forEachTrue(s, auxItemAtomInfos, [&branchData](const GringoOutputProcessor::AuxItemAtomArguments& arguments) {
+	forEachTrue(m, auxItemAtomInfos, [&branchData](const AuxItemAtomArguments& arguments) {
 			ASP_CHECK(arguments.level < branchData.size(), "Auxiliary item at level higher than branch length");
 			branchData[arguments.level].auxItems.insert(arguments.item);
 	});
 	// }}}
 	// Get extension pointers {{{
-	forEachTrue(s, extendAtomInfos, [&branchData](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
+	forEachTrue(m, extendAtomInfos, [&branchData](const ExtendAtomArguments& arguments) {
 			ASP_CHECK(arguments.level < branchData.size(), "Extension pointer at level higher than branch length");
 			branchData[arguments.level].extended.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedNode));
 	});
@@ -139,21 +136,21 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 #endif
 	// }}}
 	// Set item tree node types (or, and, accept or reject) {{{
-	forEachTrue(s, orAtomInfos, [&branchData](const GringoOutputProcessor::OrAtomArguments& arguments) {
+	forEachTrue(m, orAtomInfos, [&branchData](const OrAtomArguments& arguments) {
 			ASP_CHECK(arguments.level + 1 < branchData.size(), "Item tree node type specificiation 'or' at level higher than or equal to branch length");
 			ASP_CHECK(branchData[arguments.level].type == ItemTreeNode::Type::UNDEFINED, "More than one type specified for an item tree node");
 			branchData[arguments.level].type = ItemTreeNode::Type::OR;
 	});
-	forEachTrue(s, andAtomInfos, [&branchData](const GringoOutputProcessor::AndAtomArguments& arguments) {
+	forEachTrue(m, andAtomInfos, [&branchData](const AndAtomArguments& arguments) {
 			ASP_CHECK(arguments.level + 1 < branchData.size(), "Item tree node type specificiation 'and' at level higher than or equal to branch length");
 			ASP_CHECK(branchData[arguments.level].type == ItemTreeNode::Type::UNDEFINED, "More than one type specified for an item tree node");
 			branchData[arguments.level].type = ItemTreeNode::Type::AND;
 	});
-	if(acceptLiteral && s.isTrue(*acceptLiteral)) {
+	if(acceptLiteral && m.isTrue(*acceptLiteral)) {
 		ASP_CHECK(branchData.back().type == ItemTreeNode::Type::UNDEFINED, "More than one type specified for an item tree leaf");
 		branchData.back().type = ItemTreeNode::Type::ACCEPT;
 	}
-	if(rejectLiteral && s.isTrue(*rejectLiteral)) {
+	if(rejectLiteral && m.isTrue(*rejectLiteral)) {
 		ASP_CHECK(branchData.back().type == ItemTreeNode::Type::UNDEFINED, "More than one type specified for an item tree leaf");
 		branchData.back().type = ItemTreeNode::Type::REJECT;
 	}
@@ -170,21 +167,21 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), std::move(branchData[i].auxItems), {std::move(branchData[i].extended)}, branchData[i].type)));
 	// }}}
 	// Set cost {{{
-	ASP_CHECK(countTrue(s, costAtomInfos) <= 1, "More than one true cost/1 atom");
-	ASP_CHECK(countTrue(s, costAtomInfos) == 0 || std::all_of(branchData.begin(), branchData.end()-1, [](const BranchNode& node) {
+	ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
+	ASP_CHECK(countTrue(m, costAtomInfos) == 0 || std::all_of(branchData.begin(), branchData.end()-1, [](const BranchNode& node) {
 			return node.type != ItemTreeNode::Type::UNDEFINED;
 	}), "Cost specified but not all types of (non-leaf) nodes are defined");
 	long cost = 0;
-	forFirstTrue(s, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
+	forFirstTrue(m, costAtomInfos, [&cost](const CostAtomArguments& arguments) {
 			cost = arguments.cost;
 	});
 	branch.back()->setCost(cost);
 	// }}}
 	// Set current cost {{{
-	ASP_CHECK(countTrue(s, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
-	ASP_CHECK(countTrue(s, currentCostAtomInfos) == 0 || countTrue(s, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
+	ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
+	ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
 	long currentCost = 0;
-	forFirstTrue(s, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
+	forFirstTrue(m, currentCostAtomInfos, [&currentCost](const CurrentCostAtomArguments& arguments) {
 			currentCost = arguments.currentCost;
 	});
 	branch.back()->setCurrentCost(currentCost);
@@ -195,6 +192,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 
 	uncompressedItemTree->addBranch(++branch.begin(), branch.end());
 	// }}}
+	return true;
 }
 
 }}} // namespace solver::asp::trees

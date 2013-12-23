@@ -35,15 +35,144 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 // You should have received a copy of the GNU General Public License
 // along with gringo.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
-#include <clasp/program_builder.h>
-#include <clasp/shared_context.h>
-#include <gringo/storage.h>
-#include <gringo/domain.h>
+//#include <clasp/program_builder.h>
+//#include <clasp/shared_context.h>
+//#include <gringo/storage.h>
+//#include <gringo/domain.h>
 
 #include "GringoOutputProcessor.h"
 
 namespace solver { namespace asp {
 
+GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out)
+	: prg_(out)
+{
+	false_ = prg_.newAtom();
+	prg_.setCompute(false_, false);
+#ifdef DEBUG_OUTPUT
+	std::cerr << "pb.setCompute(" << false_ << ",false);\n";
+#endif
+}
+
+void GringoOutputProcessor::addBody(const LitVec& body) {
+    for (auto x : body) {
+        prg_.addToBody((Clasp::Var)std::abs(x), x > 0);
+#ifdef DEBUG_OUTPUT
+        std::cerr << ".addToBody(" << std::abs(x) << "," << (x > 0) << ")";
+#endif
+    }
+}
+void GringoOutputProcessor::addBody(const LitWeightVec& body) {
+    for (auto x : body) {
+        prg_.addToBody((Clasp::Var)std::abs(x.first), x.first > 0, x.second);
+#ifdef DEBUG_OUTPUT
+        std::cerr << ".addToBody(" << std::abs(x.first) << "," << (x.first > 0) << "," << x.second << ")";
+#endif
+    }
+}
+void GringoOutputProcessor::printBasicRule(unsigned head, LitVec const &body) {
+#ifdef DEBUG_OUTPUT
+    std::cerr << "pb.startRule().addHead(" << head << ")";
+#endif
+    prg_.startRule().addHead(head);
+    addBody(body);
+    prg_.endRule();
+#ifdef DEBUG_OUTPUT
+    std::cerr << ".endRule();\n";
+#endif
+}
+
+void GringoOutputProcessor::printChoiceRule(AtomVec const &atoms, LitVec const &body) {
+#ifdef DEBUG_OUTPUT
+    std::cerr << "pb.startRule(Clasp::Asp::CHOICERULE)";
+    for (auto x : atoms) { std::cerr << ".addHead(" << x << ")"; }
+#endif
+    prg_.startRule(Clasp::Asp::CHOICERULE);
+    for (auto x : atoms) { prg_.addHead(x); }
+    addBody(body);
+    prg_.endRule();
+#ifdef DEBUG_OUTPUT
+    std::cerr << ".endRule();\n";
+#endif
+}
+
+void GringoOutputProcessor::printCardinalityRule(unsigned head, unsigned lower, LitVec const &body) {
+#ifdef DEBUG_OUTPUT
+    std::cerr << "pb.startRule(Clasp::Asp::CONSTRAINTRULE, " << lower << ").addHead(" << head << ")";
+#endif
+    prg_.startRule(Clasp::Asp::CONSTRAINTRULE, lower).addHead(head);
+    addBody(body);
+    prg_.endRule();
+#ifdef DEBUG_OUTPUT
+    std::cerr << ".endRule();\n";
+#endif
+}
+
+void GringoOutputProcessor::printWeightRule(unsigned head, unsigned lower, LitWeightVec const &body) {
+#ifdef DEBUG_OUTPUT
+    std::cerr << "pb.startRule(Clasp::Asp::WEIGHTRULE, " << lower << ").addHead(" << head << ")";
+#endif
+    prg_.startRule(Clasp::Asp::WEIGHTRULE, lower).addHead(head);
+    addBody(body);
+    prg_.endRule();
+#ifdef DEBUG_OUTPUT
+    std::cerr << ".endRule();\n";
+#endif
+}
+
+void GringoOutputProcessor::printMinimize(LitWeightVec const &body) {
+#ifdef DEBUG_OUTPUT
+    std::cerr << "pb.startRule(Clasp::Asp::OPTIMIZERULE)";
+#endif
+    prg_.startRule(Clasp::Asp::OPTIMIZERULE);
+    addBody(body);
+    prg_.endRule();
+#ifdef DEBUG_OUTPUT
+    std::cerr << ".endRule();\n";
+#endif
+}
+
+void GringoOutputProcessor::printDisjunctiveRule(AtomVec const &atoms, LitVec const &body) {
+#ifdef DEBUG_OUTPUT
+    std::cerr << "pb.startRule(Clasp::Asp::DISJUNCTIVERULE)";
+    for (auto x : atoms) { std::cerr << ".addHead(" << x << ")"; }
+#endif
+    prg_.startRule(Clasp::Asp::DISJUNCTIVERULE);
+    for (auto x : atoms) { prg_.addHead(x); }
+    addBody(body);
+    prg_.endRule();
+#ifdef DEBUG_OUTPUT
+    std::cerr << ".endRule();\n";
+#endif
+}
+
+void GringoOutputProcessor::printSymbol(unsigned atomUid, Gringo::Value v) {
+	if (v.type() == Gringo::Value::ID || v.type() == Gringo::Value::STRING) {
+		prg_.setAtomName(atomUid, (*v.string()).c_str());
+	}
+	else {
+		str_.str("");
+		v.print(str_);
+		prg_.setAtomName(atomUid, str_.str().c_str());
+	}
+
+#ifdef DEBUG_OUTPUT
+    std::cerr << "pb.setAtomName(" << atomUid << ",\"" << v << "\");\n";
+#endif
+}
+
+void GringoOutputProcessor::printExternal(unsigned atomUid) {
+    prg_.freeze(atomUid);
+#ifdef DEBUG_OUTPUT
+    std::cerr << "pb.freeze(" << atomUid << ");\n";
+#endif
+}
+
+bool &GringoOutputProcessor::disposeMinimize() {
+    return disposeMinimize_;
+}
+
+/*
 GringoOutputProcessor::GringoOutputProcessor(const ChildItemTrees& childItemTrees)
 	: LparseConverter(0, false)
 	, childItemTrees(childItemTrees)
@@ -197,5 +326,6 @@ ValRng GringoOutputProcessor::vals(Domain *dom, uint32_t offset) const
 {
 	return ValRng(vals_.begin() + offset, vals_.begin() + offset + dom->arity());
 }
+*/
 
 }} // namespace solver::asp

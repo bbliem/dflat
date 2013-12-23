@@ -2,22 +2,19 @@ cmake_minimum_required(VERSION 2.8)
 project(dflat)
 set(USE_STATIC_LIBS "${USE_STATIC_LIBS}" CACHE BOOL "Link statically")
 
-add_definitions("-Wall -pedantic -std=c++11 -DDISABLE_MULTI_THREADING")
+add_definitions("-Wall -pedantic -std=c++11")
+add_definitions("-Wno-zero-length-array") # XXX Workaround because clasp generates these warnings
 
 set(CMAKE_CXX_FLAGS_GPROF "-O3 -g -pg")
 set(CMAKE_LINKER_FLAGS_GPROF "-pg")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG -DDEBUG") # Without -D_DEBUG there will be voodoo in libclasp's pod_vector.h, since then the size of our Clasp::PodVector is different than when we built clasp's debug release
+# If there is voodoo in liblasp's pod_vector.h, it might be that you compiled it with -D_DEBUG. Consider compiling D-FLAT with this flag, too (uncomment next line). Otherwise the size of our Clasp::PodVector is different than when we built clasp's debug release.
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG") 
 
-# Unfortunately libclasp does not compile with -pedantic.
-# Using -isystem instead of -I; then they are treated as system headers,
-# i.e., warnings are suppressed for the clasp headers.
-include_directories(SYSTEM ${clasp_dir}/libclasp)
-include_directories(${sharp_dir}/include ${gringo_dir}/libgringo)
+include_directories(${sharp_dir}/include ${gringo_dir}/libgringo ${clasp_dir}/libclasp)
 
 if(USE_STATIC_LIBS)
 	set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)
 	set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
-	set(Boost_USE_STATIC_LIBS TRUE)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
 	if(WIN32)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
@@ -35,7 +32,6 @@ set_target_properties(sharp PROPERTIES IMPORTED_LOCATION ${sharp_lib})
 
 find_library(gmpxx gmpxx)
 find_library(gmp gmp)
-find_package(Boost COMPONENTS system filesystem REQUIRED) # XXX possibly no longer required with newer Gringo
 find_package(FLEX)
 find_package(BISON)
 
@@ -70,14 +66,11 @@ add_executable(dflat
 	solver/DummyFactory.cpp
 	solver/Dummy.cpp
 	solver/asp/ClaspCallback.cpp
-	solver/asp/ClaspInputReader.cpp
 	solver/asp/GringoOutputProcessor.cpp
 	solver/AspFactory.cpp
 	solver/Asp.cpp
 	solver/asp/tables/ClaspCallback.cpp
-	solver/asp/tables/GringoOutputProcessor.cpp
 	solver/asp/trees/ClaspCallback.cpp
-	solver/asp/trees/GringoOutputProcessor.cpp
 	solver/asp/trees/UncompressedItemTree.cpp
 	solver/DefaultJoin.cpp
 	Debugger.cpp
@@ -90,4 +83,4 @@ add_executable(dflat
 	Application.cpp
 	main.cpp)
 
-target_link_libraries(dflat gringo clasp sharp gmpxx gmp ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+target_link_libraries(dflat gringo clasp sharp gmpxx gmp)

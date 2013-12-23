@@ -30,49 +30,42 @@ namespace solver { namespace asp {
 class ItemSetLookupTable;
 
 // Gets called by clasp whenever a model has been found
-class ClaspCallback : public Clasp::ClaspFacade::Callback
+class ClaspCallback : public Clasp::EventHandler
 {
 public:
 	template<typename T>
-	struct AtomInfo {
-		AtomInfo(const GringoOutputProcessor::AtomInfo<T>& gringoAtomInfo, const Clasp::SymbolTable& symTab)
-			: arguments(gringoAtomInfo.arguments) // XXX move?
-			, literal(symTab[gringoAtomInfo.symbolTableKey].lit)
-		{
-		}
-
+	struct AtomInfo
+	{
 		T arguments;
 		Clasp::Literal literal;
 	};
 
-	using ChildItemTrees = GringoOutputProcessor::ChildItemTrees;
+	// Key: Global ID of child node; value: the child node's item tree
+	typedef std::unordered_map<unsigned int, ItemTreePtr> ChildItemTrees;
 
 	ClaspCallback(const ChildItemTrees& childItemTrees, const Application& app);
 
 	// Call this after all answer sets have been processed. It returns the resulting item tree (and calls finalize() on it).
 	ItemTreePtr finalize();
 
-	// Called if the current configuration contains unsafe/unreasonable options
-	virtual void warning(const char* msg) override;
-
-	// Called for important events, e.g. a model has been found
-	virtual void event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f) override;
+	// Called when a model has been found
+	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;	
 
 protected:
 	template<typename T, typename F>
-	static void forEachTrue(const Clasp::Solver& s, const std::vector<AtomInfo<T>>& atomInfos, F function)
+	static void forEachTrue(const Clasp::Model& m, const std::vector<AtomInfo<T>>& atomInfos, F function)
 	{
 		for(const auto& atom : atomInfos) {
-			if(s.isTrue(atom.literal))
+			if(m.isTrue(atom.literal))
 				function(atom.arguments);
 		}
 	}
 
 	template<typename T, typename F>
-	static void forEachTrueLimited(const Clasp::Solver& s, const std::vector<AtomInfo<T>>& atomInfos, F function)
+	static void forEachTrueLimited(const Clasp::Model& m, const std::vector<AtomInfo<T>>& atomInfos, F function)
 	{
 		for(const auto& atom : atomInfos) {
-			if(s.isTrue(atom.literal)) {
+			if(m.isTrue(atom.literal)) {
 				if(function(atom.arguments) == false)
 					return;
 			}
@@ -80,10 +73,10 @@ protected:
 	}
 
 	template<typename T, typename F>
-	static void forFirstTrue(const Clasp::Solver& s, const std::vector<AtomInfo<T>>& atomInfos, F function)
+	static void forFirstTrue(const Clasp::Model& m, const std::vector<AtomInfo<T>>& atomInfos, F function)
 	{
 		for(const auto& atom : atomInfos) {
-			if(s.isTrue(atom.literal)) {
+			if(m.isTrue(atom.literal)) {
 				function(atom.arguments);
 				return;
 			}
@@ -92,10 +85,10 @@ protected:
 
 #ifndef DISABLE_CHECKS
 	template<typename T>
-	static size_t countTrue(const Clasp::Solver& s, const std::vector<AtomInfo<T>>& atomInfos)
+	static size_t countTrue(const Clasp::Model& m, const std::vector<AtomInfo<T>>& atomInfos)
 	{
-		return std::count_if(atomInfos.begin(), atomInfos.end(), [&s](const AtomInfo<T>& atom) {
-			return s.isTrue(atom.literal);
+		return std::count_if(atomInfos.begin(), atomInfos.end(), [&m](const AtomInfo<T>& atom) {
+			return m.isTrue(atom.literal);
 		});
 	}
 #endif

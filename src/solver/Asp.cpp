@@ -19,7 +19,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
 #include <sstream>
-#include <gringo/streams.h>
+#include <gringo/input/nongroundparser.hh>
+#include <gringo/input/program.hh>
+#include <gringo/input/programbuilder.hh>
+#include <gringo/output/output.hh>
+#include <gringo/logger.hh>
+#include <gringo/scripts.hh>
 #include <clasp/clasp_facade.h>
 
 #include "Asp.h"
@@ -28,31 +33,20 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../ItemTree.h"
 #include "../Decomposition.h"
 #include "../Application.h"
-#include "asp/tables/GringoOutputProcessor.h"
 #include "asp/tables/ClaspCallback.h"
-#include "asp/trees/GringoOutputProcessor.h"
 #include "asp/trees/ClaspCallback.h"
-#include "asp/ClaspInputReader.h"
 
 using namespace solver::asp;
-using ChildItemTrees = GringoOutputProcessor::ChildItemTrees;
+using ChildItemTrees = ClaspCallback::ChildItemTrees;
 
 namespace {
 
-std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(const ChildItemTrees& childItemTrees, bool tableMode)
+std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const ChildItemTrees& childItemTrees, bool prune, const Application& app, const Clasp::ClaspFacade& clasp)
 {
 	if(tableMode)
-		return std::unique_ptr<GringoOutputProcessor>(new tables::GringoOutputProcessor(childItemTrees));
+		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(childItemTrees, app, clasp));
 	else
-		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor(childItemTrees));
-}
-
-std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const GringoOutputProcessor& gringoOutputProcessor, const ChildItemTrees& childItemTrees, bool prune, const Application& app)
-{
-	if(tableMode)
-		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, app));
-	else
-		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutputProcessor), childItemTrees, prune, app));
+		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(childItemTrees, prune, app, clasp));
 }
 
 } // anonymous namespace
@@ -99,22 +93,40 @@ ItemTreePtr Asp::compute()
 
 	app.getDebugger().solverInvocationInput(decomposition.getRoot(), decompositionInput->str());
 
-	// Put these inputs together
-	Streams inputStreams;
-	inputStreams.addFile(encodingFile, false); // Second parameter: "relative" here means relative to the file added previously, which does not exist yet
-	// Remember: "Streams" deletes the appended streams -_-
-	inputStreams.appendStream(Streams::StreamPtr(instanceInput.release()), "<instance>");
-	inputStreams.appendStream(Streams::StreamPtr(decompositionInput.release()), "<decomposition>");
-	inputStreams.appendStream(Streams::StreamPtr(childItemTreesInput.release()), "<child_itrees>");
-
-	// Call the ASP solver
-	std::unique_ptr<GringoOutputProcessor> outputProcessor(newGringoOutputProcessor(childItemTrees, tableMode));
-	ClaspInputReader inputReader(inputStreams, *outputProcessor);
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *outputProcessor, childItemTrees, app.isPruningDisabled() == false, app));
+	// Set up ASP solver
 	Clasp::ClaspConfig config;
 	config.enumerate.numModels = 0;
 	Clasp::ClaspFacade clasp;
-	clasp.solve(inputReader, config, cb.get());
+	Clasp::Asp::LogicProgram& claspProgramBuilder = dynamic_cast<Clasp::Asp::LogicProgram&>(clasp.start(config, Clasp::Problem_t::ASP, true));
+	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut(new GringoOutputProcessor(claspProgramBuilder));
+	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));
+	Gringo::Input::Program program;
+	Gringo::Scripts scripts;
+	Gringo::Defines defs;
+	Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);
+	Gringo::Input::NonGroundParser parser(gringoProgramBuilder);
+
+	// Pass input to ASP solver
+	parser.pushFile(std::string(encodingFile));
+	parser.pushStream("<instance>", std::move(instanceInput));
+	parser.pushStream("<decomposition>", std::move(decompositionInput));
+	parser.pushStream("<child_itrees>", std::move(childItemTreesInput));
+	parser.parse();
+
+	// Ground and solve
+	program.rewrite(defs);
+	program.check();
+	if(Gringo::message_printer()->hasError())
+		throw std::runtime_error("Grounding stopped because of errors");
+	auto gPrg = program.toGround(out->domains);
+	Gringo::Ground::Parameters params;
+	params.add("base", {});
+	gPrg.ground(params, scripts, *out);
+	params.clear();
+
+	clasp.prepare();
+	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, childItemTrees, app.isPruningDisabled() == false, app, clasp));
+	clasp.solve(cb.get());
 
 	ItemTreePtr result = cb->finalize();
 

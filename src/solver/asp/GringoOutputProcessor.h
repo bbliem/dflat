@@ -21,9 +21,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 // Taken from gringo (GPL), made some modifications.
 #pragma once
 //}}}
-#include <gringo/gringo.h>
-#include <gringo/lparseconverter.h>
-#include <clasp/program_builder.h>
+#include <gringo/output/lparseoutputter.hh>
+#include <clasp/literal.h>
+#include <clasp/logic_program.h>
 #include <unordered_map>
 
 #include "../../ItemTree.h"
@@ -38,6 +38,38 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
+class GringoOutputProcessor : public Gringo::Output::LparseOutputter
+{
+public:
+	GringoOutputProcessor(Clasp::Asp::LogicProgram& out);
+
+	unsigned falseUid() { return false_; }
+	unsigned newUid()   { return prg_.newAtom(); }
+	void printBasicRule(unsigned head, LitVec const &body);
+	void printChoiceRule(AtomVec const &atoms, LitVec const &body);
+	void printCardinalityRule(unsigned head, unsigned lower, LitVec const &body);
+	void printWeightRule(unsigned head, unsigned lower, LitWeightVec const &body);
+	void printMinimize(LitWeightVec const &body);
+	void printDisjunctiveRule(AtomVec const &atoms, LitVec const &body);
+	void finishRules()   { /* noop */ }
+	void printSymbol(unsigned atomUid, Gringo::Value v);
+	void printExternal(unsigned atomUid);
+	void finishSymbols() { /* noop */ }
+	bool &disposeMinimize();
+
+private:
+	void addBody(const LitVec& body);
+	void addBody(const LitWeightVec& body);
+	GringoOutputProcessor(const GringoOutputProcessor&);
+	GringoOutputProcessor& operator=(const GringoOutputProcessor&);
+
+	Clasp::Asp::LogicProgram& prg_;
+	unsigned false_;
+	std::stringstream str_;
+	bool disposeMinimize_ = true;
+};
+
+/*
 class GringoOutputProcessor : public LparseConverter
 {
 public:
@@ -79,5 +111,6 @@ protected:
 	BoolVec atomUnnamed_;
 	uint32_t lastUnnamed_;
 };
+*/
 
 }} // namespace solver::asp
