@@ -26,7 +26,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 class Application;
 
-namespace solver { namespace asp {
+namespace solver {
+class Asp;
+namespace asp {
 class ItemSetLookupTable;
 
 // Gets called by clasp whenever a model has been found
@@ -34,22 +36,32 @@ class ClaspCallback : public Clasp::EventHandler
 {
 public:
 	template<typename T>
-	struct AtomInfo
-	{
+	struct AtomInfo {
+		AtomInfo(const GringoOutputProcessor::AtomInfo<T>& gringoAtomInfo, const Clasp::SymbolTable& symTab)
+			: arguments(gringoAtomInfo.arguments) // XXX move?
+			, literal(symTab[gringoAtomInfo.symbolTableKey].lit)
+		{
+		}
+
 		T arguments;
 		Clasp::Literal literal;
 	};
 
-	// Key: Global ID of child node; value: the child node's item tree
-	typedef std::unordered_map<unsigned int, ItemTreePtr> ChildItemTrees;
-
-	ClaspCallback(const ChildItemTrees& childItemTrees, const Application& app);
+	ClaspCallback(const Application&);
 
 	// Call this after all answer sets have been processed. It returns the resulting item tree (and calls finalize() on it).
-	ItemTreePtr finalize();
+	virtual ItemTreePtr finalize();
 
 	// Called when a model has been found
-	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;	
+	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
+
+	// Returns the item tree that is being constructed by this object.
+	// You may use this method before all answer sets have been processed to get the current state of the item tree.
+	// To obtain the finished product, you should probably call finalize() instead.
+	const ItemTreePtr& getItemTree() const;
+
+	// Call this when clasp's symbol table is available to let this object get the clasp literals corresponding to atoms using output predicates
+	virtual void prepare(const Clasp::SymbolTable&) {}
 
 protected:
 	template<typename T, typename F>
@@ -94,7 +106,6 @@ protected:
 #endif
 
 	ItemTreePtr itemTree;
-	const ChildItemTrees& childItemTrees;
 	const Application& app;
 	bool prune;
 };

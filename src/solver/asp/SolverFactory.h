@@ -20,26 +20,27 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include <vector>
+#include "../../SolverFactory.h"
+#include "../../options/SingleValueOption.h"
 
-#include "ItemTree.h"
+namespace solver { namespace asp {
 
-class Decomposition;
-class Application;
-
-class Solver
+class SolverFactory : public ::SolverFactory
 {
 public:
-	// Construct a solver responsible for the root of the given decomposition
-	Solver(const Decomposition& decomposition, const Application& app);
+	SolverFactory(Application& app, bool newDefault = false);
 
-	// Return the complete item tree
-	virtual ItemTreePtr compute() = 0;
+	virtual std::unique_ptr<::Solver> newSolver(const Decomposition& decomposition) const override;
 
-	// XXX What if there is more than one parent node?
-	Solver* getParentSolver();
+	virtual void select() override;
 
-protected:
-	const Decomposition& decomposition;
-	const Application& app;
+private:
+	static const std::string OPTION_SECTION;
+
+	options::SingleValueOption optEncodingFile;
+	options::Option            optDefaultJoin;
+	options::Option            optLazy;
+	options::Option            optTables;
 };
+
+}} // namespace solver::asp

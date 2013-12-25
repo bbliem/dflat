@@ -27,40 +27,50 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <gringo/scripts.hh>
 #include <clasp/clasp_facade.h>
 
-#include "Asp.h"
-#include "../Application.h"
-#include "../Debugger.h"
-#include "../ItemTree.h"
-#include "../Decomposition.h"
-#include "../Application.h"
-#include "asp/tables/ClaspCallback.h"
-#include "asp/trees/ClaspCallback.h"
+#include "Solver.h"
+#include "../../Application.h"
+#include "../../Debugger.h"
+#include "../../ItemTree.h"
+#include "../../Decomposition.h"
+#include "../../Application.h"
+#include "tables/ClaspCallback.h"
+#include "tables/GringoOutputProcessor.h"
+#include "trees/ClaspCallback.h"
+#include "trees/GringoOutputProcessor.h"
 
 using namespace solver::asp;
-using ChildItemTrees = ClaspCallback::ChildItemTrees;
 
 namespace {
 
-std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const ChildItemTrees& childItemTrees, bool prune, const Application& app, const Clasp::ClaspFacade& clasp)
+std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(Clasp::Asp::LogicProgram& claspProgramBuilder, const ChildItemTrees& childItemTrees, bool tableMode)
 {
 	if(tableMode)
-		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(childItemTrees, app, clasp));
+		return std::unique_ptr<GringoOutputProcessor>(new tables::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
 	else
-		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(childItemTrees, prune, app, clasp));
+		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
+}
+
+std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const Gringo::Output::LparseOutputter& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, const Application& app)
+{
+	if(tableMode)
+		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutput), childItemTrees, app));
+	else
+		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutput), childItemTrees, prune, app));
 }
 
 } // anonymous namespace
 
-namespace solver {
+namespace solver { namespace asp {
 
-Asp::Asp(const Decomposition& decomposition, const Application& app, const std::string& encodingFile, bool tableMode)
-	: Solver(decomposition, app)
+Solver::Solver(const Decomposition& decomposition, const Application& app, const std::string& encodingFile, bool tableMode)
+	: ::Solver(decomposition, app)
 	, encodingFile(encodingFile)
 	, tableMode(tableMode)
 {
+	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
 }
 
-ItemTreePtr Asp::compute()
+ItemTreePtr Solver::compute()
 {
 	// Compute item trees of child nodes
 	ChildItemTrees childItemTrees;
@@ -98,7 +108,7 @@ ItemTreePtr Asp::compute()
 	config.enumerate.numModels = 0;
 	Clasp::ClaspFacade clasp;
 	Clasp::Asp::LogicProgram& claspProgramBuilder = dynamic_cast<Clasp::Asp::LogicProgram&>(clasp.start(config, Clasp::Problem_t::ASP, true));
-	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut(new GringoOutputProcessor(claspProgramBuilder));
+	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut(newGringoOutputProcessor(claspProgramBuilder, childItemTrees, tableMode));
 	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));
 	Gringo::Input::Program program;
 	Gringo::Scripts scripts;
@@ -125,7 +135,8 @@ ItemTreePtr Asp::compute()
 	params.clear();
 
 	clasp.prepare();
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, childItemTrees, app.isPruningDisabled() == false, app, clasp));
+	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app.isPruningDisabled() == false, app));
+	cb->prepare(clasp.ctx.symTab());
 	clasp.solve(cb.get());
 
 	ItemTreePtr result = cb->finalize();
@@ -137,7 +148,7 @@ ItemTreePtr Asp::compute()
 	return result;
 }
 
-void Asp::declareDecomposition(const Decomposition& decomposition, std::ostream& out)
+void Solver::declareDecomposition(const Decomposition& decomposition, std::ostream& out)
 {
 	out << "% Decomposition facts" << std::endl;
 	out << "currentNode(" << decomposition.getRoot().getGlobalId() << ")." << std::endl;
@@ -169,7 +180,7 @@ void Asp::declareDecomposition(const Decomposition& decomposition, std::ostream&
 	out << "removed(X) :- childNode(N), bag(N,X), not current(X)." << std::endl;
 }
 
-void Asp::declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent, unsigned int level)
+void Solver::declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent, unsigned int level)
 {
 	if(!itemTree)
 		return;
@@ -231,4 +242,4 @@ void Asp::declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tabl
 	}
 }
 
-} // namespace solver
+}} // namespace solver::asp

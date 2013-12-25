@@ -20,26 +20,23 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../SolverFactory.h"
-#include "../options/SingleValueOption.h"
+#include "../../Solver.h"
 
-namespace solver {
+namespace solver { namespace asp {
 
-class AspFactory : public SolverFactory
+class Solver : public ::Solver
 {
 public:
-	AspFactory(Application& app, bool newDefault = false);
+	Solver(const Decomposition& decomposition, const Application& app, const std::string& encodingFile, bool tableMode);
 
-	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const override;
+	virtual ItemTreePtr compute() override;
 
-	virtual void select() override;
+	static void declareDecomposition(const Decomposition& decomposition, std::ostream& out);
+	static void declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0);
 
 private:
-	static const std::string OPTION_SECTION;
-
-	options::SingleValueOption optEncodingFile;
-	options::Option            optDefaultJoin;
-	options::Option            optTables;
+	std::string encodingFile;
+	bool tableMode;
 };
 
-} // namespace solver
+}} // namespace solver::asp

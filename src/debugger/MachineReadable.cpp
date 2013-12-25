@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "MachineReadable.h"
 #include "../Decomposition.h"
 #include "../Application.h"
-#include "../solver/Asp.h"
+#include "../solver/asp/Solver.h"
 
 namespace {
 
@@ -90,7 +90,7 @@ void MachineReadable::solverInvocationResult(const DecompositionNode& decomposit
 		std::cout << "% Facts describing the resulting item tree at node " << id << std::endl;
 		std::ostringstream rootItemSetName;
 		rootItemSetName << 'n' << id;
-		solver::Asp::declareItemTree(std::cout, result, false, id, rootItemSetName.str());
+		solver::asp::Solver::declareItemTree(std::cout, result, false, id, rootItemSetName.str());
 		std::cout << std::endl;
 
 		std::cout << "% Memory locations of the item tree nodes at decomposition node " << id << " (not passed to ASP)" << std::endl;

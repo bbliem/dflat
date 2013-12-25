@@ -33,7 +33,7 @@ bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr
 		   lhs->costDifferenceSignIncrease(rhs))));
 }
 
-void ItemTree::addChildAndMerge(ChildPtr&& subtree)
+ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree)
 {
 	subtree->parents.push_back(this);
 	subtree->getRoot()->setParent(node.get());
@@ -54,7 +54,9 @@ void ItemTree::addChildAndMerge(ChildPtr&& subtree)
 //		children.erase(result.first);
 //		children.insert(hint, std::move(subtree));
 		origChild->merge(std::move(*subtree));
+		return children.end();
 	}
+	return result.first;
 }
 
 void ItemTree::finalize()

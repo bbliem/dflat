@@ -22,41 +22,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp { namespace tables {
 
-ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, const Application& app, const Clasp::ClaspFacade& clasp)
-	: ::solver::asp::ClaspCallback(childItemTrees, app)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app)
+	: ::solver::asp::ClaspCallback(app)
+	, gringoOutput(gringoOutput)
+	, childItemTrees(childItemTrees)
 {
-	for(const auto& pair : clasp.ctx.symTab()) {
-		if(!pair.second.name.empty()) {
-			const std::string name = pair.second.name.c_str();
-			if(name.compare(0, 5, "item(") == 0) {
-				const std::string argument = name.substr(5, name.length()-6);
-				itemAtomInfos.emplace_back(ItemAtomInfo{{argument}, pair.second.lit});
-			}
-			else if(name.compare(0, 8, "auxItem(") == 0) {
-				const std::string argument = name.substr(8, name.length()-9);
-				auxItemAtomInfos.emplace_back(AuxItemAtomInfo{{argument}, pair.second.lit});
-			}
-			else if(name.compare(0, 7, "extend(") == 0) {
-				const std::string argument = name.substr(7, name.length()-8);
-				// Child node number is before the first '_' (and after the leading 'n')
-				// Row number is after the first '_'
-				const unsigned int underscorePos = argument.find('_');
-				const unsigned int decompositionChildId = std::stoi(std::string(argument, 1, underscorePos-1));
-				const unsigned int rowNumber = std::stoi(std::string(argument, underscorePos + 1));
-				ASP_CHECK(childItemTrees.find(decompositionChildId) != childItemTrees.end(), "Extension pointer refers to nonexistent decomposition child");
-				ASP_CHECK(rowNumber < childItemTrees.at(decompositionChildId)->getChildren().size(), "Extension pointer references invalid row number");
-				extendAtomInfos.emplace_back(ExtendAtomInfo{{decompositionChildId, childItemTrees.at(decompositionChildId)->getChild(rowNumber).getRoot()}, pair.second.lit});
-			}
-			else if(name.compare(0, 12, "currentCost(") == 0) {
-				const std::string argument = name.substr(12, name.length()-13);
-				currentCostAtomInfos.emplace_back(CurrentCostAtomInfo{{std::stol(argument)}, pair.second.lit});
-			}
-			else if(name.compare(0, 5, "cost(") == 0) {
-				const std::string argument = name.substr(5, name.length()-6);
-				costAtomInfos.emplace_back(CostAtomInfo{{std::stol(argument)}, pair.second.lit});
-			}
-		}
-	}
 }
 
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
@@ -65,11 +35,11 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 
 	// Get items {{{
 	ItemTreeNode::Items items;
-	forEachTrue(m, itemAtomInfos, [&items](const ItemAtomArguments& arguments) {
+	forEachTrue(m, itemAtomInfos, [&items](const GringoOutputProcessor::ItemAtomArguments& arguments) {
 			items.insert(arguments.item);
 	});
 	ItemTreeNode::Items auxItems;
-	forEachTrue(m, auxItemAtomInfos, [&auxItems](const AuxItemAtomArguments& arguments) {
+	forEachTrue(m, auxItemAtomInfos, [&auxItems](const GringoOutputProcessor::AuxItemAtomArguments& arguments) {
 			auxItems.insert(arguments.item);
 	});
 
@@ -80,7 +50,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	// Get extension pointers {{{
 	ItemTreeNode::ExtensionPointerTuple extendedRows;
 	ASP_CHECK(countTrue(m, extendAtomInfos) == childItemTrees.size(), "Not as many extension pointers as there are child item trees");
-	forEachTrueLimited(m, extendAtomInfos, [&](const ExtendAtomArguments& arguments) {
+	forEachTrueLimited(m, extendAtomInfos, [&](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
 			extendedRows.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedRow));
 			return extendedRows.size() != childItemTrees.size();
 	});
@@ -101,7 +71,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	// Set cost {{{
 	ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
 	long cost = 0;
-	forFirstTrue(m, costAtomInfos, [&cost](const CostAtomArguments& arguments) {
+	forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
 			cost = arguments.cost;
 	});
 	node->setCost(cost);
@@ -110,7 +80,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
 	ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
 	long currentCost = 0;
-	forFirstTrue(m, currentCostAtomInfos, [&currentCost](const CurrentCostAtomArguments& arguments) {
+	forFirstTrue(m, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
 			currentCost = arguments.currentCost;
 	});
 	node->setCurrentCost(currentCost);
@@ -122,6 +92,20 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 	// }}}
 	return true;
+}
+
+void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
+{
+	for(const auto& atom : gringoOutput.getItemAtomInfos())
+		itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
+	for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
+		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, symTab));
+	for(const auto& atom : gringoOutput.getExtendAtomInfos())
+		extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
+	for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
+		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
+	for(const auto& atom : gringoOutput.getCostAtomInfos())
+		costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
 }
 
 }}} // namespace solver::asp::tables

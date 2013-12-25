@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <memory>
 #include <limits>
+#include <unordered_map>
 
 #include "DirectedAcyclicGraph.h"
 #include "ItemTreeNode.h"
@@ -39,7 +40,8 @@ public:
 	using DirectedAcyclicGraph::DirectedAcyclicGraph;
 
 	// If there is a subtree rooted at a child of this node that has equal item sets as the given one, the existing subtree is unified with the given one
-	void addChildAndMerge(ChildPtr&& subtree);
+	// If no merging has occurred (i.e., "subtree" was added as a new child), returns an iterator to this new child; otherwise returns an iterator to this->children.end().
+	Children::const_iterator addChildAndMerge(ChildPtr&& subtree);
 
 	// Enables random access to this node's children via getChild(), and also random access for all children of descendants of this node.
 	void finalize();
@@ -74,3 +76,6 @@ private:
 
 	std::vector<const ItemTree*> childrenVector; // for random access via getChild()
 };
+
+// Key: Global ID of child node; value: the child node's item tree
+typedef std::unordered_map<unsigned int, ItemTreePtr> ChildItemTrees;

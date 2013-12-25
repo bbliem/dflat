@@ -41,6 +41,12 @@ namespace solver { namespace asp {
 class GringoOutputProcessor : public Gringo::Output::LparseOutputter
 {
 public:
+	template<typename T>
+	struct AtomInfo {
+		T arguments;
+		Clasp::SymbolTable::key_type symbolTableKey;
+	};
+
 	GringoOutputProcessor(Clasp::Asp::LogicProgram& out);
 
 	unsigned falseUid() { return false_; }
@@ -67,50 +73,9 @@ private:
 	unsigned false_;
 	std::stringstream str_;
 	bool disposeMinimize_ = true;
-};
-
-/*
-class GringoOutputProcessor : public LparseConverter
-{
-public:
-	template<typename T>
-	struct AtomInfo {
-		T arguments;
-		Clasp::SymbolTable::key_type symbolTableKey;
-	};
-
-	// Key: Global ID of child node; value: the child node's item tree
-	typedef std::unordered_map<unsigned int, ItemTreePtr> ChildItemTrees;
-
-	GringoOutputProcessor(const ChildItemTrees& childItemTrees);
-
-	virtual void initialize();
-	virtual void setProgramBuilder(Clasp::ProgramBuilder* api) { b_ = api; }
-	virtual const SymbolMap &symbolMap(uint32_t domId) const;
-	virtual ValRng vals(Domain *dom, uint32_t offset) const;
 
 protected:
-	std::vector<std::string> getArguments(ValVec::const_iterator firstArg, uint32_t arity) const;
-	virtual void storeAtom(const std::string& name, ValVec::const_iterator firstArg, uint32_t arity, Clasp::SymbolTable::key_type symbolTableKey) = 0;
-
-	virtual void printBasicRule(int head, const AtomVec &pos, const AtomVec &neg);
-	virtual void printConstraintRule(int head, int bound, const AtomVec &pos, const AtomVec &neg);
-	virtual void printChoiceRule(const AtomVec &head, const AtomVec &pos, const AtomVec &neg);
-	virtual void printWeightRule(int head, int bound, const AtomVec &pos, const AtomVec &neg, const WeightVec &wPos, const WeightVec &wNeg);
-	virtual void printMinimizeRule(const AtomVec &pos, const AtomVec &neg, const WeightVec &wPos, const WeightVec &wNeg);
-	virtual void printDisjunctiveRule(const AtomVec &head, const AtomVec &pos, const AtomVec &neg);
-	virtual void printComputeRule(int models, const AtomVec &pos, const AtomVec &neg);
-	virtual void printSymbolTableEntry(const AtomRef &atom, uint32_t arity, const std::string &name);
-	virtual void printExternalTableEntry(const AtomRef &atom, uint32_t arity, const std::string &name);
-	virtual uint32_t symbol();
-	virtual void doFinalize();
-
-	const ChildItemTrees& childItemTrees;
-	Clasp::ProgramBuilder *b_;
-	typedef std::vector<bool> BoolVec;
-	BoolVec atomUnnamed_;
-	uint32_t lastUnnamed_;
+	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) = 0;
 };
-*/
 
 }} // namespace solver::asp

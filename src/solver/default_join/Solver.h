@@ -20,26 +20,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include <vector>
+#include "../../Solver.h"
 
-#include "ItemTree.h"
+namespace solver { namespace default_join {
 
-class Decomposition;
-class Application;
-
-class Solver
+class Solver : public ::Solver
 {
 public:
-	// Construct a solver responsible for the root of the given decomposition
 	Solver(const Decomposition& decomposition, const Application& app);
 
-	// Return the complete item tree
-	virtual ItemTreePtr compute() = 0;
-
-	// XXX What if there is more than one parent node?
-	Solver* getParentSolver();
-
-protected:
-	const Decomposition& decomposition;
-	const Application& app;
+	virtual ItemTreePtr compute() override;
 };
+
+}} // namespace solver::default_join

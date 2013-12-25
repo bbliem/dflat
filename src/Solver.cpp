@@ -23,9 +23,18 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Solver.h"
 #include "Application.h"
+#include "Decomposition.h"
 
 Solver::Solver(const Decomposition& decomposition, const Application& app)
 	: decomposition(decomposition)
 	, app(app)
 {
+}
+
+Solver* Solver::getParentSolver()
+{
+	assert(decomposition.getParents().size() <= 1);
+	if(decomposition.getParents().empty())
+		return nullptr;
+	return &static_cast<Decomposition*>(decomposition.getParents().front())->getSolver();
 }

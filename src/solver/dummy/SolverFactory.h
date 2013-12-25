@@ -20,16 +20,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../SolverFactory.h"
+#include "../../SolverFactory.h"
 
-namespace solver {
+namespace solver { namespace dummy {
 
-class DummyFactory : public SolverFactory
+class SolverFactory : public ::SolverFactory
 {
 public:
-	DummyFactory(Application& app, bool newDefault = false);
+	SolverFactory(Application& app, bool newDefault = false);
 
-	virtual std::unique_ptr<Solver> newSolver(const Decomposition& decomposition) const override;
+	virtual std::unique_ptr<::Solver> newSolver(const Decomposition& decomposition) const override;
 };
 
-} // namespace solver
+}} // namespace solver::dummy

@@ -26,9 +26,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, const Application& app)
-	: childItemTrees(childItemTrees)
-	, app(app)
+ClaspCallback::ClaspCallback(const Application& app)
+	: app(app)
 {
 }
 
@@ -37,6 +36,11 @@ ItemTreePtr ClaspCallback::finalize()
 	if(itemTree)
 		itemTree->finalize();
 	return std::move(itemTree);
+}
+
+const ItemTreePtr& ClaspCallback::getItemTree() const
+{
+	return itemTree;
 }
 
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)

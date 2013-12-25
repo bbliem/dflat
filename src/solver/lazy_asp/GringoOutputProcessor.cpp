@@ -18,19 +18,18 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
-#include "DummyFactory.h"
-#include "Dummy.h"
+#include "GringoOutputProcessor.h"
 
-namespace solver {
+namespace solver { namespace lazy_asp {
 
-DummyFactory::DummyFactory(Application& app, bool newDefault)
-	: SolverFactory(app, "dummy", "Always report the empty item tree", newDefault)
+GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out)
+	: ::solver::asp::GringoOutputProcessor(out)
 {
 }
 
-std::unique_ptr<Solver> DummyFactory::newSolver(const Decomposition& decomposition) const
+void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 {
-	return std::unique_ptr<Solver>(new Dummy(decomposition, app));
+	// TODO
 }
 
-} // namespace solver
+}} // namespace solver::lazy_asp

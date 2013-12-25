@@ -20,23 +20,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../Solver.h"
+#include "../../Solver.h"
 
-namespace solver {
+namespace solver { namespace dummy {
 
-class Asp : public Solver
+class Solver : public ::Solver
 {
 public:
-	Asp(const Decomposition& decomposition, const Application& app, const std::string& encodingFile, bool tableMode);
+	using ::Solver::Solver;
 
 	virtual ItemTreePtr compute() override;
-
-	static void declareDecomposition(const Decomposition& decomposition, std::ostream& out);
-	static void declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0);
-
-protected:
-	std::string encodingFile;
-	bool tableMode;
 };
 
-} // namespace solver
+}} // namespace solver::dummy

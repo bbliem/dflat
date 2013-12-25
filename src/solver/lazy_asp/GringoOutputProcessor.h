@@ -20,16 +20,20 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../Solver.h"
+#include <memory>
 
-namespace solver {
+#include "../asp/GringoOutputProcessor.h"
 
-class Dummy : public Solver
+namespace solver { namespace lazy_asp {
+
+class GringoOutputProcessor : public ::solver::asp::GringoOutputProcessor
 {
 public:
-	using Solver::Solver;
+	// TODO
+	GringoOutputProcessor(Clasp::Asp::LogicProgram& out);
 
-	virtual ItemTreePtr compute() override;
+protected:
+	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) override;
 };
 
-} // namespace solver
+}} // namespace solver::lazy_asp

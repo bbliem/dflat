@@ -21,54 +21,33 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 //}}}
 #include "../ClaspCallback.h"
+#include "GringoOutputProcessor.h"
 
 namespace solver { namespace asp { namespace tables {
 
 class ClaspCallback : public ::solver::asp::ClaspCallback
 {
 public:
-	struct ExtendAtomArguments {
-		unsigned int decompositionNodeId;
-		std::weak_ptr<ItemTreeNode> extendedRow;
-	};
-	typedef AtomInfo<ExtendAtomArguments> ExtendAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::ExtendAtomArguments> ExtendAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
 
-	struct ItemAtomArguments {
-		std::string item;
-	};
-	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
-
-	struct AuxItemAtomArguments {
-		std::string item;
-	};
-	typedef AtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
-
-	struct CurrentCostAtomArguments {
-		long currentCost;
-	};
-	typedef AtomInfo<CurrentCostAtomArguments> CurrentCostAtomInfo;
-
-	struct CostAtomArguments {
-		long cost;
-	};
-	typedef AtomInfo<CostAtomArguments> CostAtomInfo;
-
-	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
-	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;
-	typedef std::vector<ExtendAtomInfo>         ExtendAtomInfos;
-	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
-	typedef std::vector<CostAtomInfo>           CostAtomInfos;
-
-	ClaspCallback(const ChildItemTrees&, const Application&, const Clasp::ClaspFacade&);
+	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&);
 
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
+	virtual void prepare(const Clasp::SymbolTable&) override;
 
-protected:
-	ItemAtomInfos           itemAtomInfos;
-	AuxItemAtomInfos        auxItemAtomInfos;
-	ExtendAtomInfos         extendAtomInfos;
-	CurrentCostAtomInfos    currentCostAtomInfos;
-	CostAtomInfos           costAtomInfos;
+private:
+	std::vector<ItemAtomInfo>           itemAtomInfos;
+	std::vector<AuxItemAtomInfo>        auxItemAtomInfos;
+	std::vector<ExtendAtomInfo>         extendAtomInfos;
+	std::vector<CurrentCostAtomInfo>    currentCostAtomInfos;
+	std::vector<CostAtomInfo>           costAtomInfos;
+
+	const GringoOutputProcessor& gringoOutput;
+	const ChildItemTrees& childItemTrees;
 };
 
 }}} // namespace solver::asp::tables

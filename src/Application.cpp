@@ -33,8 +33,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "decomposer/Dummy.h"
 #include "decomposer/TreeDecomposer.h"
 
-#include "solver/DummyFactory.h"
-#include "solver/AspFactory.h"
+#include "solver/dummy/SolverFactory.h"
+#include "solver/asp/SolverFactory.h"
 
 #include "debugger/Dummy.h"
 #include "debugger/HumanReadable.h"
@@ -101,8 +101,8 @@ int Application::run(int argc, char** argv)
 	decomposer::TreeDecomposer treeDecomposer(*this, true);
 
 	opts.addOption(optSolver, MODULE_SECTION);
-	solver::DummyFactory dummySolverFactory(*this);
-	solver::AspFactory aspSolverFactory(*this, true);
+	solver::dummy::SolverFactory dummySolverFactory(*this);
+	solver::asp::SolverFactory aspSolverFactory(*this, true);
 
 	opts.addOption(optDebugger, MODULE_SECTION);
 	debugger::Dummy dummyDebugger(*this, true);

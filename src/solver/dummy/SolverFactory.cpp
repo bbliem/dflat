@@ -18,15 +18,19 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
-#include "Dummy.h"
-#include "../ItemTree.h"
-#include "../Decomposition.h"
+#include "SolverFactory.h"
+#include "Solver.h"
 
-namespace solver {
+namespace solver { namespace dummy {
 
-ItemTreePtr Dummy::compute()
+SolverFactory::SolverFactory(Application& app, bool newDefault)
+	: ::SolverFactory(app, "dummy", "Always report the empty item tree", newDefault)
 {
-	return ItemTreePtr();
 }
 
-} // namespace solver
+std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decomposition) const
+{
+	return std::unique_ptr<::Solver>(new Solver(decomposition, app));
+}
+
+}} // namespace solver::dummy

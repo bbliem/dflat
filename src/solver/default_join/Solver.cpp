@@ -18,10 +18,10 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
-#include "DefaultJoin.h"
-#include "../Decomposition.h"
-#include "../Application.h"
-#include "../Debugger.h"
+#include "Solver.h"
+#include "../../Decomposition.h"
+#include "../../Application.h"
+#include "../../Debugger.h"
 
 namespace {
 
@@ -103,14 +103,14 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 
 } // anonymous namespace
 
-namespace solver {
+namespace solver { namespace default_join {
 
-DefaultJoin::DefaultJoin(const Decomposition& decomposition, const Application& app)
-	: Solver(decomposition, app)
+Solver::Solver(const Decomposition& decomposition, const Application& app)
+	: ::Solver(decomposition, app)
 {
 }
 
-ItemTreePtr DefaultJoin::compute()
+ItemTreePtr Solver::compute()
 {
 	assert(decomposition.getChildren().size() > 1);
 	// Compute item trees of child nodes
@@ -139,4 +139,4 @@ ItemTreePtr DefaultJoin::compute()
 	return result;
 }
 
-} // namespace solver
+}} // namespace solver::default_join
