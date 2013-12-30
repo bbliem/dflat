@@ -50,7 +50,12 @@ public:
 	void setSolverFactory(SolverFactory& solverFactory);
 	void setDebugger(Debugger& debugger);
 
+	bool isCountingDisabled() const;
 	bool isPruningDisabled() const;
+
+	// Returns the depth until which the solution item tree should be materialized.
+	// If the user did not specify a value, returns the greatest unsigned int.
+	unsigned int getMaterializationDepth() const;
 
 private:
 	static const std::string MODULE_SECTION;
@@ -62,9 +67,12 @@ private:
 	options::Choice optDecomposer;
 	options::Choice optSolver;
 	options::Choice optDebugger;
+	options::Option optNoCounting;
 	options::Option optNoPruning;
 
 	Decomposer* decomposer;
 	SolverFactory* solverFactory;
 	Debugger* debugger;
+
+	unsigned int depth;
 };

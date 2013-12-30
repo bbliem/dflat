@@ -133,6 +133,8 @@ ItemTreePtr DefaultJoin::compute()
 		result->finalize();
 
 	app.getDebugger().solverInvocationResult(decomposition.getRoot(), result.get());
+	if(result)
+		result->clearUnneededExtensionPointers(app);
 
 	return result;
 }

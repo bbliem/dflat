@@ -73,6 +73,11 @@ const ItemTreeNode::ExtensionPointers& ItemTreeNode::getExtensionPointers() cons
 	return extensionPointers;
 }
 
+void ItemTreeNode::clearExtensionPointers()
+{
+	extensionPointers.clear();
+}
+
 const ItemTreeNode* ItemTreeNode::getParent() const
 {
 	return parent;
@@ -170,6 +175,12 @@ void ItemTreeNode::merge(ItemTreeNode&& other)
 	// Merge other node's data into this
 	extensionPointers.insert(extensionPointers.end(), other.extensionPointers.begin(), other.extensionPointers.end());
 	count += other.count;
+}
+
+bool ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
+{
+	// XXX Check that this is not less efficient than a long boolean expression
+	return std::tie(items, type, hasAcceptingChild, hasRejectingChild, auxItems) < std::tie(other.items, other.type, other.hasAcceptingChild, other.hasRejectingChild, other.auxItems);
 }
 
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)

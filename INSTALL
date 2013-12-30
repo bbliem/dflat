@@ -1,14 +1,14 @@
 COMPILING
 
 Compilation of D-FLAT has been tested with the following versions of the dependencies:
-- CMake (http://cmake.org/), version 2.8.10.2
-- Boost (http://boost.org/), version 1.52.0
+- CMake (http://cmake.org/), version 2.8.12.1
+- Boost (http://boost.org/), version 1.55.0
 - libgringo (http://potassco.sourceforge.net/), version 3.0.5
-- libclasp (http://potassco.sourceforge.net/), version 2.1.1
-- GMP (http://gmplib.org/), version 5.1.1 -- make sure to also compile the C++ interface
+- libclasp (http://potassco.sourceforge.net/), version 2.1.4
+- GMP (http://gmplib.org/), version 5.1.3 -- make sure to also compile the C++ interface
 - SHARP (http://www.dbai.tuwien.ac.at/research/project/sharp/) with D-FLAT-specific modifications, for now provided only on the D-FLAT website, http://dbai.tuwien.ac.at/research/project/dflat/
 
-Compilation was tested with the stated version numbers and GCC 4.7.2. Unless the developers of the dependencies introduce incompatible changes, later versions should work too. If you run into any problems with later releases, try compiling D-FLAT with the version specified above.
+Compilation was tested with the stated version numbers and GCC 4.8.2, as well as with clang 3.3. Unless the developers of the dependencies introduce incompatible changes, later versions should work too. (Older versions might work if you're lucky.) If you run into any problems with later releases, try compiling D-FLAT with the version specified above.
 
 You need to adjust the paths in D-FLAT's Makefile. In particular, the variables gringo_dir, clasp_dir and sharp_dir.
 
@@ -36,10 +36,6 @@ COMPILATION FLAGS
 
 D-FLAT supports the following preprocessor defines:
 
-- PROGRESS_REPORT: Print a line of information when entering a tree decomposition node
-- WITH_NODE_TIMER: When processing of a node is finished, print the elapsed time
-- PRINT_BAG_INPUT: Print input facts regarding the current and previous bags that are passed to the user program
-- PRINT_CHILD_TABLES_INPUT: Print input facts regarding child rows that are passed to the user program
-- PRINT_MODELS: Print all information in a model of the user program whenever one is found
-- PRINT_COMPUTED_ROWS: Print rows resulting from the user's program
-- DISABLE_ANSWER_SET_CHECKS: By default, D-FLAT checks if all current vertices were assigned exactly one value and no non-current vertex is assigned; this flag disables the check.
+- DECOMPOSITION_COMPATIBILITY: Causes D-FLAT to build identical decompositions as the old version 0.2, when both are supplied with identical random seeds. (Causes a little overhead.)
+- DISABLE_CHECKS: Disables some checks to make sure the user-supplied program is correct. Not recommended unless you have tested the program thoroughly and want to gain extra performance.
+- NO_UNICODE: Avoids unicode special symbols for printing item trees in favor of ASCII symbols. Less beautiful, but probably more portable.

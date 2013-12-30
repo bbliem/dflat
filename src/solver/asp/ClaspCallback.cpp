@@ -19,13 +19,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
 #include "ClaspCallback.h"
+#include "../../Application.h"
 #include "../../Debugger.h"
 
 namespace solver { namespace asp {
 
-ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, const Debugger& debugger)
+ClaspCallback::ClaspCallback(const ChildItemTrees& childItemTrees, const Application& app)
 	: childItemTrees(childItemTrees)
-	, debugger(debugger)
+	, app(app)
 {
 }
 
@@ -43,7 +44,7 @@ void ClaspCallback::warning(const char* msg)
 
 void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, Clasp::ClaspFacade& f)
 {
-	if(e == Clasp::ClaspFacade::event_model && debugger.listensForSolverEvents()) {
+	if(e == Clasp::ClaspFacade::event_model && app.getDebugger().listensForSolverEvents()) {
 		Clasp::SymbolTable& symTab = f.config()->ctx.symTab();
 		std::ostringstream msg;
 		msg << "Model " << f.config()->ctx.enumerator()->enumerated-1 << ": ";
@@ -51,7 +52,7 @@ void ClaspCallback::event(const Clasp::Solver& s, Clasp::ClaspFacade::Event e, C
 			if(s.isTrue(it->second.lit) && !it->second.name.empty())
 				msg << it->second.name.c_str() << ' ';
 		}
-		debugger.solverEvent(msg.str());
+		app.getDebugger().solverEvent(msg.str());
 	}
 }
 

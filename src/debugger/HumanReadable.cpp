@@ -42,14 +42,13 @@ HumanReadable::HumanReadable(Application& app, bool newDefault)
 
 void HumanReadable::decomposerResult(const Decomposition& result) const
 {
-	std::cout << "Decomposition:" << std::endl << result << std::endl;
+	std::cout << "Decomposition (width " << result.getWidth() << "):" << std::endl << result << std::endl;
 }
 
 void HumanReadable::solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input) const
 {
-	if(optPrintSolverInvocationInput.isUsed()) {
+	if(optPrintSolverInvocationInput.isUsed())
 		std::cout << "Input for solver at decomposition node " << decompositionNode.getGlobalId() << ':' << std::endl << input << std::endl;
-	}
 }
 
 void HumanReadable::solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result) const

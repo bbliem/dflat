@@ -3,7 +3,7 @@ cxxflags_release="-DWITH_THREADS=0"
 cxxflags_debug=$(cxxflags_release)
 cxxflags_gprof=$(cxxflags_debug)
 cxxflags_static=$(cxxflags_release)
-cxxflags_static32="-DWITH_THREADS=0 -m32"
+cxxflags_static32="-DWITH_THREADS=0 -m32 -DNO_UNICODE"
 
 gringo_dir=/files/abseher/gringo-3.0.5
 gringo_lib=$(gringo_dir)/build/release/lib/libgringo.a

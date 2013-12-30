@@ -103,8 +103,8 @@ protected:
 				os << "┗━ ";
 				indent += "   ";
 #else
-				os << "\\-";
-				indent += "  ";
+				os << "\\- ";
+				indent += "   ";
 #endif
 			}
 			else {
@@ -112,8 +112,8 @@ protected:
 				os << "┣━ ";
 				indent += "┃  ";
 #else
-				os << "|-";
-				indent += "| ";
+				os << "|- ";
+				indent += "|  ";
 #endif
 			}
 		}

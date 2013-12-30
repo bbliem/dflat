@@ -59,6 +59,8 @@ public:
 	const Items& getAuxItems() const;
 
 	const ExtensionPointers& getExtensionPointers() const;
+	void clearExtensionPointers();
+
 	const ItemTreeNode* getParent() const;
 	void setParent(const ItemTreeNode*);
 	const mpz_class& getCount() const;
@@ -85,6 +87,9 @@ public:
 	// Unify extension pointers of this node with the other one's given that the item sets are equal.
 	// "other" will subsequently be thrown away and only "this" will be retained.
 	void merge(ItemTreeNode&& other);
+
+	// Returns true if this is "smaller" than other, without considering costs
+	bool compareCostInsensitive(const ItemTreeNode& other) const;
 
 	// Print this node (no newlines)
 	friend std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node);
