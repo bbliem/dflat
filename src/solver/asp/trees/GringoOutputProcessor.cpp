@@ -146,11 +146,11 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 		ASP_CHECK(v.args().size() == 1, "'and' predicate does not have arity 1");
 		andAtomInfos.emplace_back(AndAtomInfo{{static_cast<unsigned int>(std::stol(getArguments(v).front()))}, atomUid});
 	} else if(predicate == "accept") {
-		ASP_CHECK(v.args().size() == 0, "'accept' predicate does not have arity 0");
+		ASP_CHECK(v.type() == Gringo::Value::ID, "'accept' predicate does not have arity 0");
 		assert(!acceptAtomKey);
 		acceptAtomKey.reset(new Clasp::SymbolTable::key_type(atomUid));
 	} else if(predicate == "reject") {
-		ASP_CHECK(v.args().size() == 0, "'reject' predicate does not have arity 0");
+		ASP_CHECK(v.type() == Gringo::Value::ID, "'reject' predicate does not have arity 0");
 		assert(!rejectAtomKey);
 		rejectAtomKey.reset(new Clasp::SymbolTable::key_type(atomUid));
 	}
