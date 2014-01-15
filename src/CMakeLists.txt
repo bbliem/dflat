@@ -79,10 +79,11 @@ add_executable(dflat
 	solver/asp/trees/GringoOutputProcessor.cpp
 	solver/asp/trees/UncompressedItemTree.cpp
 	solver/default_join/Solver.cpp
-	Debugger.cpp
-	debugger/Dummy.cpp
-	debugger/HumanReadable.cpp
-	debugger/MachineReadable.cpp
+	Printer.cpp
+	printer/Quiet.cpp
+	printer/Progress.cpp
+	printer/DebugHumanReadable.cpp
+	printer/DebugMachineReadable.cpp
 	ItemTreeNode.cpp
 	ItemTree.cpp
 	ExtensionIterator.cpp

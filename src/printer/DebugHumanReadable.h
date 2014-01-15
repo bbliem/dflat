@@ -20,21 +20,21 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../Debugger.h"
+#include "../Printer.h"
 #include "../options/Option.h"
 
-namespace debugger {
+namespace printer {
 
-class HumanReadable : public Debugger
+class DebugHumanReadable : public Printer
 {
 public:
-	HumanReadable(Application& app, bool newDefault = false);
+	DebugHumanReadable(Application& app, bool newDefault = false);
 
-	virtual void decomposerResult(const Decomposition& result) const;
-	virtual void solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input) const;
-	virtual void solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result) const;
-	virtual bool listensForSolverEvents() const;
-	virtual void solverEvent(const std::string& msg) const;
+	virtual void decomposerResult(const Decomposition& result) override;
+	virtual void solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input);
+	virtual void solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result);
+	virtual bool listensForSolverEvents() const override;
+	virtual void solverEvent(const std::string& msg);
 
 private:
 	static const std::string OPTION_SECTION;
@@ -43,4 +43,4 @@ private:
 	options::Option optPrintSolverInvocationInput;
 };
 
-} // namespace debugger
+} // namespace printer

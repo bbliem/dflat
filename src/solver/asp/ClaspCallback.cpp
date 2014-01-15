@@ -22,7 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ClaspCallback.h"
 #include "../../Application.h"
-#include "../../Debugger.h"
+#include "../../Printer.h"
 
 namespace solver { namespace asp {
 
@@ -45,7 +45,7 @@ const ItemTreePtr& ClaspCallback::getItemTree() const
 
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 {
-	if(app.getDebugger().listensForSolverEvents()) {
+	if(app.getPrinter().listensForSolverEvents()) {
 		Clasp::SymbolTable& symTab = s.sharedContext()->symTab();
 		std::ostringstream msg;
 		msg << "Model: ";
@@ -53,7 +53,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 			if(m.isTrue(it->second.lit) && !it->second.name.empty())
 				msg << it->second.name.c_str() << ' ';
 		}
-		app.getDebugger().solverEvent(msg.str());
+		app.getPrinter().solverEvent(msg.str());
 	}
 	return true;
 }

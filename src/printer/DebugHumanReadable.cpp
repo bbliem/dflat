@@ -20,16 +20,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <iostream>
 
-#include "HumanReadable.h"
+#include "DebugHumanReadable.h"
 #include "../Decomposition.h"
 #include "../Application.h"
 
-namespace debugger {
+namespace printer {
 
-const std::string HumanReadable::OPTION_SECTION = "Human-readable debugging output";
+const std::string DebugHumanReadable::OPTION_SECTION = "Human-readable debugging output";
 
-HumanReadable::HumanReadable(Application& app, bool newDefault)
-	: Debugger(app, "human", "Human-readable debugging output", newDefault)
+DebugHumanReadable::DebugHumanReadable(Application& app, bool newDefault)
+	: Printer(app, "human", "Human-readable debugging output", newDefault)
 	, optPrintSolverEvents("print-solver-events", "Print events that occurred during solving")
 	, optPrintSolverInvocationInput("print-solver-input", "Print solver invocation input")
 {
@@ -40,18 +40,18 @@ HumanReadable::HumanReadable(Application& app, bool newDefault)
 	app.getOptionHandler().addOption(optPrintSolverInvocationInput, OPTION_SECTION);
 }
 
-void HumanReadable::decomposerResult(const Decomposition& result) const
+void DebugHumanReadable::decomposerResult(const Decomposition& result)
 {
 	std::cout << "Decomposition (width " << result.getWidth() << "):" << std::endl << result << std::endl;
 }
 
-void HumanReadable::solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input) const
+void DebugHumanReadable::solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input)
 {
 	if(optPrintSolverInvocationInput.isUsed())
 		std::cout << "Input for solver at decomposition node " << decompositionNode.getGlobalId() << ':' << std::endl << input << std::endl;
 }
 
-void HumanReadable::solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result) const
+void DebugHumanReadable::solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result)
 {
 	std::cout << std::endl << "Resulting item tree at decomposition node " << decompositionNode.getGlobalId();
 	if(result)
@@ -61,14 +61,14 @@ void HumanReadable::solverInvocationResult(const DecompositionNode& decompositio
 	std::cout << std::endl;
 }
 
-bool HumanReadable::listensForSolverEvents() const
+bool DebugHumanReadable::listensForSolverEvents() const
 {
 	return optPrintSolverEvents.isUsed();
 }
 
-void HumanReadable::solverEvent(const std::string& msg) const
+void DebugHumanReadable::solverEvent(const std::string& msg)
 {
 	std::cout << msg << std::endl;
 }
 
-} // namespace debugger
+} // namespace printer

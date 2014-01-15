@@ -36,9 +36,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "solver/dummy/SolverFactory.h"
 #include "solver/asp/SolverFactory.h"
 
-#include "debugger/Dummy.h"
-#include "debugger/HumanReadable.h"
-#include "debugger/MachineReadable.h"
+#include "printer/Quiet.h"
+#include "printer/Progress.h"
+#include "printer/DebugHumanReadable.h"
+#include "printer/DebugMachineReadable.h"
 
 #include "parser/Driver.h"
 
@@ -64,7 +65,7 @@ Application::Application(const std::string& binaryName)
 	: binaryName(binaryName)
 	, optDecomposer("d", "decomposer", "Use decomposition method <decomposer>")
 	, optSolver("s", "solver", "Use <solver> to compute partial solutions")
-	, optDebugger("debug", "module", "Use <module> to print debugging information")
+	, optPrinter("output", "module", "Print information during the run using <module>")
 	, optNoCounting("no-counting", "Do not count the number of solutions")
 	, optNoPruning("no-pruning", "Do not prune rejecting subtrees")
 	, decomposer(0)
@@ -104,10 +105,11 @@ int Application::run(int argc, char** argv)
 	solver::dummy::SolverFactory dummySolverFactory(*this);
 	solver::asp::SolverFactory aspSolverFactory(*this, true);
 
-	opts.addOption(optDebugger, MODULE_SECTION);
-	debugger::Dummy dummyDebugger(*this, true);
-	debugger::HumanReadable humanReadableDebugger(*this);
-	debugger::MachineReadable machineReadableDebugger(*this);
+	opts.addOption(optPrinter, MODULE_SECTION);
+	printer::Quiet quietPrinter(*this);
+	printer::Progress progressPrinter(*this, true);
+	printer::DebugHumanReadable humanReadableDebugPrinter(*this);
+	printer::DebugMachineReadable machineReadableDebugPrinter(*this);
 
 	// Parse command line
 	try {
@@ -148,14 +150,8 @@ int Application::run(int argc, char** argv)
 	// Solve
 	ItemTreePtr rootItree = decomposition->getSolver().compute();
 
-	std::cout << "Solutions:" << std::endl;
-	if(rootItree)
-		rootItree->printExtensions(std::cout, depth, !isCountingDisabled());
-	else {
-		std::cout << "[0]" << std::endl;
-		return 20;
-	}
-	return 10;
+	printer->result(rootItree);
+	return rootItree ? 10 : 20;
 }
 
 void Application::usage() const
@@ -184,9 +180,9 @@ options::Choice& Application::getSolverChoice()
 	return optSolver;
 }
 
-options::Choice& Application::getDebuggerChoice()
+options::Choice& Application::getPrinterChoice()
 {
-	return optDebugger;
+	return optPrinter;
 }
 
 const SolverFactory& Application::getSolverFactory() const
@@ -195,10 +191,10 @@ const SolverFactory& Application::getSolverFactory() const
 	return *solverFactory;
 }
 
-const Debugger& Application::getDebugger() const
+Printer& Application::getPrinter() const
 {
-	assert(debugger);
-	return *debugger;
+	assert(printer);
+	return *printer;
 }
 
 void Application::setDecomposer(Decomposer& d)
@@ -211,9 +207,9 @@ void Application::setSolverFactory(SolverFactory& s)
 	solverFactory = &s;
 }
 
-void Application::setDebugger(Debugger& d)
+void Application::setPrinter(Printer& p)
 {
-	debugger = &d;
+	printer = &p;
 }
 
 bool Application::isCountingDisabled() const

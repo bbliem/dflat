@@ -20,20 +20,28 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../Debugger.h"
+#include "../Printer.h"
 
-namespace debugger {
+namespace printer {
 
-class MachineReadable : public Debugger
+class Progress : public Printer
 {
 public:
-	MachineReadable(Application& app, bool newDefault = false);
+	Progress(Application& app, bool newDefault = false);
 
-	virtual void decomposerResult(const Decomposition& result) const;
-	virtual void solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input) const;
-	virtual void solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result) const;
+	virtual void decomposerResult(const Decomposition& result) override;
+	virtual void solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result) override;
 	virtual bool listensForSolverEvents() const;
-	virtual void solverEvent(const std::string& msg) const;
+	virtual void solverEvent(const std::string& msg);
+	virtual void result(const ItemTreePtr& rootItemTree) override;
+
+private:
+	void printProgress();
+
+	unsigned int totalNodes;
+	unsigned int curNode;
+
+	int curFrame;
 };
 
-} // namespace debugger
+} // namespace printer

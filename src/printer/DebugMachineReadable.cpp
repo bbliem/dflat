@@ -21,7 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <sstream>
 
-#include "MachineReadable.h"
+#include "DebugMachineReadable.h"
 #include "../Decomposition.h"
 #include "../Application.h"
 #include "../solver/asp/Solver.h"
@@ -67,23 +67,23 @@ void declareExtensionPointers(std::ostream& out, const ItemTree* itemTree, const
 
 } // anonymous namespace
 
-namespace debugger {
+namespace printer {
 
-MachineReadable::MachineReadable(Application& app, bool newDefault)
-	: Debugger(app, "machine", "Machine-readable debugging output", newDefault)
+DebugMachineReadable::DebugMachineReadable(Application& app, bool newDefault)
+	: Printer(app, "machine", "Machine-readable debugging output", newDefault)
 {
 }
 
-void MachineReadable::decomposerResult(const Decomposition& result) const
+void DebugMachineReadable::decomposerResult(const Decomposition& result)
 {
 }
 
-void MachineReadable::solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input) const
+void DebugMachineReadable::solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input)
 {
 	std::cout << "% Input for solver at decomposition node " << decompositionNode.getGlobalId() << std::endl << input << std::endl;
 }
 
-void MachineReadable::solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result) const
+void DebugMachineReadable::solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result)
 {
 	const auto id = decompositionNode.getGlobalId();
 	if(result) {
@@ -105,13 +105,13 @@ void MachineReadable::solverInvocationResult(const DecompositionNode& decomposit
 		std::cout << "% Item tree of node " << id << " is empty." << std::endl;
 }
 
-bool MachineReadable::listensForSolverEvents() const
+bool DebugMachineReadable::listensForSolverEvents() const
 {
 	return false;
 }
 
-void MachineReadable::solverEvent(const std::string& msg) const
+void DebugMachineReadable::solverEvent(const std::string& msg)
 {
 }
 
-} // namespace debugger
+} // namespace printer

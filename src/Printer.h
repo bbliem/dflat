@@ -21,26 +21,28 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 //}}}
 #include "Module.h"
+#include "ItemTree.h" // XXX Change Solver::compute() to return an ItemTree instead of an ItemTreePtr and we can dispense with this (forward declare)
 
 class Decomposition;
 class DecompositionNode;
-class ItemTree;
 
-class Debugger : public Module
+class Printer : public Module
 {
 public:
-	Debugger(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
-	virtual ~Debugger() = 0;
+	Printer(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
+	virtual ~Printer() = 0;
 
-	virtual void decomposerResult(const Decomposition& result) const;
+	virtual void decomposerResult(const Decomposition& result);
 
 	// Be default, the implementations of these methods don't do anything
-	virtual void solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input) const;
-	virtual void solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result) const;
+	virtual void solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input);
+	virtual void solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result);
 
 	// Whether calls to solverEvent() have any effect.
 	virtual bool listensForSolverEvents() const; // this implementation returns false
-	virtual void solverEvent(const std::string& msg) const;
+	virtual void solverEvent(const std::string& msg);
+
+	virtual void result(const ItemTreePtr& rootItemTree);
 
 	virtual void select() override;
 };

@@ -17,16 +17,23 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#pragma once
 //}}}
-#include "Dummy.h"
-#include "../Decomposition.h"
-#include "../Application.h"
+#include "../Printer.h"
 
-namespace debugger {
+namespace printer {
 
-Dummy::Dummy(Application& app, bool newDefault)
-	: Debugger(app, "dummy", "No debugging output", newDefault)
+class DebugMachineReadable : public Printer
 {
-}
+public:
+	DebugMachineReadable(Application& app, bool newDefault = false);
 
-} // namespace debugger
+	virtual void decomposerResult(const Decomposition& result);
+	virtual void solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input);
+	virtual void solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result);
+	virtual bool listensForSolverEvents() const override;
+	virtual void solverEvent(const std::string& msg);
+};
+
+} // namespace printer

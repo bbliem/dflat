@@ -20,14 +20,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../Debugger.h"
+#include "../Printer.h"
 
-namespace debugger {
+namespace printer {
 
-class Dummy : public Debugger
+class Quiet : public Printer
 {
 public:
-	Dummy(Application& app, bool newDefault = false);
+	Quiet(Application& app, bool newDefault = false);
 };
 
-} // namespace debugger
+} // namespace printer

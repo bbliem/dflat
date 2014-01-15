@@ -29,7 +29,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Solver.h"
 #include "../../Application.h"
-#include "../../Debugger.h"
+#include "../../Printer.h"
 #include "../../ItemTree.h"
 #include "../../Decomposition.h"
 #include "../../Application.h"
@@ -91,7 +91,7 @@ ItemTreePtr Solver::compute()
 		declareItemTree(*childItemTreesInput, childItemTree.second.get(), tableMode, childItemTree.first, rootItemSetName.str());
 	}
 
-	app.getDebugger().solverInvocationInput(decomposition.getRoot(), childItemTreesInput->str());
+	app.getPrinter().solverInvocationInput(decomposition.getRoot(), childItemTreesInput->str());
 
 	// Input: Original problem instance
 	std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
@@ -101,7 +101,7 @@ ItemTreePtr Solver::compute()
 	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
 	declareDecomposition(decomposition, *decompositionInput);
 
-	app.getDebugger().solverInvocationInput(decomposition.getRoot(), decompositionInput->str());
+	app.getPrinter().solverInvocationInput(decomposition.getRoot(), decompositionInput->str());
 
 	// Set up ASP solver
 	Clasp::ClaspConfig config;
@@ -141,7 +141,7 @@ ItemTreePtr Solver::compute()
 
 	ItemTreePtr result = cb->finalize();
 
-	app.getDebugger().solverInvocationResult(decomposition.getRoot(), result.get());
+	app.getPrinter().solverInvocationResult(decomposition.getRoot(), result.get());
 	if(result)
 		result->clearUnneededExtensionPointers(app);
 

@@ -31,7 +31,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../Hypergraph.h"
 #include "../Decomposition.h"
 #include "../Application.h"
-#include "../Debugger.h"
+#include "../Printer.h"
 
 namespace {
 	class SharpProblem : public sharp::Problem
@@ -149,7 +149,7 @@ DecompositionPtr TreeDecomposer::decompose(const Hypergraph& instance) const
 
 	// Transform SHARP's tree decomposition into our format
 	DecompositionPtr result = transformTd(*normalized, !optNoEmptyLeaves.isUsed(), normalizationType, problem, app);
-	app.getDebugger().decomposerResult(*result);
+	app.getPrinter().decomposerResult(*result);
 	return result;
 }
 

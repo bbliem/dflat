@@ -18,23 +18,14 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
-#include "Dummy.h"
-#include "../Decomposition.h"
+#include "Quiet.h"
 #include "../Application.h"
-#include "../Printer.h"
 
-namespace decomposer {
+namespace printer {
 
-Dummy::Dummy(Application& app, bool newDefault)
-	: Decomposer(app, "dummy", "Do not decompose", newDefault)
+Quiet::Quiet(Application& app, bool newDefault)
+	: Printer(app, "quiet", "Only print the result", newDefault)
 {
 }
 
-DecompositionPtr Dummy::decompose(const Hypergraph& instance) const
-{
-	DecompositionPtr result(new Decomposition(instance.getVertices(), app.getSolverFactory()));
-	app.getPrinter().decomposerResult(*result);
-	return result;
-}
-
-} // namespace decomposer
+} // namespace printer

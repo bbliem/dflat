@@ -25,7 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 class Decomposer;
 class SolverFactory;
-class Debugger;
+class Printer;
 
 class Application
 {
@@ -41,14 +41,14 @@ public:
 	options::OptionHandler& getOptionHandler();
 	options::Choice& getDecomposerChoice();
 	options::Choice& getSolverChoice();
-	options::Choice& getDebuggerChoice();
+	options::Choice& getPrinterChoice();
 
 	const SolverFactory& getSolverFactory() const;
-	const Debugger& getDebugger() const;
+	Printer& getPrinter() const;
 
 	void setDecomposer(Decomposer& decomposer);
 	void setSolverFactory(SolverFactory& solverFactory);
-	void setDebugger(Debugger& debugger);
+	void setPrinter(Printer& printer);
 
 	bool isCountingDisabled() const;
 	bool isPruningDisabled() const;
@@ -66,13 +66,13 @@ private:
 	options::OptionHandler opts;
 	options::Choice optDecomposer;
 	options::Choice optSolver;
-	options::Choice optDebugger;
+	options::Choice optPrinter;
 	options::Option optNoCounting;
 	options::Option optNoPruning;
 
 	Decomposer* decomposer;
 	SolverFactory* solverFactory;
-	Debugger* debugger;
+	Printer* printer;
 
 	unsigned int depth;
 };

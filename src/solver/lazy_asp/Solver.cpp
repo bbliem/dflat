@@ -32,7 +32,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "GringoOutputProcessor.h"
 #include "../asp/Solver.h"
 #include "../../Application.h"
-#include "../../Debugger.h"
+#include "../../Printer.h"
 #include "../../ItemTree.h"
 #include "../../Decomposition.h"
 #include "../../Application.h"
@@ -121,7 +121,7 @@ void Solver::workerThreadMain()
 	// Input: Decomposition
 	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
 	solver::asp::Solver::declareDecomposition(decomposition, *decompositionInput);
-	app.getDebugger().solverInvocationInput(decomposition.getRoot(), decompositionInput->str());
+	app.getPrinter().solverInvocationInput(decomposition.getRoot(), decompositionInput->str());
 
 	// Pass input to ASP solver
 	parser.pushFile(std::string(encodingFile));

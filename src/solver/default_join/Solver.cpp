@@ -21,7 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Solver.h"
 #include "../../Decomposition.h"
 #include "../../Application.h"
-#include "../../Debugger.h"
+#include "../../Printer.h"
 
 namespace {
 
@@ -132,7 +132,7 @@ ItemTreePtr Solver::compute()
 	if(result)
 		result->finalize();
 
-	app.getDebugger().solverInvocationResult(decomposition.getRoot(), result.get());
+	app.getPrinter().solverInvocationResult(decomposition.getRoot(), result.get());
 	if(result)
 		result->clearUnneededExtensionPointers(app);
 
