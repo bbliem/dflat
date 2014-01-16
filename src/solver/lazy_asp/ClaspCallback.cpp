@@ -23,41 +23,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_asp {
 
-ClaspCallback::ClaspCallback(const Application& app, Solver& solver, std::unique_lock<std::mutex>& lock)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Application& app, Solver& solver, std::unique_lock<std::mutex>& lock)
 	: ::solver::asp::ClaspCallback(app)
+	, gringoOutput(gringoOutput)
 	, solver(solver)
 	, lock(lock)
 {
-	// TODO
-//	for(const auto& pair : clasp.ctx.symTab()) {
-//		if(!pair.second.name.empty()) {
-//			const std::string name = pair.second.name.c_str();
-//			if(name.compare(0, 5, "item(") == 0) {
-//				const std::string argument = name.substr(5, name.length()-6);
-//				itemAtomInfos.emplace_back(ItemAtomInfo{{argument}, pair.second.lit});
-//			}
-//			else if(name.compare(0, 8, "auxItem(") == 0) {
-//				const std::string argument = name.substr(8, name.length()-9);
-//				auxItemAtomInfos.emplace_back(AuxItemAtomInfo{{argument}, pair.second.lit});
-//			}
-//			else if(name.compare(0, 12, "currentCost(") == 0) {
-//				const std::string argument = name.substr(12, name.length()-13);
-//				currentCostAtomInfos.emplace_back(CurrentCostAtomInfo{{std::stol(argument)}, pair.second.lit});
-//			}
-//			else if(name.compare(0, 5, "cost(") == 0) {
-//				const std::string argument = name.substr(5, name.length()-6);
-//				costAtomInfos.emplace_back(CostAtomInfo{{std::stol(argument)}, pair.second.lit});
-//			}
-//		}
-//	}
 }
-
-/*
-void ClaspCallback::storeAtom(unsigned int atomUid, Gringo::Value v)
-{
-	// TODO
-}
-*/
 
 void ClaspCallback::setRootExtensionPointers(ItemTreeNode::ExtensionPointerTuple&& e)
 {
@@ -80,11 +52,11 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 
 	// Get items {{{
 	ItemTreeNode::Items items;
-	forEachTrue(m, itemAtomInfos, [&items](const ItemAtomArguments& arguments) {
+	forEachTrue(m, itemAtomInfos, [&items](const GringoOutputProcessor::ItemAtomArguments& arguments) {
 			items.insert(arguments.item);
 	});
 	ItemTreeNode::Items auxItems;
-	forEachTrue(m, auxItemAtomInfos, [&auxItems](const AuxItemAtomArguments& arguments) {
+	forEachTrue(m, auxItemAtomInfos, [&auxItems](const GringoOutputProcessor::AuxItemAtomArguments& arguments) {
 			auxItems.insert(arguments.item);
 	});
 
@@ -105,7 +77,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	// Set cost {{{
 	ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
 	long cost = 0;
-	forFirstTrue(m, costAtomInfos, [&cost](const CostAtomArguments& arguments) {
+	forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
 			cost = arguments.cost;
 	});
 	node->setCost(cost);
@@ -114,7 +86,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
 	ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
 	long currentCost = 0;
-	forFirstTrue(m, currentCostAtomInfos, [&currentCost](const CurrentCostAtomArguments& arguments) {
+	forFirstTrue(m, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
 			currentCost = arguments.currentCost;
 	});
 	node->setCurrentCost(currentCost);
@@ -132,6 +104,23 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	// Let the main thread proceed and wait until we should do more work
 	solver.proceed(lock);
 	return true;
+}
+
+void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
+{
+	// XXX Necessary to call this before each solving invocation? Otherwise we could dispense with clear()
+	itemAtomInfos.clear();
+	for(const auto& atom : gringoOutput.getItemAtomInfos())
+		itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
+	auxItemAtomInfos.clear();
+	for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
+		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, symTab));
+	currentCostAtomInfos.clear();
+	for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
+		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
+	costAtomInfos.clear();
+	for(const auto& atom : gringoOutput.getCostAtomInfos())
+		costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
 }
 
 }} // namespace solver::lazy_asp

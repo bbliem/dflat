@@ -29,11 +29,45 @@ namespace solver { namespace lazy_asp {
 class GringoOutputProcessor : public ::solver::asp::GringoOutputProcessor
 {
 public:
-	// TODO
+	struct ItemAtomArguments {
+		std::string item;
+	};
+	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
+
+	struct AuxItemAtomArguments {
+		std::string item;
+	};
+	typedef AtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
+
+	struct CurrentCostAtomArguments {
+		long currentCost;
+	};
+	typedef AtomInfo<CurrentCostAtomArguments> CurrentCostAtomInfo;
+
+	struct CostAtomArguments {
+		long cost;
+	};
+	typedef AtomInfo<CostAtomArguments> CostAtomInfo;
+
+	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
+	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;
+	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
+	typedef std::vector<CostAtomInfo>           CostAtomInfos;
+
 	GringoOutputProcessor(Clasp::Asp::LogicProgram& out);
+
+	const ItemAtomInfos&        getItemAtomInfos()           const;
+	const AuxItemAtomInfos&     getAuxItemAtomInfos()        const;
+	const CurrentCostAtomInfos& getCurrentCostAtomInfos()    const;
+	const CostAtomInfos&        getCostAtomInfos()           const;
 
 protected:
 	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) override;
+
+	ItemAtomInfos           itemAtomInfos;
+	AuxItemAtomInfos        auxItemAtomInfos;
+	CurrentCostAtomInfos    currentCostAtomInfos;
+	CostAtomInfos           costAtomInfos;
 };
 
 }} // namespace solver::lazy_asp

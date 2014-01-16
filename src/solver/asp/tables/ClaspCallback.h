@@ -40,11 +40,11 @@ public:
 	virtual void prepare(const Clasp::SymbolTable&) override;
 
 private:
-	std::vector<ItemAtomInfo>           itemAtomInfos;
-	std::vector<AuxItemAtomInfo>        auxItemAtomInfos;
-	std::vector<ExtendAtomInfo>         extendAtomInfos;
-	std::vector<CurrentCostAtomInfo>    currentCostAtomInfos;
-	std::vector<CostAtomInfo>           costAtomInfos;
+	std::vector<ItemAtomInfo>        itemAtomInfos;
+	std::vector<AuxItemAtomInfo>     auxItemAtomInfos;
+	std::vector<ExtendAtomInfo>      extendAtomInfos;
+	std::vector<CurrentCostAtomInfo> currentCostAtomInfos;
+	std::vector<CostAtomInfo>        costAtomInfos;
 
 	const GringoOutputProcessor& gringoOutput;
 	const ChildItemTrees& childItemTrees;

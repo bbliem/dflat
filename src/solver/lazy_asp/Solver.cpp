@@ -57,7 +57,10 @@ ItemTreePtr Solver::compute()
 	// Currently this is only called at the root of the decomposition.
 	assert(decomposition.getParents().empty());
 	nextRow();
-	return claspCallback->finalize();
+	ItemTreePtr result = claspCallback->finalize();
+	// XXX What about result.clearUnneededExtensionPointers() as in solver::asp::Solver?
+	app.getPrinter().solverInvocationResult(decomposition.getRoot(), result.get());
+	return result;
 }
 
 ItemTree::Children::const_iterator Solver::nextRow()
@@ -105,8 +108,8 @@ void Solver::workerThreadMain()
 	Clasp::ClaspConfig config;
 	config.enumerate.numModels = 0;
 	Clasp::Asp::LogicProgram& claspProgramBuilder = dynamic_cast<Clasp::Asp::LogicProgram&>(clasp.start(config, Clasp::Problem_t::ASP, true));
-	claspCallback.reset(new ClaspCallback(app, *this, lock));
 	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut(new GringoOutputProcessor(claspProgramBuilder));
+	claspCallback.reset(new ClaspCallback(dynamic_cast<GringoOutputProcessor&>(*lpOut), app, *this, lock));
 	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));
 	Gringo::Input::Program program;
 	Gringo::Scripts scripts;
@@ -143,6 +146,7 @@ void Solver::workerThreadMain()
 
 	// Prepare for solving. (This makes clasp's symbol table available.)
 	clasp.prepare();
+	claspCallback->prepare(clasp.ctx.symTab());
 
 	// We need to know which clasp variable corresponds to each childItem(_) atom.
 	for(const auto& pair : clasp.ctx.symTab()) {
@@ -203,6 +207,7 @@ void Solver::workerThreadMain()
 			}
 		}
 		clasp.prepare();
+		claspCallback->prepare(clasp.ctx.symTab());
 		clasp.solve(claspCallback.get());
 		{
 			// XXX Necessary to update so often? Is the overhead bad?
@@ -264,6 +269,7 @@ void Solver::aspCallsOnNewRowFromChild(ItemTree::Children::const_iterator newRow
 			}
 		}
 		clasp.prepare();
+		claspCallback->prepare(clasp.ctx.symTab());
 		clasp.solve(claspCallback.get());
 		{
 			// XXX Necessary to update so often? Is the overhead bad?

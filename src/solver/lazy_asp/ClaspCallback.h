@@ -23,6 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <mutex>
 
 #include "../asp/ClaspCallback.h"
+#include "GringoOutputProcessor.h"
 
 namespace solver { namespace lazy_asp {
 
@@ -31,42 +32,27 @@ class Solver;
 class ClaspCallback : public ::solver::asp::ClaspCallback
 {
 public:
-	struct ItemAtomArguments {
-		std::string item;
-	};
-	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
+	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
 
-	struct AuxItemAtomArguments {
-		std::string item;
-	};
-	typedef AtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
-
-	struct CurrentCostAtomArguments {
-		long currentCost;
-	};
-	typedef AtomInfo<CurrentCostAtomArguments> CurrentCostAtomInfo;
-
-	struct CostAtomArguments {
-		long cost;
-	};
-	typedef AtomInfo<CostAtomArguments> CostAtomInfo;
-
-	ClaspCallback(const Application&, Solver&, std::unique_lock<std::mutex>& lock);
-
-//	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) override;
+	ClaspCallback(const GringoOutputProcessor&, const Application&, Solver&, std::unique_lock<std::mutex>& lock);
 
 	void setRootExtensionPointers(ItemTreeNode::ExtensionPointerTuple&&);
 	void setExtendedRows(ItemTreeNode::ExtensionPointerTuple&&);
 	ItemTree::Children::const_iterator getNewestRow() const;
 
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
+	virtual void prepare(const Clasp::SymbolTable&) override;
 
 private:
-	std::vector<ItemAtomInfo>           itemAtomInfos;
-	std::vector<AuxItemAtomInfo>        auxItemAtomInfos;
-	std::vector<CurrentCostAtomInfo>    currentCostAtomInfos;
-	std::vector<CostAtomInfo>           costAtomInfos;
+	std::vector<ItemAtomInfo>        itemAtomInfos;
+	std::vector<AuxItemAtomInfo>     auxItemAtomInfos;
+	std::vector<CurrentCostAtomInfo> currentCostAtomInfos;
+	std::vector<CostAtomInfo>        costAtomInfos;
 
+	const GringoOutputProcessor& gringoOutput;
 	ItemTree::Children::const_iterator newestRow;
 	Solver& solver;
 	ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;

@@ -27,9 +27,51 @@ GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out)
 {
 }
 
+const GringoOutputProcessor::ItemAtomInfos& GringoOutputProcessor::getItemAtomInfos() const
+{
+	return itemAtomInfos;
+}
+
+const GringoOutputProcessor::AuxItemAtomInfos& GringoOutputProcessor::getAuxItemAtomInfos() const
+{
+	return auxItemAtomInfos;
+}
+
+const GringoOutputProcessor::CurrentCostAtomInfos& GringoOutputProcessor::getCurrentCostAtomInfos() const
+{
+	return currentCostAtomInfos;
+}
+
+const GringoOutputProcessor::CostAtomInfos& GringoOutputProcessor::getCostAtomInfos() const
+{
+	return costAtomInfos;
+}
+
 void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 {
-	// TODO
+	// Store the atom together with its symbol table key and extracted arguments
+	const std::string predicate = *v.name();
+	if(predicate == "item") {
+		ASP_CHECK(v.args().size() == 1, "'item' predicate does not have arity 1");
+		std::ostringstream argument;
+		v.args().front().print(argument);
+		itemAtomInfos.emplace_back(ItemAtomInfo{ItemAtomArguments{argument.str()}, atomUid});
+	} else if(predicate == "auxItem") {
+		ASP_CHECK(v.args().size() == 1, "'auxItem' predicate does not have arity 1");
+		std::ostringstream argument;
+		v.args().front().print(argument);
+		auxItemAtomInfos.emplace_back(AuxItemAtomInfo{AuxItemAtomArguments{argument.str()}, atomUid});
+	} else if(predicate == "currentCost") {
+		ASP_CHECK(v.args().size() == 1, "'currentCost' predicate does not have arity 1");
+		std::ostringstream argument;
+		v.args().front().print(argument);
+		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo{{std::stol(argument.str())}, atomUid});
+	} else if(predicate == "cost") {
+		ASP_CHECK(v.args().size() == 1, "'cost' predicate does not have arity 1");
+		std::ostringstream argument;
+		v.args().front().print(argument);
+		costAtomInfos.emplace_back(CostAtomInfo{{std::stol(argument.str())}, atomUid});
+	}
 }
 
 }} // namespace solver::lazy_asp

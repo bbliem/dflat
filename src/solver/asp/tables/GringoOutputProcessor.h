@@ -55,11 +55,11 @@ public:
 	};
 	typedef AtomInfo<CostAtomArguments> CostAtomInfo;
 
-	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
-	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;
-	typedef std::vector<ExtendAtomInfo>         ExtendAtomInfos;
-	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
-	typedef std::vector<CostAtomInfo>           CostAtomInfos;
+	typedef std::vector<ItemAtomInfo>        ItemAtomInfos;
+	typedef std::vector<AuxItemAtomInfo>     AuxItemAtomInfos;
+	typedef std::vector<ExtendAtomInfo>      ExtendAtomInfos;
+	typedef std::vector<CurrentCostAtomInfo> CurrentCostAtomInfos;
+	typedef std::vector<CostAtomInfo>        CostAtomInfos;
 
 	GringoOutputProcessor(Clasp::Asp::LogicProgram& out, const ChildItemTrees& childItemTrees);
 
