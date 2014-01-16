@@ -21,7 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 //}}}
 #include "../../SolverFactory.h"
-#include "../../options/SingleValueOption.h"
+#include "../../options/MultiValueOption.h"
 
 namespace solver { namespace asp {
 
@@ -37,10 +37,10 @@ public:
 private:
 	static const std::string OPTION_SECTION;
 
-	options::SingleValueOption optEncodingFile;
-	options::Option            optDefaultJoin;
-	options::Option            optLazy;
-	options::Option            optTables;
+	options::MultiValueOption optEncodingFiles;
+	options::Option           optDefaultJoin;
+	options::Option           optLazy;
+	options::Option           optTables;
 };
 
 }} // namespace solver::asp

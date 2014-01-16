@@ -62,9 +62,9 @@ std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const Gringo::Ou
 
 namespace solver { namespace asp {
 
-Solver::Solver(const Decomposition& decomposition, const Application& app, const std::string& encodingFile, bool tableMode)
+Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode)
 	: ::Solver(decomposition, app)
-	, encodingFile(encodingFile)
+	, encodingFiles(encodingFiles)
 	, tableMode(tableMode)
 {
 	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
@@ -117,7 +117,8 @@ ItemTreePtr Solver::compute()
 	Gringo::Input::NonGroundParser parser(gringoProgramBuilder);
 
 	// Pass input to ASP solver
-	parser.pushFile(std::string(encodingFile));
+	for(const auto& file : encodingFiles)
+		parser.pushFile(std::string(file));
 	parser.pushStream("<instance>", std::move(instanceInput));
 	parser.pushStream("<decomposition>", std::move(decompositionInput));
 	parser.pushStream("<child_itrees>", std::move(childItemTreesInput));

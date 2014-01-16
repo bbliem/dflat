@@ -27,7 +27,7 @@ namespace solver { namespace asp {
 class Solver : public ::Solver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, const std::string& encodingFile, bool tableMode);
+	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode);
 
 	virtual ItemTreePtr compute() override;
 
@@ -35,7 +35,7 @@ public:
 	static void declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0);
 
 private:
-	std::string encodingFile;
+	std::vector<std::string> encodingFiles;
 	bool tableMode;
 };
 

@@ -31,13 +31,13 @@ const std::string SolverFactory::OPTION_SECTION = "ASP solver";
 
 SolverFactory::SolverFactory(Application& app, bool newDefault)
 	: ::SolverFactory(app, "asp", "Answer Set Programming", newDefault)
-	, optEncodingFile("p", "program", "Use <program> as the ASP encoding for solving")
-	, optDefaultJoin ("default-join", "Use built-in implementation for join nodes")
-	, optLazy        ("lazy",         "Use lazy evaluation")
-	, optTables      ("tables",       "Use table mode (for item trees of height at most 1)")
+	, optEncodingFiles("p", "program", "Use <program> as an ASP encoding for solving")
+	, optDefaultJoin  ("default-join", "Use built-in implementation for join nodes")
+	, optLazy         ("lazy",         "Use lazy evaluation")
+	, optTables       ("tables",       "Use table mode (for item trees of height at most 1)")
 {
-	optEncodingFile.addCondition(selected);
-	app.getOptionHandler().addOption(optEncodingFile, OPTION_SECTION);
+	optEncodingFiles.addCondition(selected);
+	app.getOptionHandler().addOption(optEncodingFiles, OPTION_SECTION);
 
 	optDefaultJoin.addCondition(selected);
 	app.getOptionHandler().addOption(optDefaultJoin, OPTION_SECTION);
@@ -55,21 +55,21 @@ std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decompos
 		// FIXME this should not make --default-join ineffective, and it should not require table mode
 		if(optDefaultJoin.isUsed() || !optTables.isUsed())
 			throw std::runtime_error("Lazy evaluation currently requires table mode and not using the default join");
-		return std::unique_ptr<::Solver>(new lazy_asp::Solver(decomposition, app, optEncodingFile.getValue()));
+		return std::unique_ptr<::Solver>(new lazy_asp::Solver(decomposition, app, optEncodingFiles.getValues()));
 	}
 	else {
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
 			return std::unique_ptr<::Solver>(new default_join::Solver(decomposition, app));
 		else
-			return std::unique_ptr<::Solver>(new asp::Solver(decomposition, app, optEncodingFile.getValue(), optTables.isUsed()));
+			return std::unique_ptr<::Solver>(new asp::Solver(decomposition, app, optEncodingFiles.getValues(), optTables.isUsed()));
 	}
 }
 
 void SolverFactory::select()
 {
 	::SolverFactory::select();
-	if(!optEncodingFile.isUsed())
-		throw std::runtime_error("ASP solver requires a program to be specified");
+	if(!optEncodingFiles.isUsed())
+		throw std::runtime_error("ASP solver requires at least one program to be specified");
 }
 
 

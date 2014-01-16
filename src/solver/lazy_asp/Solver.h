@@ -32,7 +32,7 @@ namespace solver { namespace lazy_asp {
 class Solver : public ::Solver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, const std::string& encodingFile);
+	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles);
 
 	virtual ItemTreePtr compute() override;
 
@@ -47,7 +47,7 @@ public:
 	void proceed(std::unique_lock<std::mutex>&);
 
 private:
-	std::string encodingFile;
+	std::vector<std::string> encodingFiles;
 	std::unordered_map<std::string, Clasp::Var> itemsToVars;
 
 	void workerThreadMain();
