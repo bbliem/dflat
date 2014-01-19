@@ -1,7 +1,7 @@
 #!/bin/bash
 DIR=$(cd "$( dirname "$0" )" && pwd)
 ROOT=$DIR/../..
-dflat=$ROOT/build/release/dflat
+dflat=$ROOT/dflat
 gringo=gringo
 clasp=clasp
 

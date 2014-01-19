@@ -3,7 +3,7 @@
 DIR=$(cd "$( dirname "$0" )" && pwd)
 ROOT=$DIR/../..
 generator=$DIR/instance_generator.py
-solver=$ROOT/build/release/dflat
+solver=$ROOT/dflat
 
 # Observation for 3-COL: If the number of edges is roughly 2.5 times the number of nodes, hardly any instance has 3-colorings anymore. Up to 2.25, most instances have 3-colorings.
 

@@ -2,27 +2,31 @@
 cxxflags_release="-DWITH_THREADS=0"
 cxxflags_debug=$(cxxflags_release)
 cxxflags_gprof=$(cxxflags_debug)
+cxxflags_release32="-DWITH_THREADS=0 -m32 -DNO_UNICODE"
 cxxflags_static=$(cxxflags_release)
-cxxflags_static32="-DWITH_THREADS=0 -m32 -DNO_UNICODE"
+cxxflags_static32=$(cxxflags_release32)
 
 gringo_dir=$(CURDIR)/../clingo-4.2.1-source
 gringo_lib=$(gringo_dir)/build/release/libgringo.a
 gringo_lib_debug=$(gringo_dir)/build/debug/libgringo.a
 gringo_lib_gprof=$(gringo_dir)/build/gprof/libgringo.a
-gringo_lib_static=$(gringo_dir)/build/release/libgringo.a
+gringo_lib_release32=$(gringo_dir)/build/release32/libgringo.a
+gringo_lib_static=$(gringo_dir)/build/static/libgringo.a
 gringo_lib_static32=$(gringo_dir)/build/static32/libgringo.a
 
 clasp_dir=$(CURDIR)/../clingo-4.2.1-source
 clasp_lib=$(clasp_dir)/build/release/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp.a
-clasp_lib_static=$(clasp_dir)/build/release/libclasp.a
-clasp_lib_static32=$(clasp_dir)/build/release_static_m32/libclasp.a
+clasp_lib_release32=$(clasp_dir)/build/release32/libclasp.a
+clasp_lib_static=$(clasp_dir)/build/static/libclasp.a
+clasp_lib_static32=$(clasp_dir)/build/static32/libclasp.a
 
 sharp_dir=$(CURDIR)/../sharp-1.1.1
 sharp_lib=$(sharp_dir)/src/.libs/libsharp.a
 sharp_lib_debug=$(sharp_dir)/src/.libs/libsharp.a
 sharp_lib_gprof=$(sharp_dir)/src/.libs/libsharp.a
+sharp_lib_release32=$(CURDIR)/../sharp-1.1.1-32bit/src/.libs/libsharp.a
 sharp_lib_static=$(sharp_dir)/src/.libs/libsharp.a
 sharp_lib_static32=$(CURDIR)/../sharp-1.1.1-32bit/src/.libs/libsharp.a
 
@@ -79,6 +83,21 @@ gprof:
 		-Dsharp_dir=$(sharp_dir) \
 	&& $(MAKE)
 
+release32:
+	mkdir -p build/release32
+	cd build/release32 && \
+	cmake ../../src \
+		$(cmake_extra_options) \
+		-DCMAKE_BUILD_TYPE=release \
+		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_release32) \
+		-Dgringo_lib=$(gringo_lib_release32) \
+		-Dclasp_lib=$(clasp_lib_release32) \
+		-Dsharp_lib=$(sharp_lib_release32) \
+		-Dgringo_dir=$(gringo_dir) \
+		-Dclasp_dir=$(clasp_dir) \
+		-Dsharp_dir=$(sharp_dir) \
+	&& $(MAKE)
+
 static:
 	mkdir -p build/static
 	cd build/static && \
@@ -110,6 +129,34 @@ static32:
 		-Dclasp_dir=$(clasp_dir) \
 		-Dsharp_dir=$(sharp_dir) \
 	&& $(MAKE)
+
+dist: release
+	$(eval DATE := $(shell date +%Y%m%d))
+	$(eval RELEASE := dflat-$(DATE)-x86_64)
+	$(eval DIST_DIR := build/dist/$(RELEASE))
+	mkdir -p $(DIST_DIR)/lib
+	cp build/release/dflat $(DIST_DIR)/dflat.bin
+	strip $(DIST_DIR)/dflat.bin
+	cp run-dflat.sh $(DIST_DIR)/dflat
+	cp -L $(shell ldd build/release/dflat | awk '/=>/ { printf("%s ",$$3) } /ld-linux/ { printf("%s ",$$1) }') $(DIST_DIR)/lib
+	cp -R applications $(DIST_DIR)
+	cd build/dist && tar czf $(RELEASE).tar.gz $(RELEASE)
+	mv build/dist/$(RELEASE).tar.gz build
+	rm -rf build/dist
+
+dist32: release32
+	$(eval DATE := $(shell date +%Y%m%d))
+	$(eval RELEASE := dflat-$(DATE)-i386)
+	$(eval DIST_DIR := build/dist32/$(RELEASE))
+	mkdir -p $(DIST_DIR)/lib
+	cp build/release32/dflat $(DIST_DIR)/dflat.bin
+	strip $(DIST_DIR)/dflat.bin
+	cp run-dflat.sh $(DIST_DIR)/dflat
+	cp -L $(shell ldd build/release32/dflat | awk '/=>/ { printf("%s ",$$3) } /ld-linux/ { printf("%s ",$$1) }') $(DIST_DIR)/lib
+	cp -R applications $(DIST_DIR)
+	cd build/dist32 && tar czf $(RELEASE).tar.gz $(RELEASE)
+	mv build/dist32/$(RELEASE).tar.gz build
+	rm -rf build/dist32
 
 clean:
 	rm -rf build

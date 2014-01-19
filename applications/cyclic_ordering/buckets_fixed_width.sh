@@ -5,7 +5,7 @@ ROOT=$DIR/../..
 # generate cyclic ordering problem instances and put them into buckets according to width of tree decomposition
 
 generator=$DIR/tree_instance_generator.py
-solver=$ROOT/build/release/dflat
+solver=$ROOT/dflat
 
 minNumElements=9
 maxNumElements=60

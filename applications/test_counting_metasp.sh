@@ -5,7 +5,7 @@ MISMATCH_DIR=$ROOT/mismatch
 numInstances=100
 gringo=gringo
 clasp=claspD-1.1.1-x86-linux
-dflat=$ROOT/build/release/dflat
+dflat=$ROOT/dflat
 metaspDir=$DIR/metasp
 
 if [[ -z "$instanceGen" || -z "$dflatArguments" || -z "$monolithicEncoding" ]]; then

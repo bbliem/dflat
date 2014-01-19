@@ -4,7 +4,7 @@ DIR=$(cd "$( dirname "$0" )" && pwd)
 ROOT=$DIR/../..
 
 generator=$DIR/tree_instance_generator.py
-solver=$ROOT/build/release/dflat
+solver=$ROOT/dflat
 
 minN=6
 maxN=98

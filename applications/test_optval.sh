@@ -3,7 +3,7 @@
 numInstances=100
 gringo=../gringo
 clasp=../clasp
-dflat=build/release/dflat
+dflat=./dflat
 
 if [[ -z "$instanceGen" || -z "$dflatArguments" || -z "$monolithicEncoding" ]]; then
 	echo "Environment variables not set"

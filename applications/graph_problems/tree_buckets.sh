@@ -5,7 +5,7 @@ ROOT=$DIR/../..
 # generate graph problem instances and put them into buckets according to width of tree decomposition
 
 generator=$DIR/tree_instance_generator.py
-solver=$ROOT/build/release/dflat
+solver=$ROOT/dflat
 
 # Observation for 3-COL: If the number of edges is roughly 2.5 times the number of nodes, hardly any instance has 3-colorings anymore. Up to 2.25, most instances have 3-colorings.
 

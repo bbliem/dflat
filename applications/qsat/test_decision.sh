@@ -9,7 +9,7 @@ numInstances=100
 instanceGen="$ROOT/../blocksqbf/blocksqbf -c 20 -b 5 -bs 1 -bs 2 -bs 1 -bs 2 -bs 1 -bc 1 -bc 1 -bc 1 -bc 1 -bc 1"
 qdimacs2lp=$DIR/qdimacs2lp.awk
 depqbf=$ROOT/../depqbf/depqbf
-dflat=$ROOT/build/release/dflat
+dflat=$ROOT/dflat
 dflatArguments="-p $DIR/dynamic.lp -e pos -e neg --no-empty-leaves"
 
 for instance in $(seq 1 $numInstances); do
