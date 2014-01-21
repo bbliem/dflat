@@ -22,8 +22,8 @@ assign(X,_nn) :- extend(L,S), childItem(S,assign(X,V)),     removed(V), iVar(L,X
 
 % Check: Only join compatible branches; the resulting assignment must be valid
 :- iVar(L,X), assign(X,V;X,W), V != W.
-:- extend(L,S;L,T), S != T, childItem(S,assign(X,_nn);T,assign(X,_nn)).
-:- extend(L,S;L,T), var(L,X), childItem(S,assign(X,V)), not childItem(T,assign(X,V)), vertex(V).
+:- extend(L,S;L,T), atNode(S,NS;T,NT), NS > NT, childItem(S,assign(X,_nn);T,assign(X,_nn)).
+:- extend(L,S;L,T), atNode(S,NS;T,NT), NS > NT, childItem(S,assign(X,V)), not childItem(T,assign(X,V)), vertex(V).
 
 % Truth values of atoms
 true (X) :- extend(_,S), childItem(S,true (X)).
