@@ -6,4 +6,4 @@ pTrans(X,Z) :- pTrans(X,Y), p(Y,Z).
 
 :- vertex(X), vertex(Y), not pTrans(X,Y).
 
-#hide. #show p/2.
+#show p/2.
