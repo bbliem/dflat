@@ -50,6 +50,7 @@ ItemTreeNode::Type UncompressedItemTree::prune()
 	// Prune children recursively
 	bool allAccepting = true;
 	bool allRejecting = true;
+	const bool leaf = children.empty();
 
 	Children::const_iterator it = children.begin();
 	while(it != children.end()) {
@@ -84,6 +85,13 @@ ItemTreeNode::Type UncompressedItemTree::prune()
 	// Determine acceptance status of this configuration, if possible
 	switch(node->getType()) {
 		case ItemTreeNode::Type::UNDEFINED:
+			if(!leaf) {
+				// If all children are accepting/rejecting, we can return accept/reject no matter the eventual current node type.
+				if(allAccepting)
+					return ItemTreeNode::Type::ACCEPT;
+				else if(allRejecting)
+					return ItemTreeNode::Type::REJECT;
+			}
 			break;
 
 		case ItemTreeNode::Type::OR:
