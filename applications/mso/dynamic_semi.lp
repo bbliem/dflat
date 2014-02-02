@@ -13,7 +13,7 @@ extend(0,R) :- root(R).
 
 % In the root, each individual variable must have been assigned
 assigned(X) :- iVar(L,X), extend(L,S), childItem(S,assign(X,_)).
-:- final, iVar(_,X), not assigned(X).
+incomplete(L) :- iVar(L,X), not assigned(X).
 
 % Preserve and extend assignment
 { assign(X,V) : var(_,X) } :- introduced(V).
@@ -23,16 +23,18 @@ assign(X,_nn) :- extend(L,S), childItem(S,assign(X,V)),     removed(V), iVar(L,X
 % Check: Only join compatible branches; the resulting assignment must be valid
 :- iVar(L,X), assign(X,V;X,W), V != W.
 :- extend(L,S;L,T), atNode(S,NS;T,NT), NS > NT, childItem(S,assign(X,_nn);T,assign(X,_nn)).
-:- extend(L,S;L,T), atNode(S,NS;T,NT), NS > NT, childItem(S,assign(X,V)), not childItem(T,assign(X,V)), vertex(V).
+:- extend(L,S;L,T), var(L,X), childItem(S,assign(X,V)), not childItem(T,assign(X,V)), vertex(V).
 
 % Truth values of atoms
 true (X) :- extend(_,S), childItem(S,true (X)).
 false(X) :- extend(_,S), childItem(S,false(X)).
 
 true (edge(X,Y)) :- atom(edge(X,Y)), assign(X,V;Y,W), edge(V,W).
-false(edge(X,Y)) :- atom(edge(X,Y)), assign(X,V;Y,W), vertex(V;W), not edge(V,W).
-false(edge(X,Y)) :- atom(edge(X,Y)), extend(_,S), childItem(S,assign(X,V)), removed(V), not assigned(Y).
-false(edge(X,Y)) :- atom(edge(X,Y)), extend(_,S), childItem(S,assign(Y,V)), removed(V), not assigned(X).
+%false(edge(X,Y)) :- atom(edge(X,Y)), assign(X,V;Y,W), vertex(V;W), not edge(V,W).
+%false(edge(X,Y)) :- atom(edge(X,Y)), extend(_,S), childItem(S,assign(X,V)), removed(V), not assigned(Y).
+%false(edge(X,Y)) :- atom(edge(X,Y)), extend(_,S), childItem(S,assign(Y,V)), removed(V), not assigned(X).
+% The following rule should take care of all this:
+false(edge(X,Y)) :- atom(edge(X,Y)), assign(X,_nn;Y,_nn), not true(edge(X,Y)).
 
 true (in(X,Y))   :- atom(in(X,Y)), assign(X,V), assign(Y,V).
 false(in(X,Y))   :- atom(in(X,Y)), assign(X,V), vertex(V), not assign(Y,V).
@@ -42,11 +44,10 @@ possiblyTrue(C) :- pos(C,A), not false(A).
 possiblyTrue(C) :- neg(C,A), not true (A).
 reject :- clause(C), not possiblyTrue(C).
 
-% TODO no effect yet
-%trueClause(C) :- pos(C,A), true(A).
-%trueClause(C) :- neg(C,A), false(A).
-%notAllTrue :- clause(C), not trueClause(C).
-%accept :- not notAllTrue.
+trueClause(C) :- pos(C,A), true(A).
+trueClause(C) :- neg(C,A), false(A).
+notAllTrue :- clause(C), not trueClause(C).
+accept :- not notAllTrue.
 
 % Declare resulting item sets
 item(L,assign(X,V)) :- var(L,X), assign(X,V).
@@ -60,5 +61,5 @@ item(L,false(X))    :- length(L), false(X).
 #show extend/2.
 #show or/1.
 #show and/1.
-%#show accept/0.
+#show accept/0.
 #show reject/0.

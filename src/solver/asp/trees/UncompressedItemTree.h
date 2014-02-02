@@ -48,8 +48,14 @@ public:
 	// *begin will be a child of *this.
 	void addBranch(Branch::iterator begin, Branch::iterator end);
 
-	// This propagates acceptance statuses from the leaves toward this node and prunes in the course of this if children are found to be rejecting. If this configuration can be determined to be accepting or rejecting, returns ACCEPT or REJECT, respectively; otherwise returns UNDEFINED.
-	ItemTreeNode::Type prune();
+	// This propagates acceptance statuses from the leaves toward this node and prunes in the course of this if children are found to be rejecting. If this node can be determined to be accepting or rejecting, returns ACCEPT or REJECT, respectively; otherwise returns UNDEFINED.
+	// If "prune = true", children evaluating to REJECT will be deleted.
+	// Nodes with UNDEFINED type always evaluate to UNDEFINED and no pruning is performed for their descendants.
+	ItemTreeNode::Type evaluate(bool prune);
+
+	// Delete subtrees rooted at a node with UNDEFINED type.
+	// This should be called in the root of the tree decomposition before calling evaluate().
+	void pruneUndefined();
 
 	// Merges sibling subtrees with equal item sets. Moves each node in this tree to the resulting item tree.
 	// Also propagates costs from leaves to root.

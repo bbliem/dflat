@@ -10,11 +10,11 @@
 
 % XXX In the paper we required a more restrictive normal form
 length(2).
-or(0).
+or(0) :- not incomplete(0).
 sVar(1,r).
 sVar(1,g).
 sVar(1,b).
-and(1).
+and(1) :- not incomplete(1).
 iVar(2,x).
 iVar(2,y).
 

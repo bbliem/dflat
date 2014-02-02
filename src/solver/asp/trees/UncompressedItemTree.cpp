@@ -45,16 +45,19 @@ void UncompressedItemTree::addBranch(Branch::iterator begin, Branch::iterator en
 	}
 }
 
-ItemTreeNode::Type UncompressedItemTree::prune()
+ItemTreeNode::Type UncompressedItemTree::evaluate(bool prune)
 {
+	// UNDEFINED nodes always evaluate to UNDEFINED and no pruning is done for their descendants
+	if(node->getType() == ItemTreeNode::Type::UNDEFINED)
+		return ItemTreeNode::Type::UNDEFINED;
+
 	// Prune children recursively
 	bool allAccepting = true;
 	bool allRejecting = true;
-	const bool leaf = children.empty();
 
 	Children::const_iterator it = children.begin();
 	while(it != children.end()) {
-		ItemTreeNode::Type childResult = (*it)->prune();
+		ItemTreeNode::Type childResult = (*it)->evaluate(prune);
 		switch(childResult) {
 			case ItemTreeNode::Type::OR:
 			case ItemTreeNode::Type::AND:
@@ -76,22 +79,20 @@ ItemTreeNode::Type UncompressedItemTree::prune()
 			case ItemTreeNode::Type::REJECT:
 				node->setHasRejectingChild();
 				allAccepting = false;
-				// Remove that child
-				children.erase(it++);
+				if(prune) {
+					// Remove that child
+					children.erase(it++);
+				}
+				else
+					++it;
 				break;
 		}
 	}
 
-	// Determine acceptance status of this configuration, if possible
+	// Determine acceptance status of this node, if possible
 	switch(node->getType()) {
 		case ItemTreeNode::Type::UNDEFINED:
-			if(!leaf) {
-				// If all children are accepting/rejecting, we can return accept/reject no matter the eventual current node type.
-				if(allAccepting)
-					return ItemTreeNode::Type::ACCEPT;
-				else if(allRejecting)
-					return ItemTreeNode::Type::REJECT;
-			}
+			assert(false); // returned above
 			break;
 
 		case ItemTreeNode::Type::OR:
@@ -120,6 +121,19 @@ ItemTreeNode::Type UncompressedItemTree::prune()
 	return ItemTreeNode::Type::UNDEFINED;
 }
 
+void UncompressedItemTree::pruneUndefined()
+{
+	assert(node->getType() != ItemTreeNode::Type::UNDEFINED);
+	Children::const_iterator it = children.begin();
+	while(it != children.end()) {
+		if((*it)->getRoot()->getType() == ItemTreeNode::Type::UNDEFINED)
+			children.erase(it++);
+		else {
+			(*it)->pruneUndefined();
+			++it;
+		}
+	}
+}
 
 ItemTreePtr UncompressedItemTree::compress()
 {
