@@ -194,7 +194,7 @@ ItemTreePtr ClaspCallback::finalize()
 			else
 				uncompressedItemTree->pruneUndefined();
 		}
-		if(uncompressedItemTree->evaluate(prune) == ItemTreeNode::Type::REJECT)
+		if(uncompressedItemTree && uncompressedItemTree->evaluate(prune) == ItemTreeNode::Type::REJECT)
 			uncompressedItemTree.reset();
 	}
 
