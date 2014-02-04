@@ -124,6 +124,7 @@ ItemTreeNode::Type UncompressedItemTree::evaluate(bool prune)
 void UncompressedItemTree::pruneUndefined()
 {
 	assert(node->getType() != ItemTreeNode::Type::UNDEFINED);
+	assert((node->getType() != ItemTreeNode::Type::OR && node->getType() != ItemTreeNode::Type::AND) || !children.empty());
 	Children::const_iterator it = children.begin();
 	while(it != children.end()) {
 		if((*it)->getRoot()->getType() == ItemTreeNode::Type::UNDEFINED)
@@ -133,6 +134,11 @@ void UncompressedItemTree::pruneUndefined()
 			++it;
 		}
 	}
+#ifndef DISABLE_CHECKS
+	if(node->getType() == ItemTreeNode::Type::OR || node->getType() == ItemTreeNode::Type::AND)
+		if(children.empty() && !node->getHasAcceptingChild() && !node->getHasRejectingChild()) // We pruned all children
+			throw std::runtime_error("Inner item tree node with defined type had only undefined children");
+#endif
 }
 
 ItemTreePtr UncompressedItemTree::compress()
