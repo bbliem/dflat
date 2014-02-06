@@ -1,6 +1,9 @@
 % Ex Ay Ez: -x & (x | -y | z)
 % Expect 1 solution
 length(3).
+or(0).
+and(1).
+or(2).
 
 atom(1,x).
 atom(2,y).

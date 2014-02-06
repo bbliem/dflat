@@ -3,14 +3,16 @@ DIR=$(cd "$( dirname "$0" )" && pwd)
 ROOT=$DIR/../..
 MISMATCH_DIR=$ROOT/mismatch
 numInstances=100
-# Note that blocksqbf generates QBFs with \exists as innermost quantifier, so this will, for now, only work for an odd number of blocks
+# Note that blocksqbf generates QBFs with \exists as innermost quantifier
 #instanceGen="$ROOT/../blocksqbf/blocksqbf -c 10 -b 1 -bs 4 -bc 2"
 #instanceGen="$ROOT/../blocksqbf/blocksqbf -c 10 -b 3 -bs 2 -bs 2 -bs 2 -bc 1 -bc 1 -bc 1"
-instanceGen="$ROOT/../blocksqbf/blocksqbf -c 20 -b 5 -bs 1 -bs 2 -bs 1 -bs 2 -bs 1 -bc 1 -bc 1 -bc 1 -bc 1 -bc 1"
+#instanceGen="$ROOT/../blocksqbf/blocksqbf -c 20 -b 4 -bs 1 -bs 2 -bs 1 -bs 2 -bc 1 -bc 1 -bc 1 -bc 1"
+blocks=4
+instanceGen="$ROOT/../blocksqbf/blocksqbf -c 10 -b $blocks $(for i in `seq 1 $blocks`; do echo -n '-bs 1 '; done) $(for i in `seq 1 $blocks`; do echo -n '-bc 1 '; done)"
 qdimacs2lp=$DIR/qdimacs2lp.awk
 depqbf=$ROOT/../depqbf/depqbf
 dflat=$ROOT/dflat
-dflatArguments="-p $DIR/dynamic.lp -e pos -e neg --no-empty-leaves"
+dflatArguments="-p $DIR/dynamic.lp -e pos -e neg --no-empty-leaves --no-pruning"
 
 for instance in $(seq 1 $numInstances); do
 	seed=$RANDOM

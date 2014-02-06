@@ -1,5 +1,8 @@
 % Expect 1 solution
 length(3).
+or(0).
+and(1).
+or(2).
 
 atom(1,a).
 atom(2,b).

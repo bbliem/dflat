@@ -11,6 +11,10 @@
 }
 
 /^(e|a) / {
+	if($1 == "e")
+		print("or(" level ").")
+	else
+		print("and(" level ").")
 	++level
 	for(i = 2; $i != 0; ++i)
 		print("atom(" level ",a" $i ").")
