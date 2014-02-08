@@ -55,14 +55,14 @@ void OptionHandler::addOption(Option& opt, const std::string& section)
 
 void OptionHandler::parse(int argc, char** argv)
 {
-	for(int i = 1; i < argc; ++i) {
+	for(int i = 0; i < argc; ++i) {
 		std::string word = argv[i];
 
 		for(auto& opt : names) {
 			// Is it an option with matching name?
 			if(opt.first == word) {
 				// Does the option take a value?
-				if(dynamic_cast<ValueOption*>(opt.second) != 0) {
+				if(dynamic_cast<ValueOption*>(opt.second) != nullptr) {
 					++i;
 					if(i == argc) {
 						std::ostringstream msg;
@@ -94,8 +94,10 @@ nextOption:
 	// Notify observers
 	for(Observer* o : observers)
 		o->notify();
+}
 
-	// Check all conditions
+void OptionHandler::checkConditions()
+{
 	for(const auto& o : names)
 		o.second->checkConditions();
 }

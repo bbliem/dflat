@@ -42,6 +42,10 @@ ADD_FLEX_BISON_DEPENDENCY(Scanner Parser)
 # XXX This is a workaround because flex causes these warnings with GCC
 set_source_files_properties(${FLEX_Scanner_OUTPUTS} PROPERTIES COMPILE_FLAGS -Wno-sign-compare)
 
+include(CheckIncludeFiles)
+check_include_files(wordexp.h HAVE_WORDEXP_H)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(dflat

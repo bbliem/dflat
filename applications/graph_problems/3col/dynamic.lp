@@ -1,3 +1,4 @@
+%dflat: --tables -e vertex -e edge
 color(red;green;blue).
 
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).

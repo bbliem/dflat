@@ -114,6 +114,7 @@ int Application::run(int argc, char** argv)
 	// Parse command line
 	try {
 		opts.parse(argc, argv);
+		opts.checkConditions();
 	}
 	catch(...) {
 		usage();

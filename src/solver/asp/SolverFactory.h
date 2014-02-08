@@ -20,8 +20,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
+#include "config.h"
 #include "../../SolverFactory.h"
 #include "../../options/MultiValueOption.h"
+
+#ifdef HAVE_WORDEXP_H
+#include <vector>
+#endif
 
 namespace solver { namespace asp {
 
@@ -34,6 +39,12 @@ public:
 
 	virtual void select() override;
 
+#ifdef HAVE_WORDEXP_H
+	// Called after parsing to notify this observer.
+	// Scans for modelines in the encoding files.
+	virtual void notify() override;
+#endif
+
 private:
 	static const std::string OPTION_SECTION;
 
@@ -41,6 +52,11 @@ private:
 	options::Option           optDefaultJoin;
 	options::Option           optLazy;
 	options::Option           optTables;
+#ifdef HAVE_WORDEXP_H
+	options::Option           optIgnoreModelines;
+	// To avoid infinite recursions
+	std::vector<std::string> modelineStack;
+#endif
 };
 
 }} // namespace solver::asp
