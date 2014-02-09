@@ -136,7 +136,7 @@ ItemTreePtr Solver::compute()
 	params.clear();
 
 	clasp.prepare();
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app.isPruningDisabled() == false, decomposition.getParents().empty(), app));
+	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app.isPruningDisabled() == false || decomposition.getParents().empty(), decomposition.getParents().empty(), app));
 	cb->prepare(clasp.ctx.symTab());
 	clasp.solve(cb.get());
 
