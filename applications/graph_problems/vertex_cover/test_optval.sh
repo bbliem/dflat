@@ -4,6 +4,6 @@ numNodes=10
 numEdges=20
 export instanceGen="$DIR/../instance_generator.py $numNodes $numEdges"
 export monolithicEncoding=$DIR/monolithic.lp
-export dflatArguments="$DIR/dynamic.lp -e edge"
+export dflatArguments="-p $DIR/dynamic.lp"
 
 $DIR/../../test_optval.sh

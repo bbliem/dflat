@@ -1,6 +1,5 @@
 { in(X) : vertex(X) }.
 :- edge(X,Y), not in(X;Y).
-#minimize[ in(_) ].
+#minimize{ 1,X : in(X) }.
 
-#hide.
 #show in/1.

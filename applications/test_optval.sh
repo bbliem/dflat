@@ -1,8 +1,7 @@
 #!/bin/bash
 
 numInstances=100
-gringo=../gringo
-clasp=../clasp
+clingo=clingo
 dflat=./dflat
 
 if [[ -z "$instanceGen" || -z "$dflatArguments" || -z "$monolithicEncoding" ]]; then
@@ -20,11 +19,11 @@ for instance in $(seq 1 $numInstances); do
 
 	$instanceGen $seed > $instance 2>/dev/null || exit
 
-	$gringo $monolithicEncoding $instance | $clasp -q 0 | awk '/Optimization:/ { print $2 }' > $claspOptValFile
-	claspExit=${PIPESTATUS[1]}
+	$clingo $monolithicEncoding $instance -q 0 | awk '/^Optimization :/ { print $3 }' > $claspOptValFile
+	claspExit=${PIPESTATUS[0]}
 	claspOptVal=$(<$claspOptValFile)
 	
-	$dflat $dflatArguments -p opt-value -s $seed < $instance | tail -n1 | awk '{ print $3 }' > $dflatOptValFile
+	$dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | awk -F " |)" '{print $3}' > $dflatOptValFile
 	dflatExit=${PIPESTATUS[0]}
 	dflatOptVal=$(<$dflatOptValFile)
 
