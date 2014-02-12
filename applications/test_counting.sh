@@ -1,8 +1,7 @@
 #!/bin/bash
 
 numInstances=100
-gringo=gringo
-clasp=clasp
+clingo=clingo
 dflat=./dflat
 
 if [[ -z "$instanceGen" || -z "$dflatArguments" || -z "$monolithicEncoding" ]]; then
@@ -20,8 +19,8 @@ for instance in $(seq 1 $numInstances); do
 
 	$instanceGen $seed > $instance 2>/dev/null || exit
 
-	$gringo $monolithicEncoding $instance | $clasp -q 0 | awk '/Models/ { print $3 }' > $claspCountFile
-	claspExit=${PIPESTATUS[1]}
+	$clingo $monolithicEncoding $instance -q 0 | awk '/Models/ { print $3 }' > $claspCountFile
+	claspExit=${PIPESTATUS[0]}
 	claspCount=$(<$claspCountFile)
 	
 	$dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | sed 's/\[\([0-9]*\)\]/\1/g' > $dflatCountFile

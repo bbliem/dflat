@@ -233,7 +233,7 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 
 	// Print cost
 	if(node.cost != 0)
-		os << " (cost: " << node.cost << ')';
+		os << " (cost: " << node.cost << "; current: " << node.getCurrentCost() << ')';
 
 	return os;
 }

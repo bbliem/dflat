@@ -22,12 +22,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp { namespace trees {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, bool pruneUndefined, const Application& app)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app)
 	: ::solver::asp::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
 	, childItemTrees(childItemTrees)
-	, prune(prune)
-	, pruneUndefined(pruneUndefined)
 {
 }
 
@@ -185,23 +183,11 @@ void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
 		rejectLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getRejectAtomKey()].lit));
 }
 
-ItemTreePtr ClaspCallback::finalize()
+ItemTreePtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)
 {
-	if(uncompressedItemTree) {
-		if(pruneUndefined) {
-			if(uncompressedItemTree->getRoot()->getType() == ItemTreeNode::Type::UNDEFINED)
-				uncompressedItemTree.reset();
-			else
-				uncompressedItemTree->pruneUndefined();
-		}
-		if(uncompressedItemTree && uncompressedItemTree->evaluate(prune) == ItemTreeNode::Type::REJECT)
-			uncompressedItemTree.reset();
-	}
-
 	if(uncompressedItemTree)
 		itemTree = uncompressedItemTree->compress();
-
-	return ::solver::asp::ClaspCallback::finalize();
+	return ::solver::asp::ClaspCallback::finalize(pruneUndefined, pruneRejecting);
 }
 
 }}} // namespace solver::asp::trees

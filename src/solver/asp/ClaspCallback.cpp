@@ -31,10 +31,10 @@ ClaspCallback::ClaspCallback(const Application& app)
 {
 }
 
-ItemTreePtr ClaspCallback::finalize()
+ItemTreePtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)
 {
-	if(itemTree)
-		itemTree->finalize();
+	if(itemTree && itemTree->finalize(app, pruneUndefined, pruneRejecting) == false)
+		itemTree.reset();
 	return std::move(itemTree);
 }
 

@@ -34,7 +34,7 @@ public:
 	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
 
-	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&);
+	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&, bool root);
 
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
 	virtual void prepare(const Clasp::SymbolTable&) override;
@@ -48,6 +48,7 @@ private:
 
 	const GringoOutputProcessor& gringoOutput;
 	const ChildItemTrees& childItemTrees;
+	const ItemTreeNode::Type rowType;
 };
 
 }}} // namespace solver::asp::tables

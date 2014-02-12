@@ -38,11 +38,11 @@ public:
 	typedef AtomInfo<GringoOutputProcessor::OrAtomArguments> OrAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::AndAtomArguments> AndAtomInfo;
 
-	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, bool pruneUndefined, const Application&);
+	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&);
 
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
 	virtual void prepare(const Clasp::SymbolTable&) override;
-	virtual ItemTreePtr finalize() override;
+	virtual ItemTreePtr finalize(bool pruneUndefined, bool pruneRejecting) override;
 
 private:
 	UncompressedItemTreePtr uncompressedItemTree;
@@ -61,9 +61,6 @@ private:
 
 	const GringoOutputProcessor& gringoOutput;
 	const ChildItemTrees& childItemTrees;
-
-	bool prune;
-	bool pruneUndefined;
 };
 
 }}} // namespace solver::asp::trees

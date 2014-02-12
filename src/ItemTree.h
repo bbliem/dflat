@@ -43,18 +43,37 @@ public:
 	// If no merging has occurred (i.e., "subtree" was added as a new child), returns an iterator to this new child; otherwise returns an iterator to this->children.end().
 	Children::const_iterator addChildAndMerge(ChildPtr&& subtree);
 
-	// Enables random access to this node's children via getChild(), and also random access for all children of descendants of this node.
-	void finalize();
+	// 1. Prunes nodes with UNDEFINED type if pruneUndefined == true.
+	// 2. Calls evaluate(pruneRejecting).
+	// 3. Calls clearUnneededExtensionPointers(app).
+	// 4. Enables random access to child nodes via getChild(). This is done recursively.
+	// Returns false iff this node should be pruned (i.e., if its acceptance status is UNDEFINED and pruneUndefined == true, or its acceptance status is REJECT and pruneRejecting == true).
+	bool finalize(const Application& app, bool pruneUndefined, bool pruneRejecting);
 
 	// Use this after calling finalize() to get the i'th child of this node
 	const ItemTree& getChild(size_t i) const;
 
+	// Print the tree that would result from recursively extending all nodes
+	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool printCount = true, bool root = true, bool lastChild = false, const std::string& indent = "", const ExtensionIterator* parent = nullptr) const;
+
+private:
+	friend struct ItemTreePtrComparator;
+
+	// Recursively unify extension pointers of this itree with the other one's given that the item sets are all equal
+	void merge(ItemTree&& other);
+
+	// This propagates acceptance statuses from the leaves toward this node and prunes in the course of this if children are found to be rejecting. If this node can be determined to be accepting or rejecting, returns ACCEPT or REJECT, respectively; otherwise returns UNDEFINED.
+	// If "pruneRejecting = true", children evaluating to REJECT will be deleted.
+	// Nodes with UNDEFINED type always evaluate to UNDEFINED and no pruning is performed for their descendants.
+	ItemTreeNode::Type evaluate(bool pruneRejecting);
+
+	// Delete subtrees rooted at a node with UNDEFINED type.
+	// This should be called in the root of the tree decomposition before calling evaluate().
+	void pruneUndefined();
+
 	// If counting is not required, removes extension pointers of all nodes below (but not including) the materialization depth in order to allow non-extended nodes to be deleted. (They are not going to be needed anymore.)
 	// Otherwise, removes extension pointers of all nodes below (but not including) the materialization depth plus one.
 	void clearUnneededExtensionPointers(const Application& app, unsigned int currentDepth = 0);
-
-	// Print the tree that would result from recursively extending all nodes
-	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool printCount = true, bool root = true, bool lastChild = false, const std::string& indent = "", const ExtensionIterator* parent = nullptr) const;
 
 	// The children of each item tree node are considered ordered.
 	// Let A and B be item trees having the same item sets.
@@ -70,9 +89,7 @@ public:
 	// *this < other.
 	bool costDifferenceSignIncrease(const ItemTreePtr& other) const;
 
-private:
-	// Recursively unify extension pointers of this itree with the other one's given that the item sets are all equal
-	void merge(ItemTree&& other);
+	void prepareChildrenRandomAccess();
 
 	std::vector<const ItemTree*> childrenVector; // for random access via getChild()
 };

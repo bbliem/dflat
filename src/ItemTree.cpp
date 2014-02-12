@@ -18,8 +18,6 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
-#include <cassert>
-
 #include "ItemTree.h"
 #include "Application.h"
 #include "ExtensionIterator.h"
@@ -59,17 +57,22 @@ ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree
 	return result.first;
 }
 
-void ItemTree::finalize()
+bool ItemTree::finalize(const Application& app, bool pruneUndef, bool pruneRejecting)
 {
-	if(children.empty() == false) {
-		// Fill children vector for random access to children
-		assert(childrenVector.empty());
-		childrenVector.reserve(children.size());
-		for(const auto& child : children) {
-			childrenVector.push_back(child.get());
-			child->finalize();
-		}
+	if(pruneUndef) {
+		if(node->getType() == ItemTreeNode::Type::UNDEFINED)
+			return false;
+		pruneUndefined();
 	}
+
+	if(evaluate(pruneRejecting) == ItemTreeNode::Type::REJECT)
+		return false;
+
+	clearUnneededExtensionPointers(app);
+
+	prepareChildrenRandomAccess();
+
+	return true;
 }
 
 const ItemTree& ItemTree::getChild(size_t i) const
@@ -77,25 +80,6 @@ const ItemTree& ItemTree::getChild(size_t i) const
 	assert(childrenVector.size() == children.size());
 	assert(i < childrenVector.size());
 	return *childrenVector[i];
-}
-
-void ItemTree::clearUnneededExtensionPointers(const Application& app, unsigned int currentDepth)
-{
-	if(app.isCountingDisabled()) {
-		++currentDepth;
-		if(currentDepth > app.getMaterializationDepth())
-			for(const auto& child : children)
-				child->getRoot()->clearExtensionPointers();
-	}
-	else {
-		if(currentDepth > app.getMaterializationDepth())
-			for(const auto& child : children)
-				child->getRoot()->clearExtensionPointers();
-		++currentDepth;
-	}
-
-	for(const auto& child : children)
-		child->clearUnneededExtensionPointers(app, currentDepth);
 }
 
 void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool printCount, bool root, bool lastChild, const std::string& indent, const ExtensionIterator* parent) const
@@ -176,6 +160,122 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool pri
 		}
 	}
 }
+
+ItemTreeNode::Type ItemTree::evaluate(bool pruneRejecting)
+{
+	// UNDEFINED nodes always evaluate to UNDEFINED and no pruning is done for their descendants
+	if(node->getType() == ItemTreeNode::Type::UNDEFINED)
+		return ItemTreeNode::Type::UNDEFINED;
+
+	// Prune children recursively
+	bool allAccepting = true;
+	bool allRejecting = true;
+
+	Children::const_iterator it = children.begin();
+	while(it != children.end()) {
+		ItemTreeNode::Type childResult = (*it)->evaluate(pruneRejecting);
+		switch(childResult) {
+			case ItemTreeNode::Type::OR:
+			case ItemTreeNode::Type::AND:
+				assert(false); // Only UNDEFINED, ACCEPT or REJECT are allowed
+				break;
+
+			case ItemTreeNode::Type::UNDEFINED:
+				allRejecting = false;
+				allAccepting = false;
+				++it;
+				break;
+
+			case ItemTreeNode::Type::ACCEPT:
+				node->setHasAcceptingChild();
+				allRejecting = false;
+				++it;
+				break;
+
+			case ItemTreeNode::Type::REJECT:
+				node->setHasRejectingChild();
+				allAccepting = false;
+				if(pruneRejecting) {
+					// Remove that child
+					children.erase(it++);
+				}
+				else
+					++it;
+				break;
+		}
+	}
+
+	// Determine acceptance status of this node, if possible
+	switch(node->getType()) {
+		case ItemTreeNode::Type::UNDEFINED:
+			assert(false); // returned above
+			break;
+
+		case ItemTreeNode::Type::OR:
+			if(node->getHasAcceptingChild())
+				return ItemTreeNode::Type::ACCEPT;
+			if(allRejecting)
+				return ItemTreeNode::Type::REJECT;
+			break;
+
+		case ItemTreeNode::Type::AND:
+			if(allAccepting)
+				return ItemTreeNode::Type::ACCEPT;
+			if(node->getHasRejectingChild())
+				return ItemTreeNode::Type::REJECT;
+			break;
+
+		case ItemTreeNode::Type::ACCEPT:
+			assert(children.empty()); // Must only be in leaves
+			return ItemTreeNode::Type::ACCEPT;
+
+		case ItemTreeNode::Type::REJECT:
+			assert(children.empty()); // Must only be in leaves
+			return ItemTreeNode::Type::REJECT;
+	}
+
+	return ItemTreeNode::Type::UNDEFINED;
+}
+
+void ItemTree::pruneUndefined()
+{
+	assert(node->getType() != ItemTreeNode::Type::UNDEFINED);
+	assert((node->getType() != ItemTreeNode::Type::OR && node->getType() != ItemTreeNode::Type::AND) || !children.empty());
+	Children::const_iterator it = children.begin();
+	while(it != children.end()) {
+		if((*it)->getRoot()->getType() == ItemTreeNode::Type::UNDEFINED)
+			children.erase(it++);
+		else {
+			(*it)->pruneUndefined();
+			++it;
+		}
+	}
+#ifndef DISABLE_CHECKS
+	if(node->getType() == ItemTreeNode::Type::OR || node->getType() == ItemTreeNode::Type::AND)
+		if(children.empty() && !node->getHasAcceptingChild() && !node->getHasRejectingChild()) // We pruned all children
+			throw std::runtime_error("Inner item tree node with defined type had only undefined children");
+#endif
+}
+
+void ItemTree::clearUnneededExtensionPointers(const Application& app, unsigned int currentDepth)
+{
+	if(app.isCountingDisabled()) {
+		++currentDepth;
+		if(currentDepth > app.getMaterializationDepth())
+			for(const auto& child : children)
+				child->getRoot()->clearExtensionPointers();
+	}
+	else {
+		if(currentDepth > app.getMaterializationDepth())
+			for(const auto& child : children)
+				child->getRoot()->clearExtensionPointers();
+		++currentDepth;
+	}
+
+	for(const auto& child : children)
+		child->clearUnneededExtensionPointers(app, currentDepth);
+}
+
 
 bool ItemTree::costDifferenceSignIncrease(const ItemTreePtr& other) const
 {
@@ -264,5 +364,16 @@ void ItemTree::merge(ItemTree&& other)
 		assert(it != other.children.end());
 		subtree->merge(std::move(**it));
 		++it;
+	}
+}
+
+void ItemTree::prepareChildrenRandomAccess()
+{
+	// Fill children vector for random access to children
+	assert(childrenVector.empty());
+	childrenVector.reserve(children.size());
+	for(const auto& child : children) {
+		childrenVector.push_back(child.get());
+		child->prepareChildrenRandomAccess();
 	}
 }

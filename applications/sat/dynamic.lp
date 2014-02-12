@@ -1,3 +1,5 @@
+%dflat: --tables -e pos -e neg
+
 % Make explicit that a row interprets an atom as false or a clause as unsatisfied
 false(R,X) :- childRow(R,N), bag(N,X), not childItem(R,X).
 unsat(R,C) :- childRow(R,N), bag(N,C), not childAuxItem(R,C).
@@ -15,7 +17,7 @@ item(X) :- extend(R), childItem(R,X), current(X).
 auxItem(C) :- extend(R), childAuxItem(R,C), current(C).
 
 % Guess truth value of introduced atoms
-{ item(A) : atom(A) : introduced(A) }.
+{ item(A) : atom(A), introduced(A) }.
 
 % Through the guess, clauses may become satisfied
 auxItem(C) :- current(C;A), pos(C,A), item(A).
@@ -23,7 +25,6 @@ auxItem(C) :- current(C;A), neg(C,A), not item(A).
 
 
 
-#hide.
 #show item/1.
 #show auxItem/1.
 #show extend/1.

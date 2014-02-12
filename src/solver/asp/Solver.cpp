@@ -38,7 +38,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "trees/ClaspCallback.h"
 #include "trees/GringoOutputProcessor.h"
 
-using namespace solver::asp;
+namespace solver { namespace asp {
 
 namespace {
 
@@ -50,17 +50,15 @@ std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(Clasp::Asp::Logi
 		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
 }
 
-std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const Gringo::Output::LparseOutputter& gringoOutput, const ChildItemTrees& childItemTrees, bool prune, bool pruneUndefined, const Application& app)
+std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const Gringo::Output::LparseOutputter& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, bool root)
 {
 	if(tableMode)
-		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutput), childItemTrees, app));
+		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutput), childItemTrees, app, root));
 	else
-		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutput), childItemTrees, prune, pruneUndefined, app));
+		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutput), childItemTrees, app));
 }
 
 } // anonymous namespace
-
-namespace solver { namespace asp {
 
 Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode)
 	: ::Solver(decomposition, app)
@@ -136,16 +134,13 @@ ItemTreePtr Solver::compute()
 	params.clear();
 
 	clasp.prepare();
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app.isPruningDisabled() == false || decomposition.getParents().empty(), decomposition.getParents().empty(), app));
+	const bool root = decomposition.getParents().empty();
+	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, root));
 	cb->prepare(clasp.ctx.symTab());
 	clasp.solve(cb.get());
 
-	ItemTreePtr result = cb->finalize();
-
+	ItemTreePtr result = cb->finalize(root, app.isPruningDisabled() == false || root);
 	app.getPrinter().solverInvocationResult(decomposition.getRoot(), result.get());
-	if(result)
-		result->clearUnneededExtensionPointers(app);
-
 	return result;
 }
 

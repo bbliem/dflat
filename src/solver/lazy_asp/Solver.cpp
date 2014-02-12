@@ -57,8 +57,7 @@ ItemTreePtr Solver::compute()
 	// Currently this is only called at the root of the decomposition.
 	assert(decomposition.getParents().empty());
 	nextRow();
-	ItemTreePtr result = claspCallback->finalize();
-	// XXX What about result.clearUnneededExtensionPointers() as in solver::asp::Solver?
+	ItemTreePtr result = claspCallback->finalize(false, false);
 	app.getPrinter().solverInvocationResult(decomposition.getRoot(), result.get());
 	return result;
 }

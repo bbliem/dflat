@@ -50,7 +50,7 @@ public:
 	ClaspCallback(const Application&);
 
 	// Call this after all answer sets have been processed. It returns the resulting item tree (and calls finalize() on it).
-	virtual ItemTreePtr finalize();
+	virtual ItemTreePtr finalize(bool pruneUndefined, bool pruneRejecting);
 
 	// Called when a model has been found
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;

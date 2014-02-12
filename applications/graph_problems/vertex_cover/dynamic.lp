@@ -22,6 +22,7 @@ cost(Sum - Sub + Cur) :- currentCost(Cur), sumCosts(Sum), subtract(Sub).
 
 
 
+#show currentCost/1.
 #show extend/1.
 #show cost/1.
 #show item/1.
