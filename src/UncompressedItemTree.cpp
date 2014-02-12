@@ -20,8 +20,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include "UncompressedItemTree.h"
 
-namespace solver { namespace asp { namespace trees {
-
 bool UncompressedItemTreePtrComparator::operator()(const UncompressedItemTreePtr& lhs, const UncompressedItemTreePtr& rhs)
 {
 	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() ||
@@ -178,5 +176,3 @@ ItemTreePtr UncompressedItemTree::compress()
 
 	return result;
 }
-
-}}} // namespace solver::asp::trees

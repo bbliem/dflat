@@ -81,7 +81,6 @@ add_executable(dflat
 	solver/asp/tables/GringoOutputProcessor.cpp
 	solver/asp/trees/ClaspCallback.cpp
 	solver/asp/trees/GringoOutputProcessor.cpp
-	solver/asp/trees/UncompressedItemTree.cpp
 	solver/default_join/Solver.cpp
 	Printer.cpp
 	printer/Quiet.cpp
@@ -90,6 +89,7 @@ add_executable(dflat
 	printer/DebugMachineReadable.cpp
 	ItemTreeNode.cpp
 	ItemTree.cpp
+	UncompressedItemTree.cpp
 	ExtensionIterator.cpp
 	Application.cpp
 	main.cpp)

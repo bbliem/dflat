@@ -22,11 +22,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <memory>
 
-#include "../../../DirectedAcyclicGraph.h"
-#include "../../../ItemTreeNode.h"
-#include "../../../ItemTree.h"
-
-namespace solver { namespace asp { namespace trees {
+#include "DirectedAcyclicGraph.h"
+#include "ItemTreeNode.h"
+#include "ItemTree.h"
 
 class UncompressedItemTree;
 typedef std::unique_ptr<UncompressedItemTree> UncompressedItemTreePtr;
@@ -62,5 +60,3 @@ public:
 	// Do not call this before prune().
 	ItemTreePtr compress();
 };
-
-}}} // namespace solver::asp::trees

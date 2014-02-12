@@ -21,7 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 //}}}
 #include "../ClaspCallback.h"
-#include "UncompressedItemTree.h"
+#include "../../../UncompressedItemTree.h"
 #include "GringoOutputProcessor.h"
 
 namespace solver { namespace asp { namespace trees {
