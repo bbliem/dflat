@@ -158,11 +158,16 @@ void Solver::declareDecomposition(const Decomposition& decomposition, std::ostre
 		out << "current(" << v << ")." << std::endl;
 	}
 
-	for(const auto& child : decomposition.getChildren()) {
-		out << "childNode(" << child->getRoot().getGlobalId() << ")." << std::endl;
-		for(const auto& v : child->getRoot().getBag()) {
-			out << "bag(" << child->getRoot().getGlobalId() << ',' << v << "). ";
-			out << "-introduced(" << v << ")." << std::endl; // Redundant
+	out << "#const numChildNodes=" << decomposition.getChildren().size() << '.' << std::endl;
+	if(decomposition.getChildren().empty())
+		out << "initial." << std::endl;
+	else {
+		for(const auto& child : decomposition.getChildren()) {
+			out << "childNode(" << child->getRoot().getGlobalId() << ")." << std::endl;
+			for(const auto& v : child->getRoot().getBag()) {
+				out << "bag(" << child->getRoot().getGlobalId() << ',' << v << "). ";
+				out << "-introduced(" << v << ")." << std::endl; // Redundant
+			}
 		}
 	}
 
