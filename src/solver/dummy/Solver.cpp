@@ -21,11 +21,15 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Solver.h"
 #include "../../ItemTree.h"
 #include "../../Decomposition.h"
+#include "../../Application.h"
+#include "../../Printer.h"
 
 namespace solver { namespace dummy {
 
 ItemTreePtr Solver::compute()
 {
+	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
+
 	return ItemTreePtr();
 }
 

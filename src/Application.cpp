@@ -68,6 +68,7 @@ Application::Application(const std::string& binaryName)
 	, optPrinter("output", "module", "Print information during the run using <module>")
 	, optNoCounting("no-counting", "Do not count the number of solutions")
 	, optNoPruning("no-pruning", "Prune rejecting subtrees only in the decomposition root")
+	, optPrintDecomposition("print-decomposition", "Print the generated decomposition")
 	, decomposer(0)
 	, solverFactory(0)
 	, depth(std::numeric_limits<unsigned int>::max())
@@ -92,6 +93,7 @@ int Application::run(int argc, char** argv)
 
 	opts.addOption(optNoCounting);
 	opts.addOption(optNoPruning);
+	opts.addOption(optPrintDecomposition);
 
 	options::SingleValueOption optSeed("seed", "n", "Initialize random number generator with seed <n>");
 	opts.addOption(optSeed);
@@ -147,10 +149,10 @@ int Application::run(int argc, char** argv)
 
 	// Decompose instance
 	DecompositionPtr decomposition = decomposer->decompose(instance);
+	printer->decomposerResult(*decomposition);
 
 	// Solve
 	ItemTreePtr rootItree = decomposition->getSolver().compute();
-
 	printer->result(rootItree);
 	return rootItree ? 10 : 20;
 }
@@ -221,6 +223,11 @@ bool Application::isCountingDisabled() const
 bool Application::isPruningDisabled() const
 {
 	return optNoPruning.isUsed();
+}
+
+bool Application::printDecomposition() const
+{
+	return optPrintDecomposition.isUsed();
 }
 
 unsigned int Application::getMaterializationDepth() const

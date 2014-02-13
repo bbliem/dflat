@@ -70,6 +70,8 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 
 ItemTreePtr Solver::compute()
 {
+	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
+
 	// Compute item trees of child nodes
 	ChildItemTrees childItemTrees;
 	for(const auto& child : decomposition.getChildren()) {
@@ -89,7 +91,7 @@ ItemTreePtr Solver::compute()
 		declareItemTree(*childItemTreesInput, childItemTree.second.get(), tableMode, childItemTree.first, rootItemSetName.str());
 	}
 
-	app.getPrinter().solverInvocationInput(decomposition.getRoot(), childItemTreesInput->str());
+	app.getPrinter().solverInvocationInput(decomposition, childItemTreesInput->str());
 
 	// Input: Original problem instance
 	std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
@@ -99,7 +101,7 @@ ItemTreePtr Solver::compute()
 	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
 	declareDecomposition(decomposition, *decompositionInput);
 
-	app.getPrinter().solverInvocationInput(decomposition.getRoot(), decompositionInput->str());
+	app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
 
 	// Set up ASP solver
 	Clasp::ClaspConfig config;
@@ -140,7 +142,7 @@ ItemTreePtr Solver::compute()
 	clasp.solve(cb.get());
 
 	ItemTreePtr result = cb->finalize(root, app.isPruningDisabled() == false || root);
-	app.getPrinter().solverInvocationResult(decomposition.getRoot(), result.get());
+	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
 }
 

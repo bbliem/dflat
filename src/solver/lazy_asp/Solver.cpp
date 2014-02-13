@@ -58,13 +58,14 @@ ItemTreePtr Solver::compute()
 	assert(decomposition.getParents().empty());
 	nextRow();
 	ItemTreePtr result = claspCallback->finalize(false, false);
-	app.getPrinter().solverInvocationResult(decomposition.getRoot(), result.get());
+	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
 }
 
 ItemTree::Children::const_iterator Solver::nextRow()
 {
 	std::unique_lock<std::mutex> lock(workerMutex);
+	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
 	if(noMoreModels)
 		return claspCallback->getItemTree()->getChildren().end();
@@ -123,7 +124,7 @@ void Solver::workerThreadMain()
 	// Input: Decomposition
 	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
 	solver::asp::Solver::declareDecomposition(decomposition, *decompositionInput);
-	app.getPrinter().solverInvocationInput(decomposition.getRoot(), decompositionInput->str());
+	app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
 
 	// Pass input to ASP solver
 	for(const auto& file : encodingFiles)

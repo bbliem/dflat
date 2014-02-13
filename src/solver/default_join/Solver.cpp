@@ -169,6 +169,8 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, bool 
 
 ItemTreePtr Solver::compute()
 {
+	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
+
 	assert(decomposition.getChildren().size() > 1);
 	// Compute item trees of child nodes
 	// When at least two have been computed, join them with the result so far
@@ -188,7 +190,7 @@ ItemTreePtr Solver::compute()
 
 	if(result && result->finalize(app, decomposition.getParents().empty(), app.isPruningDisabled() == false || decomposition.getParents().empty()) == false)
 		result.reset();
-	app.getPrinter().solverInvocationResult(decomposition.getRoot(), result.get());
+	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
 }
 

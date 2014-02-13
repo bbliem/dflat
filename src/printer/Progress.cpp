@@ -23,11 +23,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Progress.h"
 #include "../Application.h"
+#include "../Decomposition.h"
 #include "../DecompositionNode.h"
 
 namespace {
 
 const char frames[] = { '|', '/', '-', '\\' };
+static const std::chrono::milliseconds minFrameDuration(100); // display each frame for at least this amount of time
 
 } // anonymous namespace
 
@@ -35,22 +37,22 @@ namespace printer {
 
 Progress::Progress(Application& app, bool newDefault)
 	: Printer(app, "progress", "Progress report", newDefault)
-	, curNode(1)
+	, completedNodes(0)
 	, curFrame(0)
+	, lastIncrement(std::chrono::steady_clock::now())
 {
 }
 
-void Progress::decomposerResult(const Decomposition&)
+void Progress::decomposerResult(const Decomposition& result)
 {
+	::Printer::decomposerResult(result);
 	// XXX This is a dirty hack to get the number of decomposition nodes quickly
 	totalNodes = DecompositionNode({}).getGlobalId() - 1;
-	printProgress();
 }
 
-void Progress::solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result)
+void Progress::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
 {
-	++curNode;
-	printProgress();
+	++completedNodes;
 }
 
 bool Progress::listensForSolverEvents() const
@@ -60,22 +62,52 @@ bool Progress::listensForSolverEvents() const
 
 void Progress::solverEvent(const std::string& msg)
 {
-	++curFrame;
-	assert(sizeof(frames) / sizeof(frames[0]) == 4);
-	curFrame %= 4;
-	printProgress();
+	const auto now = std::chrono::steady_clock::now();
+	if(now - lastIncrement >= minFrameDuration) {
+		lastIncrement = now;
+		++curFrame;
+		assert(sizeof(frames) / sizeof(frames[0]) == 4);
+		curFrame %= 4;
+		printProgress();
+	}
 }
 
 void Progress::result(const ItemTreePtr& rootItemTree)
 {
-	std::cout << '\r' << std::flush;
+	std::cout << "\r                                                        \r" << std::flush;
+
+
 	Printer::result(rootItemTree);
+}
+
+void Progress::enterNode(const Decomposition& decompositionNode)
+{
+	computationStack.push(&decompositionNode);
+	printProgress();
+}
+
+void Progress::leaveNode()
+{
+	computationStack.pop();
+	if(!computationStack.empty())
+		printProgress();
 }
 
 void Progress::printProgress()
 {
 	static const int digits = std::to_string(totalNodes).length();
-	std::cout << '\r' << std::setw(digits) << curNode << '/' << totalNodes << ' ' << frames[curFrame] << std::flush;
+	assert(!computationStack.empty());
+	const Decomposition& top = *computationStack.top();
+	const auto curNode = top.getRoot().getGlobalId();
+	const auto numChildren = top.getChildren().size();
+	const auto bagSize = top.getRoot().getBag().size();
+	std::cout << '\r'
+		<< "Node " << std::setw(digits) << curNode << ", "
+		<< std::setw(2) << bagSize << " elements, "
+		<< std::setw(2) << numChildren << " child nodes.  "
+		<< frames[curFrame] << ' '
+		<< std::setw(digits) << completedNodes << '/' << totalNodes << ' '
+		<< std::flush;
 }
 
 } // namespace printer

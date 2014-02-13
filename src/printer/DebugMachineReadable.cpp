@@ -78,14 +78,14 @@ void DebugMachineReadable::decomposerResult(const Decomposition& result)
 {
 }
 
-void DebugMachineReadable::solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input)
+void DebugMachineReadable::solverInvocationInput(const Decomposition& decompositionNode, const std::string& input)
 {
-	std::cout << "% Input for solver at decomposition node " << decompositionNode.getGlobalId() << std::endl << input << std::endl;
+	std::cout << "% Input for solver at decomposition node " << decompositionNode.getRoot().getGlobalId() << std::endl << input << std::endl;
 }
 
-void DebugMachineReadable::solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result)
+void DebugMachineReadable::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
 {
-	const auto id = decompositionNode.getGlobalId();
+	const auto id = decompositionNode.getRoot().getGlobalId();
 	if(result) {
 		std::cout << "% Facts describing the resulting item tree at node " << id << std::endl;
 		std::ostringstream rootItemSetName;

@@ -31,10 +31,10 @@ public:
 	DebugHumanReadable(Application& app, bool newDefault = false);
 
 	virtual void decomposerResult(const Decomposition& result) override;
-	virtual void solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input);
-	virtual void solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result);
+	virtual void solverInvocationInput(const Decomposition& decompositionNode, const std::string& input) override;
+	virtual void solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result) override;
 	virtual bool listensForSolverEvents() const override;
-	virtual void solverEvent(const std::string& msg);
+	virtual void solverEvent(const std::string& msg) override;
 
 private:
 	static const std::string OPTION_SECTION;

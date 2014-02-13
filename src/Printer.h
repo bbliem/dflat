@@ -34,9 +34,29 @@ public:
 
 	virtual void decomposerResult(const Decomposition& result);
 
-	// Be default, the implementations of these methods don't do anything
-	virtual void solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input);
-	virtual void solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result);
+	// A printer can manage a decomposition node stack that contains the
+	// visited nodes. When a decomposition node is visited, a NodeStackElement
+	// should be instantiated via visitNode(). This pushes the current node on
+	// the printer's stack. When the NodeStackElement goes out of scope, the
+	// node is popped.
+	// For instance, put the following at the beginning of YourSolver::compute():
+	// const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
+	class NodeStackElement
+	{
+	public:
+		~NodeStackElement();
+	private:
+		friend class Printer;
+		NodeStackElement(Printer& printer, const Decomposition& decompositionNode);
+		Printer& printer;
+	};
+	NodeStackElement visitNode(const Decomposition& decompositionNode);
+
+	virtual void solverInvocationInput(const Decomposition& decompositionNode, const std::string& input);
+
+	// This may be called only once per decomposition node (typically when it
+	// has been processed completely)
+	virtual void solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result);
 
 	// Whether calls to solverEvent() have any effect.
 	virtual bool listensForSolverEvents() const; // this implementation returns false
@@ -45,4 +65,10 @@ public:
 	virtual void result(const ItemTreePtr& rootItemTree);
 
 	virtual void select() override;
+
+protected:
+	// Called by NodeStackElement
+	virtual void enterNode(const Decomposition& decompositionNode);
+	virtual void leaveNode();
+
 };

@@ -21,7 +21,19 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 
 #include "Application.h"
+#include "Decomposition.h"
 #include "Printer.h"
+
+Printer::NodeStackElement::NodeStackElement(Printer& printer, const Decomposition& decompositionNode)
+	: printer(printer)
+{
+	printer.enterNode(decompositionNode);
+}
+
+Printer::NodeStackElement::~NodeStackElement()
+{
+	printer.leaveNode();
+}
 
 Printer::Printer(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault)
 	: Module(app, app.getPrinterChoice(), optionName, optionDescription, newDefault)
@@ -34,13 +46,20 @@ Printer::~Printer()
 
 void Printer::decomposerResult(const Decomposition& result)
 {
+	if(app.printDecomposition())
+		std::cout << "Decomposition (width " << result.getWidth() << "):" << std::endl << result << std::endl;
 }
 
-void Printer::solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input)
+Printer::NodeStackElement Printer::visitNode(const Decomposition& decompositionNode)
+{
+	return NodeStackElement(*this, decompositionNode);
+}
+
+void Printer::solverInvocationInput(const Decomposition& decompositionNode, const std::string& input)
 {
 }
 
-void Printer::solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result)
+void Printer::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
 {
 }
 
@@ -66,4 +85,12 @@ void Printer::select()
 {
 	Module::select();
 	app.setPrinter(*this);
+}
+
+void Printer::enterNode(const Decomposition& decompositionNode)
+{
+}
+
+void Printer::leaveNode()
+{
 }

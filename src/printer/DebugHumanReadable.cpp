@@ -45,15 +45,15 @@ void DebugHumanReadable::decomposerResult(const Decomposition& result)
 	std::cout << "Decomposition (width " << result.getWidth() << "):" << std::endl << result << std::endl;
 }
 
-void DebugHumanReadable::solverInvocationInput(const DecompositionNode& decompositionNode, const std::string& input)
+void DebugHumanReadable::solverInvocationInput(const Decomposition& decompositionNode, const std::string& input)
 {
 	if(optPrintSolverInvocationInput.isUsed())
-		std::cout << "Input for solver at decomposition node " << decompositionNode.getGlobalId() << ':' << std::endl << input << std::endl;
+		std::cout << "Input for solver at decomposition node " << decompositionNode.getRoot().getGlobalId() << ':' << std::endl << input << std::endl;
 }
 
-void DebugHumanReadable::solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result)
+void DebugHumanReadable::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
 {
-	std::cout << std::endl << "Resulting item tree at decomposition node " << decompositionNode.getGlobalId();
+	std::cout << std::endl << "Resulting item tree at decomposition node " << decompositionNode.getRoot().getGlobalId();
 	if(result)
 		std::cout << ':' << std::endl << *result;
 	else

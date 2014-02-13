@@ -20,6 +20,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
+#include <chrono>
+#include <stack>
+
 #include "../Printer.h"
 
 namespace printer {
@@ -30,18 +33,23 @@ public:
 	Progress(Application& app, bool newDefault = false);
 
 	virtual void decomposerResult(const Decomposition& result) override;
-	virtual void solverInvocationResult(const DecompositionNode& decompositionNode, const ItemTree* result) override;
-	virtual bool listensForSolverEvents() const;
-	virtual void solverEvent(const std::string& msg);
+	virtual void solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result) override;
+	virtual bool listensForSolverEvents() const override;
+	virtual void solverEvent(const std::string& msg) override;
 	virtual void result(const ItemTreePtr& rootItemTree) override;
+
+protected:
+	virtual void enterNode(const Decomposition& decompositionNode) override;
+	virtual void leaveNode() override;
+	std::stack<const Decomposition*> computationStack;
 
 private:
 	void printProgress();
 
 	unsigned int totalNodes;
-	unsigned int curNode;
-
+	unsigned int completedNodes;
 	int curFrame;
+	std::chrono::steady_clock::time_point lastIncrement;
 };
 
 } // namespace printer

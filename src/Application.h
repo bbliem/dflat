@@ -53,6 +53,7 @@ public:
 
 	bool isCountingDisabled() const;
 	bool isPruningDisabled() const;
+	bool printDecomposition() const;
 
 	// Returns the depth until which the solution item tree should be materialized.
 	// If the user did not specify a value, returns the greatest unsigned int.
@@ -70,6 +71,7 @@ private:
 	options::Choice optPrinter;
 	options::Option optNoCounting;
 	options::Option optNoPruning;
+	options::Option optPrintDecomposition;
 
 	Decomposer* decomposer;
 	SolverFactory* solverFactory;
