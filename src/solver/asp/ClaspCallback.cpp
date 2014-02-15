@@ -46,10 +46,10 @@ const ItemTreePtr& ClaspCallback::getItemTree() const
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 {
 	if(app.getPrinter().listensForSolverEvents()) {
-		Clasp::SymbolTable& symTab = s.sharedContext()->symTab();
+		Clasp::SymbolTable& symbolTable = s.sharedContext()->symbolTable();
 		std::ostringstream msg;
 		msg << "Model: ";
-		for(Clasp::SymbolTable::const_iterator it = symTab.begin(); it != symTab.end(); ++it) {
+		for(Clasp::SymbolTable::const_iterator it = symbolTable.begin(); it != symbolTable.end(); ++it) {
 			if(m.isTrue(it->second.lit) && !it->second.name.empty())
 				msg << it->second.name.c_str() << ' ';
 		}

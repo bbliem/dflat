@@ -1,8 +1,6 @@
 #!/bin/bash
 
 numInstances=100
-clingo=clingo
-dflat=./dflat
 
 if [[ -z "$instanceGen" || -z "$dflatArguments" || -z "$monolithicEncoding" ]]; then
 	echo "Environment variables not set"
@@ -17,13 +15,13 @@ for instance in $(seq 1 $numInstances); do
 	dflatCountFile=$(mktemp)
 	trap "rm -f $instance $claspCountFile $dflatCountFile" EXIT
 
-	$instanceGen $seed > $instance 2>/dev/null || exit
+	$instanceGen $seed > $instance || exit
 
-	$clingo $monolithicEncoding $instance -q 0 | awk '/Models/ { print $3 }' > $claspCountFile
-	claspExit=${PIPESTATUS[0]}
+	gringo $monolithicEncoding $instance | clasp -q 0 | awk '/Models/ { print $3 }' > $claspCountFile
+	claspExit=${PIPESTATUS[1]}
 	claspCount=$(<$claspCountFile)
 	
-	$dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | sed 's/\[\([0-9]*\)\]/\1/g' > $dflatCountFile
+	dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | sed 's/\[\([0-9]*\)\]/\1/g' > $dflatCountFile
 	dflatExit=${PIPESTATUS[0]}
 	dflatCount=$(<$dflatCountFile)
 

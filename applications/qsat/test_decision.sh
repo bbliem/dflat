@@ -8,11 +8,9 @@ numInstances=100
 #instanceGen="$ROOT/../blocksqbf/blocksqbf -c 10 -b 3 -bs 2 -bs 2 -bs 2 -bc 1 -bc 1 -bc 1"
 #instanceGen="$ROOT/../blocksqbf/blocksqbf -c 20 -b 4 -bs 1 -bs 2 -bs 1 -bs 2 -bc 1 -bc 1 -bc 1 -bc 1"
 blocks=4
-instanceGen="$ROOT/../blocksqbf/blocksqbf -c 10 -b $blocks $(for i in `seq 1 $blocks`; do echo -n '-bs 1 '; done) $(for i in `seq 1 $blocks`; do echo -n '-bc 1 '; done)"
+instanceGen="blocksqbf -c 10 -b $blocks $(for i in `seq 1 $blocks`; do echo -n '-bs 1 '; done) $(for i in `seq 1 $blocks`; do echo -n '-bc 1 '; done)"
 qdimacs2lp=$DIR/qdimacs2lp.awk
-depqbf=$ROOT/../depqbf/depqbf
-dflat=$ROOT/dflat
-dflatArguments="-p $DIR/dynamic.lp -e pos -e neg --no-empty-leaves --no-pruning"
+dflatArguments="-p $DIR/dynamic.lp"
 
 for instance in $(seq 1 $numInstances); do
 	seed=$RANDOM
@@ -20,11 +18,11 @@ for instance in $(seq 1 $numInstances); do
 	instance=$(mktemp)
 	trap "rm -f $instance" EXIT
 
-	$instanceGen -s $seed > $instance 2>/dev/null || exit
+	$instanceGen -s $seed > $instance || exit
 
-	$depqbf $instance &>/dev/null
+	depqbf $instance >/dev/null
 	depQbfExit=$?
-	awk -f $qdimacs2lp $instance | $dflat $dflatArguments --depth 0 --seed $seed >/dev/null
+	awk -f $qdimacs2lp $instance | dflat $dflatArguments --depth 0 --seed $seed >/dev/null
 	dflatExit=$?
 
 	if [ $depQbfExit -ne $dflatExit ]; then

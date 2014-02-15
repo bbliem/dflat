@@ -1,3 +1,5 @@
+%dflat: -e pos -e neg --no-empty-leaves --no-pruning
+
 % This encoding doesn't work with pruning.
 % Guess a branch
 1 { extend(L,S) : leafOf(S,N), atLevel(S,L) } 1 :- childNode(N).

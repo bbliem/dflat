@@ -6,7 +6,7 @@ cxxflags_release32="-DWITH_THREADS=0 -m32 -DNO_UNICODE"
 cxxflags_static=$(cxxflags_release)
 cxxflags_static32=$(cxxflags_release32)
 
-gringo_dir=$(CURDIR)/../clingo-4.2.1-source
+gringo_dir=$(CURDIR)/../gringo-4.2.1-source
 gringo_lib=$(gringo_dir)/build/release/libgringo.a
 gringo_lib_debug=$(gringo_dir)/build/debug/libgringo.a
 gringo_lib_gprof=$(gringo_dir)/build/gprof/libgringo.a
@@ -14,13 +14,13 @@ gringo_lib_release32=$(gringo_dir)/build/release32/libgringo.a
 gringo_lib_static=$(gringo_dir)/build/static/libgringo.a
 gringo_lib_static32=$(gringo_dir)/build/static32/libgringo.a
 
-clasp_dir=$(CURDIR)/../clingo-4.2.1-source
-clasp_lib=$(clasp_dir)/build/release/libclasp.a
-clasp_lib_debug=$(clasp_dir)/build/debug/libclasp.a
-clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp.a
-clasp_lib_release32=$(clasp_dir)/build/release32/libclasp.a
-clasp_lib_static=$(clasp_dir)/build/static/libclasp.a
-clasp_lib_static32=$(clasp_dir)/build/static32/libclasp.a
+clasp_dir=$(CURDIR)/../clasp-3.0.0
+clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
+clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
+clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
+clasp_lib_release32=$(clasp_dir)/build/release_m32/libclasp/lib/libclasp.a
+clasp_lib_static=$(clasp_dir)/build/static/libclasp/lib/libclasp.a
+clasp_lib_static32=$(clasp_dir)/build/static32/libclasp/lib/libclasp.a
 
 sharp_dir=$(CURDIR)/../sharp-1.1.1
 sharp_lib=$(sharp_dir)/src/.libs/libsharp.a

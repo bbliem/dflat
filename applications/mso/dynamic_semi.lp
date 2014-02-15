@@ -1,3 +1,4 @@
+%dflat: -e edge -d td -n semi --no-empty-leaves --no-empty-root
 % This encoding requires semi-normalization
 
 var(L,X) :- iVar(L,X).

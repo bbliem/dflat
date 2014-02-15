@@ -138,7 +138,7 @@ ItemTreePtr Solver::compute()
 	clasp.prepare();
 	const bool root = decomposition.getParents().empty();
 	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, root));
-	cb->prepare(clasp.ctx.symTab());
+	cb->prepare(clasp.ctx.symbolTable());
 	clasp.solve(cb.get());
 
 	ItemTreePtr result = cb->finalize(root, app.isPruningDisabled() == false || root);

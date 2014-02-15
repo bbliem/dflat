@@ -146,10 +146,10 @@ void Solver::workerThreadMain()
 
 	// Prepare for solving. (This makes clasp's symbol table available.)
 	clasp.prepare();
-	claspCallback->prepare(clasp.ctx.symTab());
+	claspCallback->prepare(clasp.ctx.symbolTable());
 
 	// We need to know which clasp variable corresponds to each childItem(_) atom.
-	for(const auto& pair : clasp.ctx.symTab()) {
+	for(const auto& pair : clasp.ctx.symbolTable()) {
 		if(!pair.second.name.empty()) {
 			const std::string name = pair.second.name.c_str();
 			if(name.compare(0, 10, "childItem(") == 0) {
@@ -207,7 +207,7 @@ void Solver::workerThreadMain()
 			}
 		}
 		clasp.prepare();
-		claspCallback->prepare(clasp.ctx.symTab());
+		claspCallback->prepare(clasp.ctx.symbolTable());
 		clasp.solve(claspCallback.get());
 		{
 			// XXX Necessary to update so often? Is the overhead bad?
@@ -269,7 +269,7 @@ void Solver::aspCallsOnNewRowFromChild(ItemTree::Children::const_iterator newRow
 			}
 		}
 		clasp.prepare();
-		claspCallback->prepare(clasp.ctx.symTab());
+		claspCallback->prepare(clasp.ctx.symbolTable());
 		clasp.solve(claspCallback.get());
 		{
 			// XXX Necessary to update so often? Is the overhead bad?

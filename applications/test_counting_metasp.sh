@@ -3,9 +3,6 @@ DIR=$(cd "$( dirname "$0" )" && pwd)
 ROOT=$DIR/../..
 MISMATCH_DIR=$ROOT/mismatch
 numInstances=100
-gringo=gringo
-clasp=claspD-1.1.1-x86-linux
-dflat=$ROOT/dflat
 metaspDir=$DIR/metasp
 
 if [[ -z "$instanceGen" || -z "$dflatArguments" || -z "$monolithicEncoding" ]]; then
@@ -21,13 +18,13 @@ for instance in $(seq 1 $numInstances); do
 	dflatCountFile=$(mktemp)
 	trap "rm -f $instance $claspCountFile $dflatCountFile" EXIT
 
-	$instanceGen $seed > $instance 2>/dev/null || exit
+	$instanceGen $seed > $instance || exit
 
-	$gringo --reify $monolithicEncoding $instance | $gringo - ${metaspDir}/{meta.lp,metaD.lp,metaO.lp} <(echo "optimize(1,1,incl).") | $clasp -q 0 | awk '/Models/ { print $3 }' > $claspCountFile
+	gringo --reify $monolithicEncoding $instance | gringo - ${metaspDir}/{meta.lp,metaD.lp,metaO.lp} <(echo "optimize(1,1,incl).") | clasp -q 0 | awk '/Models/ { print $3 }' > $claspCountFile
 #	claspExit=${PIPESTATUS[2]}
 	claspCount=$(<$claspCountFile)
 
-	$dflat $dflatArguments -p counting -s $seed < $instance | tail -n1 | awk '{ print $2 }' > $dflatCountFile
+	dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | sed 's/\[\([0-9]*\)\]/\1/g' > $dflatCountFile
 #	dflatExit=${PIPESTATUS[0]}
 	dflatCount=$(<$dflatCountFile)
 

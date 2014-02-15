@@ -1,9 +1,6 @@
 #!/bin/bash
 
 numInstances=100
-gringo=gringo
-clasp=clasp
-dflat=./dflat
 
 if [[ -z "$instanceGen" || -z "$dflatArguments" || -z "$monolithicEncoding" ]]; then
 	echo "Environment variables not set"
@@ -18,9 +15,9 @@ for instance in $(seq 1 $numInstances); do
 
 	$instanceGen $seed > $instance 2>/dev/null || exit
 
-	$gringo $monolithicEncoding $instance 2>/dev/null | $clasp -q >/dev/null
+	gringo $monolithicEncoding $instance 2>/dev/null | clasp -q >/dev/null
 	claspExit=$?
-	$dflat $dflatArguments --depth 0 --seed $seed < $instance >/dev/null
+	dflat $dflatArguments --depth 0 --seed $seed < $instance >/dev/null
 	dflatExit=$?
 
 	[ $claspExit -ne 30 ] || claspExit=10
