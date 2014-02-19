@@ -3,19 +3,32 @@
 import random
 import sys
 
-ratio = 1
-dimacs = len(sys.argv) == 5
-
-if len(sys.argv) not in (3, 4, 5) or (dimacs and sys.argv[4] != "--dimacs"):
-	sys.stderr.write("Usage: " + sys.argv[0] + " numVars numExtraClauses [seed] [--dimacs]\n")
+def usage():
+	sys.stderr.write('args: ' + str(sys.argv) + '\n')
+	sys.stderr.write("Usage: " + sys.argv[0] + " numVars numExtraClauses [seed] [--allow-unsat] [--dimacs]\n")
+	sys.stderr.write("If you provide --allow-unsat, adding the extra clauses may result in an unsatisfiable instance.\n")
 	sys.exit(1)
+
+ratio = 1
+allowUnsat = False
+dimacs = False
+
+if len(sys.argv) not in range(3,6):
+	usage()
 
 numVars = int(sys.argv[1])
 numExtraClauses = int(sys.argv[2])
 numClauses = numVars * ratio + numExtraClauses
 
-if len(sys.argv) >= 4:
-	random.seed(int(sys.argv[3]))
+for arg in sys.argv[3:]:
+	if arg.isdigit():
+		random.seed(int(arg))
+	elif arg == '--dimacs':
+		dimacs = True
+	elif arg == '--allow-unsat':
+		allowUnsat = True
+	else:
+		usage()
 
 # Generate some model randomly
 model = [random.randrange(2) == 0 for i in range(numVars)]
@@ -40,12 +53,16 @@ for i in range(ratio * numVars):
 
 for i in range(numExtraClauses):
 	c = numVars * ratio + i
-	# At least one var must be satisfied
-	satisfiedVar = random.randrange(numVars)
-	clauses[c].append({'atom': satisfiedVar, 'negative': not model[satisfiedVar]})
+	numVarsInThisClause = 2
+
+	if not allowUnsat:
+		# At least one var must be satisfied
+		satisfiedVar = random.randrange(numVars)
+		clauses[c].append({'atom': satisfiedVar, 'negative': not model[satisfiedVar]})
+		numVarsInThisClause -= 1
 
 	# Choose other random variables
-	for var in random.sample(range(numVars), random.randint(1,1)):
+	for var in random.sample(range(numVars), numVarsInThisClause):
 		negative = random.random() < 0.5
 		clauses[c].append({'atom': var, 'negative': negative})
 
