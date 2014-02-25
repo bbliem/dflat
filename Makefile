@@ -30,6 +30,13 @@ sharp_lib_release32=$(CURDIR)/../sharp-1.1.1-32bit/src/.libs/libsharp.a
 sharp_lib_static=$(sharp_dir)/src/.libs/libsharp.a
 sharp_lib_static32=$(CURDIR)/../sharp-1.1.1-32bit/src/.libs/libsharp.a
 
+gtest_dir=/usr/src/gtest
+
+# You may also want to use --output-sync if you use multiple processes, but
+# this has the unfortunate side-effect of disabling color output.
+GNUMAKEFLAGS=--no-print-directory
+export CTEST_OUTPUT_ON_FAILURE=1
+
 ifeq ($(CXX),clang++)
 	cmake_extra_options=\
 		-DCMAKE_USER_MAKE_RULES_OVERRIDE=$(CURDIR)/clang-overrides \
@@ -166,6 +173,26 @@ dist32: release32
 	cd build/dist32 && tar czf $(RELEASE).tar.gz $(RELEASE)
 	mv build/dist32/$(RELEASE).tar.gz build
 	rm -rf build/dist32
+
+.PHONY: test
+test:
+	@mkdir -p build/release
+	@cd build/release && \
+	cmake ../../src \
+		$(cmake_extra_options) \
+		-DCMAKE_BUILD_TYPE=release \
+		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_release) \
+		-Dbuild_tests=BOOL:ON \
+		-Dgtest_dir=$(gtest_dir) \
+		-Dgringo_lib=$(gringo_lib) \
+		-Dclasp_lib=$(clasp_lib) \
+		-Dsharp_lib=$(sharp_lib) \
+		-Dgringo_dir=$(gringo_dir) \
+		-Dclasp_dir=$(clasp_dir) \
+		-Dsharp_dir=$(sharp_dir) \
+	&& $(MAKE) && dflat-tests/tests
+# For what it's worth, it should also be possible to run "make test" in
+# build/release if you want to use ctest.
 
 .PHONY: clean
 clean:
