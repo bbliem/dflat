@@ -36,8 +36,10 @@ ifeq ($(CXX),clang++)
 		-D_CMAKE_TOOLCHAIN_PREFIX=llvm-
 endif
 
+.PHONY: all
 all: release
 
+.PHONY: release
 release:
 	mkdir -p build/release
 	cd build/release && \
@@ -53,6 +55,7 @@ release:
 		-Dsharp_dir=$(sharp_dir) \
 	&& $(MAKE)
 
+.PHONY: debug
 debug:
 	mkdir -p build/debug
 	cd build/debug && \
@@ -68,6 +71,7 @@ debug:
 		-Dsharp_dir=$(sharp_dir) \
 	&& $(MAKE)
 
+.PHONY: gprof
 gprof:
 	mkdir -p build/gprof
 	cd build/gprof && \
@@ -83,6 +87,7 @@ gprof:
 		-Dsharp_dir=$(sharp_dir) \
 	&& $(MAKE)
 
+.PHONY: release32
 release32:
 	mkdir -p build/release32
 	cd build/release32 && \
@@ -98,6 +103,7 @@ release32:
 		-Dsharp_dir=$(sharp_dir) \
 	&& $(MAKE)
 
+.PHONY: static
 static:
 	mkdir -p build/static
 	cd build/static && \
@@ -114,6 +120,7 @@ static:
 		-Dsharp_dir=$(sharp_dir) \
 	&& $(MAKE)
 
+.PHONY: static32
 static32:
 	mkdir -p build/static32
 	cd build/static32 && \
@@ -130,6 +137,7 @@ static32:
 		-Dsharp_dir=$(sharp_dir) \
 	&& $(MAKE)
 
+.PHONY: dist
 dist: release
 	$(eval DATE := $(shell date +%Y%m%d))
 	$(eval RELEASE := dflat-$(DATE)-x86_64)
@@ -144,6 +152,7 @@ dist: release
 	mv build/dist/$(RELEASE).tar.gz build
 	rm -rf build/dist
 
+.PHONY: dist32
 dist32: release32
 	$(eval DATE := $(shell date +%Y%m%d))
 	$(eval RELEASE := dflat-$(DATE)-i386)
@@ -158,5 +167,6 @@ dist32: release32
 	mv build/dist32/$(RELEASE).tar.gz build
 	rm -rf build/dist32
 
+.PHONY: clean
 clean:
 	rm -rf build
