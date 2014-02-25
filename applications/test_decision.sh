@@ -13,7 +13,7 @@ for instance in $(seq 1 $numInstances); do
 	instance=$(mktemp)
 	trap "rm -f $instance" EXIT
 
-	$instanceGen $seed > $instance 2>/dev/null || exit
+	$instanceGen $seed > $instance || exit
 
 	gringo $monolithicEncoding $instance 2>/dev/null | clasp -q >/dev/null
 	claspExit=$?
