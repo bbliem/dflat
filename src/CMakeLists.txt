@@ -48,7 +48,17 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in ${CMAKE_CURRENT_BINARY_DI
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_executable(dflat
+# To build tests, call cmake with -Dbuild_tests=BOOL:ON
+option(build_tests "Build tests" OFF)
+if(build_tests)
+	enable_testing()
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../test ${CMAKE_CURRENT_BINARY_DIR}/dflat-tests)
+	add_subdirectory(${gtest_dir} ${CMAKE_CURRENT_BINARY_DIR}/gtest)
+endif()
+
+# We put everything into a static lib (except main.cpp) because we can then
+# re-use this for the tests.
+add_library(dflat-objects
 	${FLEX_Scanner_OUTPUTS}
 	${BISON_Parser_OUTPUTS}
 	parser/Driver.cpp
@@ -92,6 +102,7 @@ add_executable(dflat
 	UncompressedItemTree.cpp
 	ExtensionIterator.cpp
 	Application.cpp
-	main.cpp)
+	)
+add_executable(dflat main.cpp)
 
-target_link_libraries(dflat gringo clasp sharp gmpxx gmp ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(dflat dflat-objects gringo clasp sharp gmpxx gmp ${CMAKE_THREAD_LIBS_INIT})
