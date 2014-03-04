@@ -27,7 +27,7 @@ namespace options {
 class Observer
 {
 public:
-	virtual ~Observer() {};
+	virtual ~Observer() {}
 
 	virtual void notify() = 0;
 };
