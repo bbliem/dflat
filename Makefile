@@ -6,7 +6,7 @@ cxxflags_release32="-DWITH_THREADS=0 -m32 -DNO_UNICODE"
 cxxflags_static=$(cxxflags_release)
 cxxflags_static32=$(cxxflags_release32)
 
-gringo_dir=$(CURDIR)/../gringo-4.2.1-source
+gringo_dir=$(CURDIR)/../gringo-4.3.0-source
 gringo_lib=$(gringo_dir)/build/release/libgringo.a
 gringo_lib_debug=$(gringo_dir)/build/debug/libgringo.a
 gringo_lib_gprof=$(gringo_dir)/build/gprof/libgringo.a

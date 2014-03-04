@@ -59,7 +59,7 @@ public:
 	void printDisjunctiveRule(AtomVec const &atoms, LitVec const &body);
 	void finishRules()   { /* noop */ }
 	void printSymbol(unsigned atomUid, Gringo::Value v);
-	void printExternal(unsigned atomUid);
+	void printExternal(unsigned atomUid, Gringo::Output::ExternalType type);
 	void finishSymbols() { /* noop */ }
 	bool &disposeMinimize();
 

@@ -45,101 +45,54 @@ GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out)
 {
 	false_ = prg_.newAtom();
 	prg_.setCompute(false_, false);
-#ifdef DEBUG_OUTPUT
-	std::cerr << "pb.setCompute(" << false_ << ",false);\n";
-#endif
 }
 
 void GringoOutputProcessor::addBody(const LitVec& body) {
     for (auto x : body) {
         prg_.addToBody((Clasp::Var)std::abs(x), x > 0);
-#ifdef DEBUG_OUTPUT
-        std::cerr << ".addToBody(" << std::abs(x) << "," << (x > 0) << ")";
-#endif
     }
 }
 void GringoOutputProcessor::addBody(const LitWeightVec& body) {
     for (auto x : body) {
         prg_.addToBody((Clasp::Var)std::abs(x.first), x.first > 0, x.second);
-#ifdef DEBUG_OUTPUT
-        std::cerr << ".addToBody(" << std::abs(x.first) << "," << (x.first > 0) << "," << x.second << ")";
-#endif
     }
 }
 void GringoOutputProcessor::printBasicRule(unsigned head, LitVec const &body) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "pb.startRule().addHead(" << head << ")";
-#endif
     prg_.startRule().addHead(head);
     addBody(body);
     prg_.endRule();
-#ifdef DEBUG_OUTPUT
-    std::cerr << ".endRule();\n";
-#endif
 }
 
 void GringoOutputProcessor::printChoiceRule(AtomVec const &atoms, LitVec const &body) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "pb.startRule(Clasp::Asp::CHOICERULE)";
-    for (auto x : atoms) { std::cerr << ".addHead(" << x << ")"; }
-#endif
     prg_.startRule(Clasp::Asp::CHOICERULE);
     for (auto x : atoms) { prg_.addHead(x); }
     addBody(body);
     prg_.endRule();
-#ifdef DEBUG_OUTPUT
-    std::cerr << ".endRule();\n";
-#endif
 }
 
 void GringoOutputProcessor::printCardinalityRule(unsigned head, unsigned lower, LitVec const &body) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "pb.startRule(Clasp::Asp::CONSTRAINTRULE, " << lower << ").addHead(" << head << ")";
-#endif
     prg_.startRule(Clasp::Asp::CONSTRAINTRULE, lower).addHead(head);
     addBody(body);
     prg_.endRule();
-#ifdef DEBUG_OUTPUT
-    std::cerr << ".endRule();\n";
-#endif
 }
 
 void GringoOutputProcessor::printWeightRule(unsigned head, unsigned lower, LitWeightVec const &body) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "pb.startRule(Clasp::Asp::WEIGHTRULE, " << lower << ").addHead(" << head << ")";
-#endif
     prg_.startRule(Clasp::Asp::WEIGHTRULE, lower).addHead(head);
     addBody(body);
     prg_.endRule();
-#ifdef DEBUG_OUTPUT
-    std::cerr << ".endRule();\n";
-#endif
 }
 
 void GringoOutputProcessor::printMinimize(LitWeightVec const &body) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "pb.startRule(Clasp::Asp::OPTIMIZERULE)";
-#endif
     prg_.startRule(Clasp::Asp::OPTIMIZERULE);
     addBody(body);
     prg_.endRule();
-#ifdef DEBUG_OUTPUT
-    std::cerr << ".endRule();\n";
-#endif
 }
 
 void GringoOutputProcessor::printDisjunctiveRule(AtomVec const &atoms, LitVec const &body) {
-#ifdef DEBUG_OUTPUT
-    std::cerr << "pb.startRule(Clasp::Asp::DISJUNCTIVERULE)";
-    for (auto x : atoms) { std::cerr << ".addHead(" << x << ")"; }
-#endif
     prg_.startRule(Clasp::Asp::DISJUNCTIVERULE);
     for (auto x : atoms) { prg_.addHead(x); }
     addBody(body);
     prg_.endRule();
-#ifdef DEBUG_OUTPUT
-    std::cerr << ".endRule();\n";
-#endif
 }
 
 void GringoOutputProcessor::printSymbol(unsigned atomUid, Gringo::Value v) {
@@ -151,20 +104,14 @@ void GringoOutputProcessor::printSymbol(unsigned atomUid, Gringo::Value v) {
 		v.print(str_);
 		prg_.setAtomName(atomUid, str_.str().c_str());
 	}
-
-	// BB: Process special predicates
-	storeAtom(atomUid, v);
-
-#ifdef DEBUG_OUTPUT
-    std::cerr << "pb.setAtomName(" << atomUid << ",\"" << v << "\");\n";
-#endif
 }
 
-void GringoOutputProcessor::printExternal(unsigned atomUid) {
-    prg_.freeze(atomUid);
-#ifdef DEBUG_OUTPUT
-    std::cerr << "pb.freeze(" << atomUid << ");\n";
-#endif
+void GringoOutputProcessor::printExternal(unsigned atomUid, Gringo::Output::ExternalType type) {
+    switch (type) {
+        case Gringo::Output::ExternalType::E_FALSE: { prg_.freeze(atomUid, Clasp::value_false); break; }
+        case Gringo::Output::ExternalType::E_TRUE:  { prg_.freeze(atomUid, Clasp::value_true); break; }
+        case Gringo::Output::ExternalType::E_FREE:  { prg_.unfreeze(atomUid); break; }
+    }
 }
 
 bool &GringoOutputProcessor::disposeMinimize() {
