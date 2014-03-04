@@ -35,9 +35,7 @@ class Module : public options::Observer
 public:
 	Module(Application& app, options::Choice& choice, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
 
-	virtual ~Module() {};
-
-	virtual void notify();
+	virtual void notify() override;
 
 	// Called when this module has been selected using the choice option given to the constructor
 	virtual void select();
