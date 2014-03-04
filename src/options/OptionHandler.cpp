@@ -53,7 +53,7 @@ void OptionHandler::addOption(Option& opt, const std::string& section)
 	sections.emplace_back(section, OptionList(1, &opt));
 }
 
-void OptionHandler::parse(int argc, char** argv)
+void OptionHandler::parse(int argc, const char* const* const argv)
 {
 	for(int i = 0; i < argc; ++i) {
 		std::string word = argv[i];
