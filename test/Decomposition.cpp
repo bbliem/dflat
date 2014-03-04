@@ -9,7 +9,6 @@ struct DecompositionTest : public ::testing::Test
 {
 	DecompositionTest()
 	{
-		//decomposition.addChild(DecompositionPtr(new Decomposition(DecompositionNode({"b", "c", "d"}), solverFactory)));
 		addDecompositionChild(decomposition, {{"b", "c", "d"}});
 	}
 
@@ -20,7 +19,7 @@ struct DecompositionTest : public ::testing::Test
 	}
 
 	Application app{"test"};
-	solver::dummy::SolverFactory solverFactory = app;
+	solver::dummy::SolverFactory solverFactory{app};
 	Decomposition decomposition{DecompositionNode({"a", "b"}), solverFactory};
 };
 

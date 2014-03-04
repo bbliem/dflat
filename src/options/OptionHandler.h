@@ -43,7 +43,7 @@ public:
 	// Throws an exception if the command-line is not well-formed (e.g., if unknown options are used).
 	// Afterwards you should call checkConditions() to check for semantic validity of the parsed options.
 	// We assume that argv[0] contains the first option, NOT the binary name
-	void parse(int argc, char** argv);
+	void parse(int argc, const char* const* const argv);
 
 	// After parsing, this can be used to check if the parsed options are semantically valid.
 	// That is: The conditions of all options are checked (in particular, all choice options without defaults must have been used).
