@@ -104,6 +104,9 @@ void GringoOutputProcessor::printSymbol(unsigned atomUid, Gringo::Value v) {
 		v.print(str_);
 		prg_.setAtomName(atomUid, str_.str().c_str());
 	}
+
+	// BB: Process special predicates
+	storeAtom(atomUid, v);
 }
 
 void GringoOutputProcessor::printExternal(unsigned atomUid, Gringo::Output::ExternalType type) {
