@@ -113,28 +113,30 @@ int Application::run(int argc, char** argv)
 	printer::DebugHumanReadable humanReadableDebugPrinter(*this);
 	printer::DebugMachineReadable machineReadableDebugPrinter(*this);
 
+	time_t seed = time(0);
 	// Parse command line
 	try {
 		opts.parse(argc, argv);
 		opts.checkConditions();
+
+		if(optSeed.isUsed())
+			seed = strToInt(optSeed.getValue(), "Invalid random seed");
+
+		if(optDepth.isUsed())
+			depth = strToInt(optDepth.getValue(), "Invalid depth");
+
+		if(!optEdge.isUsed())
+			throw std::runtime_error("Option -e must be supplied at least once");
 	}
 	catch(...) {
 		usage();
 		throw;
 	}
 
-	assert(decomposer);
-	assert(solverFactory);
-
-	// Set random seed
-	time_t seed = time(0);
-	if(optSeed.isUsed())
-		seed = strToInt(optSeed.getValue(), "Invalid random seed");
 	srand(seed);
 
-	// Set materialization depth
-	if(optDepth.isUsed())
-		depth = strToInt(optDepth.getValue(), "Invalid depth");
+	assert(decomposer);
+	assert(solverFactory);
 
 	// Get (hyper-)edge predicate names
 	parser::Driver::Predicates edgePredicates(optEdge.getValues().begin(), optEdge.getValues().end());
