@@ -90,6 +90,7 @@ add_library(dflat-objects
 	solver/asp/tables/ClaspCallback.cpp
 	solver/asp/tables/GringoOutputProcessor.cpp
 	solver/asp/trees/ClaspCallback.cpp
+	solver/asp/trees/EncodingChecker.cpp
 	solver/asp/trees/GringoOutputProcessor.cpp
 	solver/default_join/Solver.cpp
 	Printer.cpp
