@@ -36,6 +36,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "tables/ClaspCallback.h"
 #include "tables/GringoOutputProcessor.h"
 #include "trees/ClaspCallback.h"
+#include "trees/EncodingChecker.h"
 #include "trees/GringoOutputProcessor.h"
 
 namespace solver { namespace asp {
@@ -66,6 +67,27 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	, tableMode(tableMode)
 {
 	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
+
+#ifndef DISABLE_CHECKS
+	// TODO: Implement tables::EncodingChecker
+	if(!tableMode) {
+		// Check the encoding, but only in the decomposition root.
+		// Otherwise we'd probably do checks redundantly.
+		if(decomposition.getParents().empty()) {
+			std::ofstream dummyStream;
+			std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, dummyStream));
+			Gringo::Input::Program program;
+			Gringo::Scripts scripts;
+			Gringo::Defines defs;
+			std::unique_ptr<EncodingChecker> encodingChecker{new trees::EncodingChecker(scripts, program, *out, defs)};
+			Gringo::Input::NonGroundParser parser(*encodingChecker);
+			for(const auto& file : encodingFiles)
+				parser.pushFile(std::string(file));
+			parser.parse();
+			encodingChecker->check();
+		}
+	}
+#endif
 }
 
 ItemTreePtr Solver::compute()
