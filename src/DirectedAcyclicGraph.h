@@ -46,28 +46,30 @@ public:
 
 	DirectedAcyclicGraph(Node&& leaf) : node(std::move(leaf)) {}
 
-	// When moving a DirectedAcyclicGraph, we must set the parent pointer of each child to the new address.
-	// Make sure that you don't have any other pointers (not managed by this class) pointing to the old one. (I.e., be careful with extension pointers, for instance.)
+	// Moving an instance is only allowed if it has no parents.
+	// Sets the parent pointer of each child to the new address.
+	// Make sure that you don't have any other pointers (not managed by this class) pointing to "other". (I.e., be careful with extension pointers, for instance.)
 	DirectedAcyclicGraph(DirectedAcyclicGraph&& other)
 		: node(std::move(other.node))
 		, children(std::move(other.children))
-//		, parents(std::move(other.parents)) // XXX does this make sense?
 	{
+		assert(other.parents.empty());
 		for(auto& child : children)
 			std::replace(child->parents.begin(), child->parents.end(), &other, this);
 	}
 
+	// Only allowed if "other" has no parents and is distinct from this.
 	DirectedAcyclicGraph& operator=(DirectedAcyclicGraph&& other)
 	{
+		assert(other.parents.empty());
 		assert(this != &other);
 		node = std::move(other.node);
 		children = std::move(other.children);
-//		parents = std::move(other.parents); // XXX does this make sense?
+		parents = std::move(other.parents);
 		for(auto& child : children)
 			std::replace(child->parents.begin(), child->parents.end(), &other, this);
 		return *this;
 	}
-
 
 	DirectedAcyclicGraph(const DirectedAcyclicGraph&) = delete;
 
@@ -76,7 +78,6 @@ public:
 	const Children& getChildren() const { return children; }
 
 	// Adds the root of "child" to the list of children. Takes ownership of the whole subgraph rooted at "child".
-	// Make sure there arise no cycles!
 	// Inserts this node into the new child's list of parents.
 	void addChild(ChildPtr&& child)
 	{
@@ -85,10 +86,19 @@ public:
 		children.insert(children.end(), std::move(child));
 	}
 
-	// Print decomposition (multiple lines, with EOL at the end)
-	friend std::ostream& operator<<(std::ostream& os, const DirectedAcyclicGraph& tree)
+	// As before without taking ownership of child (impossible if ChildPtr is, e.g., a unique_ptr)
+	void addChild(const ChildPtr& child)
 	{
-		tree.print(os);
+		assert(child);
+		child->parents.push_back(this);
+		children.insert(children.end(), child);
+	}
+
+	// Print a DAG (multiple lines, with EOL at the end)
+	// Output is in tree-form (even if the DAG contains cycles).
+	friend std::ostream& operator<<(std::ostream& os, const DirectedAcyclicGraph& dag)
+	{
+		dag.print(os);
 		return os;
 	}
 
