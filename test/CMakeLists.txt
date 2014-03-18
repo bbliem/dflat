@@ -4,6 +4,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 add_executable(tests
 	Decomposition.cpp
 	DecompositionNode.cpp
+	DirectedAcyclicGraph.cpp
 	Hypergraph.cpp
 	Module.cpp
 	)
