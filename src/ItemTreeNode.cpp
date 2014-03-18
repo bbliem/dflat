@@ -30,16 +30,13 @@ ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& 
 	, extensionPointers(std::move(extensionPointers))
 	, type(type)
 {
-	if(this->extensionPointers.empty())
-		count = 1;
-	else {
-		count = 0;
-		for(const ExtensionPointerTuple& tuple : this->extensionPointers) {
-			mpz_class product = 1;
-			for(const auto& predecessor : tuple)
-				product *= predecessor.second->getCount();
-			count += product;
-		}
+	assert(!this->extensionPointers.empty());
+	count = 0;
+	for(const ExtensionPointerTuple& tuple : this->extensionPointers) {
+		mpz_class product = 1;
+		for(const auto& predecessor : tuple)
+			product *= predecessor.second->getCount();
+		count += product;
 	}
 
 #ifndef DISABLE_CHECKS
@@ -140,6 +137,7 @@ void ItemTreeNode::setHasRejectingChild()
 
 mpz_class ItemTreeNode::countExtensions(const ExtensionIterator& parentIterator) const
 {
+	assert(parentIterator.isValid());
 	mpz_class result;
 	assert(result == 0);
 
