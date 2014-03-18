@@ -176,16 +176,16 @@ dist32: release32
 
 .PHONY: test
 test:
-	@mkdir -p build/release
-	@cd build/release && \
+	@mkdir -p build/debug
+	@cd build/debug && \
 	cmake ../../src \
 		$(cmake_extra_options) \
-		-DCMAKE_BUILD_TYPE=release \
-		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_release) \
+		-DCMAKE_BUILD_TYPE=debug \
+		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_debug) \
 		-Dbuild_tests=BOOL:ON \
 		-Dgtest_dir=$(gtest_dir) \
-		-Dgringo_lib=$(gringo_lib) \
-		-Dclasp_lib=$(clasp_lib) \
+		-Dgringo_lib=$(gringo_lib_debug) \
+		-Dclasp_lib=$(clasp_lib_debug) \
 		-Dsharp_lib=$(sharp_lib) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
