@@ -24,6 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <set>
 #include <map>
+#include <memory>
 #include <string>
 #include <gmpxx.h>
 
@@ -49,7 +50,15 @@ public:
 		REJECT
 	};
 
-	ItemTreeNode(Items&& items = {}, Items&& auxItems = {}, ExtensionPointers&& extensionPointers = {}, Type type = Type::UNDEFINED);
+	// extensionPointers may not be empty; if there are no decomposition
+	// children, it should contain a 0-tuple.
+	// Sets the count to the sum of the products of the counts for each
+	// extension pointer tuple.
+	// Sets hasAcceptingChild and hasRejectingChild to true if any extended
+	// node has set the respective flag to true.
+	// Unless checks are disabled, throws an exception if any extended node has
+	// a defined type and the given node type is different from this.
+	ItemTreeNode(Items&& items = {}, Items&& auxItems = {}, ExtensionPointers&& extensionPointers = {{}}, Type type = Type::UNDEFINED);
 
 	// Returns the items of this node (but not the auxiliary items, see below).
 	const Items& getItems() const;
@@ -63,6 +72,7 @@ public:
 
 	const ItemTreeNode* getParent() const;
 	void setParent(const ItemTreeNode*);
+
 	const mpz_class& getCount() const;
 
 	long getCost() const;
@@ -82,13 +92,15 @@ public:
 	// This is different from getCount() since getCount() returns the number of extensions for *any* possible extension of the parent.
 	// This method traverses the entire decomposition.
 	// If parentIterator does not point to this node's parent, returns 0.
+	// parentIterator must be valid.
 	mpz_class countExtensions(const ExtensionIterator& parentIterator) const;
 
 	// Unify extension pointers of this node with the other one's given that the item sets are equal.
 	// "other" will subsequently be thrown away and only "this" will be retained.
 	void merge(ItemTreeNode&& other);
 
-	// Returns true if this is "smaller" than other, without considering costs
+	// Returns true if this is "smaller" than other, without considering costs.
+	// Only considers items, type, hasAcceptingChild, hasRejectingChild and auxItems.
 	bool compareCostInsensitive(const ItemTreeNode& other) const;
 
 	// Print this node (no newlines)

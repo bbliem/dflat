@@ -6,6 +6,7 @@ add_executable(tests
 	DecompositionNode.cpp
 	DirectedAcyclicGraph.cpp
 	Hypergraph.cpp
+	ItemTreeNode.cpp
 	Module.cpp
 	)
 target_link_libraries(tests dflat-objects gringo clasp sharp gmpxx gmp ${CMAKE_THREAD_LIBS_INIT} gtest gtest_main)
