@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 Decomposition::Decomposition(Node&& leaf, const SolverFactory& solverFactory)
 	: DirectedAcyclicGraph(std::move(leaf))
 	, solverFactory(solverFactory)
-	, root(true)
+	, root(false)
 {
 }
 
