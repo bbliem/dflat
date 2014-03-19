@@ -56,16 +56,19 @@ struct DirectedAcyclicGraphTest : public ::testing::Test
 		right->addChild(std::move(leaf));
 		diamond.addChild(std::move(left));
 		diamond.addChild(std::move(right));
-
-		ASSERT_EQ(2, diamond.getChildren().size());
-		const IntDagPtr& child1 = *diamond.getChildren().begin();
-		const IntDagPtr& child2 = *++diamond.getChildren().begin();
-		ASSERT_EQ(1, child1->getParents().size());
-		ASSERT_EQ(1, child2->getParents().size());
-		ASSERT_EQ(&diamond, child1->getParents().front());
-		ASSERT_EQ(&diamond, child2->getParents().front());
 	}
 };
+
+TEST_F(DirectedAcyclicGraphTest, TestSetUpCorrectly)
+{
+	ASSERT_EQ(2, diamond.getChildren().size());
+	const IntDagPtr& child1 = *diamond.getChildren().begin();
+	const IntDagPtr& child2 = *++diamond.getChildren().begin();
+	ASSERT_EQ(1, child1->getParents().size());
+	ASSERT_EQ(1, child2->getParents().size());
+	EXPECT_EQ(&diamond, child1->getParents().front());
+	EXPECT_EQ(&diamond, child2->getParents().front());
+}
 
 TEST_F(DirectedAcyclicGraphTest, MoveConstructorUpdatesParentsOfChildren)
 {
