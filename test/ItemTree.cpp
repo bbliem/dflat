@@ -102,11 +102,9 @@ TEST_F(ItemTreeTest, AddChildAndMergeSetsParent)
 {
 	const ItemTree* childPtr = undefNode.get();
 	EXPECT_EQ(nullptr, childPtr->getNode()->getParent());
-	EXPECT_TRUE(childPtr->getParents().empty());
 
 	orNode->addChildAndMerge(std::move(undefNode));
 	EXPECT_EQ(orNode->getNode().get(), childPtr->getNode()->getParent());
-	EXPECT_EQ(ItemTree::Parents{orNode.get()}, childPtr->getParents());
 }
 
 TEST_F(ItemTreeTest, AddChildAndMergeRetainsCheapChildOfOrNode)

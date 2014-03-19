@@ -33,6 +33,7 @@ Dummy::Dummy(Application& app, bool newDefault)
 DecompositionPtr Dummy::decompose(const Hypergraph& instance) const
 {
 	DecompositionPtr result(new Decomposition(instance.getVertices(), app.getSolverFactory()));
+	result->setRoot();
 	app.getPrinter().decomposerResult(*result);
 	return result;
 }

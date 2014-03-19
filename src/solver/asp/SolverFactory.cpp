@@ -73,7 +73,7 @@ std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decompos
 	}
 	else {
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
-			return std::unique_ptr<::Solver>(new default_join::Solver(decomposition, app, optTables.isUsed() && decomposition.getParents().empty()));
+			return std::unique_ptr<::Solver>(new default_join::Solver(decomposition, app, optTables.isUsed() && decomposition.isRoot()));
 		else
 			return std::unique_ptr<::Solver>(new asp::Solver(decomposition, app, optEncodingFiles.getValues(), optTables.isUsed()));
 	}

@@ -36,9 +36,6 @@ public:
 	// Return the complete item tree
 	virtual ItemTreePtr compute() = 0;
 
-	// XXX What if there is more than one parent node?
-	Solver* getParentSolver();
-
 protected:
 	const Decomposition& decomposition;
 	const Application& app;

@@ -34,7 +34,6 @@ bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr
 ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree)
 {
 	assert(subtree);
-	assert(subtree->parents.empty());
 	assert(subtree->getNode()->getParent() == nullptr);
 	std::pair<Children::iterator, bool> result = children.insert(std::move(subtree));
 	// XXX If an equivalent element already exists in "children", it is unclear to me whether "subtree" is actually moved or not. (Maybe it depends on the implementation?)
@@ -43,7 +42,6 @@ ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree
 
 	if(result.second) {
 		// subtree was inserted as a new child
-		(*result.first)->parents.push_back(this);
 		(*result.first)->getNode()->setParent(node.get());
 	}
 	else {
@@ -322,7 +320,6 @@ void ItemTree::merge(ItemTree&& other)
 	assert(node->getAuxItems() == other.node->getAuxItems());
 	assert(node->getType() == other.node->getType());
 	assert(node->getParent());
-	assert(parents.size() == 1 && (*parents.begin())->getNode().get() == node->getParent());
 
 	// If the other node is better, throw away this node's data and retain the other one's.
 	// If this node is better, do nothing (the other node is thrown away anyway).

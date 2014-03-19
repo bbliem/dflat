@@ -45,10 +45,7 @@ public:
 	// If no merging has occurred (i.e., "subtree" was added as a new
 	// child), returns an iterator to this new child; otherwise returns
 	// an iterator to this->children.end().
-	// Sets the parent of "subtree->node" to this->node, and adds this to
-	// the parents of "subtree". (The former sets it apart from
-	// DirectedAcyclicGraph::addChild() which does not consider
-	// ItemTreeNodes.)
+	// Sets the parent of "subtree->node" to this->node.
 	Children::const_iterator addChildAndMerge(ChildPtr&& subtree);
 
 	// 1. Prunes nodes with UNDEFINED type if pruneUndefined == true.

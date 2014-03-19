@@ -55,7 +55,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 ItemTreePtr Solver::compute()
 {
 	// Currently this is only called at the root of the decomposition.
-	assert(decomposition.getParents().empty());
+	assert(decomposition.isRoot());
 	nextRow();
 	ItemTreePtr result = claspCallback->finalize(false, false);
 	app.getPrinter().solverInvocationResult(decomposition, result.get());

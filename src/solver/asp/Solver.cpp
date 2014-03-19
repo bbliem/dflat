@@ -73,7 +73,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	if(!tableMode) {
 		// Check the encoding, but only in the decomposition root.
 		// Otherwise we'd probably do checks redundantly.
-		if(decomposition.getParents().empty()) {
+		if(decomposition.isRoot()) {
 			std::ofstream dummyStream;
 			std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, dummyStream));
 			Gringo::Input::Program program;
@@ -158,12 +158,11 @@ ItemTreePtr Solver::compute()
 	params.clear();
 
 	clasp.prepare();
-	const bool root = decomposition.getParents().empty();
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, root));
+	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, decomposition.isRoot()));
 	cb->prepare(clasp.ctx.symbolTable());
 	clasp.solve(cb.get());
 
-	ItemTreePtr result = cb->finalize(root, app.isPruningDisabled() == false || root);
+	ItemTreePtr result = cb->finalize(decomposition.isRoot(), app.isPruningDisabled() == false || decomposition.isRoot());
 	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
 }
@@ -190,15 +189,8 @@ void Solver::declareDecomposition(const Decomposition& decomposition, std::ostre
 		}
 	}
 
-	if(decomposition.getParents().empty())
+	if(decomposition.isRoot())
 		out << "final." << std::endl;
-	else {
-		for(const auto& parent : decomposition.getParents()) {
-			out << "parentNode(" << parent->getNode().getGlobalId() << ")." << std::endl;
-			for(const auto& v : parent->getNode().getBag())
-				out << "bag(" << parent->getNode().getGlobalId() << ',' << v << ")." << std::endl;
-		}
-	}
 
 	// Redundant predicates for convenience...
 	out << "introduced(X) :- current(X), not -introduced(X)." << std::endl;

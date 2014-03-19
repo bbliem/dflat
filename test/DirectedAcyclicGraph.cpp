@@ -35,63 +35,26 @@ public:
 	}
 };
 
-struct DirectedAcyclicGraphTest : public ::testing::Test
+TEST(DirectedAcyclicGraph, AllowsDiamond)
 {
 	IntDag diamond;
-	IntDag* diamondLeft;
-	IntDag* diamondRight;
-	IntDag* diamondLeaf;
+	IntDagPtr left(new IntDag(1));
+	IntDagPtr right(new IntDag(2));
+	IntDagPtr leaf(new IntDag(3));
+	left->addChild(leaf);
+	right->addChild(std::move(leaf));
+	diamond.addChild(std::move(left));
+	diamond.addChild(std::move(right));
 
-	DirectedAcyclicGraphTest()
-	{
-		IntDagPtr left(new IntDag(1));
-		IntDagPtr right(new IntDag(2));
-		IntDagPtr leaf(new IntDag(3));
-
-		diamondLeft = left.get();
-		diamondRight = right.get();
-		diamondLeaf = leaf.get();
-
-		left->addChild(leaf);
-		right->addChild(std::move(leaf));
-		diamond.addChild(std::move(left));
-		diamond.addChild(std::move(right));
-	}
-};
-
-TEST_F(DirectedAcyclicGraphTest, TestSetUpCorrectly)
-{
 	ASSERT_EQ(2, diamond.getChildren().size());
 	const IntDagPtr& child1 = *diamond.getChildren().begin();
 	const IntDagPtr& child2 = *++diamond.getChildren().begin();
-	ASSERT_EQ(1, child1->getParents().size());
-	ASSERT_EQ(1, child2->getParents().size());
-	EXPECT_EQ(&diamond, child1->getParents().front());
-	EXPECT_EQ(&diamond, child2->getParents().front());
+	ASSERT_EQ(1, child1->getChildren().size());
+	ASSERT_EQ(1, child2->getChildren().size());
+	EXPECT_EQ(*child1->getChildren().begin(), *child2->getChildren().begin());
 }
 
-TEST_F(DirectedAcyclicGraphTest, MoveConstructorUpdatesParentsOfChildren)
-{
-	IntDag::Children childrenBeforeMove = diamond.getChildren();
-	IntDag parentMoved = std::move(diamond);
-	EXPECT_EQ(childrenBeforeMove, parentMoved.getChildren());
-
-	EXPECT_EQ(&parentMoved, diamondLeft->getParents().front());
-	EXPECT_EQ(&parentMoved, diamondRight->getParents().front());
-}
-
-TEST_F(DirectedAcyclicGraphTest, AssignmentOperatorUpdatesParentsOfChildren)
-{
-	IntDag::Children childrenBeforeAssignment = diamond.getChildren();
-	IntDag parentAssigned;
-	parentAssigned = std::move(diamond);
-	EXPECT_EQ(childrenBeforeAssignment, parentAssigned.getChildren());
-
-	EXPECT_EQ(&parentAssigned, diamondLeft->getParents().front());
-	EXPECT_EQ(&parentAssigned, diamondRight->getParents().front());
-}
-
-TEST_F(DirectedAcyclicGraphTest, AddChildAddsChild)
+TEST(DirectedAcyclicGraph, AddChildAddsChild)
 {
 	IntDag dag;
 	EXPECT_EQ(0, dag.getChildren().size());
@@ -102,16 +65,4 @@ TEST_F(DirectedAcyclicGraphTest, AddChildAddsChild)
 	IntDagPtr child(new IntDag);
 	dag.addChild(child);
 	EXPECT_EQ(2, dag.getChildren().size());
-}
-
-TEST_F(DirectedAcyclicGraphTest, AddChildAddsParent)
-{
-	IntDag dag;
-	// r-value version
-	dag.addChild(IntDagPtr(new IntDag));
-	EXPECT_EQ(&dag, (*dag.getChildren().begin())->getParents().front());
-	// const reference version
-	IntDagPtr child(new IntDag);
-	dag.addChild(child);
-	EXPECT_EQ(&dag, child->getParents().front());
 }
