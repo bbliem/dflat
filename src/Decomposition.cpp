@@ -38,7 +38,7 @@ Solver& Decomposition::getSolver()
 bool Decomposition::isJoinNode() const
 {
 	return children.size() > 1 && std::all_of(children.begin(), children.end(), [&](const ChildPtr& child) {
-			return child->getRoot().getBag() == node.getBag();
+			return child->getNode().getBag() == node.getBag();
 	});
 }
 

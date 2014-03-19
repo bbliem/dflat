@@ -33,7 +33,7 @@ void declareItemTreeNodeMemoryAddresses(std::ostream& out, const ItemTree* itemT
 	if(!itemTree)
 		return;
 
-	out << "itemTreeNodeHasAddress(" << itemSetName << ',' << itemTree->getRoot().get() << ")." << std::endl;
+	out << "itemTreeNodeHasAddress(" << itemSetName << ',' << itemTree->getNode().get() << ")." << std::endl;
 	size_t i = 0;
 	for(const auto& child : itemTree->getChildren()) {
 		std::ostringstream childName;
@@ -47,7 +47,7 @@ void declareExtensionPointers(std::ostream& out, const ItemTree* itemTree, const
 	if(!itemTree)
 		return;
 
-	for(const auto& tuple : itemTree->getRoot()->getExtensionPointers()) {
+	for(const auto& tuple : itemTree->getNode()->getExtensionPointers()) {
 		out << "itemTreeNodeExtends(" << itemSetName << ",tuple(";
 		std::string sep;
 		for(const auto& ep : tuple) {
@@ -80,12 +80,12 @@ void DebugMachineReadable::decomposerResult(const Decomposition& result)
 
 void DebugMachineReadable::solverInvocationInput(const Decomposition& decompositionNode, const std::string& input)
 {
-	std::cout << "% Input for solver at decomposition node " << decompositionNode.getRoot().getGlobalId() << std::endl << input << std::endl;
+	std::cout << "% Input for solver at decomposition node " << decompositionNode.getNode().getGlobalId() << std::endl << input << std::endl;
 }
 
 void DebugMachineReadable::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
 {
-	const auto id = decompositionNode.getRoot().getGlobalId();
+	const auto id = decompositionNode.getNode().getGlobalId();
 	if(result) {
 		std::cout << "% Facts describing the resulting item tree at node " << id << std::endl;
 		std::ostringstream rootItemSetName;

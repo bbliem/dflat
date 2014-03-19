@@ -184,24 +184,24 @@ void Solver::workerThreadMain()
 				wakeMainThread.notify_one();
 				return;
 			}
-			childRows.emplace(child->getRoot().getGlobalId(), newRow);
+			childRows.emplace(child->getNode().getGlobalId(), newRow);
 		}
 
 		// Let the combination of these rows be the input for our ASP call
 		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
 		for(const auto& child : decomposition.getChildren())
-			rootExtensionPointers.emplace(child->getRoot().getGlobalId(), dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getRoot());
+			rootExtensionPointers.emplace(child->getNode().getGlobalId(), dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getNode());
 		claspCallback->setRootExtensionPointers(std::move(rootExtensionPointers));
 
 		ItemTreeNode::ExtensionPointerTuple extendedRows;
 		for(const auto& nodeIdAndRow : childRows)
-			extendedRows.emplace(nodeIdAndRow.first, (*nodeIdAndRow.second)->getRoot());
+			extendedRows.emplace(nodeIdAndRow.first, (*nodeIdAndRow.second)->getNode());
 		claspCallback->setExtendedRows(std::move(extendedRows));
 
 		{
 			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
 			for(const auto& nodeIdAndRow : childRows) {
-				for(const auto& item : (*nodeIdAndRow.second)->getRoot()->getItems()) {
+				for(const auto& item : (*nodeIdAndRow.second)->getNode()->getItems()) {
 					prg.freeze(itemsToVars.at(item), Clasp::value_true);
 				}
 			}
@@ -213,7 +213,7 @@ void Solver::workerThreadMain()
 			// XXX Necessary to update so often? Is the overhead bad?
 			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
 			for(const auto& nodeIdAndRow : childRows) {
-				for(const auto& item : (*nodeIdAndRow.second)->getRoot()->getItems()) {
+				for(const auto& item : (*nodeIdAndRow.second)->getNode()->getItems()) {
 					prg.freeze(itemsToVars.at(item), Clasp::value_false);
 				}
 			}
@@ -256,14 +256,14 @@ void Solver::aspCallsOnNewRowFromChild(ItemTree::Children::const_iterator newRow
 	do {
 		ItemTreeNode::ExtensionPointerTuple extendedRows;
 		for(const auto& nodeAndRow : rowIterators)
-			extendedRows.emplace(nodeAndRow.first->getRoot().getGlobalId(), (*nodeAndRow.second)->getRoot());
+			extendedRows.emplace(nodeAndRow.first->getNode().getGlobalId(), (*nodeAndRow.second)->getNode());
 		claspCallback->setExtendedRows(std::move(extendedRows));
 
 		{
 			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
 			for(const auto& nodeAndRow : rowIterators) {
-				for(const auto& item : (*nodeAndRow.second)->getRoot()->getItems()) {
-					//				std::cout << "W " << std::this_thread::get_id() << " [" << decomposition.getRoot().getGlobalId() << "]: Setting " << item << " to true\n";
+				for(const auto& item : (*nodeAndRow.second)->getNode()->getItems()) {
+					//				std::cout << "W " << std::this_thread::get_id() << " [" << decomposition.getNode().getGlobalId() << "]: Setting " << item << " to true\n";
 					prg.freeze(itemsToVars.at(item), Clasp::value_true);
 				}
 			}
@@ -275,8 +275,8 @@ void Solver::aspCallsOnNewRowFromChild(ItemTree::Children::const_iterator newRow
 			// XXX Necessary to update so often? Is the overhead bad?
 			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
 			for(const auto& nodeAndRow : rowIterators) {
-				for(const auto& item : (*nodeAndRow.second)->getRoot()->getItems()) {
-					//				std::cout << "W " << std::this_thread::get_id() << " [" << decomposition.getRoot().getGlobalId() << "]: Setting " << item << " to false\n";
+				for(const auto& item : (*nodeAndRow.second)->getNode()->getItems()) {
+					//				std::cout << "W " << std::this_thread::get_id() << " [" << decomposition.getNode().getGlobalId() << "]: Setting " << item << " to false\n";
 					prg.freeze(itemsToVars.at(item), Clasp::value_false);
 				}
 			}

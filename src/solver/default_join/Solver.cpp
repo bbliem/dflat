@@ -37,48 +37,48 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 {
 	assert(left);
 	assert(right);
-	assert(left->getRoot());
-	assert(right->getRoot());
-	if(!isJoinable(*left->getRoot(), *right->getRoot()))
+	assert(left->getNode());
+	assert(right->getNode());
+	if(!isJoinable(*left->getNode(), *right->getNode()))
 		return ItemTreePtr();
 
 	ItemTreePtr result;
 
 	// Join left and right
-	ItemTreeNode::Items items = left->getRoot()->getItems();
+	ItemTreeNode::Items items = left->getNode()->getItems();
 	ItemTreeNode::Items auxItems;
 	// Unify auxiliary items
-	const auto auxL = left->getRoot()->getAuxItems();
-	const auto auxR = right->getRoot()->getAuxItems();
+	const auto auxL = left->getNode()->getAuxItems();
+	const auto auxR = right->getNode()->getAuxItems();
 	std::set_union(auxL.begin(), auxL.end(), auxR.begin(), auxR.end(), std::inserter(auxItems, auxItems.end()));
 
-	ItemTreeNode::ExtensionPointers extensionPointers = {{{leftNodeIndex, left->getRoot()}, {rightNodeIndex, right->getRoot()}}};
+	ItemTreeNode::ExtensionPointers extensionPointers = {{{leftNodeIndex, left->getNode()}, {rightNodeIndex, right->getNode()}}};
 	const bool leaves = left->getChildren().empty() && right->getChildren().empty();
-	assert(!setLeavesToAccept || !leaves || (left->getRoot()->getType() == ItemTreeNode::Type::UNDEFINED && right->getRoot()->getType() == ItemTreeNode::Type::UNDEFINED));
+	assert(!setLeavesToAccept || !leaves || (left->getNode()->getType() == ItemTreeNode::Type::UNDEFINED && right->getNode()->getType() == ItemTreeNode::Type::UNDEFINED));
 	ItemTreeNode::Type type;
-	if(left->getRoot()->getType() == ItemTreeNode::Type::UNDEFINED) {
-		type = right->getRoot()->getType();
+	if(left->getNode()->getType() == ItemTreeNode::Type::UNDEFINED) {
+		type = right->getNode()->getType();
 		if(setLeavesToAccept && leaves && type == ItemTreeNode::Type::UNDEFINED)
 			type = ItemTreeNode::Type::ACCEPT;
 	} else
-		type = left->getRoot()->getType();
+		type = left->getNode()->getType();
 	result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), std::move(extensionPointers), type))));
 	// Set (initial) cost of this node
 	if(leaves) {
-		result->getRoot()->setCost(left->getRoot()->getCost() - left->getRoot()->getCurrentCost() + right->getRoot()->getCost());
-		assert(left->getRoot()->getCurrentCost() == right->getRoot()->getCurrentCost());
-		result->getRoot()->setCurrentCost(left->getRoot()->getCurrentCost());
+		result->getNode()->setCost(left->getNode()->getCost() - left->getNode()->getCurrentCost() + right->getNode()->getCost());
+		assert(left->getNode()->getCurrentCost() == right->getNode()->getCurrentCost());
+		result->getNode()->setCurrentCost(left->getNode()->getCurrentCost());
 	} else {
-		assert(left->getRoot()->getCurrentCost() == right->getRoot()->getCurrentCost() && left->getRoot()->getCurrentCost() == 0);
+		assert(left->getNode()->getCurrentCost() == right->getNode()->getCurrentCost() && left->getNode()->getCurrentCost() == 0);
 		switch(type) {
 			case ItemTreeNode::Type::OR:
 				// Set cost to "infinity"
-				result->getRoot()->setCost(std::numeric_limits<decltype(result->getRoot()->getCost())>::max());
+				result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::max());
 				break;
 
 			case ItemTreeNode::Type::AND:
 				// Set cost to minus "infinity"
-				result->getRoot()->setCost(std::numeric_limits<decltype(result->getRoot()->getCost())>::min());
+				result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::min());
 				break;
 
 			case ItemTreeNode::Type::UNDEFINED:
@@ -105,11 +105,11 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 					// Update cost
 					switch(type) {
 						case ItemTreeNode::Type::OR:
-							result->getRoot()->setCost(std::min(result->getRoot()->getCost(), childResult->getRoot()->getCost()));
+							result->getNode()->setCost(std::min(result->getNode()->getCost(), childResult->getNode()->getCost()));
 							break;
 
 						case ItemTreeNode::Type::AND:
-							result->getRoot()->setCost(std::max(result->getRoot()->getCost(), childResult->getRoot()->getCost()));
+							result->getNode()->setCost(std::max(result->getNode()->getCost(), childResult->getNode()->getCost()));
 							break;
 
 						case ItemTreeNode::Type::UNDEFINED:
@@ -142,7 +142,7 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 		else {
 			// lit and rit don't match
 			// Advance iterator pointing to smaller value
-			if((*lit)->getRoot()->getItems() < (*rit)->getRoot()->getItems())
+			if((*lit)->getNode()->getItems() < (*rit)->getNode()->getItems())
 				++lit;
 			else
 				++rit;
@@ -177,15 +177,15 @@ ItemTreePtr Solver::compute()
 	// TODO Use a balanced join tree (with smaller "tables" further down)
 	auto it = decomposition.getChildren().begin();
 	ItemTreePtr result = (*it)->getSolver().compute();
-	unsigned int leftChildIndex = (*it)->getRoot().getGlobalId();
+	unsigned int leftChildIndex = (*it)->getNode().getGlobalId();
 	for(++it; it != decomposition.getChildren().end(); ++it) {
 		if(!result)
 			return ItemTreePtr();
 		ItemTreePtr itree = (*it)->getSolver().compute();
 		if(!itree)
 			return ItemTreePtr();
-		result = join(leftChildIndex, result, (*it)->getRoot().getGlobalId(), itree, setLeavesToAccept);
-		leftChildIndex = (*it)->getRoot().getGlobalId();
+		result = join(leftChildIndex, result, (*it)->getNode().getGlobalId(), itree, setLeavesToAccept);
+		leftChildIndex = (*it)->getNode().getGlobalId();
 	}
 
 	if(result && result->finalize(app, decomposition.getParents().empty(), app.isPruningDisabled() == false || decomposition.getParents().empty()) == false)

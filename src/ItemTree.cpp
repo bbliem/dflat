@@ -24,8 +24,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
-	return lhs->getRoot()->compareCostInsensitive(*rhs->getRoot()) ||
-		(!rhs->getRoot()->compareCostInsensitive(*lhs->getRoot()) &&
+	return lhs->getNode()->compareCostInsensitive(*rhs->getNode()) ||
+		(!rhs->getNode()->compareCostInsensitive(*lhs->getNode()) &&
 		 (std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this) ||
 		  (!std::lexicographical_compare(rhs->getChildren().begin(), rhs->getChildren().end(), lhs->getChildren().begin(), lhs->getChildren().end(), *this) &&
 		   lhs->costDifferenceSignIncrease(rhs))));
@@ -35,7 +35,7 @@ ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree
 {
 	assert(subtree);
 	assert(subtree->parents.empty());
-	assert(subtree->getRoot()->getParent() == nullptr);
+	assert(subtree->getNode()->getParent() == nullptr);
 	std::pair<Children::iterator, bool> result = children.insert(std::move(subtree));
 	// XXX If an equivalent element already exists in "children", it is unclear to me whether "subtree" is actually moved or not. (Maybe it depends on the implementation?)
 	// For the time being, pray that it isn't moved in such a case.
@@ -44,7 +44,7 @@ ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree
 	if(result.second) {
 		// subtree was inserted as a new child
 		(*result.first)->parents.push_back(this);
-		(*result.first)->getRoot()->setParent(node.get());
+		(*result.first)->getNode()->setParent(node.get());
 	}
 	else {
 		// A subtree rooted at a child with all equal item sets already exists
@@ -244,7 +244,7 @@ void ItemTree::pruneUndefined()
 	assert((node->getType() != ItemTreeNode::Type::OR && node->getType() != ItemTreeNode::Type::AND) || !children.empty());
 	Children::const_iterator it = children.begin();
 	while(it != children.end()) {
-		if((*it)->getRoot()->getType() == ItemTreeNode::Type::UNDEFINED)
+		if((*it)->getNode()->getType() == ItemTreeNode::Type::UNDEFINED)
 			children.erase(it++);
 		else {
 			(*it)->pruneUndefined();
@@ -264,12 +264,12 @@ void ItemTree::clearUnneededExtensionPointers(const Application& app, unsigned i
 		++currentDepth;
 		if(currentDepth > app.getMaterializationDepth())
 			for(const auto& child : children)
-				child->getRoot()->clearExtensionPointers();
+				child->getNode()->clearExtensionPointers();
 	}
 	else {
 		if(currentDepth > app.getMaterializationDepth())
 			for(const auto& child : children)
-				child->getRoot()->clearExtensionPointers();
+				child->getNode()->clearExtensionPointers();
 		++currentDepth;
 	}
 
@@ -289,13 +289,13 @@ bool ItemTree::costDifferenceSignIncrease(const ItemTreePtr& other) const
 	Children::const_iterator it1 = children.begin();
 	Children::const_iterator it2 = other->children.begin();
 
-	const int difference = (*it1)->getRoot()->getCost() - (*it2)->getRoot()->getCost(); // Actually we are only interested if this is greater, equal to, or smaller than 0
+	const int difference = (*it1)->getNode()->getCost() - (*it2)->getNode()->getCost(); // Actually we are only interested if this is greater, equal to, or smaller than 0
 
 	while(++it1 != children.end()) {
 		++it2;
 		assert(it2 != other->children.end());
-		const auto cost1 = (*it1)->getRoot()->getCost();
-		const auto cost2 = (*it2)->getRoot()->getCost();
+		const auto cost1 = (*it1)->getNode()->getCost();
+		const auto cost2 = (*it2)->getNode()->getCost();
 
 		if(cost1 < cost2) {
 			if(difference >= 0)
@@ -322,7 +322,7 @@ void ItemTree::merge(ItemTree&& other)
 	assert(node->getAuxItems() == other.node->getAuxItems());
 	assert(node->getType() == other.node->getType());
 	assert(node->getParent());
-	assert(parents.size() == 1 && (*parents.begin())->getRoot().get() == node->getParent());
+	assert(parents.size() == 1 && (*parents.begin())->getNode().get() == node->getParent());
 
 	// If the other node is better, throw away this node's data and retain the other one's.
 	// If this node is better, do nothing (the other node is thrown away anyway).
@@ -331,20 +331,20 @@ void ItemTree::merge(ItemTree&& other)
 			break;
 
 		case ItemTreeNode::Type::OR:
-			if(other.getRoot()->getCost() < node->getCost()) {
+			if(other.getNode()->getCost() < node->getCost()) {
 				*this = std::move(other);
 				return;
 			}
-			else if(other.getRoot()->getCost() > node->getCost())
+			else if(other.getNode()->getCost() > node->getCost())
 				return;
 			break;
 
 		case ItemTreeNode::Type::AND:
-			if(other.getRoot()->getCost() > node->getCost()) {
+			if(other.getNode()->getCost() > node->getCost()) {
 				*this = std::move(other);
 				return;
 			}
-			else if(other.getRoot()->getCost() < node->getCost())
+			else if(other.getNode()->getCost() < node->getCost())
 				return;
 			break;
 
@@ -354,7 +354,7 @@ void ItemTree::merge(ItemTree&& other)
 
 	// Inform other.node's children that this->node will be their new parent
 	for(const ItemTreePtr& child : other.children)
-		child->getRoot()->setParent(node.get());
+		child->getNode()->setParent(node.get());
 
 	node->merge(std::move(*other.node));
 
