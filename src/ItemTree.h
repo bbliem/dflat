@@ -39,8 +39,16 @@ class ItemTree : public DirectedAcyclicGraph<std::shared_ptr<ItemTreeNode>, std:
 public:
 	using DirectedAcyclicGraph::DirectedAcyclicGraph;
 
-	// If there is a subtree rooted at a child of this node that has equal item sets as the given one, the existing subtree is unified with the given one
-	// If no merging has occurred (i.e., "subtree" was added as a new child), returns an iterator to this new child; otherwise returns an iterator to this->children.end().
+	// If there is a subtree rooted at a child of this node that has
+	// equal item sets as the given one, the existing subtree is unified
+	// with the given one.
+	// If no merging has occurred (i.e., "subtree" was added as a new
+	// child), returns an iterator to this new child; otherwise returns
+	// an iterator to this->children.end().
+	// Sets the parent of "subtree->node" to this->node, and adds this to
+	// the parents of "subtree". (The former sets it apart from
+	// DirectedAcyclicGraph::addChild() which does not consider
+	// ItemTreeNodes.)
 	Children::const_iterator addChildAndMerge(ChildPtr&& subtree);
 
 	// 1. Prunes nodes with UNDEFINED type if pruneUndefined == true.
@@ -59,7 +67,8 @@ public:
 private:
 	friend struct ItemTreePtrComparator;
 
-	// Recursively unify extension pointers of this itree with the other one's given that the item sets are all equal
+	// Recursively unify extension pointers of this itree with the other
+	// one's given that the item sets are all equal.
 	void merge(ItemTree&& other);
 
 	// This propagates acceptance statuses from the leaves toward this node and prunes in the course of this if children are found to be rejecting. If this node can be determined to be accepting or rejecting, returns ACCEPT or REJECT, respectively; otherwise returns UNDEFINED.
