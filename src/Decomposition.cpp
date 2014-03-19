@@ -24,6 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 Decomposition::Decomposition(Node&& leaf, const SolverFactory& solverFactory)
 	: DirectedAcyclicGraph(std::move(leaf))
 	, solverFactory(solverFactory)
+	, root(true)
 {
 }
 
@@ -40,6 +41,16 @@ bool Decomposition::isJoinNode() const
 	return children.size() > 1 && std::all_of(children.begin(), children.end(), [&](const ChildPtr& child) {
 			return child->getNode().getBag() == node.getBag();
 	});
+}
+
+void Decomposition::setRoot(bool root)
+{
+	this->root = root;
+}
+
+bool Decomposition::isRoot() const
+{
+	return root;
 }
 
 int Decomposition::getWidth() const

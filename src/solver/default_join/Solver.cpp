@@ -188,7 +188,7 @@ ItemTreePtr Solver::compute()
 		leftChildIndex = (*it)->getNode().getGlobalId();
 	}
 
-	if(result && result->finalize(app, decomposition.getParents().empty(), app.isPruningDisabled() == false || decomposition.getParents().empty()) == false)
+	if(result && result->finalize(app, decomposition.isRoot(), app.isPruningDisabled() == false || decomposition.isRoot()) == false)
 		result.reset();
 	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;

@@ -41,19 +41,14 @@ public:
 	typedef N Node;
 	typedef Cs Children;
 	typedef typename Children::value_type ChildPtr;
-	// Parents are not managed by smart pointers, as this would lead to cycles
-	typedef std::vector<DirectedAcyclicGraph*> Parents;
 
 	DirectedAcyclicGraph(Node&& leaf) : node(std::move(leaf)) {}
 
-	// Sets the parent pointer of each child to the new address.
 	// Make sure that you don't have any other pointers (not managed by this class) pointing to "other". (I.e., be careful with extension pointers, for instance.)
 	DirectedAcyclicGraph(DirectedAcyclicGraph&& other)
 		: node(std::move(other.node))
 		, children(std::move(other.children))
 	{
-		for(auto& child : children)
-			std::replace(child->parents.begin(), child->parents.end(), &other, this);
 	}
 
 	// Only allowed if "other" is distinct from this.
@@ -62,24 +57,18 @@ public:
 		assert(this != &other);
 		node = std::move(other.node);
 		children = std::move(other.children);
-		parents = std::move(other.parents);
-		for(auto& child : children)
-			std::replace(child->parents.begin(), child->parents.end(), &other, this);
 		return *this;
 	}
 
 	DirectedAcyclicGraph(const DirectedAcyclicGraph&) = delete;
 
 	const Node& getNode() const { return node; }
-	const Parents& getParents() const { return parents; }
 	const Children& getChildren() const { return children; }
 
 	// Adds the root of "child" to the list of children. Takes ownership of the whole subgraph rooted at "child".
-	// Inserts this node into the new child's list of parents.
 	void addChild(ChildPtr&& child)
 	{
 		assert(child);
-		child->parents.push_back(this);
 		children.insert(children.end(), std::move(child));
 	}
 
@@ -87,7 +76,6 @@ public:
 	void addChild(const ChildPtr& child)
 	{
 		assert(child);
-		child->parents.push_back(this);
 		children.insert(children.end(), child);
 	}
 
@@ -134,5 +122,4 @@ protected:
 
 	Node node;
 	Children children;
-	Parents parents;
 };

@@ -30,11 +30,3 @@ Solver::Solver(const Decomposition& decomposition, const Application& app)
 	, app(app)
 {
 }
-
-Solver* Solver::getParentSolver()
-{
-	assert(decomposition.getParents().size() <= 1);
-	if(decomposition.getParents().empty())
-		return nullptr;
-	return &static_cast<Decomposition*>(decomposition.getParents().front())->getSolver();
-}
