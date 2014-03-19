@@ -35,16 +35,13 @@ ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree
 {
 	assert(subtree);
 	assert(subtree->getNode()->getParent() == nullptr);
+	subtree->getNode()->setParent(node.get());
 	std::pair<Children::iterator, bool> result = children.insert(std::move(subtree));
 	// XXX If an equivalent element already exists in "children", it is unclear to me whether "subtree" is actually moved or not. (Maybe it depends on the implementation?)
 	// For the time being, pray that it isn't moved in such a case.
 	// http://stackoverflow.com/questions/10043716/stdunordered-settinsertt-is-argument-moved-if-it-exists
 
-	if(result.second) {
-		// subtree was inserted as a new child
-		(*result.first)->getNode()->setParent(node.get());
-	}
-	else {
+	if(!result.second) {
 		// A subtree rooted at a child with all equal item sets already exists
 		assert(subtree); // See remark above -- subtree was set to null if it was indeed moved...
 		const ItemTreePtr& origChild = *result.first;
@@ -320,6 +317,7 @@ void ItemTree::merge(ItemTree&& other)
 	assert(node->getAuxItems() == other.node->getAuxItems());
 	assert(node->getType() == other.node->getType());
 	assert(node->getParent());
+	assert(node->getParent() == other.node->getParent());
 
 	// If the other node is better, throw away this node's data and retain the other one's.
 	// If this node is better, do nothing (the other node is thrown away anyway).
