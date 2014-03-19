@@ -70,3 +70,11 @@ TEST_F(DecompositionTest, IdentifiesJoinNodes)
 	for(const auto& child : joinNode.getChildren())
 		EXPECT_FALSE(child->isJoinNode());
 }
+
+TEST_F(DecompositionTest, IsNotRootByDefault)
+{
+	Decomposition d = {DecompositionNode{{}}, solverFactory};
+	EXPECT_FALSE(d.isRoot());
+	d.setRoot();
+	EXPECT_TRUE(d.isRoot());
+}
