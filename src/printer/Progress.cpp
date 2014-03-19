@@ -98,9 +98,9 @@ void Progress::printProgress()
 	static const int digits = std::to_string(totalNodes).length();
 	assert(!computationStack.empty());
 	const Decomposition& top = *computationStack.top();
-	const auto curNode = top.getRoot().getGlobalId();
+	const auto curNode = top.getNode().getGlobalId();
 	const auto numChildren = top.getChildren().size();
-	const auto bagSize = top.getRoot().getBag().size();
+	const auto bagSize = top.getNode().getBag().size();
 	std::cout << '\r'
 		<< "Node " << std::setw(digits) << curNode << ", "
 		<< std::setw(2) << bagSize << " elements, "

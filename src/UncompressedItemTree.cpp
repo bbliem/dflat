@@ -22,17 +22,17 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 bool UncompressedItemTreePtrComparator::operator()(const UncompressedItemTreePtr& lhs, const UncompressedItemTreePtr& rhs)
 {
-	return lhs->getRoot()->getItems() < rhs->getRoot()->getItems() ||
-		(lhs->getRoot()->getItems() == rhs->getRoot()->getItems() &&
-		 (lhs->getRoot()->getType() < rhs->getRoot()->getType() ||
-		  (lhs->getRoot()->getType() == rhs->getRoot()->getType() &&
-		   (lhs->getRoot()->getHasAcceptingChild() < rhs->getRoot()->getHasAcceptingChild() ||
-		    (lhs->getRoot()->getHasAcceptingChild() == rhs->getRoot()->getHasAcceptingChild() &&
-		     (lhs->getRoot()->getHasRejectingChild() < rhs->getRoot()->getHasRejectingChild() ||
-		      (lhs->getRoot()->getHasRejectingChild() == rhs->getRoot()->getHasRejectingChild() &&
-		       (lhs->getRoot()->getAuxItems() < rhs->getRoot()->getAuxItems() ||
-		        (lhs->getRoot()->getAuxItems() == rhs->getRoot()->getAuxItems() &&
-		         lhs->getRoot()->getExtensionPointers() < rhs->getRoot()->getExtensionPointers())))))))));
+	return lhs->getNode()->getItems() < rhs->getNode()->getItems() ||
+		(lhs->getNode()->getItems() == rhs->getNode()->getItems() &&
+		 (lhs->getNode()->getType() < rhs->getNode()->getType() ||
+		  (lhs->getNode()->getType() == rhs->getNode()->getType() &&
+		   (lhs->getNode()->getHasAcceptingChild() < rhs->getNode()->getHasAcceptingChild() ||
+		    (lhs->getNode()->getHasAcceptingChild() == rhs->getNode()->getHasAcceptingChild() &&
+		     (lhs->getNode()->getHasRejectingChild() < rhs->getNode()->getHasRejectingChild() ||
+		      (lhs->getNode()->getHasRejectingChild() == rhs->getNode()->getHasRejectingChild() &&
+		       (lhs->getNode()->getAuxItems() < rhs->getNode()->getAuxItems() ||
+		        (lhs->getNode()->getAuxItems() == rhs->getNode()->getAuxItems() &&
+		         lhs->getNode()->getExtensionPointers() < rhs->getNode()->getExtensionPointers())))))))));
 }
 
 void UncompressedItemTree::addBranch(Branch::iterator begin, Branch::iterator end)
@@ -47,27 +47,27 @@ ItemTreePtr UncompressedItemTree::compress()
 {
 	ItemTreePtr result(new ItemTree(std::move(node)));
 
-	switch(result->getRoot()->getType()) {
+	switch(result->getNode()->getType()) {
 		case ItemTreeNode::Type::OR:
-			assert(result->getRoot()->getCost() == 0);
+			assert(result->getNode()->getCost() == 0);
 			assert(children.empty() == false);
 			// Set cost to "infinity"
-			result->getRoot()->setCost(std::numeric_limits<decltype(result->getRoot()->getCost())>::max());
+			result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::max());
 			for(const auto& child : children) {
 				ItemTreePtr compressedChild = child->compress();
-				result->getRoot()->setCost(std::min(result->getRoot()->getCost(), compressedChild->getRoot()->getCost()));
+				result->getNode()->setCost(std::min(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
 				result->addChildAndMerge(std::move(compressedChild));
 			}
 			break;
 
 		case ItemTreeNode::Type::AND:
-			assert(result->getRoot()->getCost() == 0);
+			assert(result->getNode()->getCost() == 0);
 			assert(children.empty() == false);
 			// Set cost to minus "infinity"
-			result->getRoot()->setCost(std::numeric_limits<decltype(result->getRoot()->getCost())>::min());
+			result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::min());
 			for(const auto& child : children) {
 				ItemTreePtr compressedChild = child->compress();
-				result->getRoot()->setCost(std::max(result->getRoot()->getCost(), compressedChild->getRoot()->getCost()));
+				result->getNode()->setCost(std::max(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
 				result->addChildAndMerge(std::move(compressedChild));
 			}
 			break;

@@ -90,11 +90,11 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 		++curNode;
 	}
 
-	assert(!uncompressedItemTree || uncompressedItemTree->getRoot()->getExtensionPointers().size() == 1);
+	assert(!uncompressedItemTree || uncompressedItemTree->getNode()->getExtensionPointers().size() == 1);
 	ASP_CHECK(!uncompressedItemTree ||
-			(uncompressedItemTree->getRoot()->getItems() == branchData.front().items &&
-			 uncompressedItemTree->getRoot()->getAuxItems() == branchData.front().auxItems &&
-			 uncompressedItemTree->getRoot()->getExtensionPointers().front() == branchData.front().extended),
+			(uncompressedItemTree->getNode()->getItems() == branchData.front().items &&
+			 uncompressedItemTree->getNode()->getAuxItems() == branchData.front().auxItems &&
+			 uncompressedItemTree->getNode()->getExtensionPointers().front() == branchData.front().extended),
 			"Item tree branches specify different roots");
 #endif
 	// }}}
@@ -122,7 +122,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	UncompressedItemTree::Branch branch;
 	branch.reserve(numLevels);
 	if(uncompressedItemTree)
-		branch.emplace_back(uncompressedItemTree->getRoot());
+		branch.emplace_back(uncompressedItemTree->getNode());
 	else
 		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData.front().items), std::move(branchData.front().auxItems), {std::move(branchData.front().extended)}, branchData.front().type)));
 

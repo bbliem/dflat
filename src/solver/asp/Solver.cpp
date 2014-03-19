@@ -100,7 +100,7 @@ ItemTreePtr Solver::compute()
 		ItemTreePtr itree = child->getSolver().compute();
 		if(!itree)
 			return itree;
-		childItemTrees.emplace(child->getRoot().getGlobalId(), std::move(itree));
+		childItemTrees.emplace(child->getNode().getGlobalId(), std::move(itree));
 	}
 
 	// Input: Child item trees
@@ -171,9 +171,9 @@ ItemTreePtr Solver::compute()
 void Solver::declareDecomposition(const Decomposition& decomposition, std::ostream& out)
 {
 	out << "% Decomposition facts" << std::endl;
-	out << "currentNode(" << decomposition.getRoot().getGlobalId() << ")." << std::endl;
-	for(const auto& v : decomposition.getRoot().getBag()) {
-		out << "bag(" << decomposition.getRoot().getGlobalId() << ',' << v << "). ";
+	out << "currentNode(" << decomposition.getNode().getGlobalId() << ")." << std::endl;
+	for(const auto& v : decomposition.getNode().getBag()) {
+		out << "bag(" << decomposition.getNode().getGlobalId() << ',' << v << "). ";
 		out << "current(" << v << ")." << std::endl;
 	}
 
@@ -182,9 +182,9 @@ void Solver::declareDecomposition(const Decomposition& decomposition, std::ostre
 		out << "initial." << std::endl;
 	else {
 		for(const auto& child : decomposition.getChildren()) {
-			out << "childNode(" << child->getRoot().getGlobalId() << ")." << std::endl;
-			for(const auto& v : child->getRoot().getBag()) {
-				out << "bag(" << child->getRoot().getGlobalId() << ',' << v << "). ";
+			out << "childNode(" << child->getNode().getGlobalId() << ")." << std::endl;
+			for(const auto& v : child->getNode().getBag()) {
+				out << "bag(" << child->getNode().getGlobalId() << ',' << v << "). ";
 				out << "-introduced(" << v << ")." << std::endl; // Redundant
 			}
 		}
@@ -194,9 +194,9 @@ void Solver::declareDecomposition(const Decomposition& decomposition, std::ostre
 		out << "final." << std::endl;
 	else {
 		for(const auto& parent : decomposition.getParents()) {
-			out << "parentNode(" << parent->getRoot().getGlobalId() << ")." << std::endl;
-			for(const auto& v : parent->getRoot().getBag())
-				out << "bag(" << parent->getRoot().getGlobalId() << ',' << v << ")." << std::endl;
+			out << "parentNode(" << parent->getNode().getGlobalId() << ")." << std::endl;
+			for(const auto& v : parent->getNode().getBag())
+				out << "bag(" << parent->getNode().getGlobalId() << ',' << v << ")." << std::endl;
 		}
 	}
 
@@ -228,13 +228,13 @@ void Solver::declareItemTree(std::ostream& out, const ItemTree* itemTree, bool t
 			}
 		}
 	}
-	for(const auto& item : itemTree->getRoot()->getItems())
+	for(const auto& item : itemTree->getNode()->getItems())
 		out << "childItem(" << itemSetName << ',' << item << ")." << std::endl;
-	for(const auto& item : itemTree->getRoot()->getAuxItems())
+	for(const auto& item : itemTree->getNode()->getAuxItems())
 		out << "childAuxItem(" << itemSetName << ',' << item << ")." << std::endl;
 
 	// Declare item tree node type
-	switch(itemTree->getRoot()->getType()) {
+	switch(itemTree->getNode()->getType()) {
 		case ItemTreeNode::Type::UNDEFINED:
 			break;
 		case ItemTreeNode::Type::OR:
@@ -254,7 +254,7 @@ void Solver::declareItemTree(std::ostream& out, const ItemTree* itemTree, bool t
 	// If this is a leaf, declare cost
 	const ItemTree::Children& children = itemTree->getChildren();
 	if(children.empty()) {
-		out << "childCost(" << itemSetName << ',' << itemTree->getRoot()->getCost() << ")." << std::endl;
+		out << "childCost(" << itemSetName << ',' << itemTree->getNode()->getCost() << ")." << std::endl;
 	}
 	else {
 		// Declare child item sets

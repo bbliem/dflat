@@ -70,7 +70,7 @@ public:
 
 	DirectedAcyclicGraph(const DirectedAcyclicGraph&) = delete;
 
-	const Node& getRoot() const { return node; }
+	const Node& getNode() const { return node; }
 	const Parents& getParents() const { return parents; }
 	const Children& getChildren() const { return children; }
 

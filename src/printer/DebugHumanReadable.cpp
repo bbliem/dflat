@@ -48,12 +48,12 @@ void DebugHumanReadable::decomposerResult(const Decomposition& result)
 void DebugHumanReadable::solverInvocationInput(const Decomposition& decompositionNode, const std::string& input)
 {
 	if(optPrintSolverInvocationInput.isUsed())
-		std::cout << "Input for solver at decomposition node " << decompositionNode.getRoot().getGlobalId() << ':' << std::endl << input << std::endl;
+		std::cout << "Input for solver at decomposition node " << decompositionNode.getNode().getGlobalId() << ':' << std::endl << input << std::endl;
 }
 
 void DebugHumanReadable::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
 {
-	std::cout << std::endl << "Resulting item tree at decomposition node " << decompositionNode.getRoot().getGlobalId();
+	std::cout << std::endl << "Resulting item tree at decomposition node " << decompositionNode.getNode().getGlobalId();
 	if(result)
 		std::cout << ':' << std::endl << *result;
 	else

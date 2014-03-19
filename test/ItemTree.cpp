@@ -33,8 +33,8 @@ struct ItemTreeTest : public ::testing::Test
 
 	ItemTreeTest()
 	{
-		cheapNode->getRoot()->setCost(3);
-		expensiveNode->getRoot()->setCost(4);
+		cheapNode->getNode()->setCost(3);
+		expensiveNode->getNode()->setCost(4);
 	}
 };
 
@@ -101,46 +101,46 @@ TEST_F(ItemTreeTest, AddChildAndMergeWithMerging)
 TEST_F(ItemTreeTest, AddChildAndMergeSetsParent)
 {
 	const ItemTree* childPtr = undefNode.get();
-	EXPECT_EQ(nullptr, childPtr->getRoot()->getParent());
+	EXPECT_EQ(nullptr, childPtr->getNode()->getParent());
 	EXPECT_TRUE(childPtr->getParents().empty());
 
 	orNode->addChildAndMerge(std::move(undefNode));
-	EXPECT_EQ(orNode->getRoot().get(), childPtr->getRoot()->getParent());
+	EXPECT_EQ(orNode->getNode().get(), childPtr->getNode()->getParent());
 	EXPECT_EQ(ItemTree::Parents{orNode.get()}, childPtr->getParents());
 }
 
 TEST_F(ItemTreeTest, AddChildAndMergeRetainsCheapChildOfOrNode)
 {
-	const auto expectedCost = cheapNode->getRoot()->getCost();
+	const auto expectedCost = cheapNode->getNode()->getCost();
 	orNode->addChildAndMerge(std::move(cheapNode));
 	orNode->addChildAndMerge(std::move(expensiveNode));
 	ASSERT_EQ(1, orNode->getChildren().size());
-	EXPECT_EQ(expectedCost, (*orNode->getChildren().begin())->getRoot()->getCost());
+	EXPECT_EQ(expectedCost, (*orNode->getChildren().begin())->getNode()->getCost());
 }
 
 TEST_F(ItemTreeTest, AddChildAndMergeReplacesExpensiveChildOfOrNode)
 {
-	const auto expectedCost = cheapNode->getRoot()->getCost();
+	const auto expectedCost = cheapNode->getNode()->getCost();
 	orNode->addChildAndMerge(std::move(expensiveNode));
 	orNode->addChildAndMerge(std::move(cheapNode));
 	ASSERT_EQ(1, orNode->getChildren().size());
-	EXPECT_EQ(expectedCost, (*orNode->getChildren().begin())->getRoot()->getCost());
+	EXPECT_EQ(expectedCost, (*orNode->getChildren().begin())->getNode()->getCost());
 }
 
 TEST_F(ItemTreeTest, AddChildAndMergeRetainsExpensiveChildOfAndNode)
 {
-	const auto expectedCost = expensiveNode->getRoot()->getCost();
+	const auto expectedCost = expensiveNode->getNode()->getCost();
 	andNode->addChildAndMerge(std::move(expensiveNode));
 	andNode->addChildAndMerge(std::move(cheapNode));
 	ASSERT_EQ(1, andNode->getChildren().size());
-	EXPECT_EQ(expectedCost, (*andNode->getChildren().begin())->getRoot()->getCost());
+	EXPECT_EQ(expectedCost, (*andNode->getChildren().begin())->getNode()->getCost());
 }
 
 TEST_F(ItemTreeTest, AddChildAndMergeReplacesCheapChildOfAndNode)
 {
-	const auto expectedCost = expensiveNode->getRoot()->getCost();
+	const auto expectedCost = expensiveNode->getNode()->getCost();
 	andNode->addChildAndMerge(std::move(cheapNode));
 	andNode->addChildAndMerge(std::move(expensiveNode));
 	ASSERT_EQ(1, andNode->getChildren().size());
-	EXPECT_EQ(expectedCost, (*andNode->getChildren().begin())->getRoot()->getCost());
+	EXPECT_EQ(expectedCost, (*andNode->getChildren().begin())->getNode()->getCost());
 }

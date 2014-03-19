@@ -78,7 +78,7 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 		const unsigned int rowNumber = std::stoi(std::string(argument.str(), underscorePos + 1));
 		ASP_CHECK(childItemTrees.find(decompositionChildId) != childItemTrees.end(), "Extension pointer refers to nonexistent decomposition child");
 		ASP_CHECK(rowNumber < childItemTrees.at(decompositionChildId)->getChildren().size(), "Extension pointer references invalid row number");
-		extendAtomInfos.emplace_back(ExtendAtomInfo{{decompositionChildId, childItemTrees.at(decompositionChildId)->getChild(rowNumber).getRoot()}, atomUid});
+		extendAtomInfos.emplace_back(ExtendAtomInfo{{decompositionChildId, childItemTrees.at(decompositionChildId)->getChild(rowNumber).getNode()}, atomUid});
 	} else if(predicate == "currentCost") {
 		ASP_CHECK(v.args().size() == 1, "'currentCost' predicate does not have arity 1");
 		std::ostringstream argument;

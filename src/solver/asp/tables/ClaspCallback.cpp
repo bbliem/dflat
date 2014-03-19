@@ -60,10 +60,10 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	if(!itemTree) {
 		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
 		for(const auto& childItemTree : childItemTrees)
-			rootExtensionPointers.emplace(childItemTree.first, childItemTree.second->getRoot());
+			rootExtensionPointers.emplace(childItemTree.first, childItemTree.second->getNode());
 		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
 		// Set cost to "infinity"
-		itemTree->getRoot()->setCost(std::numeric_limits<decltype(itemTree->getRoot()->getCost())>::max());
+		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
 	}
 	// }}}
 	// Create item tree node {{{
@@ -87,7 +87,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	node->setCurrentCost(currentCost);
 	// }}}
 	// Possibly update cost of root {{{
-	itemTree->getRoot()->setCost(std::min(itemTree->getRoot()->getCost(), cost));
+	itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
 	// }}}
 	// Add node to item tree {{{
 	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
