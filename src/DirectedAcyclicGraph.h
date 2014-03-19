@@ -46,22 +46,19 @@ public:
 
 	DirectedAcyclicGraph(Node&& leaf) : node(std::move(leaf)) {}
 
-	// Moving an instance is only allowed if it has no parents.
 	// Sets the parent pointer of each child to the new address.
 	// Make sure that you don't have any other pointers (not managed by this class) pointing to "other". (I.e., be careful with extension pointers, for instance.)
 	DirectedAcyclicGraph(DirectedAcyclicGraph&& other)
 		: node(std::move(other.node))
 		, children(std::move(other.children))
 	{
-		assert(other.parents.empty());
 		for(auto& child : children)
 			std::replace(child->parents.begin(), child->parents.end(), &other, this);
 	}
 
-	// Only allowed if "other" has no parents and is distinct from this.
+	// Only allowed if "other" is distinct from this.
 	DirectedAcyclicGraph& operator=(DirectedAcyclicGraph&& other)
 	{
-		assert(other.parents.empty());
 		assert(this != &other);
 		node = std::move(other.node);
 		children = std::move(other.children);

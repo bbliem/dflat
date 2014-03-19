@@ -6,6 +6,7 @@ add_executable(tests
 	DecompositionNode.cpp
 	DirectedAcyclicGraph.cpp
 	Hypergraph.cpp
+	ItemTree.cpp
 	ItemTreeNode.cpp
 	Module.cpp
 	)
