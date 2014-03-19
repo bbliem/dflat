@@ -29,11 +29,13 @@ struct ItemTreeTest : public ::testing::Test
 	ItemTreePtr andNode{new ItemTree{ItemTree::Node{new ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::AND}}}};
 
 	ItemTreePtr cheapNode{new ItemTree{ItemTree::Node{new ItemTreeNode}}};
+	ItemTreePtr cheapNode2{new ItemTree{ItemTree::Node{new ItemTreeNode}}};
 	ItemTreePtr expensiveNode{new ItemTree{ItemTree::Node{new ItemTreeNode}}};
 
 	ItemTreeTest()
 	{
 		cheapNode->getNode()->setCost(3);
+		cheapNode2->getNode()->setCost(3);
 		expensiveNode->getNode()->setCost(4);
 	}
 };
@@ -141,4 +143,14 @@ TEST_F(ItemTreeTest, AddChildAndMergeReplacesCheapChildOfAndNode)
 	andNode->addChildAndMerge(std::move(expensiveNode));
 	ASSERT_EQ(1, andNode->getChildren().size());
 	EXPECT_EQ(expectedCost, (*andNode->getChildren().begin())->getNode()->getCost());
+}
+
+TEST_F(ItemTreeTest, AddChildAndMergeMergesAfterReplacing)
+{
+	orNode->addChildAndMerge(std::move(expensiveNode));
+	orNode->addChildAndMerge(std::move(cheapNode));
+	EXPECT_EQ(1, orNode->getChildren().size());
+	orNode->addChildAndMerge(std::move(cheapNode2));
+	ASSERT_EQ(1, orNode->getChildren().size());
+	EXPECT_EQ(2, (*orNode->getChildren().begin())->getNode()->getExtensionPointers().size());
 }
