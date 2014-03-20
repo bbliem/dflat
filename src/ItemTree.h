@@ -39,24 +39,57 @@ class ItemTree : public DirectedAcyclicGraph<std::shared_ptr<ItemTreeNode>, std:
 public:
 	using DirectedAcyclicGraph::DirectedAcyclicGraph;
 
-	// If there is a subtree rooted at a child of this node that has
-	// equal item sets as the given one, the existing subtree is unified
-	// with the given one.
-	// If no merging has occurred (i.e., "subtree" was added as a new
-	// child), returns an iterator to this new child; otherwise returns
-	// an iterator to this->children.end().
+	// If there is a subtree rooted at a child of this node that has equal item
+	// sets as the given one, the existing subtree is unified with the given
+	// one.
+	// If no merging has occurred (i.e., "subtree" was added as a new child),
+	// returns an iterator to this new child; otherwise returns an iterator to
+	// this->children.end().
 	// The parent of subtree->node must be undefined and is set to this->node.
 	Children::const_iterator addChildAndMerge(ChildPtr&& subtree);
 
-	// 1. Prunes nodes with UNDEFINED type if pruneUndefined == true.
+	// Use this after calling prepareChildrenRandomAccess() to get the i'th
+	// child of this node.
+	const ItemTree& getChild(size_t i) const;
+
+	// 1. Prunes children with UNDEFINED type recursively if pruneUndefined is
+	// true.
 	// 2. Calls evaluate(pruneRejecting).
 	// 3. Calls clearUnneededExtensionPointers(app).
-	// 4. Enables random access to child nodes via getChild(). This is done recursively.
-	// Returns false iff this node should be pruned (i.e., if its acceptance status is UNDEFINED and pruneUndefined == true, or its acceptance status is REJECT and pruneRejecting == true).
+	// 4. Enables random access to child nodes via getChild(). This is done
+	// recursively.
+	// Returns false iff a) pruneUndefined is true and this node evaluates to
+	// UNDEFINED, or b) it evaluates to REJECT.
 	bool finalize(const Application& app, bool pruneUndefined, bool pruneRejecting);
 
-	// Use this after calling finalize() to get the i'th child of this node
-	const ItemTree& getChild(size_t i) const;
+	// This propagates acceptance statuses from the leaves toward this node and
+	// prunes in the course of this if children are found to be rejecting.
+	// If this node can be determined to be accepting or rejecting, returns
+	// ACCEPT or REJECT, respectively; otherwise returns UNDEFINED.
+	// If "pruneRejecting = true", children evaluating to REJECT will be
+	// deleted.
+	// Nodes with UNDEFINED type always evaluate to UNDEFINED and no pruning is
+	// performed for their descendants.
+	// Sets hasAcceptingChild and hasRejectingChild if accepting or,
+	// respectively, rejecting children have been found.
+	ItemTreeNode::Type evaluate(bool pruneRejecting);
+
+	// Delete subtrees rooted at a node with UNDEFINED type.
+	// This should be called in the root of the decomposition before calling
+	// evaluate().
+	// Throws an exception if this node's type is defined but all children have
+	// undefined type unless DISABLE_CHECKS is defined.
+	void pruneUndefined();
+
+	// If counting is not required, removes extension pointers of all nodes
+	// below (but not including) the materialization depth in order to allow
+	// non-extended nodes to be deleted. (They are not going to be needed
+	// anymore.)
+	// Otherwise, removes extension pointers of all nodes below (but not
+	// including) the materialization depth plus one.
+	void clearUnneededExtensionPointers(const Application& app, unsigned int currentDepth = 0);
+
+	void prepareChildrenRandomAccess();
 
 	// Print the tree that would result from recursively extending all nodes
 	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool printCount = true, bool root = true, bool lastChild = false, const std::string& indent = "", const ExtensionIterator* parent = nullptr) const;
@@ -68,19 +101,6 @@ private:
 	// one's given that the item sets are all equal.
 	void merge(ItemTree&& other);
 
-	// This propagates acceptance statuses from the leaves toward this node and prunes in the course of this if children are found to be rejecting. If this node can be determined to be accepting or rejecting, returns ACCEPT or REJECT, respectively; otherwise returns UNDEFINED.
-	// If "pruneRejecting = true", children evaluating to REJECT will be deleted.
-	// Nodes with UNDEFINED type always evaluate to UNDEFINED and no pruning is performed for their descendants.
-	ItemTreeNode::Type evaluate(bool pruneRejecting);
-
-	// Delete subtrees rooted at a node with UNDEFINED type.
-	// This should be called in the root of the tree decomposition before calling evaluate().
-	void pruneUndefined();
-
-	// If counting is not required, removes extension pointers of all nodes below (but not including) the materialization depth in order to allow non-extended nodes to be deleted. (They are not going to be needed anymore.)
-	// Otherwise, removes extension pointers of all nodes below (but not including) the materialization depth plus one.
-	void clearUnneededExtensionPointers(const Application& app, unsigned int currentDepth = 0);
-
 	// The children of each item tree node are considered ordered.
 	// Let A and B be item trees having the same item sets.
 	// In ItemTreePtrComparator, A < B holds if there are pairs (a,b) and
@@ -88,14 +108,12 @@ private:
 	//   1. a and a' are nodes of A, while b and b' are nodes of B.
 	//   2. a' is the next sibling of a, while b' is the next sibling of b.
 	//   3. a and b (and thus also a' and b') correspond to each other, i.e.,
-	//      they are at the same depth and there is an integer such that both are
-	//      the i'th child of their parent.
+	//      they are at the same depth and there is an integer such that both
+	//      are the i'th child of their parent.
 	//   4. cost(a) < cost(b) but cost(a') >= cost(b').
 	// This method returns true for *this and other having equal item sets if
 	// *this < other.
 	bool costDifferenceSignIncrease(const ItemTreePtr& other) const;
-
-	void prepareChildrenRandomAccess();
 
 	std::vector<const ItemTree*> childrenVector; // for random access via getChild()
 };
