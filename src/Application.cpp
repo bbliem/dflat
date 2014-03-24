@@ -147,10 +147,10 @@ int Application::run(int argc, char** argv)
 	inputString = inputStringStream.str();
 
 	// Parse instance
-	Hypergraph instance = parser::Driver(inputString, edgePredicates).parse();
+	inputHypergraph = parser::Driver(inputString, edgePredicates).parse();
 
 	// Decompose instance
-	DecompositionPtr decomposition = decomposer->decompose(instance);
+	DecompositionPtr decomposition = decomposer->decompose(inputHypergraph);
 	printer->decomposerResult(*decomposition);
 
 	// Solve
@@ -168,6 +168,11 @@ void Application::usage() const
 const std::string& Application::getInputString() const
 {
 	return inputString;
+}
+
+const Hypergraph& Application::getInputHypergraph() const
+{
+	return inputHypergraph;
 }
 
 options::OptionHandler& Application::getOptionHandler()
