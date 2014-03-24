@@ -60,3 +60,38 @@ int Decomposition::getWidth() const
 		width = std::max(child->getWidth(), width);
 	return width;
 }
+
+void Decomposition::printGraphMl(std::ostream& out) const
+{
+	out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl
+		<< "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\"" << std::endl
+		<< "         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" << std::endl
+		<< "         xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns "
+		   "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">" << std::endl
+		<< "  <key id=\"bag\" for=\"node\"/>" << std::endl
+		<< "  <graph edgedefault=\"undirected\">" << std::endl;
+
+	printGraphMlElements(out);
+
+	out << "  </graph>" << std::endl
+	    << "</graphml>" << std::endl;
+}
+
+void Decomposition::printGraphMlElements(std::ostream& out) const
+{
+	out << "    <node id=\"n" << node.getGlobalId() << "\">" << std::endl;
+	out << "      <data key=\"bag\">";
+	std::string separator;
+	for(const auto& vertex : node.getBag()) {
+		out << separator << vertex;
+		separator = ", ";
+	}
+	out << "</data>" << std::endl;
+	out << "    </node>" << std::endl;
+
+	for(const auto& child : children) {
+		child->printGraphMlElements(out);
+		out << "    <edge source=\"n" << node.getGlobalId() << "\""
+		                " target=\"n" << child->node.getGlobalId() << "\"/>" << std::endl;
+	}
+}

@@ -53,7 +53,12 @@ public:
 	// Traverses the decomposition and returns its width
 	int getWidth() const;
 
+	// Print the decomposition in GraphML format to the given stream
+	void printGraphMl(std::ostream& out) const;
+
 protected:
+	void printGraphMlElements(std::ostream& out) const;
+
 	const SolverFactory& solverFactory;
 	std::unique_ptr<Solver> solver;
 	bool root;

@@ -78,6 +78,7 @@ private:
 	options::Option optNoCounting;
 	options::Option optNoPruning;
 	options::Option optPrintDecomposition;
+	options::SingleValueOption optGraphMlOut;
 
 	Decomposer* decomposer;
 	SolverFactory* solverFactory;
