@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include "options/OptionHandler.h"
 #include "options/Choice.h"
+#include "Hypergraph.h"
 
 class Decomposer;
 class SolverFactory;
@@ -39,6 +40,10 @@ public:
 	void usage() const;
 
 	const std::string& getInputString() const;
+
+	//! @return the hypergraph obtained from the input string
+	const Hypergraph& getInputHypergraph() const;
+
 	options::OptionHandler& getOptionHandler();
 	options::Choice& getDecomposerChoice();
 	options::Choice& getSolverChoice();
@@ -64,6 +69,7 @@ private:
 
 	std::string binaryName;
 	std::string inputString;
+	Hypergraph inputHypergraph;
 
 	options::OptionHandler opts;
 	options::Choice optDecomposer;
