@@ -113,6 +113,33 @@ struct ItemTreeTest : public ::testing::Test
 	// \- reject
 	ItemTreePtr t12{new ItemTree{ItemTree::Node{new ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::OR}}}};
 
+	// Item tree 13
+	// a or
+	// |- undef b 2
+	// \- undef c 3
+	ItemTreePtr t13{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+
+	// Item tree 14: Same as 13.
+	ItemTreePtr t14{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+
+	// Item tree 15
+	// a or
+	// |- undef b 1
+	// \- undef c 2
+	ItemTreePtr t15{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+
+	// Item tree 16
+	// a or
+	// |- undef b 1
+	// \- undef c 3
+	ItemTreePtr t16{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+
+	// Item tree 17
+	// a or
+	// |- undef b 2
+	// \- undef c 1
+	ItemTreePtr t17{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+
 	ItemTreeTest()
 	{
 		cheapNode->getNode()->setCost(3);
@@ -190,6 +217,41 @@ struct ItemTreeTest : public ::testing::Test
 		ItemTreePtr t12_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::REJECT}}}};
 		t12->addChildAndMerge(std::move(t12_1));
 		t12->addChildAndMerge(std::move(t12_2));
+
+		ItemTreePtr t13_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t13_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		t13_1->getNode()->setCost(2);
+		t13_2->getNode()->setCost(3);
+		t13->addChildAndMerge(std::move(t13_1));
+		t13->addChildAndMerge(std::move(t13_2));
+
+		ItemTreePtr t14_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t14_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		t14_1->getNode()->setCost(2);
+		t14_2->getNode()->setCost(3);
+		t14->addChildAndMerge(std::move(t14_1));
+		t14->addChildAndMerge(std::move(t14_2));
+
+		ItemTreePtr t15_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t15_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		t15_1->getNode()->setCost(1);
+		t15_2->getNode()->setCost(2);
+		t15->addChildAndMerge(std::move(t15_1));
+		t15->addChildAndMerge(std::move(t15_2));
+
+		ItemTreePtr t16_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t16_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		t16_1->getNode()->setCost(1);
+		t16_2->getNode()->setCost(3);
+		t16->addChildAndMerge(std::move(t16_1));
+		t16->addChildAndMerge(std::move(t16_2));
+
+		ItemTreePtr t17_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t17_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		t17_1->getNode()->setCost(2);
+		t17_2->getNode()->setCost(1);
+		t17->addChildAndMerge(std::move(t17_1));
+		t17->addChildAndMerge(std::move(t17_2));
 	}
 };
 
@@ -356,8 +418,6 @@ TEST_F(ItemTreeTest, EvaluatePropagatesUndefinedForOr)
 	EXPECT_EQ(ItemTreeNode::Type::UNDEFINED, t12->evaluate(true));
 }
 
-// TODO Test clearUnneededExtensionPointers(), prepareChildrenRandomAccess()
-
 TEST_F(ItemTreeTest, FinalizeReturnsFalseForNodeWithUndefinedTypeWhenPruningUndefined)
 {
 	EXPECT_FALSE(undefNode->finalize(app, true, false));
@@ -368,3 +428,32 @@ TEST_F(ItemTreeTest, FinalizeReturnsTrueForNodeWithDefinedTypeWhenPruningUndefin
 	EXPECT_FALSE(rejectNode->finalize(app, true, false));
 }
 
+TEST_F(ItemTreeTest, ChildWithEqualCostsIsMerged)
+{
+	orNode->addChildAndMerge(std::move(t13));
+	orNode->addChildAndMerge(std::move(t14));
+	EXPECT_EQ(1, orNode->getChildren().size());
+}
+
+TEST_F(ItemTreeTest, ChildWithSmallerCostsIsMerged)
+{
+	orNode->addChildAndMerge(std::move(t13));
+	orNode->addChildAndMerge(std::move(t15));
+	EXPECT_EQ(1, orNode->getChildren().size());
+}
+
+TEST_F(ItemTreeTest, ChildWithSmallerAndEqualCostsIsNotMerged)
+{
+	orNode->addChildAndMerge(std::move(t13));
+	orNode->addChildAndMerge(std::move(t16));
+	EXPECT_EQ(2, orNode->getChildren().size());
+}
+
+TEST_F(ItemTreeTest, ChildWithGreaterAndSmallerCostsIsNotMerged)
+{
+	orNode->addChildAndMerge(std::move(t13));
+	orNode->addChildAndMerge(std::move(t17));
+	EXPECT_EQ(2, orNode->getChildren().size());
+}
+
+// TODO Test clearUnneededExtensionPointers(), prepareChildrenRandomAccess()
