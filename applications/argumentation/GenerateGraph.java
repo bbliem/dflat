@@ -2,36 +2,43 @@ import java.io.IOException;
 import java.util.Random;
 
 /**
- * 
+ *
  * Graph Generator - Obtain directed graphs
- * 
+ *
  * @author Wolfgang Dovorak
  * @author Johannes Wallner
  * @author Guenther Charwat
  */
 public class GenerateGraph {
-	
-		public static final String GENERATOR_VERSION = "2.0.0";
-	
-		private enum GraphTypes {
+
+		public static final String GENERATOR_VERSION = "2.1.0";
+
+		private enum GraphType {
 			G4grid, G8grid, G4graph, G8graph, cliques, random
 		}
-		
-		private enum OutputFormats {
-			aspartix, comparg
+
+		private enum EnhancedGraph {
+			none, scm
 		}
-		
+
+		// asp: standard graph with node, edge
+		// aspartix: with arg, att
+		private enum OutputFormat {
+			asp, aspartix, comparg
+		}
+
 		/* Default values/Parameters */
-		private static GraphTypes graphType = GraphTypes.G4grid;
+		private static GraphType graphType = GraphType.G4grid;
 		private static Integer size = null;
 		private static Integer theoreticalTW = null;
 		private static Double probability = null;
-		private static OutputFormats outputFormat = OutputFormats.aspartix;
-		
-	
+		private static OutputFormat outputFormat = OutputFormat.asp;
+		private static EnhancedGraph enhancedGraph = EnhancedGraph.none;
+		private static Double scmLabelProbability = null;
+
 		private static Random random = new Random();
 		/**
-		 * Generates a graph that is the disjoint union of cliques 
+		 * Generates a graph that is the disjoint union of cliques
 		 * @param numberCliques #Cliques
 		 * @param treeWidth #tree-width, i.e. size of the cliques-1
 		 * @return graph of tree-width  treeWidth and size  numberCliques*(treeWidth+1)
@@ -40,7 +47,7 @@ public class GenerateGraph {
 			Graph<String> graph=new Graph<String>();
 			for(int i=0;i<numberCliques;i++){
 				for(int j=0;j<treeWidth+1;j++){
-					graph.addNode("c"+i+"a"+j);	
+					graph.addNode("c"+i+"a"+j);
 					for(int k=0;k<j;k++){
 						graph.addEdge("c"+i+"a"+k,"c"+i+"a"+j);
 						graph.addEdge("c"+i+"a"+j,"c"+i+"a"+k);
@@ -49,7 +56,7 @@ public class GenerateGraph {
 			}
 			return graph;
 		}
-		
+
 		/**
 		 * Generates a graph that is an induced subgraph of a complete grid (4-neighbourhood)
 		 * (guarantees an upper bound for the tree-width)
@@ -81,7 +88,7 @@ public class GenerateGraph {
 			}
 			return graph;
 		}
-		
+
 		/**
 		 * Generates a graph that is an induced subgraph of a complete grid (8-neighbourhood)
 		 * (guarantees an upper bound for the tree-width)
@@ -94,12 +101,12 @@ public class GenerateGraph {
 		private static Graph<Integer> generateGraphG8(int n,int treeWidth, double p){
 			Graph<Integer> graph=new Graph<Integer>();
 			int k= treeWidth-1;
-			
+
 			int j;
 			for(int i=0;i<n;i++){
 				graph.addNode(i);
 
-				j=i-k; // lower edge 
+				j=i-k; // lower edge
 				if (j>=0){
 					if( random.nextDouble()<=p ) graph.addEdge(i, j);
 					if( random.nextDouble()<=p ) graph.addEdge(j, i);
@@ -109,13 +116,13 @@ public class GenerateGraph {
 				if (i % k != 0){
 					if( random.nextDouble()<=p ) graph.addEdge(i, j);
 					if( random.nextDouble()<=p ) graph.addEdge(j, i);
-		
+
 					j=i-k-1; //left lower edge
 					if(j>=0){
 						if( random.nextDouble()<=p ) graph.addEdge(i, j);
 						if( random.nextDouble()<=p ) graph.addEdge(j, i);
 					}
-				}			
+				}
 				j=i-k+1; //right lower edge
 				if (j % k != 0 && j>=0){
 					if( random.nextDouble()<=p ) graph.addEdge(i, j);
@@ -127,7 +134,7 @@ public class GenerateGraph {
 			return graph;
 		}
 
-		
+
 		/**
 		 * Generates a grid with random orientation (8-neighbourhood)
 		 * @param n #nodes in the graph
@@ -138,12 +145,12 @@ public class GenerateGraph {
 		private static Graph<Integer> generateGridG8(int n,int treeWidth, double p){
 			Graph<Integer> graph=new Graph<Integer>();
 			int k= treeWidth-1;
-			
+
 			int j;
 			for(int i=0;i<n;i++){
 				graph.addNode(i);
 
-				j=i-k; // lower edge 
+				j=i-k; // lower edge
 				if (j>=0){
 					if( random.nextDouble()<p) {
 						graph.addEdge(i, j);
@@ -169,7 +176,7 @@ public class GenerateGraph {
 							graph.addEdge(j, i);
 						}
 					}
-		
+
 					j=i-k-1; //left lower edge
 					if (j>=0){
 						if( random.nextDouble()<p) {
@@ -183,7 +190,7 @@ public class GenerateGraph {
 							}
 						}
 					}
-				}			
+				}
 				j=i-k+1; //right lower edge
 				if (j % k != 0 && j>=0){
 					if( random.nextDouble()<p) {
@@ -202,7 +209,7 @@ public class GenerateGraph {
 			}
 			return graph;
 		}
-		
+
 		/**
 		 * Generates a grid with random orientation (4-neighbourhood)
 		 * @param n #nodes in the graph
@@ -251,7 +258,7 @@ public class GenerateGraph {
 		/**
 		 * Generate arbitrary Random DiGraph
 		 * @param n #vertices
-		 * @param p Propability that an arc (i,j) is in the graph, 
+		 * @param p Propability that an arc (i,j) is in the graph,
 		 * 			i.e. the estimated edge density)
 		 * @return
 		 */
@@ -272,7 +279,7 @@ public class GenerateGraph {
 
 			return graph;
 		}
-		
+
 		private static String compargGraph(Graph<?> graph){
 			StringBuffer stringBuffer= new StringBuffer();
 
@@ -287,14 +294,38 @@ public class GenerateGraph {
 			return stringBuffer.toString();
 		}
 
-		private static String aspartixGraph(Graph<?> graph){
+		private static String aspGraphHeader() {
 			StringBuffer stringBuffer= new StringBuffer();
-			stringBuffer.append("% Gen. Vers.: " + GENERATOR_VERSION + "\n");
-			stringBuffer.append("% Graph Type: " + graphType.name() + "\n");
-			stringBuffer.append("% Size      : " + size 			+ "\n");
-			stringBuffer.append("% Th. TW    : " + theoreticalTW    + "\n");
-			stringBuffer.append("% Prob.     : " + probability		+ "\n");
-			
+			stringBuffer.append("% Gen. Vers.    : " + GENERATOR_VERSION   + "\n");
+			stringBuffer.append("% Graph Type    : " + graphType.name()    + "\n");
+			stringBuffer.append("% Size          : " + size 			   + "\n");
+			stringBuffer.append("% Th. TW        : " + theoreticalTW       + "\n");
+			stringBuffer.append("% Prob.         : " + probability		   + "\n");
+			stringBuffer.append("% Output        : " + outputFormat.name() + "\n");
+			stringBuffer.append("% Enhanced Graph: " + enhancedGraph.name() + "\n");
+			return stringBuffer.toString();
+		}
+
+		private static String aspSCMGraphHeader() {
+			return "% Label Prob.   : " + scmLabelProbability + "\n";
+		}
+
+		private static String aspGraph(Graph<?> graph){
+			StringBuffer stringBuffer= new StringBuffer();
+
+			for(Graph.Node<?> node : graph.getNodes()){
+				stringBuffer.append("vertex("+node.getObject().toString()+").\n");
+				for(Graph.Node<?> child: node.getChildren()){
+					stringBuffer.append("edge("+node.getObject().toString()+","+child.getObject().toString()+").\n");
+				}
+			}
+
+			return stringBuffer.toString();
+		}
+
+		private static String aspartixGraph(Graph<?> graph) {
+			StringBuffer stringBuffer= new StringBuffer();
+
 			for(Graph.Node<?> node : graph.getNodes()){
 				stringBuffer.append("arg("+node.getObject().toString()+").\n");
 				for(Graph.Node<?> child: node.getChildren()){
@@ -305,6 +336,26 @@ public class GenerateGraph {
 			return stringBuffer.toString();
 		}
 
+		private static String scmGraph(Graph<?> graph, double pl) {
+			StringBuffer stringBuffer= new StringBuffer();
+			String sign = null;
+			for(Graph.Node<?> node : graph.getNodes()){
+				if (random.nextDouble() <= pl) {
+					sign = (random.nextBoolean() ? "-1" : "1");
+					stringBuffer.append("observedV("+node.getObject().toString()+","+sign+").\n");
+				}
+				for(Graph.Node<?> child: node.getChildren()){
+					if (random.nextDouble() <= pl) {
+						sign = (random.nextBoolean() ? "-1" : "1");
+						stringBuffer.append("observedE("+node.getObject().toString()+","+child.getObject().toString()+","+sign+").\n");
+					}
+				}
+			}
+
+			return stringBuffer.toString();
+		}
+
+
 		public static String pretty(Integer zahl){
 			String hilf="000000"+zahl.toString();
 			return hilf.substring(hilf.length()-7);
@@ -312,19 +363,19 @@ public class GenerateGraph {
 
 
 		public static void main(String[] args) throws IOException {
-			
-			
+
+
 			if (args.length % 2 != 0) {
 				printUsage();
 				System.exit(1);
 			}
-			
-			
+
+
 			for (int i = 0; i < args.length; i = i+2) {
 				if (args[i].equals("-g")) {
-					GraphTypes gttmp = null;
+					GraphType gttmp = null;
 					String t = args[i+1];
-					for (GraphTypes gt : GraphTypes.values()) {
+					for (GraphType gt : GraphType.values()) {
 						if (gt.name().equals(t))
 							gttmp = gt;
 					}
@@ -371,8 +422,8 @@ public class GenerateGraph {
 				}
 				else if (args[i].equals("-o")) {
 					String o = args[i+1];
-					OutputFormats oftmp = null;
-					for (OutputFormats of : OutputFormats.values()) {
+					OutputFormat oftmp = null;
+					for (OutputFormat of : OutputFormat.values()) {
 						if (of.name().equals(o))
 							oftmp = of;
 					}
@@ -382,14 +433,26 @@ public class GenerateGraph {
 					}
 					outputFormat = oftmp;
 				}
+				else if (args[i].equals("--scm")) {
+					enhancedGraph = EnhancedGraph.scm;
+					try {
+						scmLabelProbability = Double.valueOf(args[i+1]);
+					} catch (NumberFormatException e) {
+						printUsage();
+					}
+					if (scmLabelProbability < 0 || scmLabelProbability > 1) {
+						System.err.println("Label probability must be between 0 and 1");
+						System.exit(1);
+					}
+				}
 				else {
 					printUsage();
 				}
 			}
-			
+
 			if (graphType == null || outputFormat == null)
 				printUsage();
-						
+
 			Graph<?> generatedGraph = null;
 			switch (graphType) {
 			case G4graph:
@@ -427,58 +490,92 @@ public class GenerateGraph {
 				generatedGraph = generateGraphCliques(size, theoreticalTW);
 				break;
 			default:
-				printUsage();	
+				printUsage();
 			}
-			
-			String output = null;
+
+			String header = "";
+			String graphString = "";
 			switch (outputFormat) {
+			case asp:
+				header = aspGraphHeader();
+				graphString = aspGraph(generatedGraph);
+				break;
 			case aspartix:
-				output = aspartixGraph(generatedGraph);
+				header = aspGraphHeader();
+				graphString = aspartixGraph(generatedGraph);
 				break;
 			case comparg:
-				output = compargGraph(generatedGraph);
+				graphString = compargGraph(generatedGraph);
 				break;
 			}
-			
-			System.out.println(output);
+
+
+			switch (enhancedGraph) {
+			case none:
+				break;
+			case scm:
+				switch (outputFormat) {
+				case asp:
+				case aspartix:
+					assureSCMLabelProbabilitySet();
+					header += aspSCMGraphHeader();
+					graphString += "\n" + scmGraph(generatedGraph, scmLabelProbability);
+					break;
+				default:
+					System.err.println("Output format not compatible with SCM\n");
+					System.exit(1);
+				}
+			}
+
+			System.out.println(header);
+			System.out.println(graphString);
 		}
-		
+
 		private static void assureSizeSet() {
 			if (size == null) {
-				System.err.println("Size is not set");
+				System.err.println("Size is not set\n");
 				System.exit(1);
 			}
 		}
-		
+
 		private static void assureProbabilitySet() {
 			if (probability == null) {
-				System.err.println("Probability is not set");
+				System.err.println("Probability is not set\n");
 				System.exit(1);
 			}
 		}
-		
+
 		private static void assureTWSet() {
 			if (theoreticalTW == null) {
-				System.err.println("Theoretical treewidth is not set");
+				System.err.println("Theoretical treewidth is not set\n");
 				System.exit(1);
 			}
 		}
-		
+
+		private static void assureSCMLabelProbabilitySet() {
+			if (scmLabelProbability == null) {
+				System.err.println("Label probability is not set\n");
+				System.exit(1);
+			}
+		}
+
 		private static void printUsage() {
 			String usage = "java GenerateGraph [Options]\n";
 			usage += "Prints a graph to stdout\n";
-			usage += "[-g <graphType>]    One of G4grid, G8grid, G4graph, G8graph, cliques, random\n";
-			usage += "                    G4grid  ... 4-connected full grid, prob. influences symmetry of edges (Default)\n";
-			usage += "                    G8grid  ... 8-connected full grid, prob. influences symmetry of edges\n";
-			usage += "                    G4graph ... 4-connected grid-like graph, prob. influences existence of edges\n";
-			usage += "                    G8graph ... 8-connected grid-like graph, prob. influences existence of edges\n";
-			usage += "                    cliques ... Creates <size> cliques with <treewidth>+1 nodes each, prob. ignored\n";
-			usage += "                    random  ... Random graph, edges exist based on prob., treewidth ignored\n";
-			usage += "[-n <size>]         Number of nodes (Grid, Graph, Random) or number of Cliques (clique)\n";
-			usage += "[-t <treewidth>]    Treewidth (Grid, Cliques), Max. Treewidth (Graph) or ignored (Random)\n";
-			usage += "[-p <probability>]  Symmetry (Grid), Edge (Graph, Random) probability or ignored (clique)\n";
-			usage += "[-o <outputFormat>] One of aspartix (Default), comparg\n";
-			
+			usage += "[-g <graphType>]     One of G4grid, G8grid, G4graph, G8graph, cliques, random\n";
+			usage += "                      G4grid  ... 4-connected full grid, prob. influences symmetry of edges (Default)\n";
+			usage += "                      G8grid  ... 8-connected full grid, prob. influences symmetry of edges\n";
+			usage += "                      G4graph ... 4-connected grid-like graph, prob. influences existence of edges\n";
+			usage += "                      G8graph ... 8-connected grid-like graph, prob. influences existence of edges\n";
+			usage += "                      cliques ... Creates <size> cliques with <treewidth>+1 nodes each, prob. ignored\n";
+			usage += "                      random  ... Random graph, edges exist based on prob., treewidth ignored\n";
+			usage += "[-n <size>]          Number of nodes (Grid, Graph, Random) or number of Cliques (clique)\n";
+			usage += "[-t <treewidth>]     Treewidth (Grid, Cliques), Max. Treewidth (Graph) or ignored (Random)\n";
+			usage += "[-p <probability>]   Symmetry (Grid), Edge (Graph, Random) probability or ignored (clique)\n";
+			usage += "[-o <outputFormat>]  One of asp (Default), aspartix, comparg\n";
+			usage += "[--scm <labelprob>]  Sign Consistency Model graph with <labelprob> probability that \n";
+			usage += "                     a node/edge gets assigned an observed label (-1,1) randomly \n";
+
 			System.err.println(usage);
 			System.exit(1);
 		}

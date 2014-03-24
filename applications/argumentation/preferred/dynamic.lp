@@ -3,99 +3,45 @@
 % using nonnormalized tree decompositions %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Use two levels.
-levels(2).
+length(2).
+or(0).
+and(1).
 
-% Extend exactly one child row per child node.
-1 { extend(0, R) : childRow(R, N) } 1 :- childNode(N).
-% Extend level 1 if there exists an extension at level 0 and at least one row at level 1.
-0 { extend(1, I) : sub(R, I)      } 1 :- extend(0, R).
+1 #count { R  : extend(0,R)  : rootOf(R,N) } 1 :- childNode(N).
+1 #count { S1 : extend(1,S1) : sub(R,S1)   } 1 :- extend(0,R).
+1 #count { S2 : extend(2,S2) : sub(S1,S2)  } 1 :- extend(1,S1).
 
-% This holds if there exists at least one extension at level 1.
-extendsOne(I) :- extend(1, R), sub(I, R). 
-extendsOne    :- extend(1, _).
-hasChildItems(I)   :- childItem(I, _).
+notIn(S,A) :- childNode(N), atNode(S,N), not atLevel(S,0), bag(N,A), arg(A), not childItem(S,in(A)).
+:- extend(L,S1), extend(L,S2), arg(A), childItem(S1,in(A)), notIn(S2,A).
 
-% This predicate indicates whether a childItem at level L exists which maps A to V.
-hasChild(L, A, V)  :- childItem(I, map(A, V)), extend(L, I).
-% If a particular node doesn't consist of an extension at level 1, use mapping of level 0.
-hasChild(1, A, V)  :- childItem(I, map(A, V)), extend(0, I), not extendsOne(I).
-removedChild(L, V) :- hasChild(L, A, V), removed(A).
+{ item(1,in(A)) } :- introduced(A).
+{ item(2,in(A)) } :- introduced(A).
+item(2,in(A)) :- item(1,in(A)).
 
-% This holds whenever an item is in-mapped at level L and a particular child is marked differently.
-diffColor(L) :- current(A), item(L, map(A, in)), hasChild(L, A, T), T != in.
+item(L,in(A))     :- extend(L,S), childItem(S, in(A)),     current(A).
+auxItem(L,def(A)) :- extend(L,S), childAuxItem(S, def(A)), current(A).
 
-% In-Items must not attack each other, it is therefore considered conflicting if they do so.
-conflict(L)  :- item(L, map(A1, in)), item(L, map(A2, in)), att(A1, A2). 
+auxItem(L,def(A)) :- current(A;B), att(B,A), item(L,in(B)), not item(L,in(A)).
 
-% Compute at level 0 and also at level 1 if it is not conflicting, there aren't different colors and ..
-comp(0).
-% .. there doesn't exist an extension, but more elements are marked in or
-comp(1)      :- not conflict(1), not diffColor(1), not extendsOne, in(1, A), not in(0, A).
-% .. there exists a nonempty extension and no attacking child gets removed
-comp(1)      :- not conflict(1), not diffColor(1), extendsOne, not removedChild(1, att).
+auxItem(L,att(A)) :- extend(L,S), childAuxItem(S, att(A)), not auxItem(L,def(A)).
+auxItem(L,att(A)) :- current(A;B), att(A,B), item(L,in(B)), not item(L,in(A)), not auxItem(L,def(A)).
 
-% Some more user-friendly predicate as substitution for hasChild.
-child(L, A, V) :- current(A), hasChild(L, A, V), comp(L).
+:- extend(L,S), childAuxItem(S, att(A)), removed(A).
 
-% For every new argument guess if it is in xor out.
-attacked(A) :- att(_, A).
-1 { in(0, A), out(0, A) } 1 :- introduced(A), attacked(A).
-% No guess necessary.
-in(0, A) :- introduced(A), not attacked(A).
+:- item(L,in(A)), item(L,in(B)), att(A,B).
 
-1 { in(1, A), out(1, A) } 1 :- introduced(A), not in(0, A).
-in(1, A) :- in(0, A).
-item(L, map(A, in))  :- in(L, A), comp(L).
 
-% An argument is defeated if it is not in the set and ..
-% ..just introduced and attacked by an in-argument
-item(L, map(A, def)) :- out(L, A), item(L, map(A2, in)), att(A2, A), comp(L).
-% ..or has already been introduced and is attacked by an in-argument.
-item(L, map(A, def)) :- child(L, A, T), T != in, item(L, map(A2, in)), att(A2, A).
+auxItem(2,cert) :- extend(2,S), childAuxItem(S,cert).
+auxItem(2,cert) :- item(2, in(A)), not item(1,in(A)).
 
-% An argument attacks if it is not in the set, not marked def and ..
-% ..just introduced and attacks an in-argument
-item(L, map(A, att)) :- out(L, A), item(L, map(A2, in)), att(A, A2), not item(L, map(A, def)), comp(L).
-% ..or has already been introduced and attacks an in-argument.
-item(L, map(A, att)) :- child(L, A, T), T != def, T != in, item(L, map(A2, in)), att(A, A2), not item(L, map(A, def)).
+reject :- final, auxItem(2,cert).
+accept :- final, not reject.
 
-% An argument is out if it is not marked def/att.
-item(L, map(A, out)) :- out(L, A), not item(L, map(A, def)), not item(L, map(A, att)), comp(L).
-
-% Copy already decided in-/def-mapping.
-item(L, map(A, T))   :- child(L, A, T), T != att, T != out.
-% Copy att-mapping if not mapped to def.
-item(L, map(A, att)) :- child(L, A, att), not item(L, map(A, def)).
-% Copy out-mapping if not mapped to def/att.
-item(L, map(A, out)) :- child(L, A, out), not item(L, map(A, def)), not item(L, map(A, att)).
-
-% Discard sets if any attacking argument is removed.
-:- removedChild(0, att).
-
-% Discard sets if there is a conflict.
-:- conflict(0).
-
-% Discard sets if the extended child rows exclude a node from the set, but the same node also is in the set.
-:- diffColor(0).
-
-% Discard sets if any valid better solution was found at the root node.
-hasAtt(I) :- childItem(I, map(_, att)).
-:- root, extend(0, I), hasChildItems(C), sub(I, C), not hasAtt(C).
-
-% Discard sets if empty set was extended.
-:- extend(1, I), not hasChildItems(I).
-
-% Discard sets if level 1 was extended but not computable.
-:- extendsOne, not comp(1).
-
-% Provide empty counterexample
-item(1, counterexample) :- comp(1).
-
-#hide.
+#show length/1.
+#show or/1.
+#show and/1.
+#show reject/0.
+#show accept/0.
 #show item/2.
+#show auxItem/2.
 #show extend/2.
-#show levels/1.
-
-
-
