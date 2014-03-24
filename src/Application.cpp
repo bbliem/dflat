@@ -70,6 +70,7 @@ Application::Application(const std::string& binaryName)
 	, optNoCounting("no-counting", "Do not count the number of solutions")
 	, optNoPruning("no-pruning", "Prune rejecting subtrees only in the decomposition root")
 	, optPrintDecomposition("print-decomposition", "Print the generated decomposition")
+	, optGraphMlOut("graphml-out", "file", "Write the decomposition in the GraphML format to <file>")
 	, decomposer(0)
 	, solverFactory(0)
 	, depth(std::numeric_limits<unsigned int>::max())
@@ -98,6 +99,7 @@ int Application::run(int argc, char** argv)
 	opts.addOption(optNoCounting);
 	opts.addOption(optNoPruning);
 	opts.addOption(optPrintDecomposition);
+	opts.addOption(optGraphMlOut);
 
 	options::SingleValueOption optSeed("seed", "n", "Initialize random number generator with seed <n>");
 	opts.addOption(optSeed);
@@ -165,6 +167,12 @@ int Application::run(int argc, char** argv)
 
 	// Decompose instance
 	DecompositionPtr decomposition = decomposer->decompose(inputHypergraph);
+	if(optGraphMlOut.isUsed()) {
+		std::ofstream graphMlFile(optGraphMlOut.getValue().c_str());
+		decomposition->printGraphMl(graphMlFile);
+		if(!graphMlFile)
+			throw std::runtime_error("Could not write GraphML output");
+	}
 	printer->decomposerResult(*decomposition);
 
 	// Solve
