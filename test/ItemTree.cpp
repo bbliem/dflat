@@ -437,9 +437,9 @@ TEST_F(ItemTreeTest, ChildWithEqualCostsIsMerged)
 
 TEST_F(ItemTreeTest, ChildWithSmallerCostsIsMerged)
 {
-	orNode->addChildAndMerge(std::move(t13));
-	orNode->addChildAndMerge(std::move(t15));
-	EXPECT_EQ(1, orNode->getChildren().size());
+	andNode->addChildAndMerge(std::move(t13));
+	andNode->addChildAndMerge(std::move(t15));
+	EXPECT_EQ(1, andNode->getChildren().size());
 }
 
 TEST_F(ItemTreeTest, ChildWithSmallerAndEqualCostsIsNotMerged)
@@ -451,9 +451,9 @@ TEST_F(ItemTreeTest, ChildWithSmallerAndEqualCostsIsNotMerged)
 
 TEST_F(ItemTreeTest, ChildWithGreaterAndSmallerCostsIsNotMerged)
 {
-	orNode->addChildAndMerge(std::move(t13));
-	orNode->addChildAndMerge(std::move(t17));
-	EXPECT_EQ(2, orNode->getChildren().size());
+	andNode->addChildAndMerge(std::move(t13));
+	andNode->addChildAndMerge(std::move(t17));
+	EXPECT_EQ(2, andNode->getChildren().size());
 }
 
 // TODO Test clearUnneededExtensionPointers(), prepareChildrenRandomAccess()
