@@ -4,6 +4,6 @@ numNodes=6
 numEdges=18
 export instanceGen="$DIR/../instance_generator.py $numNodes $numEdges"
 export monolithicEncoding=$DIR/monolithic.lp
-export dflatArguments="-p $DIR/dynamic_semi.lp"
+export dflatArguments="-p $DIR/dynamic.lp"
 
 $DIR/../../test_counting.sh

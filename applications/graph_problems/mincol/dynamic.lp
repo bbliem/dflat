@@ -3,6 +3,8 @@ color(red;green;blue).
 criticalColor(red).
 
 length(2).
+or(0).
+and(1).
 
 :- edge(X,Y), item(L,map(X,C;Y,C)).
 
@@ -22,10 +24,13 @@ item(L,map(V,C)) :- extend(L,S), childItem(S,map(V,C)), current(V).
 item(2,smaller) :- extend(2,S), childItem(S,smaller).
 item(2,smaller) :- criticalColor(C), criticalVertex(V), item(1,map(V,C)), not item(2,map(V,C)).
 
-:- final, extend(1,R), sub(R,S), childItem(S,smaller).
-
-
+reject :- final, item(2,smaller).
+accept :- final, not reject.
 
 #show extend/2.
 #show length/1.
 #show item/2.
+#show or/1.
+#show and/1.
+#show accept/0.
+#show reject/0.

@@ -7,5 +7,4 @@ criticalColor(red).
 % Use metasp for subset-minimization
 #minimize [ map(V,C) : criticalVertex(V) : criticalColor(C) ].
 
-#hide.
 #show map/2.
