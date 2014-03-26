@@ -19,6 +19,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <cassert>
 
@@ -91,6 +92,9 @@ int Application::run(int argc, char** argv)
 	options::MultiValueOption optEdge("e", "edge", "Predicate <edge> declares (hyper)edges");
 	opts.addOption(optEdge);
 
+	options::SingleValueOption optInputFile("f", "file", "Read problem instance from <file> (stdin by default)");
+	opts.addOption(optInputFile);
+
 	opts.addOption(optNoCounting);
 	opts.addOption(optNoPruning);
 	opts.addOption(optPrintDecomposition);
@@ -141,10 +145,20 @@ int Application::run(int argc, char** argv)
 	// Get (hyper-)edge predicate names
 	parser::Driver::Predicates edgePredicates(optEdge.getValues().begin(), optEdge.getValues().end());
 
-	// Store all of stdin in a string
-	std::ostringstream inputStringStream;
-	inputStringStream << std::cin.rdbuf();
-	inputString = inputStringStream.str();
+	// Store the problem instance in a string
+	if(optInputFile.isUsed()) {
+		std::ifstream inputFile(optInputFile.getValue());
+		if(!inputFile)
+			throw std::runtime_error("Could not open input file");
+		std::ostringstream inputStringStream;
+		inputStringStream << inputFile.rdbuf();
+		inputString = inputStringStream.str();
+	}
+	else {
+		std::ostringstream inputStringStream;
+		inputStringStream << std::cin.rdbuf();
+		inputString = inputStringStream.str();
+	}
 
 	// Parse instance
 	inputHypergraph = parser::Driver(inputString, edgePredicates).parse();
