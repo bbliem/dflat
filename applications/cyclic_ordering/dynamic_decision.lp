@@ -1,4 +1,4 @@
-%dflat: --tables -d td -n weak -e order
+%dflat: --tables -d td -n weak -e order --depth 0
 1 { item(map(V,1..N)) } 1 :- current(V), N = #count { X : current(X) }.
 :- item(map(V1,K;V2,K)), V1 != V2.
 
