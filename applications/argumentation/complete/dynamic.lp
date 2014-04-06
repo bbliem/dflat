@@ -17,11 +17,11 @@ defc(A) :- extend(R), childItem(R, defc(A)), current(A).
 outc(A) :- extend(R), childItem(R, outc(A)), current(A).
 
 % Set colors for arguments in current bag
-item(in(A))   :- extend(R), childItem(R, in(A)),  current(A).
-item(def(A))  :- extend(R), childItem(R, def(A)), current(A).
+item(in(A))   :- current(A), extend(R), childItem(R, in(A)).
+item(def(A))  :- current(A), extend(R), childItem(R, def(A)).
 item(def(A))  :- current(A;B), att(B,A), item(in(B)), defc(A).
 item(defc(A)) :- current(A), defc(A), not item(def(A)).
-item(out(A))  :- extend(R), childItem(R, out(A)), current(A).
+item(out(A))  :- current(A), extend(R), childItem(R, out(A)).
 item(out(A))  :- current(A;B), att(B,A), item(out(B)), outc(A).
 item(out(A))  :- current(A;B), att(B,A), outc(B), outc(A).
 item(outc(A)) :- current(A), outc(A), not item(out(A)).
