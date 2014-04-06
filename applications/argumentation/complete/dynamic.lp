@@ -1,59 +1,42 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% complete semantics                      %
-% using nonnormalized tree decompositions %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%dflat: --tables -e att -e arg 
 
-%% Exactly extend one child row per child node.
+% Exactly extend one child row per child node.
 1 { extend(R) : childRow(R, N) } 1 :- childNode(N).
 
-%% For every introduced argument guess if it is IN, defended or out.
-%% Doing so prevents dealing with changes from DEF to OUT and vice versa.
-1 { item(map(A, in)), def(A), out(A) } 1 :- introduced(A), attacked(A).
-attacked(A) :- att(_, A).
-item(map(A, in)) :- introduced(A), not attacked(A).
+% Only join if tuples agree on 'in' arguments
+notIn(R,A) :- childNode(N), childRow(R,N), bag(N,A), arg(A), not childItem(R,in(A)).
+:- extend(R1), extend(R2), arg(A), childItem(R1,in(A)), notIn(R2,A).
+% And on 'def'/'defc' arguments
+notDef(R,A) :- childNode(N), childRow(R,N), bag(N,A), arg(A), not childItem(R,def(A)), not childItem(R,defc(A)).
+:- extend(R1), extend(R2), arg(A), childItem(R1,def(A)), notDef(R2,A).
+:- extend(R1), extend(R2), arg(A), childItem(R1,defc(A)), notDef(R2,A).
 
-%% OUT- and OUTC-marked childs are considered "out".
-out(A) :- current(A), childItem(I, map(A, outc)), extend(I).
-out(A) :- current(A), childItem(I, map(A, out)),  extend(I).
+% Guess whether introduced arguments are in the set, defeated, or out 
+1 #count { A,in : item(in(A)); A,defc : defc(A); A,outc : outc(A) } 1 :- introduced(A).
+defc(A) :- extend(R), childItem(R, defc(A)), current(A).
+outc(A) :- extend(R), childItem(R, outc(A)), current(A).
 
-%% If edgeTo(A, T) is set, it indicates that any current T-mapped argument attacks argument A.
-edgeTo(A, T) :- current(A2), item(map(A2, T)), att(A2, A).
+% Set colors for arguments in current bag
+item(in(A))   :- current(A), extend(R), childItem(R, in(A)).
+item(def(A))  :- current(A), extend(R), childItem(R, def(A)).
+item(def(A))  :- current(A;B), att(B,A), item(in(B)), defc(A).
+item(defc(A)) :- current(A), defc(A), not item(def(A)).
+item(out(A))  :- current(A), extend(R), childItem(R, out(A)).
+item(out(A))  :- current(A;B), att(B,A), item(out(B)), outc(A).
+item(out(A))  :- current(A;B), att(B,A), outc(B), outc(A).
+item(outc(A)) :- current(A), outc(A), not item(out(A)).
 
-%% An argument is DEF if it is attacked by IN-arguments.
-item(map(A, def)) :- childItem(I, map(A, defc)), edgeTo(A, in), extend(I).
-item(map(A, def)) :- def(A), edgeTo(A, in).
-%% An argument is DEFC if one child node marked it DEFC, but it is not marked DEF yet.
-item(map(A, defc)) :- current(A), childItem(I, map(A, defc)), not item(map(A, def)), extend(I).
-item(map(A, defc)) :- def(A), not item(map(A, def)).
+% Not defeated, or not really out
+:- extend(R), childItem(R, defc(A)), removed(A).
+:- extend(R), childItem(R, outc(A)), removed(A).
+:- current(A;B), att(B,A), item(in(B)), item(outc(A)).
+:- current(A;B), att(B,A), item(in(B)), item(out(A)).
+:- current(A;B), att(B,A), item(out(B)), item(in(A)).
+:- current(A;B), att(B,A), item(outc(B)), item(in(A)).
 
-%% An argument is OUT if it is (already OUT or) marked OUTC and attacked by OUT-/OUTC-arguments.
-item(map(A, out)) :- out(A2), out(A), att(A2, A).
+% Conflict-free
+:- item(in(A)), item(in(B)), att(A,B).
 
-%% Copy already decided IN-/DEF-/OUT-mappings.
-item(map(A, C)) :- current(A), childItem(I, map(A, C)), C != defc, C != outc, extend(I).
-%% Copy OUTC-mapping if it is not changed to OUT.
-item(map(A, outc)) :- not item(map(A, out)), out(A).
-
-%% Discard sets if any DEFCandidate or OUTCandidate is removed.
-:- removed(A), childItem(I, map(A, defc)), extend(I).
-:- removed(A), childItem(I, map(A, outc)), extend(I).
-
-%% Discard sets if there is a conflict.
-:- item(map(A1, in)), item(map(A2, in)), att(A1, A2).
-
-%% Discard sets if joined rows are mapping pairwise different and at least one IN-mapping is included.
-:- extend(I), item(map(A, in)), childItem(I, map(A, X)), current(A), X != in.
-%% Discard sets if joined rows have different DEF-/DEFC-mapping. 
-:- extend(I), item(map(A, defc)), childItem(I, map(A, X)), current(A), X != defc.
-:- extend(I), item(map(A, def)), childItem(I, map(A, X)), current(A), X != defc, X != def.
-%% Discard sets if joined rows have different OUT-/OUTC-mapping.
-:- extend(I), out(A), childItem(I, map(A, X)), X != outc, X != out.
-
-%% Discard sets if OUT/OUTC appears to be DEF.
-:- item(map(A1, in)), out(A2), att(A1, A2).
-:- item(map(A1, in)), out(A2), att(A2, A1).
-
-#hide.
 #show item/1.
 #show extend/1.
 
