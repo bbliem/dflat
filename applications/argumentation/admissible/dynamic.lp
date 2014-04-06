@@ -4,7 +4,7 @@
 1 { extend(R) : childRow(R, N) } 1 :- childNode(N).
 
 % Only join if tuples agree on 'in' arguments
-notIn(R,A) :- childNode(N), atNode(R,N), bag(N,A), arg(A), not childItem(R,in(A)).
+notIn(R,A) :- childNode(N), childRow(R,N), bag(N,A), arg(A), not childItem(R,in(A)).
 :- extend(R1), extend(R2), arg(A), childItem(R1,in(A)), notIn(R2,A).
 
 % Guess whether introduced arguments are in the set 

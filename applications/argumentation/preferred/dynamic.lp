@@ -1,4 +1,4 @@
-%dflat: -e att -e arg --depth 1
+%dflat: -e att -e arg 
 
 length(2).
 or(0).
