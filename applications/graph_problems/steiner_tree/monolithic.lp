@@ -1,6 +1,6 @@
 edge(X,Y) :- edge(Y,X).
 
-{ selectedEdge(X,Y) : edge(X,Y) : X < Y }.
+{ selectedEdge(X,Y) : edge(X,Y), X < Y }.
 
 connected(X,Y) :- selectedEdge(X,Y), X < Y.
 
@@ -13,8 +13,6 @@ connected(X,Z) :- connected(Y,Z), selectedEdge(Y,X), X != Z, Y != Z.
 
 relevantWeight(V1,V2,W) :- selectedEdge(V1,V2), weight(V1,V2,W), V1 < V2.
 
-#minimize [ relevantWeight(_,_,W) = W ].
+#minimize { W,V1,V2 : relevantWeight(V1,V2,W) }.
 
-#hide.
 #show selectedEdge/2.
-#show relevantWeight/3.
