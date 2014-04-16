@@ -140,6 +140,11 @@ struct ItemTreeTest : public ::testing::Test
 	// \- undef c 1
 	ItemTreePtr t17{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
 
+	// Item tree 18
+	// a or
+	// \- undef b 0
+	ItemTreePtr t18{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+
 	ItemTreeTest()
 	{
 		cheapNode->getNode()->setCost(3);
@@ -252,6 +257,10 @@ struct ItemTreeTest : public ::testing::Test
 		t17_2->getNode()->setCost(1);
 		t17->addChildAndMerge(std::move(t17_1));
 		t17->addChildAndMerge(std::move(t17_2));
+
+		ItemTreePtr t18_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		t18_1->getNode()->setCost(0);
+		t18->addChildAndMerge(std::move(t18_1));
 	}
 };
 
@@ -453,6 +462,13 @@ TEST_F(ItemTreeTest, ChildWithGreaterAndSmallerCostsIsNotMerged)
 {
 	andNode->addChildAndMerge(std::move(t13));
 	andNode->addChildAndMerge(std::move(t17));
+	EXPECT_EQ(2, andNode->getChildren().size());
+}
+
+TEST_F(ItemTreeTest, ChildWithBetterCostButDifferentStructureIsNotMerged)
+{
+	andNode->addChildAndMerge(std::move(t17));
+	andNode->addChildAndMerge(std::move(t18));
 	EXPECT_EQ(2, andNode->getChildren().size());
 }
 
