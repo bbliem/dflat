@@ -1,4 +1,4 @@
-%dflat: -e edge -d td -n semi --tables
+%dflat: -e vertex -e edge -d td -n semi --tables --no-empty-leaves
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
 :- extend(R1;R2), childItem(R1,in(X)), not childItem(R2,in(X)).
 item(in(X)) :- extend(R), childItem(R,in(X)), current(X).
