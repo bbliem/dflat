@@ -1,4 +1,4 @@
-%dflat: --tables -e vertex -e edge
+%dflat: --tables -e vertex -e edge --no-empty-leaves --no-empty-root
 color(red;green;blue).
 
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
