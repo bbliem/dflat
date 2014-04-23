@@ -39,7 +39,7 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 	: ::SolverFactory(app, "asp", "Answer Set Programming", newDefault)
 	, optEncodingFiles  ("p", "program",     "Use <program> as an ASP encoding for solving")
 	, optDefaultJoin    ("default-join",     "Use built-in implementation for join nodes")
-	, optLazy           ("lazy",             "Use lazy evaluation")
+	, optLazy           ("lazy",             "Use lazy evaluation (experimental)")
 	, optTables         ("tables",           "Use table mode (for item trees of height at most 1)")
 #ifdef HAVE_WORDEXP_H
 	, optIgnoreModelines("ignore-modelines", "Do not scan the encoding files for modelines")
