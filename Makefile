@@ -43,6 +43,8 @@ ifeq ($(CXX),clang++)
 		-D_CMAKE_TOOLCHAIN_PREFIX=llvm-
 endif
 
+write_version_header = (grep -q "\"$(shell git describe | sed 's/^v\([0-9]\+\.[0-9]\+.[0-9]\+\)$$/\1/')\"" version.h 2> /dev/null || echo "\#define VERSION_NUMBER \"$(shell git describe | sed 's/^v\([0-9]\+\.[0-9]\+.[0-9]\+\)$$/\1/')\"" > version.h)
+
 .PHONY: all
 all: release
 
@@ -50,6 +52,7 @@ all: release
 release:
 	mkdir -p build/release
 	cd build/release && \
+	$(call write_version_header) && \
 	cmake ../../src \
 		$(cmake_extra_options) \
 		-DCMAKE_BUILD_TYPE=release \
@@ -66,6 +69,7 @@ release:
 debug:
 	mkdir -p build/debug
 	cd build/debug && \
+	$(call write_version_header) && \
 	cmake ../../src \
 		$(cmake_extra_options) \
 		-DCMAKE_BUILD_TYPE=debug \
@@ -82,6 +86,7 @@ debug:
 gprof:
 	mkdir -p build/gprof
 	cd build/gprof && \
+	$(call write_version_header) && \
 	cmake ../../src \
 		$(cmake_extra_options) \
 		-DCMAKE_BUILD_TYPE=gprof \
@@ -98,6 +103,7 @@ gprof:
 release32:
 	mkdir -p build/release32
 	cd build/release32 && \
+	$(call write_version_header) && \
 	cmake ../../src \
 		$(cmake_extra_options) \
 		-DCMAKE_BUILD_TYPE=release \
@@ -114,6 +120,7 @@ release32:
 static:
 	mkdir -p build/static
 	cd build/static && \
+	$(call write_version_header) && \
 	cmake ../../src \
 		$(cmake_extra_options) \
 		-DUSE_STATIC_LIBS=ON \
@@ -131,6 +138,7 @@ static:
 static32:
 	mkdir -p build/static32
 	cd build/static32 && \
+	$(call write_version_header) && \
 	cmake ../../src \
 		$(cmake_extra_options) \
 		-DUSE_STATIC_LIBS=ON \
@@ -146,8 +154,7 @@ static32:
 
 .PHONY: dist
 dist: release
-	$(eval DATE := $(shell date +%Y%m%d))
-	$(eval RELEASE := dflat-$(DATE)-x86_64)
+	$(eval RELEASE := dflat-$(shell git describe | sed 's/^v\([0-9]\+\.[0-9]\+.[0-9]\+\)$$/\1/')-x86_64)
 	$(eval DIST_DIR := build/dist/$(RELEASE))
 	mkdir -p $(DIST_DIR)/lib
 	cp build/release/dflat $(DIST_DIR)/dflat.bin
@@ -161,8 +168,7 @@ dist: release
 
 .PHONY: dist32
 dist32: release32
-	$(eval DATE := $(shell date +%Y%m%d))
-	$(eval RELEASE := dflat-$(DATE)-i386)
+	$(eval RELEASE := dflat-$(shell git describe | sed 's/^v\([0-9]\+\.[0-9]\+.[0-9]\+\)$$/\1/')-i386)
 	$(eval DIST_DIR := build/dist32/$(RELEASE))
 	mkdir -p $(DIST_DIR)/lib
 	cp build/release32/dflat $(DIST_DIR)/dflat.bin
@@ -178,6 +184,7 @@ dist32: release32
 test:
 	@mkdir -p build/debug
 	@cd build/debug && \
+	$(call write_version_header) && \
 	cmake ../../src \
 		$(cmake_extra_options) \
 		-DCMAKE_BUILD_TYPE=debug \

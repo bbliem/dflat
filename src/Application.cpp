@@ -25,6 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Application.h"
 #include "Decomposition.h"
+#include "version.h"
 
 #include "options/MultiValueOption.h"
 #include "options/SingleValueOption.h"
@@ -196,7 +197,7 @@ void Application::printUsage() const
 
 void Application::printVersion() const
 {
-	std::cout << "D-FLAT version 1.0" << std::endl;
+	std::cout << "D-FLAT version " VERSION_NUMBER << std::endl;
 }
 
 const std::string& Application::getInputString() const
