@@ -17,24 +17,27 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#pragma once
 //}}}
+#include <cstdlib>
+
+#include "VersionObserver.h"
 #include "Option.h"
+#include "../Application.h"
 
 namespace options {
 
-class ValueOption : public Option
+VersionObserver::VersionObserver(const Application& app, const Option& version)
+	: app(app)
+	, version(version)
 {
-public:
-	ValueOption(const std::string& name, const std::string& placeholder, const std::string& description);
+}
 
-	// If the option is actually specified by the user, be sure to call setUsed() *after* calling setValue().
-	virtual void setValue(const std::string& value) = 0;
-	virtual void printHelp(std::ostream& out) const override;
-
-protected:
-	std::string placeholder;
-};
+void VersionObserver::notify()
+{
+	if(version.isUsed()) {
+		app.printVersion();
+		std::exit(0);
+	}
+}
 
 } // namespace options

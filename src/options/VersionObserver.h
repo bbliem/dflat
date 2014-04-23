@@ -20,21 +20,25 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "Option.h"
+#include "Observer.h"
+
+class Application;
 
 namespace options {
 
-class ValueOption : public Option
+class Option;
+
+// Observe the option handler. When notified, the VersionObserver checks whether the version option was given and, if so, prints the version number and exits (with code 0).
+class VersionObserver : public Observer
 {
 public:
-	ValueOption(const std::string& name, const std::string& placeholder, const std::string& description);
+	VersionObserver(const Application& app, const Option& version);
 
-	// If the option is actually specified by the user, be sure to call setUsed() *after* calling setValue().
-	virtual void setValue(const std::string& value) = 0;
-	virtual void printHelp(std::ostream& out) const override;
+	virtual void notify() override;
 
-protected:
-	std::string placeholder;
+private:
+	const Application& app;
+	const options::Option& version;
 };
 
 } // namespace options

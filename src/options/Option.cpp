@@ -59,9 +59,9 @@ void Option::checkConditions() const
 	}
 }
 
-void Option::printHelp() const
+void Option::printHelp(std::ostream& out) const
 {
-	std::cerr << "  " << std::left << std::setw(NAME_WIDTH) << dashedName << " : " << description << std::endl;
+	out << "  " << std::left << std::setw(NAME_WIDTH) << dashedName << " : " << description << std::endl;
 }
 
 } // namespace options

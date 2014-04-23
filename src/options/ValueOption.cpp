@@ -32,11 +32,11 @@ ValueOption::ValueOption(const std::string& name, const std::string& placeholder
 {
 }
 
-void ValueOption::printHelp() const
+void ValueOption::printHelp(std::ostream& out) const
 {
 	std::ostringstream field;
 	field << getDashedName() << " <" << placeholder << '>';
-	std::cerr << "  " << std::left << std::setw(NAME_WIDTH) << field.str() << " : " << getDescription() << std::endl;
+	out << "  " << std::left << std::setw(NAME_WIDTH) << field.str() << " : " << getDescription() << std::endl;
 }
 
 } // namespace options

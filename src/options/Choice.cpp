@@ -76,16 +76,15 @@ void Choice::checkConditions() const
 	}
 }
 
-void Choice::printHelp() const
+void Choice::printHelp(std::ostream& out) const
 {
-	SingleValueOption::printHelp();
-	//std::cerr << "      Permitted values for <" << placeholder << ">:" << std::endl;
-	std::cerr << "      Permitted values:" << std::endl;
+	SingleValueOption::printHelp(out);
+	out << "      Permitted values:" << std::endl;
 	for(const Possibility& p : possibilities) {
-		std::cerr << "      " << std::right << std::setw(POSSIBILITY_NAME_WIDTH) << p.name << " : " << p.description;
+		out << "      " << std::right << std::setw(POSSIBILITY_NAME_WIDTH) << p.name << " : " << p.description;
 		if(p.name == defaultValue)
-			std::cerr << " (default)";
-		std::cerr << std::endl;
+			out << " (default)";
+		out << std::endl;
 	}
 }
 

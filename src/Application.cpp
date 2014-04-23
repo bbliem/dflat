@@ -30,6 +30,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "options/SingleValueOption.h"
 #include "options/OptionHandler.h"
 #include "options/HelpObserver.h"
+#include "options/VersionObserver.h"
 
 #include "decomposer/Dummy.h"
 #include "decomposer/TreeDecomposer.h"
@@ -70,7 +71,6 @@ Application::Application(const std::string& binaryName)
 	, optNoCounting("no-counting", "Do not count the number of solutions")
 	, optNoPruning("no-pruning", "Prune rejecting subtrees only in the decomposition root")
 	, optPrintDecomposition("print-decomposition", "Print the generated decomposition")
-	, optGraphMlOut("graphml-out", "file", "Write the decomposition in the GraphML format to <file>")
 	, decomposer(0)
 	, solverFactory(0)
 	, depth(std::numeric_limits<unsigned int>::max())
@@ -87,6 +87,11 @@ int Application::run(int argc, char** argv)
 	options::HelpObserver helpObserver(*this, optHelp);
 	opts.registerObserver(helpObserver);
 
+	options::Option optVersion("version", "Print version number and exit");
+	opts.addOption(optVersion);
+	options::VersionObserver versionObserver(*this, optVersion);
+	opts.registerObserver(versionObserver);
+
 	options::SingleValueOption optDepth("depth", "d", "Print only item sets of depth at most <d>");
 	opts.addOption(optDepth);
 
@@ -99,6 +104,7 @@ int Application::run(int argc, char** argv)
 	opts.addOption(optNoCounting);
 	opts.addOption(optNoPruning);
 	opts.addOption(optPrintDecomposition);
+	options::SingleValueOption optGraphMlOut("graphml-out", "file", "Write the decomposition in the GraphML format to <file>");
 	opts.addOption(optGraphMlOut);
 
 	options::SingleValueOption optSeed("seed", "n", "Initialize random number generator with seed <n>");
@@ -135,7 +141,7 @@ int Application::run(int argc, char** argv)
 			throw std::runtime_error("Option -e must be supplied at least once");
 	}
 	catch(...) {
-		usage();
+		printUsage();
 		throw;
 	}
 
@@ -181,10 +187,16 @@ int Application::run(int argc, char** argv)
 	return rootItree ? 10 : 20;
 }
 
-void Application::usage() const
+void Application::printUsage() const
 {
-	std::cerr << "Usage: " << binaryName << " [options] < instance" << std::endl;
-	opts.printHelp();
+	printVersion();
+	std::cout << "Usage: " << binaryName << " [options] < instance" << std::endl;
+	opts.printHelp(std::cout);
+}
+
+void Application::printVersion() const
+{
+	std::cout << "D-FLAT version 1.0" << std::endl;
 }
 
 const std::string& Application::getInputString() const

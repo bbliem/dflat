@@ -102,13 +102,13 @@ void OptionHandler::checkConditions()
 		o.second->checkConditions();
 }
 
-void OptionHandler::printHelp() const
+void OptionHandler::printHelp(std::ostream& out) const
 {
 	for(const auto& sec : sections) {
-		std::cerr << std::endl << sec.first << ':' << std::endl << std::endl;
+		out << std::endl << sec.first << ':' << std::endl << std::endl;
 		for(const Option* o : sec.second)
-			o->printHelp();
-		std::cerr << std::endl;
+			o->printHelp(out);
+		out << std::endl;
 	}
 }
 

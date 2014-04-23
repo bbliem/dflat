@@ -50,7 +50,7 @@ public:
 	// Throws an exception if a condition is violated.
 	void checkConditions();
 
-	void printHelp() const;
+	void printHelp(std::ostream& out) const;
 
 	// Registers an observer that is notified when parsing is done.
 	void registerObserver(Observer& observer);

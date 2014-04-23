@@ -36,7 +36,7 @@ public:
 
 	virtual void setValue(const std::string& v) override;
 	virtual void checkConditions() const override;
-	virtual void printHelp() const override;
+	virtual void printHelp(std::ostream& out) const override;
 
 private:
 	struct Possibility

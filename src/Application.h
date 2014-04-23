@@ -36,8 +36,11 @@ public:
 	// We assume that argv[0] contains the first option, NOT the binary name
 	int run(int argc, char** argv);
 
-	// Print usage (but don't exit)
-	void usage() const;
+	// Print usage, including version number, to stdout
+	void printUsage() const;
+
+	// Print version number to stdout
+	void printVersion() const;
 
 	const std::string& getInputString() const;
 
@@ -78,7 +81,6 @@ private:
 	options::Option optNoCounting;
 	options::Option optNoPruning;
 	options::Option optPrintDecomposition;
-	options::SingleValueOption optGraphMlOut;
 
 	Decomposer* decomposer;
 	SolverFactory* solverFactory;

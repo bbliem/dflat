@@ -35,7 +35,7 @@ HelpObserver::HelpObserver(const Application& app, const Option& help)
 void HelpObserver::notify()
 {
 	if(help.isUsed()) {
-		app.usage();
+		app.printUsage();
 		std::exit(0);
 	}
 }

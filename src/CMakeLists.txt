@@ -70,6 +70,7 @@ add_library(dflat-objects
 	options/Choice.cpp
 	options/OptionHandler.cpp
 	options/HelpObserver.cpp
+	options/VersionObserver.cpp
 	DecompositionNode.cpp
 	Decomposition.cpp
 	Module.cpp

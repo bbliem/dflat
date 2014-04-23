@@ -47,7 +47,7 @@ public:
 	// If this option has been used but any added condition is unsatisfied, throws an exception.
 	virtual void checkConditions() const;
 
-	virtual void printHelp() const;
+	virtual void printHelp(std::ostream& out) const;
 
 protected:
 	static const int NAME_WIDTH = 22;
