@@ -35,6 +35,13 @@ ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree
 {
 	assert(subtree);
 	assert(subtree->getNode()->getParent() == nullptr);
+#ifndef NDEBUG
+	for(const auto& weakChild : node->getWeakChildren()) {
+		assert(weakChild.expired() == false);
+		assert(weakChild.lock().get() != subtree->getNode().get());
+	}
+#endif
+
 	subtree->getNode()->setParent(node.get());
 	std::pair<Children::iterator, bool> result = children.insert(std::move(subtree));
 	// XXX If an equivalent element already exists in "children", it is unclear to me whether "subtree" is actually moved or not. (Maybe it depends on the implementation?)
@@ -50,6 +57,7 @@ ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree
 		origChild->merge(std::move(*subtree));
 		return children.end();
 	}
+	node->addWeakChild((*result.first)->getNode());
 	return result.first;
 }
 

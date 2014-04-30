@@ -181,6 +181,16 @@ bool ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
 	return std::tie(items, type, hasAcceptingChild, hasRejectingChild, auxItems) < std::tie(other.items, other.type, other.hasAcceptingChild, other.hasRejectingChild, other.auxItems);
 }
 
+const ItemTreeNode::WeakChildren& ItemTreeNode::getWeakChildren() const
+{
+	return weakChildren;
+}
+
+void ItemTreeNode::addWeakChild(const std::shared_ptr<ItemTreeNode>& child)
+{
+	weakChildren.emplace_back(child);
+}
+
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 {
 	// Print count

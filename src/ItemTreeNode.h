@@ -41,6 +41,7 @@ public:
 	typedef std::shared_ptr<ItemTreeNode> ExtensionPointer;
 	typedef std::map<unsigned int, ExtensionPointer> ExtensionPointerTuple; // key: ID of the decomposition node at which value is located
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
+	typedef std::vector<std::weak_ptr<ItemTreeNode>> WeakChildren;
 
 	enum class Type {
 		UNDEFINED,
@@ -103,6 +104,25 @@ public:
 	// Only considers items, type, hasAcceptingChild, hasRejectingChild and auxItems.
 	bool compareCostInsensitive(const ItemTreeNode& other) const;
 
+	// ItemTree contains a set of shared_ptrs to children. In contrast, this
+	// method returns weak pointers to this node's children because we may need
+	// to know which nodes are children of this node even after we have
+	// destroyed the ItemTree object that contained this node. The weak
+	// pointers may have expired.
+	// Example usage:
+	/*
+	for(const std::weak_ptr<ItemTreeNode>& weakChild : getWeakChildren()) {
+		std::shared_ptr<ItemTreeNode> sharedChild = weakChild.lock();
+		if(sharedChild) {
+			// Do something with sharedChild
+		}
+	}
+	*/
+	const WeakChildren& getWeakChildren() const;
+
+	// Constructs a weak_ptr from the argument and adds it to the list of weak children.
+	void addWeakChild(const std::shared_ptr<ItemTreeNode>& child);
+
 	// Print this node (no newlines)
 	friend std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node);
 
@@ -119,6 +139,7 @@ private:
 	// We must keep track of this explicitly since accepting/rejecting children might have been pruned.
 	bool hasAcceptingChild = false;
 	bool hasRejectingChild = false;
+	WeakChildren weakChildren;
 };
 
 std::ostream& operator<<(std::ostream& os, const std::shared_ptr<ItemTreeNode>& node);
