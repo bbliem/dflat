@@ -48,6 +48,8 @@ public:
 
 	// Merges sibling subtrees with equal item sets. Moves each node in this tree to the resulting item tree.
 	// Also propagates costs from leaves to root.
+	// To be precise, if ignoreUndefCost is false, an OR (AND) node's cost is set to the minimum (maximum) cost of its non-rejecting children.
+	// If ignoreUndefCost is true, that node's cost is instead set to the minimum (maximum) cost among the children whose type is neither rejecting nor undefined.
 	// Do not call this before prune().
-	ItemTreePtr compress();
+	ItemTreePtr compress(bool ignoreUndefCost);
 };

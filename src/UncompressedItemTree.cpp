@@ -43,7 +43,7 @@ void UncompressedItemTree::addBranch(Branch::iterator begin, Branch::iterator en
 	}
 }
 
-ItemTreePtr UncompressedItemTree::compress()
+ItemTreePtr UncompressedItemTree::compress(bool ignoreUndefCost)
 {
 	ItemTreePtr result(new ItemTree(std::move(node)));
 
@@ -54,8 +54,10 @@ ItemTreePtr UncompressedItemTree::compress()
 			// Set cost to "infinity"
 			result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::max());
 			for(const auto& child : children) {
-				ItemTreePtr compressedChild = child->compress();
-				result->getNode()->setCost(std::min(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
+				ItemTreePtr compressedChild = child->compress(ignoreUndefCost);
+				if(compressedChild->getNode()->getType() != ItemTreeNode::Type::REJECT &&
+					(!ignoreUndefCost || compressedChild->getNode()->getType() != ItemTreeNode::Type::UNDEFINED))
+					result->getNode()->setCost(std::min(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
 				result->addChildAndMerge(std::move(compressedChild));
 			}
 			break;
@@ -66,15 +68,17 @@ ItemTreePtr UncompressedItemTree::compress()
 			// Set cost to minus "infinity"
 			result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::min());
 			for(const auto& child : children) {
-				ItemTreePtr compressedChild = child->compress();
-				result->getNode()->setCost(std::max(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
+				ItemTreePtr compressedChild = child->compress(ignoreUndefCost);
+				if(compressedChild->getNode()->getType() != ItemTreeNode::Type::REJECT &&
+					(!ignoreUndefCost || compressedChild->getNode()->getType() != ItemTreeNode::Type::UNDEFINED))
+					result->getNode()->setCost(std::max(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
 				result->addChildAndMerge(std::move(compressedChild));
 			}
 			break;
 
 		default:
 			for(const auto& child : children)
-				result->addChildAndMerge(child->compress());
+				result->addChildAndMerge(child->compress(ignoreUndefCost));
 			break;
 	}
 

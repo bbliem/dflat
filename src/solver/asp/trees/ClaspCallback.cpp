@@ -186,7 +186,7 @@ void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
 ItemTreePtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)
 {
 	if(uncompressedItemTree)
-		itemTree = uncompressedItemTree->compress();
+		itemTree = uncompressedItemTree->compress(pruneUndefined);
 	return ::solver::asp::ClaspCallback::finalize(pruneUndefined, pruneRejecting);
 }
 
