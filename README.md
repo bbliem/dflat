@@ -5,6 +5,9 @@ D-FLAT is a framework that allows you to specify dynamic programming algorithms
 that work on a tree decomposition in a declarative way by means of Answer Set
 Programming (ASP).
 
+A detailed description of the system is given in our [Technical Report DBAI-TR-2014-86, Technische Universität Wien, 2014] (http://dbai.tuwien.ac.at/research/report/dbai-tr-2014-86.pdf).
+
+
 Please see our [project page]
 (http://dbai.tuwien.ac.at/research/project/dflat/) for more information.
 
