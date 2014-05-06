@@ -65,6 +65,22 @@ void declareExtensionPointers(std::ostream& out, const ItemTree* itemTree, const
 	}
 }
 
+void declareDerivedCosts(std::ostream& out, const ItemTree* itemTree, const std::string& itemSetName)
+{
+	// Only print the costs for non-leaf nodes, as leaves' costs have already been printed in solver::asp::Solver::declareItemTree().
+	if(!itemTree || itemTree->getChildren().empty())
+		return;
+
+	out << "childCost(" << itemSetName << ',' << itemTree->getNode()->getCost() << ")." << std::endl;
+
+	size_t i = 0;
+	for(const auto& child : itemTree->getChildren()) {
+		std::ostringstream childName;
+		childName << itemSetName << '_' << i++;
+		declareDerivedCosts(out, child.get(), childName.str());
+	}
+}
+
 } // anonymous namespace
 
 namespace printer {
@@ -99,6 +115,10 @@ void DebugMachineReadable::solverInvocationResult(const Decomposition& decomposi
 
 		std::cout << "% Extension pointers at decomposition node " << id << " (not passed to ASP)" << std::endl;
 		declareExtensionPointers(std::cout, result, rootItemSetName.str());
+		std::cout << std::endl;
+
+		std::cout << "% (Derived) costs of non-leaf nodes of the item tree at decomposition node " << id << " (not passed to ASP)" << std::endl;
+		declareDerivedCosts(std::cout, result, rootItemSetName.str());
 		std::cout << std::endl;
 	}
 	else
