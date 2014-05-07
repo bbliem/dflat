@@ -37,7 +37,7 @@ namespace printer {
 
 Progress::Progress(Application& app, bool newDefault)
 	: Printer(app, "progress", "Progress report", newDefault)
-	, completedNodes(0)
+	, nodeCounter(1)
 	, curFrame(0)
 	, lastIncrement(std::chrono::steady_clock::now())
 {
@@ -52,7 +52,8 @@ void Progress::decomposerResult(const Decomposition& result)
 
 void Progress::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
 {
-	++completedNodes;
+	if(nodeCounter < totalNodes)
+		++nodeCounter;
 }
 
 bool Progress::listensForSolverEvents() const
@@ -106,7 +107,7 @@ void Progress::printProgress()
 		<< std::setw(2) << bagSize << " elements, "
 		<< std::setw(2) << numChildren << " child nodes.  "
 		<< frames[curFrame] << ' '
-		<< std::setw(digits) << completedNodes << '/' << totalNodes << ' '
+		<< std::setw(digits) << nodeCounter << '/' << totalNodes << ' '
 		<< std::flush;
 }
 

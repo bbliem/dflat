@@ -47,7 +47,7 @@ private:
 	void printProgress();
 
 	unsigned int totalNodes;
-	unsigned int completedNodes;
+	unsigned int nodeCounter;
 	int curFrame;
 	std::chrono::steady_clock::time_point lastIncrement;
 };
