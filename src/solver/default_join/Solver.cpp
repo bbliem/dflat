@@ -54,14 +54,12 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 
 	ItemTreeNode::ExtensionPointers extensionPointers = {{{leftNodeIndex, left->getNode()}, {rightNodeIndex, right->getNode()}}};
 	const bool leaves = left->getChildren().empty() && right->getChildren().empty();
-	assert(!setLeavesToAccept || !leaves || (left->getNode()->getType() == ItemTreeNode::Type::UNDEFINED && right->getNode()->getType() == ItemTreeNode::Type::UNDEFINED));
-	ItemTreeNode::Type type;
-	if(left->getNode()->getType() == ItemTreeNode::Type::UNDEFINED) {
+	ItemTreeNode::Type type = left->getNode()->getType();
+	if(type == ItemTreeNode::Type::UNDEFINED) {
 		type = right->getNode()->getType();
 		if(setLeavesToAccept && leaves && type == ItemTreeNode::Type::UNDEFINED)
 			type = ItemTreeNode::Type::ACCEPT;
-	} else
-		type = left->getNode()->getType();
+	}
 	result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), std::move(extensionPointers), type))));
 	// Set (initial) cost of this node
 	if(leaves) {
