@@ -19,13 +19,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
 #include "ClaspCallback.h"
+#include "../../../Application.h"
+#include "../../../Printer.h"
 
 namespace solver { namespace asp { namespace trees {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, const Decomposition& decomposition)
 	: ::solver::asp::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
 	, childItemTrees(childItemTrees)
+	, decomposition(decomposition)
 {
 }
 
@@ -185,6 +188,7 @@ void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
 
 ItemTreePtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)
 {
+	app.getPrinter().uncompressedSolverInvocationResult(decomposition, uncompressedItemTree.get());
 	if(uncompressedItemTree)
 		itemTree = uncompressedItemTree->compress(pruneUndefined);
 	return ::solver::asp::ClaspCallback::finalize(pruneUndefined, pruneRejecting);

@@ -52,4 +52,8 @@ public:
 	// If ignoreUndefCost is true, that node's cost is instead set to the minimum (maximum) cost among the children whose type is neither rejecting nor undefined.
 	// Do not call this before prune().
 	ItemTreePtr compress(bool ignoreUndefCost);
+
+#ifndef NDEBUG
+	void printDebug() const;
+#endif
 };

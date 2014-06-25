@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include "Module.h"
 #include "ItemTree.h" // XXX Change Solver::compute() to return an ItemTree instead of an ItemTreePtr and we can dispense with this (forward declare)
+#include "UncompressedItemTree.h"
 
 class Decomposition;
 class DecompositionNode;
@@ -57,6 +58,8 @@ public:
 	// This may be called only once per decomposition node (typically when it
 	// has been processed completely)
 	virtual void solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result);
+
+	virtual void uncompressedSolverInvocationResult(const Decomposition& decompositionNode, const UncompressedItemTree* result);
 
 	// Whether calls to solverEvent() have any effect.
 	virtual bool listensForSolverEvents() const; // this implementation returns false

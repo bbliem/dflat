@@ -51,12 +51,12 @@ std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(Clasp::Asp::Logi
 		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
 }
 
-std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const Gringo::Output::LparseOutputter& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, bool root)
+std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const Gringo::Output::LparseOutputter& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, bool root, const Decomposition& decomposition)
 {
 	if(tableMode)
 		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutput), childItemTrees, app, root));
 	else
-		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutput), childItemTrees, app));
+		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutput), childItemTrees, app, decomposition));
 }
 
 } // anonymous namespace
@@ -158,7 +158,7 @@ ItemTreePtr Solver::compute()
 	params.clear();
 
 	clasp.prepare();
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, decomposition.isRoot()));
+	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, decomposition.isRoot(), decomposition));
 	cb->prepare(clasp.ctx.symbolTable());
 	clasp.solve(cb.get());
 

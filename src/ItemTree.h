@@ -94,6 +94,10 @@ public:
 	// Print the tree that would result from recursively extending all nodes
 	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool printCount = true, bool root = true, bool lastChild = false, const std::string& indent = "", const ExtensionIterator* parent = nullptr) const;
 
+#ifndef NDEBUG
+	void printDebug() const;
+#endif
+
 private:
 	friend struct ItemTreePtrComparator;
 

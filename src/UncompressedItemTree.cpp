@@ -20,6 +20,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include "UncompressedItemTree.h"
 
+#ifndef NDEBUG
+#include <iostream>
+#endif
+
 bool UncompressedItemTreePtrComparator::operator()(const UncompressedItemTreePtr& lhs, const UncompressedItemTreePtr& rhs)
 {
 	return lhs->getNode()->getItems() < rhs->getNode()->getItems() ||
@@ -84,3 +88,10 @@ ItemTreePtr UncompressedItemTree::compress(bool ignoreUndefCost)
 
 	return result;
 }
+
+#ifndef NDEBUG
+void UncompressedItemTree::printDebug() const
+{
+	print(std::cout);
+}
+#endif

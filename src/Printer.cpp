@@ -63,6 +63,10 @@ void Printer::solverInvocationResult(const Decomposition& decompositionNode, con
 {
 }
 
+void Printer::uncompressedSolverInvocationResult(const Decomposition& decompositionNode, const UncompressedItemTree* result)
+{
+}
+
 bool Printer::listensForSolverEvents() const
 {
 	return false;

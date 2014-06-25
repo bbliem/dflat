@@ -32,12 +32,16 @@ DebugHumanReadable::DebugHumanReadable(Application& app, bool newDefault)
 	: Printer(app, "human", "Human-readable debugging output", newDefault)
 	, optPrintSolverEvents("print-solver-events", "Print events that occurred during solving")
 	, optPrintSolverInvocationInput("print-solver-input", "Print solver invocation input")
+	, optPrintUncompressedItemTrees("print-uncompressed-item-trees", "Print item trees before compression")
 {
 	optPrintSolverEvents.addCondition(selected);
 	app.getOptionHandler().addOption(optPrintSolverEvents, OPTION_SECTION);
 
 	optPrintSolverInvocationInput.addCondition(selected);
 	app.getOptionHandler().addOption(optPrintSolverInvocationInput, OPTION_SECTION);
+
+	optPrintUncompressedItemTrees.addCondition(selected);
+	app.getOptionHandler().addOption(optPrintUncompressedItemTrees, OPTION_SECTION);
 }
 
 void DebugHumanReadable::decomposerResult(const Decomposition& result)
@@ -59,6 +63,18 @@ void DebugHumanReadable::solverInvocationResult(const Decomposition& decompositi
 	else
 		std::cout << " is empty.";
 	std::cout << std::endl;
+}
+
+void DebugHumanReadable::uncompressedSolverInvocationResult(const Decomposition& decompositionNode, const UncompressedItemTree* result)
+{
+	if(optPrintUncompressedItemTrees.isUsed()) {
+		std::cout << std::endl << "Uncompressed item tree at decomposition node " << decompositionNode.getNode().getGlobalId();
+		if(result)
+			std::cout << ':' << std::endl << *result;
+		else
+			std::cout << " is empty.";
+		std::cout << std::endl;
+	}
 }
 
 bool DebugHumanReadable::listensForSolverEvents() const

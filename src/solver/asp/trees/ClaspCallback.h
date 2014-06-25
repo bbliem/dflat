@@ -24,6 +24,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../../UncompressedItemTree.h"
 #include "GringoOutputProcessor.h"
 
+class Decomposition;
+
 namespace solver { namespace asp { namespace trees {
 
 class ClaspCallback : public ::solver::asp::ClaspCallback
@@ -38,7 +40,7 @@ public:
 	typedef AtomInfo<GringoOutputProcessor::OrAtomArguments> OrAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::AndAtomArguments> AndAtomInfo;
 
-	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&);
+	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&, const Decomposition&);
 
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
 	virtual void prepare(const Clasp::SymbolTable&) override;
@@ -61,6 +63,7 @@ private:
 
 	const GringoOutputProcessor& gringoOutput;
 	const ChildItemTrees& childItemTrees;
+	const Decomposition& decomposition;
 };
 
 }}} // namespace solver::asp::trees

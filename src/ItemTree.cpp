@@ -22,6 +22,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Application.h"
 #include "ExtensionIterator.h"
 
+#ifndef NDEBUG
+#include <iostream>
+#endif
+
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
 	return lhs->getNode()->compareCostInsensitive(*rhs->getNode()) ||
@@ -372,3 +376,10 @@ void ItemTree::prepareChildrenRandomAccess()
 		child->prepareChildrenRandomAccess();
 	}
 }
+
+#ifndef NDEBUG
+void ItemTree::printDebug() const
+{
+	print(std::cout);
+}
+#endif
