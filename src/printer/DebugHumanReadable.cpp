@@ -32,7 +32,7 @@ DebugHumanReadable::DebugHumanReadable(Application& app, bool newDefault)
 	: Printer(app, "human", "Human-readable debugging output", newDefault)
 	, optPrintSolverEvents("print-solver-events", "Print events that occurred during solving")
 	, optPrintSolverInvocationInput("print-solver-input", "Print solver invocation input")
-	, optPrintUncompressedItemTrees("print-uncompressed-item-trees", "Print item trees before compression")
+	, optPrintUncompressedItemTrees("print-uncompressed", "Print item trees before compression")
 {
 	optPrintSolverEvents.addCondition(selected);
 	app.getOptionHandler().addOption(optPrintSolverEvents, OPTION_SECTION);

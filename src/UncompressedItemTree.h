@@ -53,6 +53,7 @@ public:
 	// Do not call this before prune().
 	ItemTreePtr compress(bool ignoreUndefCost);
 
+private:
 #ifndef NDEBUG
 	void printDebug() const;
 #endif

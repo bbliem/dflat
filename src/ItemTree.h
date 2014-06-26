@@ -94,10 +94,6 @@ public:
 	// Print the tree that would result from recursively extending all nodes
 	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool printCount = true, bool root = true, bool lastChild = false, const std::string& indent = "", const ExtensionIterator* parent = nullptr) const;
 
-#ifndef NDEBUG
-	void printDebug() const;
-#endif
-
 private:
 	friend struct ItemTreePtrComparator;
 
@@ -120,6 +116,10 @@ private:
 	bool costDifferenceSignIncrease(const ItemTreePtr& other) const;
 
 	std::vector<const ItemTree*> childrenVector; // for random access via getChild()
+
+#ifndef NDEBUG
+	void printDebug() const;
+#endif
 };
 
 // Key: Global ID of child node; value: the child node's item tree
