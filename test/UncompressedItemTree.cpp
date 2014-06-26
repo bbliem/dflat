@@ -35,17 +35,19 @@ TEST(UncompressedItemTreeTest, AddBranch)
 TEST(UncompressedItemTreeTest, CompressPropagatesCostNonRejecting)
 {
 	UncompressedItemTree tree(ItemTree::Node{new ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::OR}});
-	ItemTree::Node cheapNode{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::REJECT}};
-	cheapNode->setCost(3);
-	ItemTree::Node expensiveNode{new ItemTreeNode{{"b"}, {}, {{}}}};
-	expensiveNode->setCost(4);
-	UncompressedItemTree::Branch branch1 = { cheapNode };
+	ItemTree::Node undefNode{new ItemTreeNode{{"b"}, {}, {{}}}};
+	undefNode->setCost(4);
+	ItemTree::Node rejectNode{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::REJECT}};
+	// rejectNode should have ("almost") infinite cost
+	const auto rejectCost = rejectNode->getCost();
+	ASSERT_GT(rejectCost, undefNode->getCost());
+	UncompressedItemTree::Branch branch1 = { undefNode };
 	tree.addBranch(branch1.begin(), branch1.end());
-	UncompressedItemTree::Branch branch2 = { expensiveNode };
+	UncompressedItemTree::Branch branch2 = { rejectNode };
 	tree.addBranch(branch2.begin(), branch2.end());
 	ASSERT_EQ(2, tree.getChildren().size());
-	EXPECT_NE(3, tree.getNode()->getCost());
 	EXPECT_NE(4, tree.getNode()->getCost());
+	EXPECT_NE(rejectCost, tree.getNode()->getCost());
 	ItemTreePtr result = tree.compress(false);
 	EXPECT_EQ(4, result->getNode()->getCost());
 }

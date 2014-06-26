@@ -53,6 +53,9 @@ ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& 
 			hasRejectingChild = hasRejectingChild || predecessor.second->hasRejectingChild;
 		}
 	}
+
+	cost = type == Type::REJECT ? std::numeric_limits<decltype(cost)>::max() : 0;
+	currentCost = 0;
 }
 
 const ItemTreeNode::Items& ItemTreeNode::getItems() const
@@ -97,6 +100,10 @@ long ItemTreeNode::getCost() const
 
 void ItemTreeNode::setCost(long cost)
 {
+#ifndef DISABLE_CHECKS
+	if(type == Type::REJECT)
+		throw std::runtime_error("Tried to set cost of a reject node");
+#endif
 	this->cost = cost;
 }
 

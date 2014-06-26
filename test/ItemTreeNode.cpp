@@ -137,6 +137,15 @@ TEST(ItemTreeNode, ConstructorThrowsExceptionIfTypeNotRetained)
 #endif
 }
 
+TEST(ItemTreeNode, ConstructorSetsCost)
+{
+	EXPECT_EQ(0, (ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}.getCost()));
+	EXPECT_EQ(0, (ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::OR}.getCost()));
+	EXPECT_EQ(0, (ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::AND}.getCost()));
+	EXPECT_EQ(0, (ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::ACCEPT}.getCost()));
+	EXPECT_EQ(std::numeric_limits<decltype(ItemTreeNode{}.getCost())>::max(), (ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::REJECT}.getCost()));
+}
+
 TEST(ItemTreeNode, MergeUnifiesExtensionPointers)
 {
 	// c and d extend a and b, respectively
@@ -232,4 +241,15 @@ TEST(ItemTreeNode, CountExtensions)
 	++e1_1;
 	// e1_1 now points to n2_2 having one child, so n1_1_1 has one extension
 	EXPECT_EQ(1, n1_1_1->countExtensions(e1_1));
+}
+
+TEST(ItemTreeNode, SetCostThrowsExceptionForRejectNodes)
+{
+#ifdef DISABLE_CHECKS
+#pragma message "Omitting test because DISABLE_CHECKS was defined."
+#else
+	EXPECT_THROW((ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::REJECT}.setCost(0)), std::runtime_error);
+	EXPECT_THROW((ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::REJECT}.setCost(std::numeric_limits<decltype(ItemTreeNode{}.getCost())>::max())), std::runtime_error);
+	EXPECT_NO_THROW(ItemTreeNode{}.setCost(0));
+#endif
 }

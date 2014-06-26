@@ -137,20 +137,16 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	ASP_CHECK(countTrue(m, costAtomInfos) == 0 || std::all_of(branchData.begin(), branchData.end()-1, [](const BranchNode& node) {
 			return node.type != ItemTreeNode::Type::UNDEFINED;
 	}), "Cost specified but not all types of (non-leaf) nodes are defined");
-	long cost = 0;
-	forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
-			cost = arguments.cost;
+	forFirstTrue(m, costAtomInfos, [&branch](const GringoOutputProcessor::CostAtomArguments& arguments) {
+			branch.back()->setCost(arguments.cost);
 	});
-	branch.back()->setCost(cost);
 	// }}}
 	// Set current cost {{{
 	ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
 	ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
-	long currentCost = 0;
-	forFirstTrue(m, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
-			currentCost = arguments.currentCost;
+	forFirstTrue(m, currentCostAtomInfos, [&branch](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
+			branch.back()->setCurrentCost(arguments.currentCost);
 	});
-	branch.back()->setCurrentCost(currentCost);
 	// }}}
 	// Insert branch into tree {{{
 	if(!uncompressedItemTree)

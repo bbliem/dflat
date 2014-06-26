@@ -58,6 +58,8 @@ public:
 	// node has set the respective flag to true.
 	// Unless checks are disabled, throws an exception if any extended node has
 	// a defined type and the given node type is different from this.
+	// If the type is REJECT, sets the cost to the highest possible value,
+	// otherwise to 0.
 	ItemTreeNode(Items&& items = {}, Items&& auxItems = {}, ExtensionPointers&& extensionPointers = {{}}, Type type = Type::UNDEFINED);
 
 	// Returns the items of this node (but not the auxiliary items, see below).
@@ -76,6 +78,7 @@ public:
 	const mpz_class& getCount() const;
 
 	long getCost() const;
+	// Throws a runtime_error if this is a REJECT node.
 	void setCost(long cost);
 
 	long getCurrentCost() const;

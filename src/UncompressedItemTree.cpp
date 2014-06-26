@@ -59,8 +59,7 @@ ItemTreePtr UncompressedItemTree::compress(bool ignoreUndefCost)
 			result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::max());
 			for(const auto& child : children) {
 				ItemTreePtr compressedChild = child->compress(ignoreUndefCost);
-				if(compressedChild->getNode()->getType() != ItemTreeNode::Type::REJECT &&
-					(!ignoreUndefCost || compressedChild->getNode()->getType() != ItemTreeNode::Type::UNDEFINED))
+				if(!ignoreUndefCost || compressedChild->getNode()->getType() != ItemTreeNode::Type::UNDEFINED)
 					result->getNode()->setCost(std::min(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
 				result->addChildAndMerge(std::move(compressedChild));
 			}
@@ -73,8 +72,7 @@ ItemTreePtr UncompressedItemTree::compress(bool ignoreUndefCost)
 			result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::min());
 			for(const auto& child : children) {
 				ItemTreePtr compressedChild = child->compress(ignoreUndefCost);
-				if(compressedChild->getNode()->getType() != ItemTreeNode::Type::REJECT &&
-					(!ignoreUndefCost || compressedChild->getNode()->getType() != ItemTreeNode::Type::UNDEFINED))
+				if(!ignoreUndefCost || compressedChild->getNode()->getType() != ItemTreeNode::Type::UNDEFINED)
 					result->getNode()->setCost(std::max(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
 				result->addChildAndMerge(std::move(compressedChild));
 			}
