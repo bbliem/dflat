@@ -39,6 +39,7 @@ private:
 	options::Choice optEliminationOrdering;
 	options::Option optNoEmptyRoot;
 	options::Option optNoEmptyLeaves;
+	options::Option optPostJoin;
 };
 
 } // namespace decomposer

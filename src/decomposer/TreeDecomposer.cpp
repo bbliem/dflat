@@ -66,7 +66,7 @@ namespace {
 		const Hypergraph& instance;
 	};
 
-	DecompositionPtr transformTd(sharp::ExtendedHypertree& td, bool emptyLeaves, sharp::NormalizationType normalizationType, sharp::Problem& problem, const Application& app)
+	DecompositionPtr transformTd(sharp::ExtendedHypertree& td, bool addPostJoinNodes, sharp::NormalizationType normalizationType, sharp::Problem& problem, const Application& app)
 	{
 		Hypergraph::Vertices bag;
 		for(sharp::Vertex v : td.getVertices())
@@ -77,8 +77,18 @@ namespace {
 #endif
 
 		DecompositionPtr result(new Decomposition(bag, app.getSolverFactory()));
+
 		for(sharp::Hypertree* child : *td.getChildren())
-			result->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), emptyLeaves, normalizationType, problem, app));
+			result->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), addPostJoinNodes, normalizationType, problem, app));
+
+		// XXX Join post processing nodes currently lead to weird node numbering
+		if(addPostJoinNodes && result->isJoinNode()) {
+			DecompositionPtr joinNode = std::move(result);
+			result.reset(new Decomposition(bag, app.getSolverFactory()));
+			result->addChild(std::move(joinNode));
+			result->setPostJoinNode();
+		}
+
 		return result;
 	}
 }
@@ -93,6 +103,7 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	, optEliminationOrdering("elimination", "h", "Use heuristic <h> for bucket elimination")
 	, optNoEmptyRoot("no-empty-root", "Do not add an empty root to the tree decomposition")
 	, optNoEmptyLeaves("no-empty-leaves", "Do not add empty leaves to the tree decomposition")
+	, optPostJoin("post-join", "To each join node, add a parent with identical bag")
 {
 	optNormalization.addCondition(selected);
 	optNormalization.addChoice("none", "No normalization", true);
@@ -112,6 +123,9 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 
 	optNoEmptyLeaves.addCondition(selected);
 	app.getOptionHandler().addOption(optNoEmptyLeaves, OPTION_SECTION);
+
+	optPostJoin.addCondition(selected);
+	app.getOptionHandler().addOption(optPostJoin, OPTION_SECTION);
 }
 
 DecompositionPtr TreeDecomposer::decompose(const Hypergraph& instance) const
@@ -147,7 +161,7 @@ DecompositionPtr TreeDecomposer::decompose(const Hypergraph& instance) const
 	td.reset();
 
 	// Transform SHARP's tree decomposition into our format
-	DecompositionPtr result = transformTd(*normalized, !optNoEmptyLeaves.isUsed(), normalizationType, problem, app);
+	DecompositionPtr result = transformTd(*normalized, optPostJoin.isUsed(), normalizationType, problem, app);
 	result->setRoot();
 	return result;
 }

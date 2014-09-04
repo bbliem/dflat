@@ -193,6 +193,9 @@ void Solver::declareDecomposition(const Decomposition& decomposition, std::ostre
 	if(decomposition.isRoot())
 		out << "final." << std::endl;
 
+	if(decomposition.isPostJoinNode())
+		out << "postJoin." << std::endl;
+
 	// Redundant predicates for convenience...
 	out << "introduced(X) :- current(X), not -introduced(X)." << std::endl;
 	out << "removed(X) :- childNode(N), bag(N,X), not current(X)." << std::endl;

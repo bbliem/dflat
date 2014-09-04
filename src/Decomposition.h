@@ -50,6 +50,12 @@ public:
 	// Returns true if setRoot(true) has been called.
 	bool isRoot() const;
 
+	// Mark this node to be a node added for post-processing join nodes.
+	void setPostJoinNode(bool postJoinNode = true);
+
+	// Returns true if setPostJoinNode(true) has been called.
+	bool isPostJoinNode() const;
+
 	// Traverses the decomposition and returns its width
 	int getWidth() const;
 
@@ -62,4 +68,5 @@ protected:
 	const SolverFactory& solverFactory;
 	std::unique_ptr<Solver> solver;
 	bool root;
+	bool postJoinNode;
 };

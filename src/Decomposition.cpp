@@ -53,6 +53,16 @@ bool Decomposition::isRoot() const
 	return root;
 }
 
+void Decomposition::setPostJoinNode(bool postJoinNode)
+{
+	this->postJoinNode = postJoinNode;
+}
+
+bool Decomposition::isPostJoinNode() const
+{
+	return postJoinNode;
+}
+
 int Decomposition::getWidth() const
 {
 	int width = node.getBag().size() - 1;
