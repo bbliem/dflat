@@ -47,8 +47,10 @@ public:
 		Clasp::SymbolTable::key_type symbolTableKey;
 	};
 
-	GringoOutputProcessor(Clasp::Asp::LogicProgram& out);
-
+	GringoOutputProcessor(Clasp::Asp::LogicProgram& out) : prg_(out) {
+		false_ = prg_.newAtom();
+		prg_.setCompute(false_, false);
+	}
 	unsigned falseUid() { return false_; }
 	unsigned newUid()   { return prg_.newAtom(); }
 	void printBasicRule(unsigned head, LitVec const &body);
@@ -59,7 +61,7 @@ public:
 	void printDisjunctiveRule(AtomVec const &atoms, LitVec const &body);
 	void finishRules()   { /* noop */ }
 	void printSymbol(unsigned atomUid, Gringo::Value v);
-	void printExternal(unsigned atomUid, Gringo::Output::ExternalType type);
+	void printExternal(unsigned atomUid, Gringo::TruthValue type);
 	void finishSymbols() { /* noop */ }
 	bool &disposeMinimize();
 
@@ -68,7 +70,6 @@ private:
 	void addBody(const LitWeightVec& body);
 	GringoOutputProcessor(const GringoOutputProcessor&);
 	GringoOutputProcessor& operator=(const GringoOutputProcessor&);
-
 	Clasp::Asp::LogicProgram& prg_;
 	unsigned false_;
 	std::stringstream str_;

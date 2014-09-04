@@ -106,8 +106,8 @@ void Solver::workerThreadMain()
 	// Set up ASP solver
 	Clasp::ClaspFacade clasp;
 	Clasp::ClaspConfig config;
-	config.enumerate.numModels = 0;
-	Clasp::Asp::LogicProgram& claspProgramBuilder = dynamic_cast<Clasp::Asp::LogicProgram&>(clasp.start(config, Clasp::Problem_t::ASP, true));
+	config.solve.numModels = 0;
+	Clasp::Asp::LogicProgram& claspProgramBuilder = dynamic_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true));
 	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut(new GringoOutputProcessor(claspProgramBuilder));
 	claspCallback.reset(new ClaspCallback(dynamic_cast<GringoOutputProcessor&>(*lpOut), app, *this, lock));
 	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));

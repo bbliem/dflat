@@ -40,13 +40,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out)
-	: prg_(out)
-{
-	false_ = prg_.newAtom();
-	prg_.setCompute(false_, false);
-}
-
 void GringoOutputProcessor::addBody(const LitVec& body) {
     for (auto x : body) {
         prg_.addToBody((Clasp::Var)std::abs(x), x > 0);
@@ -96,24 +89,25 @@ void GringoOutputProcessor::printDisjunctiveRule(AtomVec const &atoms, LitVec co
 }
 
 void GringoOutputProcessor::printSymbol(unsigned atomUid, Gringo::Value v) {
-	if (v.type() == Gringo::Value::ID || v.type() == Gringo::Value::STRING) {
-		prg_.setAtomName(atomUid, (*v.string()).c_str());
-	}
-	else {
-		str_.str("");
-		v.print(str_);
-		prg_.setAtomName(atomUid, str_.str().c_str());
-	}
+    if (v.type() == Gringo::Value::ID || v.type() == Gringo::Value::STRING) {
+        prg_.setAtomName(atomUid, (*v.string()).c_str());
+    }
+    else {
+        str_.str("");
+        v.print(str_);
+        prg_.setAtomName(atomUid, str_.str().c_str());
+    }
 
 	// BB: Process special predicates
 	storeAtom(atomUid, v);
 }
 
-void GringoOutputProcessor::printExternal(unsigned atomUid, Gringo::Output::ExternalType type) {
+void GringoOutputProcessor::printExternal(unsigned atomUid, Gringo::TruthValue type) {
     switch (type) {
-        case Gringo::Output::ExternalType::E_FALSE: { prg_.freeze(atomUid, Clasp::value_false); break; }
-        case Gringo::Output::ExternalType::E_TRUE:  { prg_.freeze(atomUid, Clasp::value_true); break; }
-        case Gringo::Output::ExternalType::E_FREE:  { prg_.unfreeze(atomUid); break; }
+        case Gringo::TruthValue::False: { prg_.freeze(atomUid, Clasp::value_false); break; }
+        case Gringo::TruthValue::True:  { prg_.freeze(atomUid, Clasp::value_true); break; }
+        case Gringo::TruthValue::Open:  { prg_.freeze(atomUid, Clasp::value_free); break; }
+        case Gringo::TruthValue::Free:  { prg_.unfreeze(atomUid); break; }
     }
 }
 
