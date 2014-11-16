@@ -19,6 +19,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 %{
+	// XXX flex generates code using the deprecated keyword "register".
+	// Remove the following two lines (and the one at the bottom of this file)
+	// when this changes.
+	#pragma clang diagnostic push
+	#pragma clang diagnostic ignored "-Wdeprecated-register"
+
 	#include "../../src/parser/Driver.h"
 	#include "parser.hpp"
 	#define yyterminate() return token::END
@@ -86,3 +92,8 @@ void Driver::scan_end()
 }
 
 } // namespace parser
+
+// XXX flex generates code using the deprecated keyword "register".
+// Remove the following line (and two near the top of this file)
+// when this changes.
+#pragma clang diagnostic pop
