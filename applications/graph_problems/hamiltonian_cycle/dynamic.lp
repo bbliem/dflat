@@ -1,4 +1,5 @@
 %dflat: --tables -e vertex -e edge
+% This encoding solves the *Directed* Hamiltonian Cycle problem.
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
 
 :- extend(R;S), childItem(R,path(X,Y)), childItem(S,path(X,Z)), Y != Z.

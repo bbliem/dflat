@@ -1,3 +1,4 @@
+% This encoding solves the *Directed* Hamiltonian Cycle problem.
 1 { p(X,Y) : edge(X,Y) } 1 :- vertex(X).
 1 { p(X,Y) : edge(X,Y) } 1 :- vertex(Y).
 
