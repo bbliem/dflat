@@ -27,7 +27,7 @@ namespace solver { namespace asp {
 class Solver : public ::Solver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode);
+	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode, bool printStats = false);
 
 	virtual ItemTreePtr compute() override;
 
@@ -37,6 +37,7 @@ public:
 private:
 	std::vector<std::string> encodingFiles;
 	bool tableMode;
+	bool printStats;
 };
 
 }} // namespace solver::asp

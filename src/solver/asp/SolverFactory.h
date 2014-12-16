@@ -52,6 +52,7 @@ private:
 	options::Option           optDefaultJoin;
 	options::Option           optLazy;
 	options::Option           optTables;
+	options::Option           optPrintStats;
 #ifdef HAVE_WORDEXP_H
 	options::Option           optIgnoreModelines;
 	// To avoid infinite recursions

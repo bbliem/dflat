@@ -26,6 +26,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <gringo/logger.hh>
 #include <gringo/scripts.hh>
 #include <clasp/clasp_facade.h>
+#include <clasp/solver.h>
 
 #include "Solver.h"
 #include "../../Application.h"
@@ -61,10 +62,11 @@ std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const Gringo::Ou
 
 } // anonymous namespace
 
-Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode)
+Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode, bool printStats)
 	: ::Solver(decomposition, app)
 	, encodingFiles(encodingFiles)
 	, tableMode(tableMode)
+	, printStats(printStats)
 {
 	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
 
@@ -165,6 +167,12 @@ ItemTreePtr Solver::compute()
 
 	ItemTreePtr result = cb->finalize(decomposition.isRoot(), app.isPruningDisabled() == false || decomposition.isRoot());
 	app.getPrinter().solverInvocationResult(decomposition, result.get());
+
+	if(printStats) {
+		// XXX We should use a Printer object for this
+		std::cout << "Conflicts at decomposition node " << decomposition.getNode().getGlobalId() << ": " << clasp.ctx.master()->stats.conflicts << std::endl;
+	}
+
 	return result;
 }
 
