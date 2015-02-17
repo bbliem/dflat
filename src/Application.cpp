@@ -38,6 +38,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "solver/dummy/SolverFactory.h"
 #include "solver/clasp/SolverFactory.h"
+#include "solver/asp/SolverFactory.h"
 
 #include "printer/Quiet.h"
 #include "printer/Progress.h"
@@ -119,6 +120,7 @@ int Application::run(int argc, char** argv)
 	opts.addOption(optSolver, MODULE_SECTION);
 	solver::dummy::SolverFactory dummySolverFactory(*this);
 	solver::clasp::SolverFactory claspSolverFactory(*this, true);
+	solver::asp::SolverFactory aspSolverFactory(*this, true);
 
 	opts.addOption(optPrinter, MODULE_SECTION);
 	printer::Quiet quietPrinter(*this);

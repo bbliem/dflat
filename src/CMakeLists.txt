@@ -94,6 +94,8 @@ add_library(dflat-objects
 	solver/clasp/trees/EncodingChecker.cpp
 	solver/clasp/trees/GringoOutputProcessor.cpp
 	solver/default_join/Solver.cpp
+	solver/asp/SolverFactory.cpp
+	solver/asp/Solver.cpp
 	Printer.cpp
 	printer/Quiet.cpp
 	printer/Progress.cpp
