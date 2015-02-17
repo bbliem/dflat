@@ -27,7 +27,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "ClaspCallback.h"
 #include "../../Decomposition.h"
 
-namespace solver { namespace lazy_asp {
+namespace solver { namespace lazy_clasp {
 
 class Solver : public ::Solver
 {
@@ -64,4 +64,4 @@ private:
 	bool wakeWorkerThreadRequested = false;
 };
 
-}} // namespace solver::lazy_asp
+}} // namespace solver::lazy_clasp

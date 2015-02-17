@@ -20,10 +20,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include "GringoOutputProcessor.h"
 
-namespace solver { namespace lazy_asp {
+namespace solver { namespace clasp { namespace tables {
 
-GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out)
-	: ::solver::asp::GringoOutputProcessor(out)
+GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out, const ChildItemTrees& childItemTrees)
+	: ::solver::clasp::GringoOutputProcessor(out)
+	, childItemTrees(childItemTrees)
 {
 }
 
@@ -35,6 +36,11 @@ const GringoOutputProcessor::ItemAtomInfos& GringoOutputProcessor::getItemAtomIn
 const GringoOutputProcessor::AuxItemAtomInfos& GringoOutputProcessor::getAuxItemAtomInfos() const
 {
 	return auxItemAtomInfos;
+}
+
+const GringoOutputProcessor::ExtendAtomInfos& GringoOutputProcessor::getExtendAtomInfos() const
+{
+	return extendAtomInfos;
 }
 
 const GringoOutputProcessor::CurrentCostAtomInfos& GringoOutputProcessor::getCurrentCostAtomInfos() const
@@ -61,6 +67,18 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 		std::ostringstream argument;
 		v.args().front().print(argument);
 		auxItemAtomInfos.emplace_back(AuxItemAtomInfo{AuxItemAtomArguments{argument.str()}, atomUid});
+	} else if(predicate == "extend") {
+		ASP_CHECK(v.args().size() == 1, "'extend' predicate does not have arity 1");
+		std::ostringstream argument;
+		v.args().front().print(argument);
+		// Child node number is before the first '_' (and after the leading 'n')
+		// Row number is after the first '_'
+		const unsigned int underscorePos = argument.str().find('_');
+		const unsigned int decompositionChildId = std::stoi(std::string(argument.str(), 1, underscorePos-1));
+		const unsigned int rowNumber = std::stoi(std::string(argument.str(), underscorePos + 1));
+		ASP_CHECK(childItemTrees.find(decompositionChildId) != childItemTrees.end(), "Extension pointer refers to nonexistent decomposition child");
+		ASP_CHECK(rowNumber < childItemTrees.at(decompositionChildId)->getChildren().size(), "Extension pointer references invalid row number");
+		extendAtomInfos.emplace_back(ExtendAtomInfo{{decompositionChildId, childItemTrees.at(decompositionChildId)->getChild(rowNumber).getNode()}, atomUid});
 	} else if(predicate == "currentCost") {
 		ASP_CHECK(v.args().size() == 1, "'currentCost' predicate does not have arity 1");
 		std::ostringstream argument;
@@ -74,4 +92,4 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 	}
 }
 
-}} // namespace solver::lazy_asp
+}}} // namespace solver::clasp::tables

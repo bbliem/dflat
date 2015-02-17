@@ -81,18 +81,18 @@ add_library(dflat-objects
 	Solver.cpp
 	solver/dummy/SolverFactory.cpp
 	solver/dummy/Solver.cpp
-	solver/asp/SolverFactory.cpp
-	solver/asp/Solver.cpp
-	solver/asp/ClaspCallback.cpp
-	solver/asp/GringoOutputProcessor.cpp
-	solver/lazy_asp/Solver.cpp
-	solver/lazy_asp/ClaspCallback.cpp
-	solver/lazy_asp/GringoOutputProcessor.cpp
-	solver/asp/tables/ClaspCallback.cpp
-	solver/asp/tables/GringoOutputProcessor.cpp
-	solver/asp/trees/ClaspCallback.cpp
-	solver/asp/trees/EncodingChecker.cpp
-	solver/asp/trees/GringoOutputProcessor.cpp
+	solver/clasp/SolverFactory.cpp
+	solver/clasp/Solver.cpp
+	solver/clasp/ClaspCallback.cpp
+	solver/clasp/GringoOutputProcessor.cpp
+	solver/lazy_clasp/Solver.cpp
+	solver/lazy_clasp/ClaspCallback.cpp
+	solver/lazy_clasp/GringoOutputProcessor.cpp
+	solver/clasp/tables/ClaspCallback.cpp
+	solver/clasp/tables/GringoOutputProcessor.cpp
+	solver/clasp/trees/ClaspCallback.cpp
+	solver/clasp/trees/EncodingChecker.cpp
+	solver/clasp/trees/GringoOutputProcessor.cpp
 	solver/default_join/Solver.cpp
 	Printer.cpp
 	printer/Quiet.cpp

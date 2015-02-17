@@ -19,20 +19,36 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
 #include "ClaspCallback.h"
+#include "Solver.h"
 
-namespace solver { namespace asp { namespace tables {
+namespace solver { namespace lazy_clasp {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, bool root)
-	: ::solver::asp::ClaspCallback(app)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Application& app, Solver& solver, std::unique_lock<std::mutex>& lock)
+	: ::solver::clasp::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
-	, childItemTrees(childItemTrees)
-	, rowType(root ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::UNDEFINED)
+	, solver(solver)
+	, lock(lock)
 {
+}
+
+void ClaspCallback::setRootExtensionPointers(ItemTreeNode::ExtensionPointerTuple&& e)
+{
+	rootExtensionPointers = std::move(e);
+}
+
+void ClaspCallback::setExtendedRows(ItemTreeNode::ExtensionPointerTuple&& e)
+{
+	extendedRows = std::move(e);
+}
+
+ItemTree::Children::const_iterator ClaspCallback::getNewestRow() const
+{
+	return newestRow;
 }
 
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 {
-	solver::asp::ClaspCallback::onModel(s, m);
+	solver::clasp::ClaspCallback::onModel(s, m);
 
 	// Get items {{{
 	ItemTreeNode::Items items;
@@ -48,26 +64,15 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 				return auxItems.find(item) != auxItems.end();
 	}) == items.end(), "Items and auxiliary items not disjoint");
 	// }}}
-	// Get extension pointers {{{
-	ItemTreeNode::ExtensionPointerTuple extendedRows;
-	ASP_CHECK(countTrue(m, extendAtomInfos) == childItemTrees.size(), "Not as many extension pointers as there are child item trees");
-	forEachTrueLimited(m, extendAtomInfos, [&](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
-			extendedRows.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedRow));
-			return extendedRows.size() != childItemTrees.size();
-	});
-	// }}}
 	// Create item tree root if it doesn't exist yet {{{
 	if(!itemTree) {
-		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
-		for(const auto& childItemTree : childItemTrees)
-			rootExtensionPointers.emplace(childItemTree.first, childItemTree.second->getNode());
 		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
 		// Set cost to "infinity"
 		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
 	}
 	// }}}
 	// Create item tree node {{{
-	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {std::move(extendedRows)}, rowType));
+	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extendedRows}));
 	// }}}
 	// Set cost {{{
 	ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
@@ -90,23 +95,32 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
 	// }}}
 	// Add node to item tree {{{
-	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
+	ItemTree::Children::const_iterator newChild = itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 	// }}}
+
+	if(newChild != itemTree->getChildren().end())
+		newestRow = newChild;
+
+	// Let the main thread proceed and wait until we should do more work
+	solver.proceed(lock);
 	return true;
 }
 
 void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
 {
+	// XXX Necessary to call this before each solving invocation? Otherwise we could dispense with clear()
+	itemAtomInfos.clear();
 	for(const auto& atom : gringoOutput.getItemAtomInfos())
 		itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
+	auxItemAtomInfos.clear();
 	for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
 		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, symTab));
-	for(const auto& atom : gringoOutput.getExtendAtomInfos())
-		extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
+	currentCostAtomInfos.clear();
 	for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
 		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
+	costAtomInfos.clear();
 	for(const auto& atom : gringoOutput.getCostAtomInfos())
 		costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
 }
 
-}}} // namespace solver::asp::tables
+}} // namespace solver::lazy_clasp

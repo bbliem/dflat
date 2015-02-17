@@ -26,9 +26,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 class Decomposition;
 
-namespace solver { namespace asp { namespace trees {
+namespace solver { namespace clasp { namespace trees {
 
-class ClaspCallback : public ::solver::asp::ClaspCallback
+class ClaspCallback : public ::solver::clasp::ClaspCallback
 {
 public:
 	typedef AtomInfo<GringoOutputProcessor::ExtendAtomArguments> ExtendAtomInfo;
@@ -66,4 +66,4 @@ private:
 	const Decomposition& decomposition;
 };
 
-}}} // namespace solver::asp::trees
+}}} // namespace solver::clasp::trees

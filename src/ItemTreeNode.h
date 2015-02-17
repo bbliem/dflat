@@ -32,7 +32,7 @@ class ExtensionIterator;
 
 // IMPORTANT NOTE: Remember that when you change something here it might
 // require changing other classes like ItemTreePtrComparator (and
-// solver::asp::trees::UncompressedItemTreePtrComparator).
+// solver::clasp::trees::UncompressedItemTreePtrComparator).
 
 class ItemTreeNode
 {

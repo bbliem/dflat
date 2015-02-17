@@ -23,9 +23,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../ClaspCallback.h"
 #include "GringoOutputProcessor.h"
 
-namespace solver { namespace asp { namespace tables {
+namespace solver { namespace clasp { namespace tables {
 
-class ClaspCallback : public ::solver::asp::ClaspCallback
+class ClaspCallback : public ::solver::clasp::ClaspCallback
 {
 public:
 	typedef AtomInfo<GringoOutputProcessor::ExtendAtomArguments> ExtendAtomInfo;
@@ -51,4 +51,4 @@ private:
 	const ItemTreeNode::Type rowType;
 };
 
-}}} // namespace solver::asp::tables
+}}} // namespace solver::clasp::tables

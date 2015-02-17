@@ -22,14 +22,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <mutex>
 
-#include "../asp/ClaspCallback.h"
+#include "../clasp/ClaspCallback.h"
 #include "GringoOutputProcessor.h"
 
-namespace solver { namespace lazy_asp {
+namespace solver { namespace lazy_clasp {
 
 class Solver;
 
-class ClaspCallback : public ::solver::asp::ClaspCallback
+class ClaspCallback : public ::solver::clasp::ClaspCallback
 {
 public:
 	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
@@ -61,4 +61,4 @@ private:
 	std::unique_lock<std::mutex>& lock;
 };
 
-}} // namespace solver::lazy_asp
+}} // namespace solver::lazy_clasp

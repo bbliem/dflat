@@ -21,7 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "SolverFactory.h"
 #include "Solver.h"
 #include "../default_join/Solver.h"
-#include "../lazy_asp/Solver.h"
+#include "../lazy_clasp/Solver.h"
 #include "../../Application.h"
 #include "../../Decomposition.h"
 
@@ -31,12 +31,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <wordexp.h>
 #endif
 
-namespace solver { namespace asp {
+namespace solver { namespace clasp {
 
 const std::string SolverFactory::OPTION_SECTION = "ASP solver";
 
 SolverFactory::SolverFactory(Application& app, bool newDefault)
-	: ::SolverFactory(app, "asp", "Answer Set Programming", newDefault)
+	: ::SolverFactory(app, "clasp", "Answer Set Programming solver clasp", newDefault)
 	, optEncodingFiles  ("p", "program",     "Use <program> as an ASP encoding for solving")
 	, optDefaultJoin    ("default-join",     "Use built-in implementation for join nodes")
 	, optLazy           ("lazy",             "Use lazy evaluation (experimental)")
@@ -69,13 +69,13 @@ std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decompos
 		// FIXME this should not make --default-join ineffective, and it should not require table mode
 		if(optDefaultJoin.isUsed() || !optTables.isUsed())
 			throw std::runtime_error("Lazy evaluation currently requires table mode and not using the default join");
-		return std::unique_ptr<::Solver>(new lazy_asp::Solver(decomposition, app, optEncodingFiles.getValues()));
+		return std::unique_ptr<::Solver>(new lazy_clasp::Solver(decomposition, app, optEncodingFiles.getValues()));
 	}
 	else {
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
 			return std::unique_ptr<::Solver>(new default_join::Solver(decomposition, app, optTables.isUsed() && decomposition.isRoot()));
 		else
-			return std::unique_ptr<::Solver>(new asp::Solver(decomposition, app, optEncodingFiles.getValues(), optTables.isUsed()));
+			return std::unique_ptr<::Solver>(new clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optTables.isUsed()));
 	}
 }
 
@@ -123,4 +123,4 @@ void SolverFactory::notify()
 }
 #endif
 
-}} // namespace solver::asp
+}} // namespace solver::clasp

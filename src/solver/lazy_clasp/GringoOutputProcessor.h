@@ -22,19 +22,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <memory>
 
-#include "../GringoOutputProcessor.h"
+#include "../clasp/GringoOutputProcessor.h"
 
-namespace solver { namespace asp { namespace tables {
+namespace solver { namespace lazy_clasp {
 
-class GringoOutputProcessor : public ::solver::asp::GringoOutputProcessor
+class GringoOutputProcessor : public ::solver::clasp::GringoOutputProcessor
 {
 public:
-	struct ExtendAtomArguments {
-		unsigned int decompositionNodeId;
-		std::weak_ptr<ItemTreeNode> extendedRow;
-	};
-	typedef AtomInfo<ExtendAtomArguments> ExtendAtomInfo;
-
 	struct ItemAtomArguments {
 		std::string item;
 	};
@@ -55,30 +49,25 @@ public:
 	};
 	typedef AtomInfo<CostAtomArguments> CostAtomInfo;
 
-	typedef std::vector<ItemAtomInfo>        ItemAtomInfos;
-	typedef std::vector<AuxItemAtomInfo>     AuxItemAtomInfos;
-	typedef std::vector<ExtendAtomInfo>      ExtendAtomInfos;
-	typedef std::vector<CurrentCostAtomInfo> CurrentCostAtomInfos;
-	typedef std::vector<CostAtomInfo>        CostAtomInfos;
+	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
+	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;
+	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
+	typedef std::vector<CostAtomInfo>           CostAtomInfos;
 
-	GringoOutputProcessor(Clasp::Asp::LogicProgram& out, const ChildItemTrees& childItemTrees);
+	GringoOutputProcessor(Clasp::Asp::LogicProgram& out);
 
-	const ItemAtomInfos&           getItemAtomInfos()           const;
-	const AuxItemAtomInfos&        getAuxItemAtomInfos()        const;
-	const ExtendAtomInfos&         getExtendAtomInfos()         const;
-	const CurrentCostAtomInfos&    getCurrentCostAtomInfos()    const;
-	const CostAtomInfos&           getCostAtomInfos()           const;
+	const ItemAtomInfos&        getItemAtomInfos()           const;
+	const AuxItemAtomInfos&     getAuxItemAtomInfos()        const;
+	const CurrentCostAtomInfos& getCurrentCostAtomInfos()    const;
+	const CostAtomInfos&        getCostAtomInfos()           const;
 
 protected:
 	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) override;
 
 	ItemAtomInfos           itemAtomInfos;
 	AuxItemAtomInfos        auxItemAtomInfos;
-	ExtendAtomInfos         extendAtomInfos;
 	CurrentCostAtomInfos    currentCostAtomInfos;
 	CostAtomInfos           costAtomInfos;
-
-	const ChildItemTrees& childItemTrees;
 };
 
-}}} // namespace solver::asp::tables
+}} // namespace solver::lazy_clasp

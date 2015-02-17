@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../Application.h"
 #include "../../Printer.h"
 
-namespace solver { namespace asp {
+namespace solver { namespace clasp {
 
 ClaspCallback::ClaspCallback(const Application& app)
 	: app(app)
@@ -58,4 +58,4 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	return true;
 }
 
-}} // namespace solver::asp
+}} // namespace solver::clasp

@@ -28,7 +28,7 @@ class Application;
 
 namespace solver {
 class Asp;
-namespace asp {
+namespace clasp {
 class ItemSetLookupTable;
 
 // Gets called by clasp whenever a model has been found
@@ -110,4 +110,4 @@ protected:
 	bool prune;
 };
 
-}} // namespace solver::asp
+}} // namespace solver::clasp

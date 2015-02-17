@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "DebugMachineReadable.h"
 #include "../Decomposition.h"
 #include "../Application.h"
-#include "../solver/asp/Solver.h"
+#include "../solver/clasp/Solver.h"
 
 namespace {
 
@@ -67,7 +67,7 @@ void declareExtensionPointers(std::ostream& out, const ItemTree* itemTree, const
 
 void declareDerivedCosts(std::ostream& out, const ItemTree* itemTree, const std::string& itemSetName)
 {
-	// Only print the costs for non-leaf nodes, as leaves' costs have already been printed in solver::asp::Solver::declareItemTree().
+	// Only print the costs for non-leaf nodes, as leaves' costs have already been printed in solver::clasp::Solver::declareItemTree().
 	if(!itemTree || itemTree->getChildren().empty())
 		return;
 
@@ -106,7 +106,7 @@ void DebugMachineReadable::solverInvocationResult(const Decomposition& decomposi
 		std::cout << "% Facts describing the resulting item tree at node " << id << std::endl;
 		std::ostringstream rootItemSetName;
 		rootItemSetName << 'n' << id;
-		solver::asp::Solver::declareItemTree(std::cout, result, false, id, rootItemSetName.str());
+		solver::clasp::Solver::declareItemTree(std::cout, result, false, id, rootItemSetName.str());
 		std::cout << std::endl;
 
 		std::cout << "% Memory locations of the item tree nodes at decomposition node " << id << " (not passed to ASP)" << std::endl;

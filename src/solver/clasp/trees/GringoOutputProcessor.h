@@ -24,9 +24,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../GringoOutputProcessor.h"
 
-namespace solver { namespace asp { namespace trees {
+namespace solver { namespace clasp { namespace trees {
 
-class GringoOutputProcessor : public ::solver::asp::GringoOutputProcessor
+class GringoOutputProcessor : public ::solver::clasp::GringoOutputProcessor
 {
 public:
 	struct ExtendAtomArguments {
@@ -114,4 +114,4 @@ protected:
 	const ChildItemTrees& childItemTrees;
 };
 
-}}} // namespace solver::asp::trees
+}}} // namespace solver::clasp::trees

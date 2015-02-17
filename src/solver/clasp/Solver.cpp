@@ -39,7 +39,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "trees/EncodingChecker.h"
 #include "trees/GringoOutputProcessor.h"
 
-namespace solver { namespace asp {
+namespace solver { namespace clasp {
 
 namespace {
 
@@ -263,4 +263,4 @@ void Solver::declareItemTree(std::ostream& out, const ItemTree* itemTree, bool t
 	}
 }
 
-}} // namespace solver::asp
+}} // namespace solver::clasp

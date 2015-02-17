@@ -36,7 +36,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 		throw std::runtime_error(error);
 #endif
 
-namespace solver { namespace asp {
+namespace solver { namespace clasp {
 
 class GringoOutputProcessor : public Gringo::Output::LparseOutputter
 {
@@ -79,4 +79,4 @@ protected:
 	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) = 0;
 };
 
-}} // namespace solver::asp
+}} // namespace solver::clasp

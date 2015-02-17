@@ -36,10 +36,10 @@ std::vector<std::string> getArguments(Gringo::Value v)
 
 } // anonymous namespace
 
-namespace solver { namespace asp { namespace trees {
+namespace solver { namespace clasp { namespace trees {
 
 GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out, const ChildItemTrees& childItemTrees)
-	: ::solver::asp::GringoOutputProcessor(out)
+	: ::solver::clasp::GringoOutputProcessor(out)
 	, childItemTrees(childItemTrees)
 {
 }
@@ -156,4 +156,4 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 	}
 }
 
-}}} // namespace solver::asp::trees
+}}} // namespace solver::clasp::trees

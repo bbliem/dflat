@@ -36,7 +36,7 @@ namespace {
 	};
 }
 
-namespace solver { namespace asp { namespace trees {
+namespace solver { namespace clasp { namespace trees {
 
 void EncodingChecker::showsig(Gringo::Location const &loc, Gringo::FWString name, unsigned arity, bool csp)
 {
@@ -79,4 +79,4 @@ void EncodingChecker::check()
 		std::cerr << "Warning: No #show statement was used." << std::endl;
 }
 
-}}} // namespace solver::asp::trees
+}}} // namespace solver::clasp::trees

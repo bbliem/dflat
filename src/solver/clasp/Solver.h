@@ -22,7 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include "../../Solver.h"
 
-namespace solver { namespace asp {
+namespace solver { namespace clasp {
 
 class Solver : public ::Solver
 {
@@ -39,4 +39,4 @@ private:
 	bool tableMode;
 };
 
-}} // namespace solver::asp
+}} // namespace solver::clasp

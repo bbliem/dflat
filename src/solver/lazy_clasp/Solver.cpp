@@ -30,14 +30,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Solver.h"
 #include "GringoOutputProcessor.h"
-#include "../asp/Solver.h"
+#include "../clasp/Solver.h"
 #include "../../Application.h"
 #include "../../Printer.h"
 #include "../../ItemTree.h"
 #include "../../Decomposition.h"
 #include "../../Application.h"
 
-namespace solver { namespace lazy_asp {
+namespace solver { namespace lazy_clasp {
 
 Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles)
 	: ::Solver(decomposition, app)
@@ -123,7 +123,7 @@ void Solver::workerThreadMain()
 
 	// Input: Decomposition
 	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
-	solver::asp::Solver::declareDecomposition(decomposition, *decompositionInput);
+	solver::clasp::Solver::declareDecomposition(decomposition, *decompositionInput);
 	app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
 
 	// Pass input to ASP solver
@@ -299,4 +299,4 @@ bool Solver::nextRowCombination(std::vector<std::pair<Decomposition*, ItemTree::
 	return true;
 }
 
-}} // namespace solver::lazy_asp
+}} // namespace solver::lazy_clasp

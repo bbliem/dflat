@@ -28,7 +28,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <vector>
 #endif
 
-namespace solver { namespace asp {
+namespace solver { namespace clasp {
 
 class SolverFactory : public ::SolverFactory
 {
@@ -59,4 +59,4 @@ private:
 #endif
 };
 
-}} // namespace solver::asp
+}} // namespace solver::clasp

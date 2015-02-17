@@ -20,25 +20,17 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../EncodingChecker.h"
+#include <gringo/input/programbuilder.hh>
 
-namespace solver { namespace asp { namespace trees {
+namespace solver { namespace clasp {
 
-class EncodingChecker : public ::solver::asp::EncodingChecker
+class EncodingChecker : public Gringo::Input::NongroundProgramBuilder
 {
 public:
-	using ::solver::asp::EncodingChecker::EncodingChecker;
+	using Gringo::Input::NongroundProgramBuilder::NongroundProgramBuilder;
 
-	virtual void showsig(Gringo::Location const &loc, Gringo::FWString name, unsigned arity, bool csp);
-	virtual void check();
-
-private:
-	bool showUsed = false;
-	bool lengthShown = false;
-	bool itemShown = false;
-	bool extendShown = false;
-	bool orAndShown = false;
-	bool acceptRejectShown = false;
+	// Call this after parsing. May throw an exception if the encoding fails a check.
+	virtual void check() = 0;
 };
 
-}}} // namespace solver::asp::trees
+}} // namespace solver::clasp
