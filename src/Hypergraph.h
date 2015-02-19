@@ -21,6 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 //}}}
 #include <set>
+#include <unordered_map>
 #include <string>
 
 #ifdef DECOMPOSITION_COMPATIBILITY // Define this to generate the same decompositions as D-FLAT 0.2 when setting the same random seed
@@ -41,9 +42,15 @@ public:
 	typedef Vertices Edge;
 #endif
 	typedef std::set<Edge> Edges;
+	typedef std::unordered_map<std::string, Edges> EdgesOfKinds;
 
 	const Vertices& getVertices() const { return vertices; }
 	const Edges& getEdges() const { return edges; }
+	const Edges& getEdgesOfKind(const std::string& kind) const
+	{
+		const EdgesOfKinds::const_iterator it = edgesOfKinds.find(kind);
+		return it == edgesOfKinds.end() ? emptyEdgeSet : it->second;
+	}
 
 #ifdef DECOMPOSITION_COMPATIBILITY // Define this to generate the same decompositions as D-FLAT 0.2 when setting the same random seed
 	void addVertex(const Vertex& v) { if(std::find(vertices.begin(), vertices.end(), v) == vertices.end()) vertices.push_back(v); }
@@ -51,8 +58,11 @@ public:
 	void addVertex(const Vertex& v) { vertices.insert(v); }
 #endif
 	void addEdge(const Edge& e) { edges.insert(e); }
+	void addEdgeOfKind(const Edge& e, const std::string& kind) { edges.insert(e); edgesOfKinds[kind].insert(e); }
 
 private:
 	Vertices vertices;
-	Edges edges;
+	Edges edges; // contains all edges of all kinds
+	EdgesOfKinds edgesOfKinds;
+	static const Edges emptyEdgeSet; // always empty, to be returned by getEdgesOfKind() for unknown kind
 };

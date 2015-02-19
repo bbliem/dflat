@@ -67,7 +67,7 @@ void Driver::processFact(Hypergraph& hypergraph, const std::string& predicate, c
 			}
 		}
 
-		hypergraph.addEdge(hyperedge);
+		hypergraph.addEdgeOfKind(hyperedge, predicate);
 	}
 }
 
