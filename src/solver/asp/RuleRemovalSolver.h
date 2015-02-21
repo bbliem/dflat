@@ -17,20 +17,26 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#pragma once
 //}}}
-#include "Solver.h"
-#include "../../ItemTree.h"
-#include "../../Decomposition.h"
-#include "../../Application.h"
-#include "../../Printer.h"
+#include <unordered_set>
+#include <unordered_map>
+
+#include "SolverBase.h"
+#include "../../Hypergraph.h"
 
 namespace solver { namespace asp {
 
-ItemTreePtr Solver::compute()
+class RuleRemovalSolver : public SolverBase
 {
-	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
+public:
+	RuleRemovalSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& removedRule);
 
-	return ItemTreePtr();
-}
+	virtual ItemTreePtr compute() override;
+
+private:
+	const Hypergraph::Vertex removedRule;
+};
 
 }} // namespace solver::asp

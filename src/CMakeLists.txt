@@ -95,7 +95,12 @@ add_library(dflat-objects
 	solver/clasp/trees/GringoOutputProcessor.cpp
 	solver/default_join/Solver.cpp
 	solver/asp/SolverFactory.cpp
-	solver/asp/Solver.cpp
+	solver/asp/SolverBase.cpp
+	solver/asp/LeafSolver.cpp
+	solver/asp/AtomIntroductionSolver.cpp
+	solver/asp/AtomRemovalSolver.cpp
+	solver/asp/RuleIntroductionSolver.cpp
+	solver/asp/RuleRemovalSolver.cpp
 	Printer.cpp
 	printer/Quiet.cpp
 	printer/Progress.cpp

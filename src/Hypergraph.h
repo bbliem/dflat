@@ -23,9 +23,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <set>
 #include <unordered_map>
 #include <string>
-
-#ifdef DECOMPOSITION_COMPATIBILITY // Define this to generate the same decompositions as D-FLAT 0.2 when setting the same random seed
 #include <vector>
+#ifdef DECOMPOSITION_COMPATIBILITY // Define this to generate the same decompositions as D-FLAT 0.2 when setting the same random seed
 #include <algorithm>
 #endif
 
@@ -36,11 +35,10 @@ public:
 	typedef std::string Vertex;
 #ifdef DECOMPOSITION_COMPATIBILITY // Define this to generate the same decompositions as D-FLAT 0.2 when setting the same random seed
 	typedef std::vector<Vertex> Vertices;
-	typedef std::set<Vertex> Edge;
 #else
 	typedef std::set<Vertex> Vertices;
-	typedef Vertices Edge;
 #endif
+	typedef std::vector<Vertex> Edge;
 	typedef std::set<Edge> Edges;
 	typedef std::unordered_map<std::string, Edges> EdgesOfKinds;
 
@@ -64,5 +62,5 @@ private:
 	Vertices vertices;
 	Edges edges; // contains all edges of all kinds
 	EdgesOfKinds edgesOfKinds;
-	static const Edges emptyEdgeSet; // always empty, to be returned by getEdgesOfKind() for unknown kind
+	Edges emptyEdgeSet; // always empty, to be returned by getEdgesOfKind() for unknown kind
 };

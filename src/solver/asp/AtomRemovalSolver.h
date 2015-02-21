@@ -20,21 +20,23 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../../SolverFactory.h"
+#include <unordered_set>
+#include <unordered_map>
+
+#include "SolverBase.h"
 #include "../../Hypergraph.h"
 
 namespace solver { namespace asp {
 
-class SolverFactory : public ::SolverFactory
+class AtomRemovalSolver : public SolverBase
 {
 public:
-	SolverFactory(Application& app, bool newDefault = false);
+	AtomRemovalSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& removedAtom);
 
-	virtual std::unique_ptr<::Solver> newSolver(const Decomposition& decomposition) const override;
+	virtual ItemTreePtr compute() override;
 
 private:
-	bool isAtom(const Hypergraph::Vertex& v) const;
-	bool isRule(const Hypergraph::Vertex& v) const;
+	const Hypergraph::Vertex removedAtom;
 };
 
 }} // namespace solver::asp

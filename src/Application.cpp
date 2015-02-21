@@ -120,7 +120,7 @@ int Application::run(int argc, char** argv)
 	opts.addOption(optSolver, MODULE_SECTION);
 	solver::dummy::SolverFactory dummySolverFactory(*this);
 	solver::clasp::SolverFactory claspSolverFactory(*this, true);
-	solver::asp::SolverFactory aspSolverFactory(*this, true);
+	solver::asp::SolverFactory aspSolverFactory(*this);
 
 	opts.addOption(optPrinter, MODULE_SECTION);
 	printer::Quiet quietPrinter(*this);
