@@ -157,6 +157,7 @@ int Application::run(int argc, const char* const* const argv)
 	parser::Driver::Predicates edgePredicates(optEdge.getValues().begin(), optEdge.getValues().end());
 
 	// Store the problem instance in a string
+	// FIXME This should only be done for solvers that need it.
 	if(optInputFile.isUsed()) {
 		std::ifstream inputFile(optInputFile.getValue());
 		if(!inputFile)

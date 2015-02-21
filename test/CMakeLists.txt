@@ -10,6 +10,7 @@ add_executable(tests
 	ItemTreeNode.cpp
 	Module.cpp
 	UncompressedItemTree.cpp
+	IntegrationAspSolver.cpp
 	)
 target_link_libraries(tests dflat-objects gringo clasp sharp gmpxx gmp ${CMAKE_THREAD_LIBS_INIT} gtest gtest_main)
 add_test(tests tests)
