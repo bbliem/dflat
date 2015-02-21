@@ -34,7 +34,7 @@ public:
 	Application(const std::string& binaryName);
 
 	// We assume that argv[0] contains the first option, NOT the binary name
-	int run(int argc, char** argv);
+	int run(int argc, const char* const* const argv);
 
 	// Print usage, including version number, to stdout
 	void printUsage() const;

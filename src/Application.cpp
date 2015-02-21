@@ -79,7 +79,7 @@ Application::Application(const std::string& binaryName)
 {
 }
 
-int Application::run(int argc, char** argv)
+int Application::run(int argc, const char* const* const argv)
 {
 	// Set up general options
 	options::Option optHelp("h", "Print usage information and exit");
