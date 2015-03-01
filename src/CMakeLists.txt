@@ -6,6 +6,7 @@ add_definitions("-Wall -pedantic -std=c++11")
 add_definitions("-Wno-zero-length-array") # XXX Workaround because clasp generates these warnings
 
 set(CMAKE_CXX_FLAGS_GPROF "-O3 -g -pg")
+set(CMAKE_CXX_FLAGS_PROFILER "-O0 -g")
 # If there is voodoo in liblasp's pod_vector.h, it might be that you compiled it with -D_DEBUG. Consider compiling D-FLAT with this flag, too (uncomment next line). Otherwise the size of our Clasp::PodVector is different than when we built clasp's debug release.
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 
@@ -35,6 +36,9 @@ find_library(gmp gmp)
 find_package(FLEX)
 find_package(BISON)
 find_package(Threads)
+if(CMAKE_BUILD_TYPE STREQUAL "profiler")
+	find_package(Gperftools)
+endif()
 
 FLEX_TARGET(Scanner ${CMAKE_CURRENT_SOURCE_DIR}/parser/scanner.ll  ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp)
 BISON_TARGET(Parser ${CMAKE_CURRENT_SOURCE_DIR}/parser/parser.yy ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp)
@@ -114,4 +118,5 @@ add_library(dflat-objects
 	)
 add_executable(dflat main.cpp)
 
-target_link_libraries(dflat dflat-objects gringo clasp sharp gmpxx gmp ${CMAKE_THREAD_LIBS_INIT})
+# GPERFTOOLS_LIBRARIES is only set when find_package(Gperftools) has been called, which is only called if CMAKE_BUILD_TYPE is "profiler".
+target_link_libraries(dflat dflat-objects gringo clasp sharp gmpxx gmp ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
