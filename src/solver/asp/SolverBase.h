@@ -44,9 +44,9 @@ protected:
 	// Return new item tree node extending childCertificate
 	static ItemTreePtr extendCertificate(ItemTreeNode::Items&& items, ItemTreeNode::Items&& auxItems, unsigned int childIndex, const ItemTreePtr& childCertificate, ItemTreeNode::Type type = ItemTreeNode::Type::UNDEFINED);
 
-	typedef std::unordered_set<Hypergraph::Vertex> Atoms;
-	typedef std::unordered_set<Hypergraph::Vertex> Rules;
-	typedef std::unordered_map<Hypergraph::Vertex, Hypergraph::Vertices> AtomsInRule;
+	typedef Hypergraph::Vertices Atoms;
+	typedef Hypergraph::Vertices Rules;
+	typedef std::map<Hypergraph::Vertex, Atoms> AtomsInRule;
 
 	// Part of the logic program concerning only the bag contents
 	Atoms atoms;

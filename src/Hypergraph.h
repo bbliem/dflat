@@ -28,11 +28,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <algorithm>
 #endif
 
+#include "String.h"
+
 class Hypergraph
 {
 public:
-	// XXX Maybe using numbers instead of strings for vertices would be an improvement...
-	typedef std::string Vertex;
+	typedef String Vertex;
 #ifdef DECOMPOSITION_COMPATIBILITY // Define this to generate the same decompositions as D-FLAT 0.2 when setting the same random seed
 	typedef std::vector<Vertex> Vertices;
 #else

@@ -25,8 +25,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <set>
 #include <map>
 #include <memory>
-#include <string>
 #include <gmpxx.h>
+
+#include "String.h"
 
 class ExtensionIterator;
 
@@ -37,7 +38,7 @@ class ExtensionIterator;
 class ItemTreeNode
 {
 public:
-	typedef std::set<std::string> Items; // We need the sortedness for, e.g., the default join.
+	typedef std::set<String> Items; // We need the sortedness for, e.g., the default join.
 	typedef std::shared_ptr<ItemTreeNode> ExtensionPointer;
 	typedef std::map<unsigned int, ExtensionPointer> ExtensionPointerTuple; // key: ID of the decomposition node at which value is located
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;

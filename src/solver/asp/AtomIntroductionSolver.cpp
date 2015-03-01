@@ -47,9 +47,10 @@ ItemTreePtr AtomIntroductionSolver::compute()
 		assert(childResult->getChildren().empty() == false);
 
 		// Find out which rules are satisfied by setting introducedAtom to true or false, respectively, and which disappear from the reduct by setting introducedAtom to true.
-		std::unordered_set<Hypergraph::Vertex> rulesSatisfiedByTrue;
-		std::unordered_set<Hypergraph::Vertex> rulesSatisfiedByFalse;
-		std::unordered_set<Hypergraph::Vertex> rulesDisappearingByTrue;
+		// TODO unordered_set?
+		Hypergraph::Vertices rulesSatisfiedByTrue;
+		Hypergraph::Vertices rulesSatisfiedByFalse;
+		Hypergraph::Vertices rulesDisappearingByTrue;
 		for(const Hypergraph::Vertex& bagElement : decomposition.getNode().getBag()) {
 			AtomsInRule::const_iterator it = heads.find(bagElement);
 			if(it != heads.end() && it->second.find(introducedAtom) != it->second.end())
@@ -94,7 +95,7 @@ ItemTreePtr AtomIntroductionSolver::compute()
 				// Make introducedAtom false in certificate (and add "smaller" flag)
 				ItemTreeNode::Items certificateItems = childCertificate->getNode()->getItems();
 				ItemTreeNode::Items certificateAuxItems = childCertificate->getNode()->getAuxItems();
-				certificateAuxItems.insert("smaller");
+				certificateAuxItems.emplace("smaller");
 				certificateAuxItems.insert(rulesDisappearingByTrue.begin(), rulesDisappearingByTrue.end());
 				certificateAuxItems.insert(rulesSatisfiedByFalse.begin(), rulesSatisfiedByFalse.end());
 				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childIndex, childCertificate));

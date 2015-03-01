@@ -33,7 +33,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace clasp {
 
-const std::string SolverFactory::OPTION_SECTION = "ASP solver";
+const std::string SolverFactory::OPTION_SECTION = "Clasp solver";
 
 SolverFactory::SolverFactory(Application& app, bool newDefault)
 	: ::SolverFactory(app, "clasp", "Answer Set Programming solver clasp", newDefault)
@@ -83,7 +83,7 @@ void SolverFactory::select()
 {
 	::SolverFactory::select();
 	if(!optEncodingFiles.isUsed())
-		throw std::runtime_error("ASP solver requires at least one program to be specified");
+		throw std::runtime_error("Clasp solver requires at least one program to be specified");
 }
 
 #ifdef HAVE_WORDEXP_H

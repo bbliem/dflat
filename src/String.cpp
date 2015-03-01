@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2014, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -18,21 +18,36 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
-#include <gtest/gtest.h>
+#include "String.h"
 
-#include "DecompositionNode.h"
+String::Values String::values;
 
-TEST(DecompositionNode, ReturnsBag)
+String::String(std::string&& content)
+	: it(values.insert(std::move(content)).first)
 {
-	Hypergraph::Vertices bag = {{"a"}, {"b"}};
-	EXPECT_EQ(bag, DecompositionNode(bag).getBag());
 }
 
-TEST(DecompositionNode, HasUniqueGlobalId)
+String::String(const std::string& content)
+	: it(values.emplace(content).first)
 {
-	DecompositionNode n1 = {{}};
-	DecompositionNode n2 = {{}};
+}
 
-	EXPECT_TRUE(n1.getGlobalId() != n2.getGlobalId())
-		<< "Global IDs of n1 and n2 are not different: " << n1.getGlobalId() << " and " << n2.getGlobalId();
+bool String::operator<(const String& rhs) const
+{
+	return *it < *rhs.it;
+}
+
+bool String::operator>(const String& rhs) const
+{
+	return *it > *rhs.it;
+}
+
+bool String::operator==(const String& rhs) const
+{
+	return *it == *rhs.it;
+}
+
+std::ostream& operator<<(std::ostream& os, const String& str)
+{
+	return os << *str;
 }

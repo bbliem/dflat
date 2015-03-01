@@ -30,12 +30,12 @@ class GringoOutputProcessor : public ::solver::clasp::GringoOutputProcessor
 {
 public:
 	struct ItemAtomArguments {
-		std::string item;
+		String item;
 	};
 	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
 
 	struct AuxItemAtomArguments {
-		std::string item;
+		String item;
 	};
 	typedef AtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
 

@@ -36,12 +36,12 @@ public:
 	typedef AtomInfo<ExtendAtomArguments> ExtendAtomInfo;
 
 	struct ItemAtomArguments {
-		std::string item;
+		String item;
 	};
 	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
 
 	struct AuxItemAtomArguments {
-		std::string item;
+		String item;
 	};
 	typedef AtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
 

@@ -60,7 +60,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 			auxItems.insert(arguments.item);
 	});
 
-	ASP_CHECK(std::find_if(items.begin(), items.end(), [&auxItems](const std::string& item) {
+	ASP_CHECK(std::find_if(items.begin(), items.end(), [&auxItems](const String& item) {
 				return auxItems.find(item) != auxItems.end();
 	}) == items.end(), "Items and auxiliary items not disjoint");
 	// }}}

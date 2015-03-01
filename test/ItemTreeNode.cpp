@@ -35,13 +35,13 @@ TEST(ItemTreeNode, ConstructorSetsCount)
 	// Item tree nodes at decomposition node 5: (Count in brackets)
 	// n5_a [1]
 	// n5_b [1]
-	ItemTreeNode::ExtensionPointer n5_a{new ItemTreeNode{{"n5_a"}}};
-	ItemTreeNode::ExtensionPointer n5_b{new ItemTreeNode{{"n5_b"}}};
+	ItemTreeNode::ExtensionPointer n5_a{new ItemTreeNode{{{"n5_a"}}}};
+	ItemTreeNode::ExtensionPointer n5_b{new ItemTreeNode{{{"n5_b"}}}};
 
 	// Item tree nodes at decomposition node 4:
 	// n4_a [2]
 	ItemTreeNode::ExtensionPointer n4_a{new ItemTreeNode{
-		{"n4_a"},
+		{{"n4_a"}},
 		{},
 		{
 			{{5, n5_a}},
@@ -55,17 +55,17 @@ TEST(ItemTreeNode, ConstructorSetsCount)
 	// n3_c [1]
 	// n3_d [1]
 	// n3_e [1]
-	ItemTreeNode::ExtensionPointer n3_a{new ItemTreeNode{{"n3_a"}}};
-	ItemTreeNode::ExtensionPointer n3_b{new ItemTreeNode{{"n3_b"}}};
-	ItemTreeNode::ExtensionPointer n3_c{new ItemTreeNode{{"n3_c"}}};
-	ItemTreeNode::ExtensionPointer n3_d{new ItemTreeNode{{"n3_d"}}};
-	ItemTreeNode::ExtensionPointer n3_e{new ItemTreeNode{{"n3_e"}}};
+	ItemTreeNode::ExtensionPointer n3_a{new ItemTreeNode{{{"n3_a"}}}};
+	ItemTreeNode::ExtensionPointer n3_b{new ItemTreeNode{{{"n3_b"}}}};
+	ItemTreeNode::ExtensionPointer n3_c{new ItemTreeNode{{{"n3_c"}}}};
+	ItemTreeNode::ExtensionPointer n3_d{new ItemTreeNode{{{"n3_d"}}}};
+	ItemTreeNode::ExtensionPointer n3_e{new ItemTreeNode{{{"n3_e"}}}};
 
 	// Item tree nodes at decomposition node 2:
 	// n2_a [3]
 	// n2_b [2]
 	ItemTreeNode::ExtensionPointer n2_a{new ItemTreeNode{
-		{"n2_a"},
+		{{"n2_a"}},
 		{},
 		{
 			{{3, n3_a}},
@@ -74,7 +74,7 @@ TEST(ItemTreeNode, ConstructorSetsCount)
 		}
 	}};
 	ItemTreeNode::ExtensionPointer n2_b{new ItemTreeNode{
-		{"n2_b"},
+		{{"n2_b"}},
 		{},
 		{
 			{{3, n3_d}},
@@ -85,7 +85,7 @@ TEST(ItemTreeNode, ConstructorSetsCount)
 	// Item tree nodes at decomposition node 1:
 	// n1_a [10]
 	ItemTreeNode::ExtensionPointer n1_a{new ItemTreeNode{
-		{"n1_a"},
+		{{"n1_a"}},
 		{},
 		{
 			{{2, n2_a}, {4, n4_a}},
@@ -151,8 +151,8 @@ TEST(ItemTreeNode, MergeUnifiesExtensionPointers)
 	// c and d extend a and b, respectively
 	ItemTreeNode::ExtensionPointer a{new ItemTreeNode};
 	ItemTreeNode::ExtensionPointer b{new ItemTreeNode};
-	ItemTreeNode c{{"foo"}, {}, {{{1, a}}}};
-	ItemTreeNode d{{"foo"}, {}, {{{1, b}}}};
+	ItemTreeNode c{{{"foo"}}, {}, {{{1, a}}}};
+	ItemTreeNode d{{{"foo"}}, {}, {{{1, b}}}};
 
 	c.merge(std::move(d));
 	EXPECT_EQ((ItemTreeNode::ExtensionPointers{{{1, a}}, {{1, b}}}), c.getExtensionPointers());
@@ -160,9 +160,9 @@ TEST(ItemTreeNode, MergeUnifiesExtensionPointers)
 
 TEST(ItemTreeNode, MergeAddsCount)
 {
-	ItemTreeNode a{{"foo"}};
-	ItemTreeNode b{{"foo"}};
-	ItemTreeNode c{{"foo"}};
+	ItemTreeNode a{{{"foo"}}};
+	ItemTreeNode b{{{"foo"}}};
+	ItemTreeNode c{{{"foo"}}};
 
 	EXPECT_EQ(1, a.getCount());
 	a.merge(std::move(b));
@@ -173,8 +173,8 @@ TEST(ItemTreeNode, MergeAddsCount)
 
 TEST(ItemTreeNode, CompareCostInsensitive)
 {
-	ItemTreeNode a{{"a"}};
-	ItemTreeNode b{{"b"}};
+	ItemTreeNode a{{{"a"}}};
+	ItemTreeNode b{{{"b"}}};
 
 	EXPECT_FALSE(a.compareCostInsensitive(a));
 	EXPECT_TRUE (a.compareCostInsensitive(b));

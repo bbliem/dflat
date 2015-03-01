@@ -38,13 +38,13 @@ public:
 
 	struct ItemAtomArguments {
 		unsigned int level;
-		std::string item;
+		String item;
 	};
 	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
 
 	struct AuxItemAtomArguments {
 		unsigned int level;
-		std::string item;
+		String item;
 	};
 	typedef AtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
 

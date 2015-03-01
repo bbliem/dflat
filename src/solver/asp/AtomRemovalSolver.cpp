@@ -57,7 +57,7 @@ ItemTreePtr AtomRemovalSolver::compute()
 				ItemTreeNode::Items certificateItems = childCertificate->getNode()->getItems();
 				certificateItems.erase(removedAtom);
 				ItemTreeNode::Items certificateAuxItems = childCertificate->getNode()->getAuxItems();
-				const ItemTreeNode::Type type = decomposition.isRoot() ? (certificateAuxItems.find("smaller") == certificateAuxItems.end() ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::REJECT) : ItemTreeNode::Type::UNDEFINED;
+				const ItemTreeNode::Type type = decomposition.isRoot() ? (certificateAuxItems.find(String("smaller")) == certificateAuxItems.end() ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::REJECT) : ItemTreeNode::Type::UNDEFINED;
 				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childIndex, childCertificate, type));
 			}
 			result->addChildAndMerge(std::move(candidate));

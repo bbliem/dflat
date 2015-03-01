@@ -75,7 +75,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	for(const BranchNode& node : branchData) {
 		ASP_CHECK(node.extended.size() == childItemTrees.size(), "Not all extension pointer tuples within a branch have arity n, where n is the number of children in the decomposition");
 
-		ASP_CHECK(std::find_if(node.items.begin(), node.items.end(), [&node](const std::string& item) {
+		ASP_CHECK(std::find_if(node.items.begin(), node.items.end(), [&node](const String& item) {
 				   return node.auxItems.find(item) != node.auxItems.end();
 		}) == node.items.end(), "Items and auxiliary items not disjoint");
 	}

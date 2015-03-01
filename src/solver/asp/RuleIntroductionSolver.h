@@ -38,8 +38,8 @@ public:
 private:
 	const Hypergraph::Vertex introducedRule;
 
-	bool isIntroducedRuleSatisfied(const ItemTreeNode::Items& trueAtoms, const ItemTreeNode::Items& falseAtoms) const;
-	bool doesIntroducedRuleDisappear(const ItemTreeNode::Items& trueAtoms) const;
+	bool isIntroducedRuleSatisfied(const Hypergraph::Vertices& trueAtoms, const Hypergraph::Vertices& falseAtoms) const;
+	bool doesIntroducedRuleDisappear(const Hypergraph::Vertices& trueAtoms) const;
 };
 
 }} // namespace solver::asp

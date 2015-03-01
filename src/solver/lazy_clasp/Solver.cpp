@@ -202,7 +202,7 @@ void Solver::workerThreadMain()
 			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
 			for(const auto& nodeIdAndRow : childRows) {
 				for(const auto& item : (*nodeIdAndRow.second)->getNode()->getItems()) {
-					prg.freeze(itemsToVars.at(item), Clasp::value_true);
+					prg.freeze(itemsToVars.at(*item), Clasp::value_true);
 				}
 			}
 		}
@@ -214,7 +214,7 @@ void Solver::workerThreadMain()
 			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
 			for(const auto& nodeIdAndRow : childRows) {
 				for(const auto& item : (*nodeIdAndRow.second)->getNode()->getItems()) {
-					prg.freeze(itemsToVars.at(item), Clasp::value_false);
+					prg.freeze(itemsToVars.at(*item), Clasp::value_false);
 				}
 			}
 		}
@@ -264,7 +264,7 @@ void Solver::aspCallsOnNewRowFromChild(ItemTree::Children::const_iterator newRow
 			for(const auto& nodeAndRow : rowIterators) {
 				for(const auto& item : (*nodeAndRow.second)->getNode()->getItems()) {
 					//				std::cout << "W " << std::this_thread::get_id() << " [" << decomposition.getNode().getGlobalId() << "]: Setting " << item << " to true\n";
-					prg.freeze(itemsToVars.at(item), Clasp::value_true);
+					prg.freeze(itemsToVars.at(*item), Clasp::value_true);
 				}
 			}
 		}
@@ -277,7 +277,7 @@ void Solver::aspCallsOnNewRowFromChild(ItemTree::Children::const_iterator newRow
 			for(const auto& nodeAndRow : rowIterators) {
 				for(const auto& item : (*nodeAndRow.second)->getNode()->getItems()) {
 					//				std::cout << "W " << std::this_thread::get_id() << " [" << decomposition.getNode().getGlobalId() << "]: Setting " << item << " to false\n";
-					prg.freeze(itemsToVars.at(item), Clasp::value_false);
+					prg.freeze(itemsToVars.at(*item), Clasp::value_false);
 				}
 			}
 		}

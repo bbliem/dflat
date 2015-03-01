@@ -42,16 +42,16 @@ struct ItemTreeTest : public ::testing::Test
 	// a
 	// |- b
 	// \- c
-	ItemTreePtr t1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}}}}};
+	ItemTreePtr t1{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"a"}}}}}};
 
 	// Item tree 2: Same as 1.
-	ItemTreePtr t2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}}}}};
+	ItemTreePtr t2{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"a"}}}}}};
 
 	// Item tree 3: (undefined types)
 	// a
 	// |- b
 	// \- d
-	ItemTreePtr t3{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}}}}};
+	ItemTreePtr t3{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"a"}}}}}};
 
 	// Item tree 4: (empty item sets)
 	// or
@@ -117,33 +117,33 @@ struct ItemTreeTest : public ::testing::Test
 	// a or
 	// |- undef b 2
 	// \- undef c 3
-	ItemTreePtr t13{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+	ItemTreePtr t13{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"a"}}, {}, {{}}, ItemTreeNode::Type::OR}}}};
 
 	// Item tree 14: Same as 13.
-	ItemTreePtr t14{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+	ItemTreePtr t14{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"a"}}, {}, {{}}, ItemTreeNode::Type::OR}}}};
 
 	// Item tree 15
 	// a or
 	// |- undef b 1
 	// \- undef c 2
-	ItemTreePtr t15{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+	ItemTreePtr t15{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"a"}}, {}, {{}}, ItemTreeNode::Type::OR}}}};
 
 	// Item tree 16
 	// a or
 	// |- undef b 1
 	// \- undef c 3
-	ItemTreePtr t16{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+	ItemTreePtr t16{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"a"}}, {}, {{}}, ItemTreeNode::Type::OR}}}};
 
 	// Item tree 17
 	// a or
 	// |- undef b 2
 	// \- undef c 1
-	ItemTreePtr t17{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+	ItemTreePtr t17{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"a"}}, {}, {{}}, ItemTreeNode::Type::OR}}}};
 
 	// Item tree 18
 	// a or
 	// \- undef b 0
-	ItemTreePtr t18{new ItemTree{ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::OR}}}};
+	ItemTreePtr t18{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"a"}}, {}, {{}}, ItemTreeNode::Type::OR}}}};
 
 	ItemTreeTest()
 	{
@@ -151,18 +151,18 @@ struct ItemTreeTest : public ::testing::Test
 		cheapNode2->getNode()->setCost(3);
 		expensiveNode->getNode()->setCost(4);
 
-		ItemTreePtr t1_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}}}}};
-		ItemTreePtr t1_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}}}}};
+		ItemTreePtr t1_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"b"}}}}}};
+		ItemTreePtr t1_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"c"}}}}}};
 		t1->addChildAndMerge(std::move(t1_1));
 		t1->addChildAndMerge(std::move(t1_2));
 
-		ItemTreePtr t2_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}}}}};
-		ItemTreePtr t2_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}}}}};
+		ItemTreePtr t2_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"b"}}}}}};
+		ItemTreePtr t2_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"c"}}}}}};
 		t2->addChildAndMerge(std::move(t2_1));
 		t2->addChildAndMerge(std::move(t2_2));
 
-		ItemTreePtr t3_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}}}}};
-		ItemTreePtr t3_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"d"}}}}};
+		ItemTreePtr t3_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"b"}}}}}};
+		ItemTreePtr t3_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"d"}}}}}};
 		t3->addChildAndMerge(std::move(t3_1));
 		t3->addChildAndMerge(std::move(t3_2));
 
@@ -223,42 +223,42 @@ struct ItemTreeTest : public ::testing::Test
 		t12->addChildAndMerge(std::move(t12_1));
 		t12->addChildAndMerge(std::move(t12_2));
 
-		ItemTreePtr t13_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
-		ItemTreePtr t13_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t13_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"b"}}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t13_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"c"}}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
 		t13_1->getNode()->setCost(2);
 		t13_2->getNode()->setCost(3);
 		t13->addChildAndMerge(std::move(t13_1));
 		t13->addChildAndMerge(std::move(t13_2));
 
-		ItemTreePtr t14_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
-		ItemTreePtr t14_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t14_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"b"}}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t14_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"c"}}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
 		t14_1->getNode()->setCost(2);
 		t14_2->getNode()->setCost(3);
 		t14->addChildAndMerge(std::move(t14_1));
 		t14->addChildAndMerge(std::move(t14_2));
 
-		ItemTreePtr t15_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
-		ItemTreePtr t15_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t15_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"b"}}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t15_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"c"}}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
 		t15_1->getNode()->setCost(1);
 		t15_2->getNode()->setCost(2);
 		t15->addChildAndMerge(std::move(t15_1));
 		t15->addChildAndMerge(std::move(t15_2));
 
-		ItemTreePtr t16_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
-		ItemTreePtr t16_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t16_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"b"}}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t16_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"c"}}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
 		t16_1->getNode()->setCost(1);
 		t16_2->getNode()->setCost(3);
 		t16->addChildAndMerge(std::move(t16_1));
 		t16->addChildAndMerge(std::move(t16_2));
 
-		ItemTreePtr t17_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
-		ItemTreePtr t17_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{"c"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t17_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"b"}}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t17_2{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"c"}}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
 		t17_1->getNode()->setCost(2);
 		t17_2->getNode()->setCost(1);
 		t17->addChildAndMerge(std::move(t17_1));
 		t17->addChildAndMerge(std::move(t17_2));
 
-		ItemTreePtr t18_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
+		ItemTreePtr t18_1{new ItemTree{ItemTree::Node{new ItemTreeNode{{{"b"}}, {}, {{}}, ItemTreeNode::Type::UNDEFINED}}}};
 		t18_1->getNode()->setCost(0);
 		t18->addChildAndMerge(std::move(t18_1));
 	}

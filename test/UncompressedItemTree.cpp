@@ -27,7 +27,7 @@ TEST(UncompressedItemTreeTest, AddBranch)
 {
 	UncompressedItemTree tree(ItemTree::Node{new ItemTreeNode});
 	EXPECT_EQ(0, tree.getChildren().size());
-	UncompressedItemTree::Branch branch = { ItemTree::Node{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::REJECT}} };
+	UncompressedItemTree::Branch branch = { ItemTree::Node{new ItemTreeNode{{{"a"}}, {}, {{}}, ItemTreeNode::Type::REJECT}} };
 	tree.addBranch(branch.begin(), branch.end());
 	EXPECT_EQ(1, tree.getChildren().size());
 }
@@ -35,9 +35,9 @@ TEST(UncompressedItemTreeTest, AddBranch)
 TEST(UncompressedItemTreeTest, CompressPropagatesCostNonRejecting)
 {
 	UncompressedItemTree tree(ItemTree::Node{new ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::OR}});
-	ItemTree::Node undefNode{new ItemTreeNode{{"b"}, {}, {{}}}};
+	ItemTree::Node undefNode{new ItemTreeNode{{{"b"}}, {}, {{}}}};
 	undefNode->setCost(4);
-	ItemTree::Node rejectNode{new ItemTreeNode{{"a"}, {}, {{}}, ItemTreeNode::Type::REJECT}};
+	ItemTree::Node rejectNode{new ItemTreeNode{{{"a"}}, {}, {{}}, ItemTreeNode::Type::REJECT}};
 	// rejectNode should have ("almost") infinite cost
 	const auto rejectCost = rejectNode->getCost();
 	ASSERT_GT(rejectCost, undefNode->getCost());
@@ -55,9 +55,9 @@ TEST(UncompressedItemTreeTest, CompressPropagatesCostNonRejecting)
 TEST(UncompressedItemTreeTest, CompressPropagatesCostDefinedNonRejecting)
 {
 	UncompressedItemTree tree(ItemTree::Node{new ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::OR}});
-	ItemTree::Node cheapNode{new ItemTreeNode{{"a"}, {}, {{}}}};
+	ItemTree::Node cheapNode{new ItemTreeNode{{{"a"}}, {}, {{}}}};
 	cheapNode->setCost(3);
-	ItemTree::Node expensiveNode{new ItemTreeNode{{"b"}, {}, {{}}, ItemTreeNode::Type::ACCEPT}};
+	ItemTree::Node expensiveNode{new ItemTreeNode{{{"b"}}, {}, {{}}, ItemTreeNode::Type::ACCEPT}};
 	expensiveNode->setCost(4);
 	UncompressedItemTree::Branch branch1 = { cheapNode };
 	tree.addBranch(branch1.begin(), branch1.end());

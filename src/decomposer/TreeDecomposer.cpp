@@ -50,12 +50,12 @@ namespace {
 			sharp::HyperedgeSet hyperedges;
 
 			for(auto v : instance.getVertices())
-				vertices.insert(storeVertexName(v));
+				vertices.insert(storeVertexName(*v));
 
 			for(auto e : instance.getEdges()) {
 				sharp::VertexSet vs;
 				for(auto v : e)
-					vs.insert(getVertexId(v));
+					vs.insert(getVertexId(*v));
 				hyperedges.insert(vs);
 			}
 

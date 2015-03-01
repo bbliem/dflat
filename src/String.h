@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2014, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -17,22 +17,30 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#pragma once
 //}}}
-#include <gtest/gtest.h>
+#include <string>
+#include <unordered_set>
 
-#include "DecompositionNode.h"
-
-TEST(DecompositionNode, ReturnsBag)
+// Flyweight string
+class String
 {
-	Hypergraph::Vertices bag = {{"a"}, {"b"}};
-	EXPECT_EQ(bag, DecompositionNode(bag).getBag());
-}
+public:
+	String(std::string&& content);
+	String(const std::string& content);
 
-TEST(DecompositionNode, HasUniqueGlobalId)
-{
-	DecompositionNode n1 = {{}};
-	DecompositionNode n2 = {{}};
+	const std::string& operator*() const { return *it; }
 
-	EXPECT_TRUE(n1.getGlobalId() != n2.getGlobalId())
-		<< "Global IDs of n1 and n2 are not different: " << n1.getGlobalId() << " and " << n2.getGlobalId();
-}
+	bool operator<(const String& rhs) const;
+	bool operator>(const String& rhs) const;
+	bool operator==(const String& rhs) const;
+
+private:
+	typedef std::unordered_set<std::string> Values;
+	Values::const_iterator it;
+
+	static Values values;
+};
+
+std::ostream& operator<<(std::ostream& os, const String& str);
