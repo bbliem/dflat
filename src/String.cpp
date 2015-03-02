@@ -32,21 +32,6 @@ String::String(const std::string& content)
 {
 }
 
-bool String::operator<(const String& rhs) const
-{
-	return *it < *rhs.it;
-}
-
-bool String::operator>(const String& rhs) const
-{
-	return *it > *rhs.it;
-}
-
-bool String::operator==(const String& rhs) const
-{
-	return *it == *rhs.it;
-}
-
 std::ostream& operator<<(std::ostream& os, const String& str)
 {
 	return os << *str;

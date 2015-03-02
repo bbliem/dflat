@@ -32,9 +32,9 @@ public:
 
 	const std::string& operator*() const { return *it; }
 
-	bool operator<(const String& rhs) const;
-	bool operator>(const String& rhs) const;
-	bool operator==(const String& rhs) const;
+	bool operator<(const String& rhs) const { return *it < *rhs.it; }
+	bool operator>(const String& rhs) const {return *it > *rhs.it; }
+	bool operator==(const String& rhs) const { return *it == *rhs.it; }
 
 private:
 	typedef std::unordered_set<std::string> Values;

@@ -6,7 +6,7 @@ add_definitions("-Wall -pedantic -std=c++11")
 add_definitions("-Wno-zero-length-array") # XXX Workaround because clasp generates these warnings
 
 set(CMAKE_CXX_FLAGS_GPROF "-O3 -g -pg")
-set(CMAKE_CXX_FLAGS_PROFILER "-O0 -g")
+set(CMAKE_CXX_FLAGS_PROFILER "-O3 -g")
 # If there is voodoo in liblasp's pod_vector.h, it might be that you compiled it with -D_DEBUG. Consider compiling D-FLAT with this flag, too (uncomment next line). Otherwise the size of our Clasp::PodVector is different than when we built clasp's debug release.
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 

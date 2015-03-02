@@ -24,6 +24,22 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "ItemTreeNode.h"
 #include "ExtensionIterator.h"
 
+namespace {
+	// Returns a negative integer if lhs < rhs, a positive integer if rhs > lhs, 0 if lhs == rhs
+	inline int compareSets(const ItemTreeNode::Items& lhs, const ItemTreeNode::Items& rhs)
+	{
+		const size_t smallestSize = std::min(lhs.size(), rhs.size());
+		size_t i = 0;
+		for(auto it1 = lhs.begin(), it2 = rhs.begin(); i < smallestSize; ++it1, ++it2, ++i) {
+			if(*it1 < *it2)
+				return -1;
+			else if(*it1 > *it2)
+				return 1;
+		}
+		return lhs.size() - rhs.size();
+	}
+}
+
 ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& extensionPointers, Type type)
 	: items(std::move(items))
 	, auxItems(std::move(auxItems))
@@ -184,8 +200,14 @@ void ItemTreeNode::merge(ItemTreeNode&& other)
 
 bool ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
 {
-	// XXX Check that this is not less efficient than a long boolean expression
-	return std::tie(items, type, hasAcceptingChild, hasRejectingChild, auxItems) < std::tie(other.items, other.type, other.hasAcceptingChild, other.hasRejectingChild, other.auxItems);
+	// Experiments showed this to be less efficient than a long boolean expression :(
+	//return std::tie(items, type, hasAcceptingChild, hasRejectingChild, auxItems) < std::tie(other.items, other.type, other.hasAcceptingChild, other.hasRejectingChild, other.auxItems);
+	const int c = compareSets(items, other.items);
+	return c < 0 || (c == 0 &&
+	       (type < other.type || (type == other.type &&
+	        (hasAcceptingChild < other.hasAcceptingChild || (hasAcceptingChild == other.hasAcceptingChild &&
+	         (hasRejectingChild < other.hasRejectingChild || (hasRejectingChild == other.hasRejectingChild &&
+	          auxItems < other.auxItems)))))));
 }
 
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
