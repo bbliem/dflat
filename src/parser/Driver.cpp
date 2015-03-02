@@ -62,8 +62,9 @@ void Driver::processFact(Hypergraph& hypergraph, const std::string& predicate, c
 
 		if(arguments) {
 			for(const auto* term : arguments->getTerms()) {
-				hypergraph.addVertex(*term);
-				hyperedge.push_back(*term);
+				String s{std::string(*term)};
+				hypergraph.addVertex(s);
+				hyperedge.push_back(s);
 			}
 		}
 

@@ -28,7 +28,6 @@ class String
 {
 public:
 	String(std::string&& content);
-	String(const std::string& content);
 
 	const std::string& operator*() const { return *it; }
 

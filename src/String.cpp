@@ -27,11 +27,6 @@ String::String(std::string&& content)
 {
 }
 
-String::String(const std::string& content)
-	: it(values.emplace(content).first)
-{
-}
-
 std::ostream& operator<<(std::ostream& os, const String& str)
 {
 	return os << *str;
