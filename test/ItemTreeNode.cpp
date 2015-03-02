@@ -176,20 +176,20 @@ TEST(ItemTreeNode, CompareCostInsensitive)
 	ItemTreeNode a{{{"a"}}};
 	ItemTreeNode b{{{"b"}}};
 
-	EXPECT_FALSE(a.compareCostInsensitive(a));
-	EXPECT_TRUE (a.compareCostInsensitive(b));
-	EXPECT_FALSE(b.compareCostInsensitive(a));
+	EXPECT_EQ(0, a.compareCostInsensitive(a));
+	EXPECT_NE(0, a.compareCostInsensitive(b));
+	EXPECT_NE(0, b.compareCostInsensitive(a));
 
 	ItemTreeNode aExpensive = a;
 	a.setCost(3);
 	aExpensive.setCost(5);
 	a.setCurrentCost(3);
 	aExpensive.setCurrentCost(5);
-	EXPECT_FALSE(a.compareCostInsensitive(aExpensive));
-	EXPECT_FALSE(aExpensive.compareCostInsensitive(a));
+	EXPECT_EQ(0, a.compareCostInsensitive(aExpensive));
+	EXPECT_EQ(0, aExpensive.compareCostInsensitive(a));
 
 	a.setHasAcceptingChild();
-	EXPECT_TRUE(aExpensive.compareCostInsensitive(a));
+	EXPECT_NE(0, aExpensive.compareCostInsensitive(a));
 	// Actually we should do similar checks for all other things that change the outcome of the comparison, too...
 }
 

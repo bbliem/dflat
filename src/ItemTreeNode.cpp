@@ -198,16 +198,28 @@ void ItemTreeNode::merge(ItemTreeNode&& other)
 	count += other.count;
 }
 
-bool ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
+int ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
 {
-	// Experiments showed this to be less efficient than a long boolean expression :(
-	//return std::tie(items, type, hasAcceptingChild, hasRejectingChild, auxItems) < std::tie(other.items, other.type, other.hasAcceptingChild, other.hasRejectingChild, other.auxItems);
 	const int c = compareSets(items, other.items);
-	return c < 0 || (c == 0 &&
-	       (type < other.type || (type == other.type &&
-	        (hasAcceptingChild < other.hasAcceptingChild || (hasAcceptingChild == other.hasAcceptingChild &&
-	         (hasRejectingChild < other.hasRejectingChild || (hasRejectingChild == other.hasRejectingChild &&
-	          auxItems < other.auxItems)))))));
+	if(c != 0)
+		return c;
+
+	if(type < other.type)
+		return -1;
+	else if(type > other.type)
+		return 1;
+
+	if(hasAcceptingChild < other.hasAcceptingChild)
+		return -1;
+	else if(hasAcceptingChild > other.hasAcceptingChild)
+		return 1;
+
+	if(hasRejectingChild < other.hasRejectingChild)
+		return -1;
+	else if(hasRejectingChild > other.hasRejectingChild)
+		return 1;
+
+	return compareSets(auxItems, other.auxItems);
 }
 
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)

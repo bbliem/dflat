@@ -103,9 +103,10 @@ public:
 	// "other" will subsequently be thrown away and only "this" will be retained.
 	void merge(ItemTreeNode&& other);
 
-	// Returns true if this is "smaller" than other, without considering costs.
+	// Returns a negative/positive integer if this is "less"/"greater" than other, without considering costs.
+	// Returns zero if this is equal to other, without considering costs.
 	// Only considers items, type, hasAcceptingChild, hasRejectingChild and auxItems.
-	bool compareCostInsensitive(const ItemTreeNode& other) const;
+	int compareCostInsensitive(const ItemTreeNode& other) const;
 
 	// Print this node (no newlines)
 	friend std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node);

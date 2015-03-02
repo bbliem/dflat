@@ -28,9 +28,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
-	return lhs->getNode()->compareCostInsensitive(*rhs->getNode()) ||
-		(!rhs->getNode()->compareCostInsensitive(*lhs->getNode()) &&
-		 (std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this) ||
+	const int c = lhs->getNode()->compareCostInsensitive(*rhs->getNode());
+	return c < 0 || (c == 0 &&
+	     (std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this) ||
 		  (!std::lexicographical_compare(rhs->getChildren().begin(), rhs->getChildren().end(), lhs->getChildren().begin(), lhs->getChildren().end(), *this) &&
 		   lhs->costDifferenceSignIncrease(rhs))));
 }

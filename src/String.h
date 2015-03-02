@@ -31,6 +31,7 @@ public:
 
 	const std::string& operator*() const { return *it; }
 
+	// XXX This compares strings, which might not be necessary
 	bool operator<(const String& rhs) const { return *it < *rhs.it; }
 	bool operator>(const String& rhs) const {return *it > *rhs.it; }
 	bool operator==(const String& rhs) const { return *it == *rhs.it; }
