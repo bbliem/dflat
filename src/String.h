@@ -21,7 +21,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 //}}}
 #include <string>
-#include <unordered_set>
+#include <unordered_map>
+#include <vector>
 
 // Flyweight string
 class String
@@ -29,18 +30,19 @@ class String
 public:
 	String(std::string&& content);
 
-	const std::string& operator*() const { return *it; }
+	const std::string& operator*() const { return *strings[id]; }
 
-	// XXX This compares strings, which might not be necessary
-	bool operator<(const String& rhs) const { return *it < *rhs.it; }
-	bool operator>(const String& rhs) const {return *it > *rhs.it; }
-	bool operator==(const String& rhs) const { return *it == *rhs.it; }
+	bool operator<(const String& rhs) const { return id < rhs.id; }
+	bool operator>(const String& rhs) const {return id > rhs.id; }
+	bool operator==(const String& rhs) const { return id == rhs.id; }
 
 private:
-	typedef std::unordered_set<std::string> Values;
-	Values::const_iterator it;
+	typedef unsigned int Id;
+	typedef std::unordered_map<std::string, Id> StringToId;
+	Id id;
 
-	static Values values;
+	static StringToId stringToId;
+	static std::vector<const std::string*> strings;
 };
 
 std::ostream& operator<<(std::ostream& os, const String& str);

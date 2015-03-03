@@ -20,11 +20,15 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include "String.h"
 
-String::Values String::values;
+String::StringToId String::stringToId;
+std::vector<const std::string*> String::strings;
 
 String::String(std::string&& content)
-	: it(values.insert(std::move(content)).first)
 {
+	auto result = stringToId.emplace(std::move(content), strings.size());
+	id = result.first->second;
+	if(result.second)
+		strings.push_back(&result.first->first);
 }
 
 std::ostream& operator<<(std::ostream& os, const String& str)
