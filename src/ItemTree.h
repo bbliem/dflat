@@ -94,13 +94,6 @@ public:
 	// Print the tree that would result from recursively extending all nodes
 	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool printCount = true, bool root = true, bool lastChild = false, const std::string& indent = "", const ExtensionIterator* parent = nullptr) const;
 
-private:
-	friend struct ItemTreePtrComparator;
-
-	// Recursively unify extension pointers of this itree with the other
-	// one's given that the item sets are all equal.
-	void merge(ItemTree&& other);
-
 	// The children of each item tree node are considered ordered.
 	// Let A and B be item trees having the same item sets.
 	// In ItemTreePtrComparator, A < B holds if there are pairs (a,b) and
@@ -114,6 +107,11 @@ private:
 	// This method returns true for *this and other having equal item sets if
 	// *this < other.
 	bool costDifferenceSignIncrease(const ItemTreePtr& other) const;
+
+private:
+	// Recursively unify extension pointers of this itree with the other
+	// one's given that the item sets are all equal.
+	void merge(ItemTree&& other);
 
 	std::vector<const ItemTree*> childrenVector; // for random access via getChild()
 

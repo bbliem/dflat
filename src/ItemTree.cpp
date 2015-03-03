@@ -26,13 +26,47 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #endif
 
+namespace {
+	int compareRecursively(const ItemTreePtr& lhs, const ItemTreePtr& rhs);
+
+	// Three-way lexicographical comparison between children of two item tree nodes
+	template <typename It>
+	int compareChildrenRecursively(It first1, It last1, It first2, It last2)
+	{
+		while(first1 != last1) {
+			if(first2 == last2)
+				return 1;
+			const int cmp = compareRecursively(*first1, *first2);
+			if(cmp != 0)
+				return cmp;
+			++first1;
+			++first2;
+		}
+		return first2 == last2 ? 0 : -1;
+	}
+
+	// Recursive three-way comparison between two item tree nodes
+	int compareRecursively(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
+	{
+		const int costComparison = lhs->getNode()->compareCostInsensitive(*rhs->getNode());
+		if(costComparison != 0)
+			return costComparison;
+
+		const int childrenComparison = compareChildrenRecursively(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end());
+		if(childrenComparison != 0)
+			return childrenComparison;
+
+		if(lhs->costDifferenceSignIncrease(rhs))
+			return -1;
+		if(rhs->costDifferenceSignIncrease(lhs))
+			return 1;
+		return 0;
+	}
+}
+
 bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 {
-	const int c = lhs->getNode()->compareCostInsensitive(*rhs->getNode());
-	return c < 0 || (c == 0 &&
-	     (std::lexicographical_compare(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end(), *this) ||
-		  (!std::lexicographical_compare(rhs->getChildren().begin(), rhs->getChildren().end(), lhs->getChildren().begin(), lhs->getChildren().end(), *this) &&
-		   lhs->costDifferenceSignIncrease(rhs))));
+	return compareRecursively(lhs, rhs) < 0;
 }
 
 ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree)
