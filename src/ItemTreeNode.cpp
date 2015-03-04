@@ -74,44 +74,9 @@ ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& 
 	currentCost = 0;
 }
 
-const ItemTreeNode::Items& ItemTreeNode::getItems() const
-{
-	return items;
-}
-
-const ItemTreeNode::Items& ItemTreeNode::getAuxItems() const
-{
-	return auxItems;
-}
-
-const ItemTreeNode::ExtensionPointers& ItemTreeNode::getExtensionPointers() const
-{
-	return extensionPointers;
-}
-
-void ItemTreeNode::clearExtensionPointers()
-{
-	extensionPointers.clear();
-}
-
-const ItemTreeNode* ItemTreeNode::getParent() const
-{
-	return parent;
-}
-
 void ItemTreeNode::setParent(const ItemTreeNode* parent)
 {
 	this->parent = parent;
-}
-
-const mpz_class& ItemTreeNode::getCount() const
-{
-	return count;
-}
-
-long ItemTreeNode::getCost() const
-{
-	return cost;
 }
 
 void ItemTreeNode::setCost(long cost)
@@ -123,34 +88,14 @@ void ItemTreeNode::setCost(long cost)
 	this->cost = cost;
 }
 
-long ItemTreeNode::getCurrentCost() const
-{
-	return currentCost;
-}
-
 void ItemTreeNode::setCurrentCost(long currentCost)
 {
 	this->currentCost = currentCost;
 }
 
-ItemTreeNode::Type ItemTreeNode::getType() const
-{
-	return type;
-}
-
-bool ItemTreeNode::getHasAcceptingChild() const
-{
-	return hasAcceptingChild;
-}
-
 void ItemTreeNode::setHasAcceptingChild()
 {
 	hasAcceptingChild = true;
-}
-
-bool ItemTreeNode::getHasRejectingChild() const
-{
-	return hasRejectingChild;
 }
 
 void ItemTreeNode::setHasRejectingChild()

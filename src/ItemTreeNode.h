@@ -64,32 +64,32 @@ public:
 	ItemTreeNode(Items&& items = {}, Items&& auxItems = {}, ExtensionPointers&& extensionPointers = {{}}, Type type = Type::UNDEFINED);
 
 	// Returns the items of this node (but not the auxiliary items, see below).
-	const Items& getItems() const;
+	const Items& getItems() const { return items; }
 
 	// Returns the items that have been declared as auxiliary.
 	// These items are disregarded in the default join.
-	const Items& getAuxItems() const;
+	const Items& getAuxItems() const { return auxItems; }
 
-	const ExtensionPointers& getExtensionPointers() const;
-	void clearExtensionPointers();
+	const ExtensionPointers& getExtensionPointers() const { return extensionPointers; }
+	void clearExtensionPointers() { extensionPointers.clear(); }
 
-	const ItemTreeNode* getParent() const;
+	const ItemTreeNode* getParent() const { return parent; }
 	void setParent(const ItemTreeNode*);
 
-	const mpz_class& getCount() const;
+	const mpz_class& getCount() const { return count; }
 
-	long getCost() const;
+	long getCost() const { return cost; }
 	// Throws a runtime_error if this is a REJECT node.
 	void setCost(long cost);
 
-	long getCurrentCost() const;
+	long getCurrentCost() const { return currentCost; }
 	void setCurrentCost(long currentCost);
 
-	Type getType() const;
+	Type getType() const { return type; }
 
-	bool getHasAcceptingChild() const;
+	bool getHasAcceptingChild() const { return hasAcceptingChild; }
 	void setHasAcceptingChild();
-	bool getHasRejectingChild() const;
+	bool getHasRejectingChild() const { return hasRejectingChild; }
 	void setHasRejectingChild();
 
 	// Calculate the number of extensions of this node given an iterator pointing to an extension of this node's parent.
