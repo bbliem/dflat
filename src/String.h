@@ -36,7 +36,7 @@ public:
 	bool operator>(const String& rhs) const {return id > rhs.id; }
 	bool operator==(const String& rhs) const { return id == rhs.id; }
 
-	// Delete all strings
+	// Deletes all strings. Invalidates all String objects.
 	static void clear();
 
 private:
