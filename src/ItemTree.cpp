@@ -48,9 +48,9 @@ namespace {
 	// Recursive three-way comparison between two item tree nodes
 	int compareRecursively(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
 	{
-		const int costComparison = lhs->getNode()->compareCostInsensitive(*rhs->getNode());
-		if(costComparison != 0)
-			return costComparison;
+		const int nodeComparison = lhs->getNode()->compareCostInsensitive(*rhs->getNode());
+		if(nodeComparison != 0)
+			return nodeComparison;
 
 		const int childrenComparison = compareChildrenRecursively(lhs->getChildren().begin(), lhs->getChildren().end(), rhs->getChildren().begin(), rhs->getChildren().end());
 		if(childrenComparison != 0)
