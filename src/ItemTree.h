@@ -48,16 +48,10 @@ public:
 	// The parent of subtree->node must be undefined and is set to this->node.
 	Children::const_iterator addChildAndMerge(ChildPtr&& subtree);
 
-	// Use this after calling prepareChildrenRandomAccess() to get the i'th
-	// child of this node.
-	const ItemTree& getChild(size_t i) const;
-
 	// 1. Prunes children with UNDEFINED type recursively if pruneUndefined is
 	// true.
 	// 2. Calls evaluate(pruneRejecting).
 	// 3. Calls clearUnneededExtensionPointers(app).
-	// 4. Enables random access to child nodes via getChild(). This is done
-	// recursively.
 	// Returns false iff a) pruneUndefined is true and this node evaluates to
 	// UNDEFINED, or b) it evaluates to REJECT.
 	bool finalize(const Application& app, bool pruneUndefined, bool pruneRejecting);
@@ -89,8 +83,6 @@ public:
 	// including) the materialization depth plus one.
 	void clearUnneededExtensionPointers(const Application& app, unsigned int currentDepth = 0);
 
-	void prepareChildrenRandomAccess();
-
 	// Print the tree that would result from recursively extending all nodes
 	void printExtensions(std::ostream& os, unsigned int maxDepth = std::numeric_limits<unsigned int>::max(), bool printCount = true, bool root = true, bool lastChild = false, const std::string& indent = "", const ExtensionIterator* parent = nullptr) const;
 
@@ -112,8 +104,6 @@ private:
 	// Recursively unify extension pointers of this itree with the other
 	// one's given that the item sets are all equal.
 	void merge(ItemTree&& other);
-
-	std::vector<const ItemTree*> childrenVector; // for random access via getChild()
 
 #ifndef NDEBUG
 	void printDebug() const;

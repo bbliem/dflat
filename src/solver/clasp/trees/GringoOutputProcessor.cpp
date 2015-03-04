@@ -125,7 +125,9 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 			unsigned int childNumber = std::stoi(std::string(extended, lastUnderscorePos+1, underscorePos));
 			ASP_CHECK(childNumber < current->getChildren().size(), "Extension pointer refers to nonexistent item tree node");
 
-			current = &current->getChild(childNumber);
+			ItemTree::Children::const_iterator childIt = current->getChildren().begin();
+			std::advance(childIt, childNumber);
+			current = childIt->get();
 		}
 		// XXX Instead of the previous loop which runs through all levels, it could be beneficial to assign a globally unique ID to each item tree node and then use a lookup-table. (The globally unique ID could be either an integer, as is already the case in the Decomposition class, but it could also be a string like the one we are already using.)
 

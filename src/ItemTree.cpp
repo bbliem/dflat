@@ -104,16 +104,7 @@ bool ItemTree::finalize(const Application& app, bool pruneUndef, bool pruneRejec
 
 	clearUnneededExtensionPointers(app);
 
-	prepareChildrenRandomAccess();
-
 	return true;
-}
-
-const ItemTree& ItemTree::getChild(size_t i) const
-{
-	assert(childrenVector.size() == children.size());
-	assert(i < childrenVector.size());
-	return *childrenVector[i];
 }
 
 void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool printCount, bool root, bool lastChild, const std::string& indent, const ExtensionIterator* parent) const
@@ -397,17 +388,6 @@ void ItemTree::merge(ItemTree&& other)
 		assert(it != other.children.end());
 		subtree->merge(std::move(**it));
 		++it;
-	}
-}
-
-void ItemTree::prepareChildrenRandomAccess()
-{
-	// Fill children vector for random access to children
-	assert(childrenVector.empty());
-	childrenVector.reserve(children.size());
-	for(const auto& child : children) {
-		childrenVector.push_back(child.get());
-		child->prepareChildrenRandomAccess();
 	}
 }
 
