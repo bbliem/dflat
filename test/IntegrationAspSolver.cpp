@@ -51,6 +51,7 @@ namespace {
 		Application app("test");
 		const char* argv[] = {"-s", "asp", "-e", "atom", "-e", "rule", "-e", "head", "-e", "pos", "-e", "neg", "-n", "normalized", "--seed", "0", "--output", "quiet", "--depth", "1"};
 		app.run(20, argv);
+		String::clear();
 		return newCout.str();
 	}
 }
@@ -185,7 +186,7 @@ TEST(IntegrationAspSolver, TestProgram4)
 
 	EXPECT_EQ("Solutions:\n"
 	          "\n"
-	          "┣━ [1] a c constraint d r0 r1 r2 r3 r4 \n"
-	          "┗━ [1] a constraint e r0 r1 r2 r3 r4 \n",
+	          "┣━ [1] a c d r0 r1 r2 r3 r4 constraint \n"
+	          "┗━ [1] a e r0 r1 r2 r3 r4 constraint \n",
 	          result);
 }

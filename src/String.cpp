@@ -31,6 +31,12 @@ String::String(std::string&& content)
 		strings.push_back(&result.first->first);
 }
 
+void String::clear()
+{
+	strings.clear();
+	stringToId.clear();
+}
+
 std::ostream& operator<<(std::ostream& os, const String& str)
 {
 	return os << *str;

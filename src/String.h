@@ -36,6 +36,9 @@ public:
 	bool operator>(const String& rhs) const {return id > rhs.id; }
 	bool operator==(const String& rhs) const { return id == rhs.id; }
 
+	// Delete all strings
+	static void clear();
+
 private:
 	typedef unsigned int Id;
 	typedef std::unordered_map<std::string, Id> StringToId;
