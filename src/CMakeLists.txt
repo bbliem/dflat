@@ -116,6 +116,7 @@ add_library(dflat-objects
 	UncompressedItemTree.cpp
 	ExtensionIterator.cpp
 	Application.cpp
+	tinyxml2.cpp
 	)
 add_executable(dflat main.cpp)
 
