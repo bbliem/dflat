@@ -17,24 +17,27 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#pragma once
 //}}}
-#include "Dummy.h"
-#include "../Decomposition.h"
-#include "../Application.h"
-#include "../Printer.h"
+#include "../Decomposer.h"
+#include "../options/SingleValueOption.h"
 
 namespace decomposer {
 
-Dummy::Dummy(Application& app, bool newDefault)
-	: Decomposer(app, "dummy", "Do not decompose", newDefault)
+class GraphMl : public Decomposer
 {
-}
+public:
+	GraphMl(Application& app, bool newDefault = false);
 
-DecompositionPtr Dummy::decompose(const Hypergraph& instance) const
-{
-	DecompositionPtr result(new Decomposition(instance.getVertices(), app.getSolverFactory()));
-	result->setRoot();
-	return result;
-}
+	virtual void select() override;
+
+	virtual DecompositionPtr decompose(const Hypergraph& instance) const override;
+
+private:
+	static const std::string OPTION_SECTION;
+
+	options::SingleValueOption optFile;
+};
 
 } // namespace decomposer

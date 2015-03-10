@@ -81,6 +81,7 @@ add_library(dflat-objects
 	Decomposer.cpp
 	decomposer/Dummy.cpp
 	decomposer/TreeDecomposer.cpp
+	decomposer/GraphMl.cpp
 	SolverFactory.cpp
 	Solver.cpp
 	solver/dummy/SolverFactory.cpp

@@ -35,6 +35,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "decomposer/Dummy.h"
 #include "decomposer/TreeDecomposer.h"
+#include "decomposer/GraphMl.h"
 
 #include "solver/dummy/SolverFactory.h"
 #include "solver/clasp/SolverFactory.h"
@@ -116,6 +117,7 @@ int Application::run(int argc, const char* const* const argv)
 	opts.addOption(optDecomposer, MODULE_SECTION);
 	decomposer::Dummy dummyDecomposer(*this);
 	decomposer::TreeDecomposer treeDecomposer(*this, true);
+	decomposer::GraphMl graphMlDecomposer(*this);
 
 	opts.addOption(optSolver, MODULE_SECTION);
 	solver::dummy::SolverFactory dummySolverFactory(*this);
