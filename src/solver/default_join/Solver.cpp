@@ -48,8 +48,8 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 	ItemTreeNode::Items items = left->getNode()->getItems();
 	ItemTreeNode::Items auxItems;
 	// Unify auxiliary items
-	const auto auxL = left->getNode()->getAuxItems();
-	const auto auxR = right->getNode()->getAuxItems();
+	const auto& auxL = left->getNode()->getAuxItems();
+	const auto& auxR = right->getNode()->getAuxItems();
 	std::set_union(auxL.begin(), auxL.end(), auxR.begin(), auxR.end(), std::inserter(auxItems, auxItems.end()));
 
 	ItemTreeNode::ExtensionPointers extensionPointers = {{left->getNode(), right->getNode()}};
@@ -97,45 +97,44 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 			// lit and rit match
 			// Remember position of rit. We will later advance rit until is doesn't match with lit anymore.
 			auto mark = rit;
+join_lit_with_all_matches:
+			// Join lit will all partners starting at rit
 			do {
-				// Join lit will all partners starting at rit
-				do {
-					// Update cost
-					switch(type) {
-						case ItemTreeNode::Type::OR:
-							result->getNode()->setCost(std::min(result->getNode()->getCost(), childResult->getNode()->getCost()));
-							break;
-
-						case ItemTreeNode::Type::AND:
-							result->getNode()->setCost(std::max(result->getNode()->getCost(), childResult->getNode()->getCost()));
-							break;
-
-						case ItemTreeNode::Type::UNDEFINED:
-							break;
-
-						default:
-							assert(false);
-							break;
-					}
-
-					result->addChildAndMerge(std::move(childResult));
-					++rit;
-					if(rit == right->getChildren().end())
+				// Update cost
+				switch(type) {
+					case ItemTreeNode::Type::OR:
+						result->getNode()->setCost(std::min(result->getNode()->getCost(), childResult->getNode()->getCost()));
 						break;
-					childResult = join(leftNodeIndex, *lit, rightNodeIndex, *rit, setLeavesToAccept);
-				} while(childResult);
 
-				// lit and rit don't match anymore (or rit is past the end)
-				// Advance lit. If it joins with mark, reset rit to mark.
-				++lit;
-				if(lit == left->getChildren().end())
+					case ItemTreeNode::Type::AND:
+						result->getNode()->setCost(std::max(result->getNode()->getCost(), childResult->getNode()->getCost()));
+						break;
+
+					case ItemTreeNode::Type::UNDEFINED:
+						break;
+
+					default:
+						assert(false);
+						break;
+				}
+
+				result->addChildAndMerge(std::move(childResult));
+				++rit;
+				if(rit == right->getChildren().end())
 					break;
+				childResult = join(leftNodeIndex, *lit, rightNodeIndex, *rit, setLeavesToAccept);
+			} while(childResult);
+
+			// lit and rit don't match anymore (or rit is past the end)
+			// Advance lit. If it joins with mark, reset rit to mark.
+			++lit;
+			if(lit != left->getChildren().end()) {
 				childResult = join(leftNodeIndex, *lit, rightNodeIndex, *mark, setLeavesToAccept);
 				if(childResult) {
 					rit = mark;
-					continue;
+					goto join_lit_with_all_matches;
 				}
-			} while(false);
+			}
 		}
 		else {
 			// lit and rit don't match
