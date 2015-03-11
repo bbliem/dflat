@@ -38,12 +38,11 @@ ItemTreePtr AtomRemovalSolver::compute()
 
 	assert(decomposition.getChildren().size() == 1);
 	Decomposition& childNode = **decomposition.getChildren().begin();
-	const unsigned int childIndex = childNode.getNode().getGlobalId();
 	ItemTreePtr childResult = childNode.getSolver().compute();
 	ItemTreePtr result;
 
 	if(childResult) {
-		result = extendRoot(childIndex, childResult);
+		result = extendRoot(childResult);
 		assert(childResult->getChildren().empty() == false);
 
 		// Guess node to extend at depth 1
@@ -51,14 +50,14 @@ ItemTreePtr AtomRemovalSolver::compute()
 			ItemTreeNode::Items candidateItems = childCandidate->getNode()->getItems();
 			candidateItems.erase(removedAtom);
 			ItemTreeNode::Items candidateAuxItems = childCandidate->getNode()->getAuxItems();
-			ItemTreePtr candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childIndex, childCandidate);
+			ItemTreePtr candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childCandidate);
 
 			for(const ItemTreePtr& childCertificate : childCandidate->getChildren()) {
 				ItemTreeNode::Items certificateItems = childCertificate->getNode()->getItems();
 				certificateItems.erase(removedAtom);
 				ItemTreeNode::Items certificateAuxItems = childCertificate->getNode()->getAuxItems();
 				const ItemTreeNode::Type type = decomposition.isRoot() ? (certificateAuxItems.find(String("smaller")) == certificateAuxItems.end() ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::REJECT) : ItemTreeNode::Type::UNDEFINED;
-				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childIndex, childCertificate, type));
+				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childCertificate, type));
 			}
 			result->addChildAndMerge(std::move(candidate));
 		}

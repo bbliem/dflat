@@ -173,7 +173,7 @@ void Solver::workerThreadMain()
 	}
 	else {
 		// Get the first row from each child node
-		std::unordered_map<unsigned int, ItemTree::Children::const_iterator> childRows;
+		std::vector<ItemTreeNode::ExtensionPointer> childRows;
 		childRows.reserve(decomposition.getChildren().size());
 		for(const auto& child : decomposition.getChildren()) {
 			const ItemTree::Children::const_iterator newRow = dynamic_cast<Solver&>(child->getSolver()).nextRow();
@@ -184,24 +184,24 @@ void Solver::workerThreadMain()
 				wakeMainThread.notify_one();
 				return;
 			}
-			childRows.emplace(child->getNode().getGlobalId(), newRow);
+			childRows.push_back((*newRow)->getNode());
 		}
 
 		// Let the combination of these rows be the input for our ASP call
 		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
 		for(const auto& child : decomposition.getChildren())
-			rootExtensionPointers.emplace(child->getNode().getGlobalId(), dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getNode());
+			rootExtensionPointers.push_back(dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getNode());
 		claspCallback->setRootExtensionPointers(std::move(rootExtensionPointers));
 
 		ItemTreeNode::ExtensionPointerTuple extendedRows;
-		for(const auto& nodeIdAndRow : childRows)
-			extendedRows.emplace(nodeIdAndRow.first, (*nodeIdAndRow.second)->getNode());
+		for(const auto& row : childRows)
+			extendedRows.push_back(row);
 		claspCallback->setExtendedRows(std::move(extendedRows));
 
 		{
 			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
-			for(const auto& nodeIdAndRow : childRows) {
-				for(const auto& item : (*nodeIdAndRow.second)->getNode()->getItems()) {
+			for(const auto& row : childRows) {
+				for(const auto& item : row->getItems()) {
 					prg.freeze(itemsToVars.at(*item), Clasp::value_true);
 				}
 			}
@@ -212,8 +212,8 @@ void Solver::workerThreadMain()
 		{
 			// XXX Necessary to update so often? Is the overhead bad?
 			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
-			for(const auto& nodeIdAndRow : childRows) {
-				for(const auto& item : (*nodeIdAndRow.second)->getNode()->getItems()) {
+			for(const auto& row : childRows) {
+				for(const auto& item : row->getItems()) {
 					prg.freeze(itemsToVars.at(*item), Clasp::value_false);
 				}
 			}
@@ -256,7 +256,7 @@ void Solver::aspCallsOnNewRowFromChild(ItemTree::Children::const_iterator newRow
 	do {
 		ItemTreeNode::ExtensionPointerTuple extendedRows;
 		for(const auto& nodeAndRow : rowIterators)
-			extendedRows.emplace(nodeAndRow.first->getNode().getGlobalId(), (*nodeAndRow.second)->getNode());
+			extendedRows.push_back((*nodeAndRow.second)->getNode());
 		claspCallback->setExtendedRows(std::move(extendedRows));
 
 		{

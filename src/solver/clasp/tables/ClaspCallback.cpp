@@ -28,6 +28,9 @@ ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Ch
 	, childItemTrees(childItemTrees)
 	, rowType(root ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::UNDEFINED)
 {
+	unsigned int i = 0;
+	for(const auto& pair : childItemTrees)
+		indexOfChildItemTreeRoot[pair.second->getNode().get()] = i++;
 }
 
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
@@ -49,18 +52,25 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	}) == items.end(), "Items and auxiliary items not disjoint");
 	// }}}
 	// Get extension pointers {{{
-	ItemTreeNode::ExtensionPointerTuple extendedRows;
+	ItemTreeNode::ExtensionPointerTuple extendedRows(childItemTrees.size());
 	ASP_CHECK(countTrue(m, extendAtomInfos) == childItemTrees.size(), "Not as many extension pointers as there are child item trees");
+	unsigned int numExtended = 0;
 	forEachTrueLimited(m, extendAtomInfos, [&](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
-			extendedRows.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedRow));
-			return extendedRows.size() != childItemTrees.size();
+			ItemTreeNode::ExtensionPointer pointer(arguments.extendedRow);
+			assert(indexOfChildItemTreeRoot.find(pointer->getParent()) != indexOfChildItemTreeRoot.end());
+			extendedRows[indexOfChildItemTreeRoot[pointer->getParent()]] = std::move(pointer);
+			++numExtended;
+			return numExtended != childItemTrees.size();
 	});
 	// }}}
 	// Create item tree root if it doesn't exist yet {{{
 	if(!itemTree) {
-		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
-		for(const auto& childItemTree : childItemTrees)
-			rootExtensionPointers.emplace(childItemTree.first, childItemTree.second->getNode());
+		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers(childItemTrees.size());
+		for(const auto& childItemTree : childItemTrees) {
+			ItemTreeNode::ExtensionPointer pointer(childItemTree.second->getNode());
+			assert(indexOfChildItemTreeRoot.find(pointer.get()) != indexOfChildItemTreeRoot.end());
+			rootExtensionPointers[indexOfChildItemTreeRoot[pointer.get()]] = std::move(pointer);
+		}
 		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
 		// Set cost to "infinity"
 		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());

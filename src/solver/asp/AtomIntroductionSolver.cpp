@@ -38,12 +38,11 @@ ItemTreePtr AtomIntroductionSolver::compute()
 
 	assert(decomposition.getChildren().size() == 1);
 	Decomposition& childNode = **decomposition.getChildren().begin();
-	const unsigned int childIndex = childNode.getNode().getGlobalId();
 	ItemTreePtr childResult = childNode.getSolver().compute();
 	ItemTreePtr result;
 
 	if(childResult) {
-		result = extendRoot(childIndex, childResult);
+		result = extendRoot(childResult);
 		assert(childResult->getChildren().empty() == false);
 
 		// Find out which rules are satisfied by setting introducedAtom to true or false, respectively, and which disappear from the reduct by setting introducedAtom to true.
@@ -72,14 +71,14 @@ ItemTreePtr AtomIntroductionSolver::compute()
 			ItemTreeNode::Items candidateAuxItems = childCandidate->getNode()->getAuxItems();
 			// Add satisfied rules
 			candidateAuxItems.insert(rulesSatisfiedByFalse.begin(), rulesSatisfiedByFalse.end());
-			ItemTreePtr candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childIndex, childCandidate);
+			ItemTreePtr candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childCandidate);
 
 			for(const ItemTreePtr& childCertificate : childCandidate->getChildren()) {
 				ItemTreeNode::Items certificateItems = childCertificate->getNode()->getItems();
 				ItemTreeNode::Items certificateAuxItems = childCertificate->getNode()->getAuxItems();
 				// Add satisfied rules
 				certificateAuxItems.insert(rulesSatisfiedByFalse.begin(), rulesSatisfiedByFalse.end());
-				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childIndex, childCertificate));
+				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childCertificate));
 			}
 			result->addChildAndMerge(std::move(candidate));
 
@@ -89,7 +88,7 @@ ItemTreePtr AtomIntroductionSolver::compute()
 			candidateAuxItems = childCandidate->getNode()->getAuxItems();
 			// Add satisfied rules
 			candidateAuxItems.insert(rulesSatisfiedByTrue.begin(), rulesSatisfiedByTrue.end());
-			candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childIndex, childCandidate);
+			candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childCandidate);
 
 			for(const ItemTreePtr& childCertificate : childCandidate->getChildren()) {
 				// Make introducedAtom false in certificate (and add "smaller" flag)
@@ -98,14 +97,14 @@ ItemTreePtr AtomIntroductionSolver::compute()
 				certificateAuxItems.emplace("smaller");
 				certificateAuxItems.insert(rulesDisappearingByTrue.begin(), rulesDisappearingByTrue.end());
 				certificateAuxItems.insert(rulesSatisfiedByFalse.begin(), rulesSatisfiedByFalse.end());
-				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childIndex, childCertificate));
+				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childCertificate));
 
 				// Make introducedAtom true in certificate
 				certificateItems = childCertificate->getNode()->getItems();
 				certificateItems.insert(introducedAtom);
 				certificateAuxItems = childCertificate->getNode()->getAuxItems();
 				certificateAuxItems.insert(rulesSatisfiedByTrue.begin(), rulesSatisfiedByTrue.end());
-				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childIndex, childCertificate));
+				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childCertificate));
 			}
 
 			result->addChildAndMerge(std::move(candidate));

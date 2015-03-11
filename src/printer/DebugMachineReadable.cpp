@@ -51,7 +51,7 @@ void declareExtensionPointers(std::ostream& out, const ItemTree* itemTree, const
 		out << "itemTreeNodeExtends(" << itemSetName << ",tuple(";
 		std::string sep;
 		for(const auto& ep : tuple) {
-			out << sep << ep.second.get();
+			out << sep << ep.get();
 			sep = ",";
 		}
 		out << "))." << std::endl;

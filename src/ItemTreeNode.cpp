@@ -26,7 +26,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 	// Returns a negative integer if lhs < rhs, a positive integer if rhs > lhs, 0 if lhs == rhs
-	inline int compareSets(const ItemTreeNode::Items& lhs, const ItemTreeNode::Items& rhs)
+	int compareSets(const ItemTreeNode::Items& lhs, const ItemTreeNode::Items& rhs)
 	{
 		const size_t smallestSize = std::min(lhs.size(), rhs.size());
 		size_t i = 0;
@@ -51,22 +51,22 @@ ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& 
 	for(const ExtensionPointerTuple& tuple : this->extensionPointers) {
 		mpz_class product = 1;
 		for(const auto& predecessor : tuple)
-			product *= predecessor.second->getCount();
+			product *= predecessor->getCount();
 		count += product;
 	}
 
 #ifndef DISABLE_CHECKS
 	for(const ExtensionPointerTuple& tuple : this->extensionPointers)
 		for(const auto& predecessor : tuple)
-			if(predecessor.second->type != Type::UNDEFINED && type != predecessor.second->type)
+			if(predecessor->type != Type::UNDEFINED && type != predecessor->type)
 				throw std::runtime_error("Type of extended item tree node not retained");
 #endif
 
 	// Retain the information about accepting / rejecting children
 	for(const ExtensionPointerTuple& tuple : this->extensionPointers) {
 		for(const auto& predecessor : tuple) {
-			hasAcceptingChild = hasAcceptingChild || predecessor.second->hasAcceptingChild;
-			hasRejectingChild = hasRejectingChild || predecessor.second->hasRejectingChild;
+			hasAcceptingChild = hasAcceptingChild || predecessor->hasAcceptingChild;
+			hasRejectingChild = hasRejectingChild || predecessor->hasRejectingChild;
 		}
 	}
 
@@ -120,7 +120,7 @@ mpz_class ItemTreeNode::countExtensions(const ExtensionIterator& parentIterator)
 				assert(parentIterator.getSubIterators().size() == tuple.size());
 				ExtensionIterator::SubIterators::const_iterator subIt = parentIterator.getSubIterators().begin();
 				for(const auto& predecessor : tuple) {
-					product *= predecessor.second->countExtensions(**subIt);
+					product *= predecessor->countExtensions(**subIt);
 					++subIt;
 				}
 				result += product;

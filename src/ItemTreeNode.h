@@ -40,7 +40,7 @@ class ItemTreeNode
 public:
 	typedef std::set<String> Items; // We need the sortedness for, e.g., the default join.
 	typedef std::shared_ptr<ItemTreeNode> ExtensionPointer;
-	typedef std::map<unsigned int, ExtensionPointer> ExtensionPointerTuple; // key: ID of the decomposition node at which value is located
+	typedef std::vector<ExtensionPointer> ExtensionPointerTuple;
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
 
 	enum class Type {

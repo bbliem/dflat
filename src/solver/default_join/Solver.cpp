@@ -52,7 +52,7 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 	const auto auxR = right->getNode()->getAuxItems();
 	std::set_union(auxL.begin(), auxL.end(), auxR.begin(), auxR.end(), std::inserter(auxItems, auxItems.end()));
 
-	ItemTreeNode::ExtensionPointers extensionPointers = {{{leftNodeIndex, left->getNode()}, {rightNodeIndex, right->getNode()}}};
+	ItemTreeNode::ExtensionPointers extensionPointers = {{left->getNode(), right->getNode()}};
 	const bool leaves = left->getChildren().empty() && right->getChildren().empty();
 	ItemTreeNode::Type type = left->getNode()->getType();
 	if(type == ItemTreeNode::Type::UNDEFINED) {

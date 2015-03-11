@@ -65,12 +65,11 @@ ItemTreePtr RuleIntroductionSolver::compute()
 
 	assert(decomposition.getChildren().size() == 1);
 	Decomposition& childNode = **decomposition.getChildren().begin();
-	const unsigned int childIndex = childNode.getNode().getGlobalId();
 	ItemTreePtr childResult = childNode.getSolver().compute();
 	ItemTreePtr result;
 
 	if(childResult) {
-		result = extendRoot(childIndex, childResult);
+		result = extendRoot(childResult);
 		assert(childResult->getChildren().empty() == false);
 
 		for(const ItemTreePtr& childCandidate : childResult->getChildren()) {
@@ -85,7 +84,7 @@ ItemTreePtr RuleIntroductionSolver::compute()
 			const bool introducedRuleDisappears = doesIntroducedRuleDisappear(candidateItems);
 			if(introducedRuleDisappears || isIntroducedRuleSatisfied(candidateItems, candidateFalseAtoms))
 				candidateAuxItems.insert(introducedRule);
-			ItemTreePtr candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childIndex, childCandidate);
+			ItemTreePtr candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childCandidate);
 
 			for(const ItemTreePtr& childCertificate : childCandidate->getChildren()) {
 				ItemTreeNode::Items certificateItems = childCertificate->getNode()->getItems();
@@ -99,7 +98,7 @@ ItemTreePtr RuleIntroductionSolver::compute()
 					if(isIntroducedRuleSatisfied(certificateItems, certificateFalseAtoms))
 						certificateAuxItems.insert(introducedRule);
 				}
-				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childIndex, childCertificate));
+				candidate->addChildAndMerge(extendCertificate(std::move(certificateItems), std::move(certificateAuxItems), childCertificate));
 			}
 
 			result->addChildAndMerge(std::move(candidate));

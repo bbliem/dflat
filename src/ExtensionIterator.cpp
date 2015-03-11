@@ -38,7 +38,7 @@ bool ExtensionIterator::curTupleAreChildrenOfParent() const
 
 	ItemTreeNode::ExtensionPointerTuple::const_iterator tupleIt = curTuple->begin();
 	for(const auto& parentExtension : *parent->curTuple) {
-		if(tupleIt->second->getParent() != parentExtension.second.get())
+		if((*tupleIt)->getParent() != parentExtension.get())
 			return false;
 		++tupleIt;
 	}
@@ -85,14 +85,14 @@ void ExtensionIterator::resetExtensionPointers()
 		assert(curTuple->size() == parent->subIts.size());
 		ItemTreeNode::ExtensionPointerTuple::const_iterator tupleIt = curTuple->begin();
 		for(unsigned i = 0; i < curTuple->size(); ++i) {
-			subIts[i].reset(new ExtensionIterator(*tupleIt->second, parent->subIts[i].get()));
+			subIts[i].reset(new ExtensionIterator(**tupleIt, parent->subIts[i].get()));
 			++tupleIt;
 		}
 	}
 	else {
 		ItemTreeNode::ExtensionPointerTuple::const_iterator tupleIt = curTuple->begin();
 		for(unsigned i = 0; i < curTuple->size(); ++i) {
-			subIts[i].reset(new ExtensionIterator(*tupleIt->second));
+			subIts[i].reset(new ExtensionIterator(**tupleIt));
 			++tupleIt;
 		}
 	}

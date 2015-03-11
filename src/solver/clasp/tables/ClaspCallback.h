@@ -49,6 +49,8 @@ private:
 	const GringoOutputProcessor& gringoOutput;
 	const ChildItemTrees& childItemTrees;
 	const ItemTreeNode::Type rowType;
+
+	std::unordered_map<const ItemTreeNode*, unsigned int> indexOfChildItemTreeRoot;
 };
 
 }}} // namespace solver::clasp::tables

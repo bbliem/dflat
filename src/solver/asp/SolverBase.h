@@ -36,13 +36,13 @@ public:
 
 protected:
 	// Return new item tree node extending childRoot
-	static ItemTreePtr extendRoot(unsigned int childIndex, const ItemTreePtr& childRoot);
+	static ItemTreePtr extendRoot(const ItemTreePtr& childRoot);
 
 	// Return new item tree node extending childCandidate
-	static ItemTreePtr extendCandidate(ItemTreeNode::Items&& items, ItemTreeNode::Items&& auxItems, unsigned int childIndex, const ItemTreePtr& childCandidate);
+	static ItemTreePtr extendCandidate(ItemTreeNode::Items&& items, ItemTreeNode::Items&& auxItems, const ItemTreePtr& childCandidate);
 
 	// Return new item tree node extending childCertificate
-	static ItemTreePtr extendCertificate(ItemTreeNode::Items&& items, ItemTreeNode::Items&& auxItems, unsigned int childIndex, const ItemTreePtr& childCertificate, ItemTreeNode::Type type = ItemTreeNode::Type::UNDEFINED);
+	static ItemTreePtr extendCertificate(ItemTreeNode::Items&& items, ItemTreeNode::Items&& auxItems, const ItemTreePtr& childCertificate, ItemTreeNode::Type type = ItemTreeNode::Type::UNDEFINED);
 
 	typedef Hypergraph::Vertices Atoms;
 	typedef Hypergraph::Vertices Rules;

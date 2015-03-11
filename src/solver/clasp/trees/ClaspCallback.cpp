@@ -67,7 +67,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	// Get extension pointers {{{
 	forEachTrue(m, extendAtomInfos, [&branchData](const GringoOutputProcessor::ExtendAtomArguments& arguments) {
 			ASP_CHECK(arguments.level < branchData.size(), "Extension pointer at level higher than branch length");
-			branchData[arguments.level].extended.emplace(arguments.decompositionNodeId, ItemTreeNode::ExtensionPointer(arguments.extendedNode));
+			branchData[arguments.level].extended.push_back(ItemTreeNode::ExtensionPointer(arguments.extendedNode));
 	});
 	// }}}
 	// Checks on extension pointers and item sets {{{
@@ -80,15 +80,18 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 		}) == node.items.end(), "Items and auxiliary items not disjoint");
 	}
 
-	for(const auto& pair : branchData[0].extended)
-		ASP_CHECK(pair.second->getParent() == nullptr, "Level 0 extension pointer does not point to the root of an item tree");
+	for(const auto& pointer : branchData[0].extended)
+		ASP_CHECK(pointer->getParent() == nullptr, "Level 0 extension pointer does not point to the root of an item tree");
 
 	auto curNode = branchData.begin();
 	auto prevNode = curNode++;
 	while(curNode != branchData.end()) {
-		ASP_CHECK(std::all_of(curNode->extended.begin(), curNode->extended.end(), [&prevNode](const ItemTreeNode::ExtensionPointerTuple::value_type& pair) {
-				return pair.second->getParent() == prevNode->extended.at(pair.first).get();
-		}), "Extension pointer at level n+1 does not point to a child of the extended level-n node");
+//		ASP_CHECK(std::all_of(curNode->extended.begin(), curNode->extended.end(), [&prevNode](const ItemTreeNode::ExtensionPointerTuple::value_type& pair) {
+//				return pair.second->getParent() == prevNode->extended.at(pair.first).get();
+//		}), "Extension pointer at level n+1 does not point to a child of the extended level-n node");
+		assert(curNode->extended.size() == prevNode->extended.size());
+		for(int i = 0; i < curNode->extended.size(); ++i)
+			ASP_CHECK(curNode->extended[i]->getParent() == prevNode->extended[i].get(), "Extension pointer at level n+1 does not point to a child of the extended level-n node");
 		++prevNode;
 		++curNode;
 	}

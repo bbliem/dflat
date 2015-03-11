@@ -25,6 +25,7 @@ Decomposition::Decomposition(Node&& leaf, const SolverFactory& solverFactory)
 	: DirectedAcyclicGraph(std::move(leaf))
 	, solverFactory(solverFactory)
 	, root(false)
+	, postJoinNode(false)
 {
 }
 

@@ -44,8 +44,8 @@ TEST(ItemTreeNode, ConstructorSetsCount)
 		{{"n4_a"}},
 		{},
 		{
-			{{5, n5_a}},
-			{{5, n5_b}},
+			{n5_a},
+			{n5_b},
 		}
 	}};
 
@@ -68,17 +68,17 @@ TEST(ItemTreeNode, ConstructorSetsCount)
 		{{"n2_a"}},
 		{},
 		{
-			{{3, n3_a}},
-			{{3, n3_b}},
-			{{3, n3_c}},
+			{n3_a},
+			{n3_b},
+			{n3_c},
 		}
 	}};
 	ItemTreeNode::ExtensionPointer n2_b{new ItemTreeNode{
 		{{"n2_b"}},
 		{},
 		{
-			{{3, n3_d}},
-			{{3, n3_e}},
+			{n3_d},
+			{n3_e},
 		}
 	}};
 
@@ -88,8 +88,8 @@ TEST(ItemTreeNode, ConstructorSetsCount)
 		{{"n1_a"}},
 		{},
 		{
-			{{2, n2_a}, {4, n4_a}},
-			{{2, n2_b}, {4, n4_a}},
+			{n2_a, n4_a},
+			{n2_b, n4_a},
 		}
 	}};
 
@@ -120,7 +120,7 @@ TEST(ItemTreeNode, ConstructorRetainsHasAcceptingOrRejectingChild)
 	EXPECT_TRUE(extended->getHasAcceptingChild());
 	EXPECT_TRUE(extended->getHasRejectingChild());
 
-	ItemTreeNode extending{{}, {}, {{{1, extended}}}};
+	ItemTreeNode extending{{}, {}, {{extended}}};
 	EXPECT_TRUE(extending.getHasAcceptingChild());
 	EXPECT_TRUE(extending.getHasRejectingChild());
 }
@@ -131,9 +131,9 @@ TEST(ItemTreeNode, ConstructorThrowsExceptionIfTypeNotRetained)
 #pragma message "Omitting test because DISABLE_CHECKS was defined."
 #else
 	ItemTreeNode::ExtensionPointer extended{new ItemTreeNode{{}, {}, {{}}, ItemTreeNode::Type::ACCEPT}};
-	EXPECT_THROW((ItemTreeNode{{}, {}, {{{1, extended}}}}), std::runtime_error);
-	EXPECT_THROW((ItemTreeNode{{}, {}, {{{1, extended}}}, ItemTreeNode::Type::REJECT}), std::runtime_error);
-	EXPECT_NO_THROW((ItemTreeNode{{}, {}, {{{1, extended}}}, ItemTreeNode::Type::ACCEPT}));
+	EXPECT_THROW((ItemTreeNode{{}, {}, {{extended}}}), std::runtime_error);
+	EXPECT_THROW((ItemTreeNode{{}, {}, {{extended}}, ItemTreeNode::Type::REJECT}), std::runtime_error);
+	EXPECT_NO_THROW((ItemTreeNode{{}, {}, {{extended}}, ItemTreeNode::Type::ACCEPT}));
 #endif
 }
 
@@ -151,11 +151,11 @@ TEST(ItemTreeNode, MergeUnifiesExtensionPointers)
 	// c and d extend a and b, respectively
 	ItemTreeNode::ExtensionPointer a{new ItemTreeNode};
 	ItemTreeNode::ExtensionPointer b{new ItemTreeNode};
-	ItemTreeNode c{{{"foo"}}, {}, {{{1, a}}}};
-	ItemTreeNode d{{{"foo"}}, {}, {{{1, b}}}};
+	ItemTreeNode c{{{"foo"}}, {}, {{a}}};
+	ItemTreeNode d{{{"foo"}}, {}, {{b}}};
 
 	c.merge(std::move(d));
-	EXPECT_EQ((ItemTreeNode::ExtensionPointers{{{1, a}}, {{1, b}}}), c.getExtensionPointers());
+	EXPECT_EQ((ItemTreeNode::ExtensionPointers{{a}, {b}}), c.getExtensionPointers());
 }
 
 TEST(ItemTreeNode, MergeAddsCount)
@@ -222,9 +222,9 @@ TEST(ItemTreeNode, CountExtensions)
 	n2_2  ->setParent(n2  .get());
 	n2_2_1->setParent(n2_2.get());
 
-	ItemTreeNode::ExtensionPointer n1{new ItemTreeNode{{}, {}, {{{2, n2}}}}};
-	ItemTreeNode::ExtensionPointer n1_1{new ItemTreeNode{{}, {}, {{{2, n2_1}}, {{2, n2_2}}}}};
-	ItemTreeNode::ExtensionPointer n1_1_1{new ItemTreeNode{{}, {}, {{{2, n2_1_1}}, {{2, n2_1_2}}, {{2, n2_2_1}}}}};
+	ItemTreeNode::ExtensionPointer n1{new ItemTreeNode{{}, {}, {{n2}}}};
+	ItemTreeNode::ExtensionPointer n1_1{new ItemTreeNode{{}, {}, {{n2_1}, {n2_2}}}};
+	ItemTreeNode::ExtensionPointer n1_1_1{new ItemTreeNode{{}, {}, {{n2_1_1}, {n2_1_2}, {n2_2_1}}}};
 	n1_1  ->setParent(n1  .get());
 	n1_1_1->setParent(n1_1.get());
 
