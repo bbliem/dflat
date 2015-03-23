@@ -29,6 +29,7 @@ class Solver : public ::Solver
 public:
 	using ::Solver::Solver;
 
+protected:
 	virtual ItemTreePtr compute() override;
 };
 

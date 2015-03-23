@@ -35,7 +35,6 @@ LeafSolver::LeafSolver(const Decomposition& decomposition, const Application& ap
 
 ItemTreePtr LeafSolver::compute()
 {
-	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 	assert(decomposition.getChildren().empty());
 	assert(decomposition.getNode().getBag().empty());
 

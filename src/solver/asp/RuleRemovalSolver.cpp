@@ -34,11 +34,9 @@ RuleRemovalSolver::RuleRemovalSolver(const Decomposition& decomposition, const A
 
 ItemTreePtr RuleRemovalSolver::compute()
 {
-	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
-
 	assert(decomposition.getChildren().size() == 1);
 	Decomposition& childNode = **decomposition.getChildren().begin();
-	ItemTreePtr childResult = childNode.getSolver().compute();
+	const ItemTree* childResult = childNode.getSolver().getResult();
 	ItemTreePtr result;
 
 	if(childResult) {

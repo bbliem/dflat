@@ -103,7 +103,7 @@ DecompositionPtr GraphMl::decompose(const Hypergraph& instance) const
 		else if(strcmp(element->Name(), "edge") == 0) {
 			if(nodes.size() < 2)
 				error("Not enough nodes declared before edges");
-			const DecompositionPtr to = nodes.top();
+			DecompositionPtr to = nodes.top();
 			nodes.pop();
 			const DecompositionPtr& from = nodes.top();
 			from->addChild(std::move(to));

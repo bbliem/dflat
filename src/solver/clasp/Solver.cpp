@@ -92,15 +92,13 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 
 ItemTreePtr Solver::compute()
 {
-	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
-
 	// Compute item trees of child nodes
 	ChildItemTrees childItemTrees;
 	for(const auto& child : decomposition.getChildren()) {
-		ItemTreePtr itree = child->getSolver().compute();
+		const ItemTree* itree = child->getSolver().getResult();
 		if(!itree)
-			return itree;
-		childItemTrees.emplace(child->getNode().getGlobalId(), std::move(itree));
+			return ItemTreePtr();
+		childItemTrees[child->getNode().getGlobalId()] = itree;
 	}
 
 	// Input: Child item trees
@@ -110,7 +108,7 @@ ItemTreePtr Solver::compute()
 	for(const auto& childItemTree : childItemTrees) {
 		std::ostringstream rootItemSetName;
 		rootItemSetName << 'n' << childItemTree.first;
-		declareItemTree(*childItemTreesInput, childItemTree.second.get(), tableMode, childItemTree.first, rootItemSetName.str());
+		declareItemTree(*childItemTreesInput, childItemTree.second, tableMode, childItemTree.first, rootItemSetName.str());
 	}
 
 	app.getPrinter().solverInvocationInput(decomposition, childItemTreesInput->str());

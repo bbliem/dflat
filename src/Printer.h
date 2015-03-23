@@ -65,7 +65,7 @@ public:
 	virtual bool listensForSolverEvents() const; // this implementation returns false
 	virtual void solverEvent(const std::string& msg);
 
-	virtual void result(const ItemTreePtr& rootItemTree);
+	virtual void result(const ItemTree* rootItemTree);
 
 	virtual void select() override;
 

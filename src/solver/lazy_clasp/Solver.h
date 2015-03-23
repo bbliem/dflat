@@ -34,8 +34,6 @@ class Solver : public ::Solver
 public:
 	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles);
 
-	virtual ItemTreePtr compute() override;
-
 	ItemTree::Children::const_iterator nextRow();
 
 	// When the solver is currently in this->compute(), other objects can get the item tree that has been constructed so far with this method.
@@ -45,6 +43,9 @@ public:
 	// This method blocks until the worker thread should do more work.
 	// The argument is the lock held by the worker thread.
 	void proceed(std::unique_lock<std::mutex>&);
+
+protected:
+	virtual ItemTreePtr compute() override;
 
 private:
 	std::vector<std::string> encodingFiles;

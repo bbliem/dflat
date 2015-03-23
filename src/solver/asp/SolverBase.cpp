@@ -93,7 +93,7 @@ SolverBase::SolverBase(const Decomposition& decomposition, const Application& ap
 	}
 }
 
-ItemTreePtr SolverBase::extendRoot(const ItemTreePtr& childRoot)
+ItemTreePtr SolverBase::extendRoot(const ItemTree* childRoot)
 {
 	return ItemTreePtr(new ItemTree(ItemTree::Node(new ItemTreeNode({}, {}, {{childRoot->getNode()}}, ItemTreeNode::Type::OR))));
 }

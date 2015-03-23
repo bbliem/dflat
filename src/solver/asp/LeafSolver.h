@@ -29,6 +29,7 @@ class LeafSolver : public ::Solver
 public:
 	LeafSolver(const Decomposition& decomposition, const Application& app);
 
+protected:
 	virtual ItemTreePtr compute() override;
 };
 

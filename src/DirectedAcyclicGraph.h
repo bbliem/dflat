@@ -65,19 +65,19 @@ public:
 	const Node& getNode() const { return node; }
 	const Children& getChildren() const { return children; }
 
-	// Adds the root of "child" to the list of children. Takes ownership of the whole subgraph rooted at "child".
-	void addChild(ChildPtr&& child)
-	{
-		assert(child);
-		children.insert(children.end(), std::move(child));
-	}
-
-	// As before without taking ownership of child (impossible if ChildPtr is, e.g., a unique_ptr)
-	void addChild(const ChildPtr& child)
-	{
-		assert(child);
-		children.insert(children.end(), child);
-	}
+//	// Adds the root of "child" to the list of children. Takes ownership of the whole subgraph rooted at "child".
+//	void addChild(ChildPtr&& child)
+//	{
+//		assert(child);
+//		children.insert(children.end(), std::move(child));
+//	}
+//
+//	// As before without taking ownership of child (impossible if ChildPtr is, e.g., a unique_ptr)
+//	void addChild(const ChildPtr& child)
+//	{
+//		assert(child);
+//		children.insert(children.end(), child);
+//	}
 
 	// Print a DAG (multiple lines, with EOL at the end)
 	// Output is in tree-form (even if the DAG contains cycles).

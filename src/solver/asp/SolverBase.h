@@ -36,7 +36,7 @@ public:
 
 protected:
 	// Return new item tree node extending childRoot
-	static ItemTreePtr extendRoot(const ItemTreePtr& childRoot);
+	static ItemTreePtr extendRoot(const ItemTree* childRoot);
 
 	// Return new item tree node extending childCandidate
 	static ItemTreePtr extendCandidate(ItemTreeNode::Items&& items, ItemTreeNode::Items&& auxItems, const ItemTreePtr& childCandidate);

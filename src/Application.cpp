@@ -188,7 +188,7 @@ int Application::run(int argc, const char* const* const argv)
 	printer->decomposerResult(*decomposition);
 
 	// Solve
-	ItemTreePtr rootItree = decomposition->getSolver().compute();
+	const ItemTree* rootItree = decomposition->getSolver().getResult();
 	printer->result(rootItree);
 	return rootItree ? 10 : 20;
 }

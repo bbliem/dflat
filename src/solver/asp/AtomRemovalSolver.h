@@ -33,6 +33,7 @@ class AtomRemovalSolver : public SolverBase
 public:
 	AtomRemovalSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& removedAtom);
 
+protected:
 	virtual ItemTreePtr compute() override;
 
 private:

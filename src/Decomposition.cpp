@@ -29,6 +29,13 @@ Decomposition::Decomposition(Node&& leaf, const SolverFactory& solverFactory)
 {
 }
 
+void Decomposition::addChild(ChildPtr&& child)
+{
+	assert(child);
+	child->parents.push_back(this);
+	children.insert(children.end(), std::move(child));
+}
+
 Solver& Decomposition::getSolver()
 {
 	if(!solver)

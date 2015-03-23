@@ -28,8 +28,6 @@ namespace solver { namespace dummy {
 
 ItemTreePtr Solver::compute()
 {
-	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
-
 	return ItemTreePtr();
 }
 

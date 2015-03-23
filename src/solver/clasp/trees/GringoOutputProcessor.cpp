@@ -117,7 +117,7 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 		const unsigned int decompositionChildId = std::stoi(std::string(extended, 1, underscorePos-1));
 		ASP_CHECK(childItemTrees.find(decompositionChildId) != childItemTrees.end(), "Extension pointer refers to nonexistent decomposition child");
 
-		const ItemTree* current = childItemTrees.at(decompositionChildId).get();
+		const ItemTree* current = childItemTrees.at(decompositionChildId);
 		while(underscorePos != std::string::npos) {
 			assert(current);
 			const size_t lastUnderscorePos = underscorePos;

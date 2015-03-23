@@ -24,9 +24,26 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Solver.h"
 #include "Application.h"
 #include "Decomposition.h"
+#include "Printer.h"
 
 Solver::Solver(const Decomposition& decomposition, const Application& app)
 	: decomposition(decomposition)
 	, app(app)
 {
+}
+
+const ItemTree* Solver::getResult()
+{
+	if(!result) {
+		const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
+
+		result = compute();
+
+		for(const auto& child : decomposition.getChildren()) {
+			if(&decomposition == child->getParents().back())
+				child->getSolver().clearResult();
+		}
+	}
+
+	return result.get();
 }

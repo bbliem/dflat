@@ -36,7 +36,12 @@ typedef std::shared_ptr<Decomposition> DecompositionPtr;
 class Decomposition : public DirectedAcyclicGraph<DecompositionNode, std::vector<DecompositionPtr>>
 {
 public:
+	typedef std::vector<const Decomposition*> Parents;
+
 	Decomposition(Node&& leaf, const SolverFactory& solverFactory);
+
+	const Parents& getParents() const { return parents; }
+	void addChild(ChildPtr&& child);
 
 	Solver& getSolver();
 
@@ -69,4 +74,6 @@ protected:
 	std::unique_ptr<Solver> solver;
 	bool root;
 	bool postJoinNode;
+
+	Parents parents;
 };

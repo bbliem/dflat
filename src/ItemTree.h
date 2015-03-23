@@ -111,4 +111,4 @@ private:
 };
 
 // Key: Global ID of child node; value: the child node's item tree
-typedef std::unordered_map<unsigned int, ItemTreePtr> ChildItemTrees;
+typedef std::unordered_map<unsigned int, const ItemTree*> ChildItemTrees;
