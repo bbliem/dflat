@@ -51,7 +51,7 @@ public:
 	// To be precise, if ignoreUndefCost is false, an OR (AND) node's cost is set to the minimum (maximum) cost of its children.
 	// If ignoreUndefCost is true, that node's cost is instead set to the minimum (maximum) cost among the children whose type is not undefined.
 	// Do not call this before prune().
-	ItemTreePtr compress(bool ignoreUndefCost);
+	ItemTreeChildPtr compress(bool ignoreUndefCost);
 
 private:
 #ifndef NDEBUG

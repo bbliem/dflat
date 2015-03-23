@@ -29,7 +29,7 @@ class LeafSolver : public ::Solver
 public:
 	LeafSolver(const Decomposition& decomposition, const Application& app);
 
-	virtual ItemTreePtr compute() override;
+	virtual Result compute() override;
 };
 
 }} // namespace solver::asp

@@ -29,7 +29,7 @@ class Solver : public ::Solver
 public:
 	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode);
 
-	virtual ItemTreePtr compute() override;
+	virtual Result compute() override;
 
 	static void declareDecomposition(const Decomposition& decomposition, std::ostream& out);
 	static void declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0);

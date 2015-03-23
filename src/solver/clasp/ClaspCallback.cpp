@@ -31,14 +31,14 @@ ClaspCallback::ClaspCallback(const Application& app)
 {
 }
 
-ItemTreePtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)
+ItemTreeChildPtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)
 {
 	if(itemTree && itemTree->finalize(app, pruneUndefined, pruneRejecting) == false)
 		itemTree.reset();
 	return std::move(itemTree);
 }
 
-const ItemTreePtr& ClaspCallback::getItemTree() const
+const ItemTreeChildPtr& ClaspCallback::getItemTree() const
 {
 	return itemTree;
 }

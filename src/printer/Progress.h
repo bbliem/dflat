@@ -36,7 +36,7 @@ public:
 	virtual void solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result) override;
 	virtual bool listensForSolverEvents() const override;
 	virtual void solverEvent(const std::string& msg) override;
-	virtual void result(const ItemTreePtr& rootItemTree) override;
+	virtual void result(const Solver::Result& rootItemTree) override;
 
 protected:
 	virtual void enterNode(const Decomposition& decompositionNode) override;

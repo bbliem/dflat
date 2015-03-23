@@ -20,21 +20,22 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include <vector>
-
-#include "ItemTree.h"
+#include <memory>
 
 class Decomposition;
 class Application;
+class ItemTree;
 
 class Solver
 {
 public:
+	typedef std::shared_ptr<ItemTree> Result;
+
 	// Construct a solver responsible for the root of the given decomposition
 	Solver(const Decomposition& decomposition, const Application& app);
 
 	// Return the complete item tree
-	virtual ItemTreePtr compute() = 0;
+	virtual Result compute() = 0;
 
 protected:
 	const Decomposition& decomposition;

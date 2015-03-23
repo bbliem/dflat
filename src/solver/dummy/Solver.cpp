@@ -26,11 +26,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace dummy {
 
-ItemTreePtr Solver::compute()
+Solver::Result Solver::compute()
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
-	return ItemTreePtr();
+	return Solver::Result();
 }
 
 }} // namespace solver::dummy

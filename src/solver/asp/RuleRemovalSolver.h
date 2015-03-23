@@ -33,7 +33,7 @@ class RuleRemovalSolver : public SolverBase
 public:
 	RuleRemovalSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& removedRule);
 
-	virtual ItemTreePtr compute() override;
+	virtual Result compute() override;
 
 private:
 	const Hypergraph::Vertex removedRule;

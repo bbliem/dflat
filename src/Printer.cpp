@@ -76,7 +76,7 @@ void Printer::solverEvent(const std::string& msg)
 {
 }
 
-void Printer::result(const ItemTreePtr& rootItemTree)
+void Printer::result(const Solver::Result& rootItemTree)
 {
 	std::cout << "Solutions:" << std::endl;
 	if(rootItemTree)

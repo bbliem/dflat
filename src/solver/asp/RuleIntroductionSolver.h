@@ -33,7 +33,7 @@ class RuleIntroductionSolver : public SolverBase
 public:
 	RuleIntroductionSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& introducedRule);
 
-	virtual ItemTreePtr compute() override;
+	virtual Result compute() override;
 
 private:
 	const Hypergraph::Vertex introducedRule;

@@ -29,7 +29,7 @@ class Solver : public ::Solver
 public:
 	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept);
 
-	virtual ItemTreePtr compute() override;
+	virtual Result compute() override;
 
 private:
 	bool setLeavesToAccept;

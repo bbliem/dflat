@@ -90,14 +90,14 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 #endif
 }
 
-ItemTreePtr Solver::compute()
+Solver::Result Solver::compute()
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
 	// Compute item trees of child nodes
 	ChildItemTrees childItemTrees;
 	for(const auto& child : decomposition.getChildren()) {
-		ItemTreePtr itree = child->getSolver().compute();
+		Result itree = child->getSolver().compute();
 		if(!itree)
 			return itree;
 		childItemTrees.emplace(child->getNode().getGlobalId(), std::move(itree));
@@ -163,7 +163,7 @@ ItemTreePtr Solver::compute()
 	cb->prepare(clasp.ctx.symbolTable());
 	clasp.solve(cb.get());
 
-	ItemTreePtr result = cb->finalize(decomposition.isRoot(), app.isPruningDisabled() == false || decomposition.isRoot());
+	Result result = cb->finalize(decomposition.isRoot(), app.isPruningDisabled() == false || decomposition.isRoot());
 	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
 }

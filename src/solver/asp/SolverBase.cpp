@@ -93,19 +93,19 @@ SolverBase::SolverBase(const Decomposition& decomposition, const Application& ap
 	}
 }
 
-ItemTreePtr SolverBase::extendRoot(const ItemTreePtr& childRoot)
+Solver::Result SolverBase::extendRoot(const Solver::Result& childRoot)
 {
-	return ItemTreePtr(new ItemTree(ItemTree::Node(new ItemTreeNode({}, {}, {{childRoot->getNode()}}, ItemTreeNode::Type::OR))));
+	return Solver::Result(new ItemTree(ItemTree::Node(new ItemTreeNode({}, {}, {{childRoot->getNode()}}, ItemTreeNode::Type::OR))));
 }
 
-ItemTreePtr SolverBase::extendCandidate(ItemTreeNode::Items&& items, ItemTreeNode::Items&& auxItems, const ItemTreePtr& childCandidate)
+ItemTreeChildPtr SolverBase::extendCandidate(ItemTreeNode::Items&& items, ItemTreeNode::Items&& auxItems, const ItemTreeChildPtr& childCandidate)
 {
-	return ItemTreePtr(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), {{childCandidate->getNode()}}, ItemTreeNode::Type::AND))));
+	return ItemTreeChildPtr(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), {{childCandidate->getNode()}}, ItemTreeNode::Type::AND))));
 }
 
-ItemTreePtr SolverBase::extendCertificate(ItemTreeNode::Items&& items, ItemTreeNode::Items&& auxItems, const ItemTreePtr& childCertificate, ItemTreeNode::Type type)
+ItemTreeChildPtr SolverBase::extendCertificate(ItemTreeNode::Items&& items, ItemTreeNode::Items&& auxItems, const ItemTreeChildPtr& childCertificate, ItemTreeNode::Type type)
 {
-	return ItemTreePtr(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), {{childCertificate->getNode()}}, type))));
+	return ItemTreeChildPtr(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), {{childCertificate->getNode()}}, type))));
 }
 
 inline bool SolverBase::isInBag(const Hypergraph::Vertex& element) const

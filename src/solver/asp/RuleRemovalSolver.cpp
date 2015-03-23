@@ -32,29 +32,29 @@ RuleRemovalSolver::RuleRemovalSolver(const Decomposition& decomposition, const A
 {
 }
 
-ItemTreePtr RuleRemovalSolver::compute()
+Solver::Result RuleRemovalSolver::compute()
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
 	assert(decomposition.getChildren().size() == 1);
 	Decomposition& childNode = **decomposition.getChildren().begin();
-	ItemTreePtr childResult = childNode.getSolver().compute();
-	ItemTreePtr result;
+	Result childResult = childNode.getSolver().compute();
+	Result result;
 
 	if(childResult) {
 		result = extendRoot(childResult);
 		assert(childResult->getChildren().empty() == false);
 
 		// Guess node to extend at depth 1
-		for(const ItemTreePtr& childCandidate : childResult->getChildren()) {
+		for(const ItemTreeChildPtr& childCandidate : childResult->getChildren()) {
 			ItemTreeNode::Items candidateItems = childCandidate->getNode()->getItems();
 			ItemTreeNode::Items candidateAuxItems = childCandidate->getNode()->getAuxItems();
 			// If removedRule is contained, remove it, otherwise do not extend this candidate.
 			if(candidateAuxItems.erase(removedRule) == 0)
 				continue;
-			ItemTreePtr candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childCandidate);
+			ItemTreeChildPtr candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childCandidate);
 
-			for(const ItemTreePtr& childCertificate : childCandidate->getChildren()) {
+			for(const ItemTreeChildPtr& childCertificate : childCandidate->getChildren()) {
 				ItemTreeNode::Items certificateItems = childCertificate->getNode()->getItems();
 				ItemTreeNode::Items certificateAuxItems = childCertificate->getNode()->getAuxItems();
 				// If removedRule is contained, remove it, otherwise do not extend this certificate.

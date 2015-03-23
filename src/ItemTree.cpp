@@ -27,7 +27,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 namespace {
-	int compareRecursively(const ItemTreePtr& lhs, const ItemTreePtr& rhs);
+	int compareRecursively(const ItemTreeChildPtr& lhs, const ItemTreeChildPtr& rhs);
 
 	// Three-way lexicographical comparison between children of two item tree nodes
 	template <typename It>
@@ -46,7 +46,7 @@ namespace {
 	}
 
 	// Recursive three-way comparison between two item tree nodes
-	int compareRecursively(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
+	int compareRecursively(const ItemTreeChildPtr& lhs, const ItemTreeChildPtr& rhs)
 	{
 		const int nodeComparison = lhs->getNode()->compareCostInsensitive(*rhs->getNode());
 		if(nodeComparison != 0)
@@ -64,7 +64,7 @@ namespace {
 	}
 }
 
-bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs)
+bool ItemTreeChildPtrComparator::operator()(const ItemTreeChildPtr& lhs, const ItemTreeChildPtr& rhs)
 {
 	return compareRecursively(lhs, rhs) < 0;
 }
@@ -82,7 +82,7 @@ ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree
 	if(!result.second) {
 		// A subtree rooted at a child with all equal item sets already exists
 		assert(subtree); // See remark above -- subtree was set to null if it was indeed moved...
-		const ItemTreePtr& origChild = *result.first;
+		const ItemTreeChildPtr& origChild = *result.first;
 
 		// Unify subtree with origChild
 		origChild->merge(std::move(*subtree));
@@ -301,7 +301,7 @@ void ItemTree::clearUnneededExtensionPointers(const Application& app, unsigned i
 		child->clearUnneededExtensionPointers(app, currentDepth);
 }
 
-bool ItemTree::costDifferenceSignIncrease(const ItemTreePtr& other) const
+bool ItemTree::costDifferenceSignIncrease(const ItemTreeChildPtr& other) const
 {
 	assert(node->getItems() == other->node->getItems());
 	assert(children.size() == other->children.size());
@@ -376,14 +376,14 @@ void ItemTree::merge(ItemTree&& other)
 	}
 
 	// Inform other.node's children that this->node will be their new parent
-	for(const ItemTreePtr& child : other.children)
+	for(const ItemTreeChildPtr& child : other.children)
 		child->getNode()->setParent(node.get());
 
 	node->merge(std::move(*other.node));
 
 	assert(children.size() == other.children.size());
 	Children::const_iterator it = other.children.begin();
-	for(const ItemTreePtr& subtree : children) {
+	for(const ItemTreeChildPtr& subtree : children) {
 		assert(it != other.children.end());
 		subtree->merge(std::move(**it));
 		++it;

@@ -33,7 +33,7 @@ class AtomIntroductionSolver : public SolverBase
 public:
 	AtomIntroductionSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& introducedAtom);
 
-	virtual ItemTreePtr compute() override;
+	virtual Result compute() override;
 
 private:
 	const Hypergraph::Vertex introducedAtom;

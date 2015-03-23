@@ -33,16 +33,16 @@ bool isJoinable(const ItemTreeNode& left, const ItemTreeNode& right)
 		(left.getType() == ItemTreeNode::Type::UNDEFINED || right.getType() == ItemTreeNode::Type::UNDEFINED || left.getType() == right.getType());
 }
 
-ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned int rightNodeIndex, const ItemTreePtr& right, bool setLeavesToAccept)
+ItemTreeChildPtr join(unsigned int leftNodeIndex, const ItemTree* left, unsigned int rightNodeIndex, const ItemTree* right, bool setLeavesToAccept)
 {
 	assert(left);
 	assert(right);
 	assert(left->getNode());
 	assert(right->getNode());
 	if(!isJoinable(*left->getNode(), *right->getNode()))
-		return ItemTreePtr();
+		return ItemTreeChildPtr();
 
-	ItemTreePtr result;
+	ItemTreeChildPtr result;
 
 	// Join left and right
 	ItemTreeNode::Items items = left->getNode()->getItems();
@@ -92,7 +92,7 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 	auto lit = left->getChildren().begin();
 	auto rit = right->getChildren().begin();
 	while(lit != left->getChildren().end() && rit != right->getChildren().end()) {
-		ItemTreePtr childResult = join(leftNodeIndex, *lit, rightNodeIndex, *rit, setLeavesToAccept);
+		ItemTreeChildPtr childResult = join(leftNodeIndex, lit->get(), rightNodeIndex, rit->get(), setLeavesToAccept);
 		if(childResult) {
 			// lit and rit match
 			// Remember position of rit. We will later advance rit until is doesn't match with lit anymore.
@@ -122,14 +122,14 @@ join_lit_with_all_matches:
 				++rit;
 				if(rit == right->getChildren().end())
 					break;
-				childResult = join(leftNodeIndex, *lit, rightNodeIndex, *rit, setLeavesToAccept);
+				childResult = join(leftNodeIndex, lit->get(), rightNodeIndex, rit->get(), setLeavesToAccept);
 			} while(childResult);
 
 			// lit and rit don't match anymore (or rit is past the end)
 			// Advance lit. If it joins with mark, reset rit to mark.
 			++lit;
 			if(lit != left->getChildren().end()) {
-				childResult = join(leftNodeIndex, *lit, rightNodeIndex, *mark, setLeavesToAccept);
+				childResult = join(leftNodeIndex, lit->get(), rightNodeIndex, mark->get(), setLeavesToAccept);
 				if(childResult) {
 					rit = mark;
 					goto join_lit_with_all_matches;
@@ -164,7 +164,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, bool 
 {
 }
 
-ItemTreePtr Solver::compute()
+Solver::Result Solver::compute()
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
@@ -173,15 +173,15 @@ ItemTreePtr Solver::compute()
 	// When at least two have been computed, join them with the result so far
 	// TODO Use a balanced join tree (with smaller "tables" further down)
 	auto it = decomposition.getChildren().begin();
-	ItemTreePtr result = (*it)->getSolver().compute();
+	Result result = (*it)->getSolver().compute();
 	unsigned int leftChildIndex = (*it)->getNode().getGlobalId();
 	for(++it; it != decomposition.getChildren().end(); ++it) {
 		if(!result)
-			return ItemTreePtr();
-		ItemTreePtr itree = (*it)->getSolver().compute();
+			return Result();
+		Result itree = (*it)->getSolver().compute();
 		if(!itree)
-			return ItemTreePtr();
-		result = join(leftChildIndex, result, (*it)->getNode().getGlobalId(), itree, setLeavesToAccept);
+			return Result();
+		result = join(leftChildIndex, result.get(), (*it)->getNode().getGlobalId(), itree.get(), setLeavesToAccept);
 		leftChildIndex = (*it)->getNode().getGlobalId();
 	}
 

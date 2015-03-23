@@ -66,7 +66,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	// }}}
 	// Create item tree root if it doesn't exist yet {{{
 	if(!itemTree) {
-		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
+		itemTree = ItemTreeChildPtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
 		// Set cost to "infinity"
 		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
 	}

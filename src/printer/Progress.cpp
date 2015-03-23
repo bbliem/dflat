@@ -73,7 +73,7 @@ void Progress::solverEvent(const std::string& msg)
 	}
 }
 
-void Progress::result(const ItemTreePtr& rootItemTree)
+void Progress::result(const Solver::Result& rootItemTree)
 {
 	std::cout << "\r                                                        \r" << std::flush;
 

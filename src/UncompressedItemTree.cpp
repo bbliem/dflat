@@ -47,9 +47,9 @@ void UncompressedItemTree::addBranch(Branch::iterator begin, Branch::iterator en
 	}
 }
 
-ItemTreePtr UncompressedItemTree::compress(bool ignoreUndefCost)
+ItemTreeChildPtr UncompressedItemTree::compress(bool ignoreUndefCost)
 {
-	ItemTreePtr result(new ItemTree(std::move(node)));
+	ItemTreeChildPtr result(new ItemTree(std::move(node)));
 
 	switch(result->getNode()->getType()) {
 		case ItemTreeNode::Type::OR:
@@ -58,7 +58,7 @@ ItemTreePtr UncompressedItemTree::compress(bool ignoreUndefCost)
 			// Set cost to "infinity"
 			result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::max());
 			for(const auto& child : children) {
-				ItemTreePtr compressedChild = child->compress(ignoreUndefCost);
+				ItemTreeChildPtr compressedChild = child->compress(ignoreUndefCost);
 				if(!ignoreUndefCost || compressedChild->getNode()->getType() != ItemTreeNode::Type::UNDEFINED)
 					result->getNode()->setCost(std::min(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
 				result->addChildAndMerge(std::move(compressedChild));
@@ -71,7 +71,7 @@ ItemTreePtr UncompressedItemTree::compress(bool ignoreUndefCost)
 			// Set cost to minus "infinity"
 			result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::min());
 			for(const auto& child : children) {
-				ItemTreePtr compressedChild = child->compress(ignoreUndefCost);
+				ItemTreeChildPtr compressedChild = child->compress(ignoreUndefCost);
 				if(!ignoreUndefCost || compressedChild->getNode()->getType() != ItemTreeNode::Type::UNDEFINED)
 					result->getNode()->setCost(std::max(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
 				result->addChildAndMerge(std::move(compressedChild));

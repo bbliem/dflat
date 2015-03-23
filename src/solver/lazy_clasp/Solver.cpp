@@ -52,12 +52,12 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	wakeMainThreadRequested = false;
 }
 
-ItemTreePtr Solver::compute()
+Solver::Result Solver::compute()
 {
 	// Currently this is only called at the root of the decomposition.
 	assert(decomposition.isRoot());
 	nextRow();
-	ItemTreePtr result = claspCallback->finalize(false, false);
+	Result result = claspCallback->finalize(false, false);
 	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
 }
@@ -85,7 +85,7 @@ ItemTree::Children::const_iterator Solver::nextRow()
 	return claspCallback->getNewestRow();
 }
 
-const ItemTreePtr& Solver::getItemTreeSoFar() const
+const ItemTreeChildPtr& Solver::getItemTreeSoFar() const
 {
 	return claspCallback->getItemTree();
 }

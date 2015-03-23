@@ -28,13 +28,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "ItemTreeNode.h"
 
 class ItemTree;
-typedef std::unique_ptr<ItemTree> ItemTreePtr;
+//typedef std::unique_ptr<ItemTree> ItemTreePtr;
+typedef std::unique_ptr<ItemTree> ItemTreeChildPtr;
 class ExtensionIterator;
 class Application;
 
-struct ItemTreePtrComparator { bool operator()(const ItemTreePtr& lhs, const ItemTreePtr& rhs); };
+struct ItemTreeChildPtrComparator { bool operator()(const ItemTreeChildPtr& lhs, const ItemTreeChildPtr& rhs); };
 
-class ItemTree : public DirectedAcyclicGraph<std::shared_ptr<ItemTreeNode>, std::set<ItemTreePtr, ItemTreePtrComparator>>
+class ItemTree : public DirectedAcyclicGraph<std::shared_ptr<ItemTreeNode>, std::set<ItemTreeChildPtr, ItemTreeChildPtrComparator>>
 {
 public:
 	using DirectedAcyclicGraph::DirectedAcyclicGraph;
@@ -98,7 +99,7 @@ public:
 	//   4. cost(a) < cost(b) but cost(a') >= cost(b').
 	// This method returns true for *this and other having equal item sets if
 	// *this < other.
-	bool costDifferenceSignIncrease(const ItemTreePtr& other) const;
+	bool costDifferenceSignIncrease(const ItemTreeChildPtr& other) const;
 
 private:
 	// Recursively unify extension pointers of this itree with the other
@@ -111,4 +112,4 @@ private:
 };
 
 // Key: Global ID of child node; value: the child node's item tree
-typedef std::unordered_map<unsigned int, ItemTreePtr> ChildItemTrees;
+typedef std::unordered_map<unsigned int, std::shared_ptr<ItemTree>> ChildItemTrees;

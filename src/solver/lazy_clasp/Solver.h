@@ -34,12 +34,12 @@ class Solver : public ::Solver
 public:
 	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles);
 
-	virtual ItemTreePtr compute() override;
+	virtual Result compute() override;
 
 	ItemTree::Children::const_iterator nextRow();
 
 	// When the solver is currently in this->compute(), other objects can get the item tree that has been constructed so far with this method.
-	const ItemTreePtr& getItemTreeSoFar() const;
+	const ItemTreeChildPtr& getItemTreeSoFar() const;
 
 	// Call this from a worker thread that performs ASP solving to let the waiting main thread proceed.
 	// This method blocks until the worker thread should do more work.

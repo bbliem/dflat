@@ -71,7 +71,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 			assert(indexOfChildItemTreeRoot.find(pointer.get()) != indexOfChildItemTreeRoot.end());
 			rootExtensionPointers[indexOfChildItemTreeRoot[pointer.get()]] = std::move(pointer);
 		}
-		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
+		itemTree = ItemTreeChildPtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
 		// Set cost to "infinity"
 		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
 	}

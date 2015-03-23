@@ -32,14 +32,14 @@ AtomIntroductionSolver::AtomIntroductionSolver(const Decomposition& decompositio
 {
 }
 
-ItemTreePtr AtomIntroductionSolver::compute()
+Solver::Result AtomIntroductionSolver::compute()
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
 	assert(decomposition.getChildren().size() == 1);
 	Decomposition& childNode = **decomposition.getChildren().begin();
-	ItemTreePtr childResult = childNode.getSolver().compute();
-	ItemTreePtr result;
+	Result childResult = childNode.getSolver().compute();
+	Result result;
 
 	if(childResult) {
 		result = extendRoot(childResult);
@@ -65,15 +65,15 @@ ItemTreePtr AtomIntroductionSolver::compute()
 		}
 
 		// Guess node to extend at depth 1
-		for(const ItemTreePtr& childCandidate : childResult->getChildren()) {
+		for(const ItemTreeChildPtr& childCandidate : childResult->getChildren()) {
 			// Make introducedAtom false
 			ItemTreeNode::Items candidateItems = childCandidate->getNode()->getItems();
 			ItemTreeNode::Items candidateAuxItems = childCandidate->getNode()->getAuxItems();
 			// Add satisfied rules
 			candidateAuxItems.insert(rulesSatisfiedByFalse.begin(), rulesSatisfiedByFalse.end());
-			ItemTreePtr candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childCandidate);
+			ItemTreeChildPtr candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childCandidate);
 
-			for(const ItemTreePtr& childCertificate : childCandidate->getChildren()) {
+			for(const ItemTreeChildPtr& childCertificate : childCandidate->getChildren()) {
 				ItemTreeNode::Items certificateItems = childCertificate->getNode()->getItems();
 				ItemTreeNode::Items certificateAuxItems = childCertificate->getNode()->getAuxItems();
 				// Add satisfied rules
@@ -90,7 +90,7 @@ ItemTreePtr AtomIntroductionSolver::compute()
 			candidateAuxItems.insert(rulesSatisfiedByTrue.begin(), rulesSatisfiedByTrue.end());
 			candidate = extendCandidate(std::move(candidateItems), std::move(candidateAuxItems), childCandidate);
 
-			for(const ItemTreePtr& childCertificate : childCandidate->getChildren()) {
+			for(const ItemTreeChildPtr& childCertificate : childCandidate->getChildren()) {
 				// Make introducedAtom false in certificate (and add "smaller" flag)
 				ItemTreeNode::Items certificateItems = childCertificate->getNode()->getItems();
 				ItemTreeNode::Items certificateAuxItems = childCertificate->getNode()->getAuxItems();

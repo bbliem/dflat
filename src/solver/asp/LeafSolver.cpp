@@ -33,15 +33,15 @@ LeafSolver::LeafSolver(const Decomposition& decomposition, const Application& ap
 		throw std::runtime_error("ASP solver requires empty leaves");
 }
 
-ItemTreePtr LeafSolver::compute()
+Solver::Result LeafSolver::compute()
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 	assert(decomposition.getChildren().empty());
 	assert(decomposition.getNode().getBag().empty());
 
-	ItemTreePtr result(new ItemTree(ItemTree::Node(new ItemTreeNode({}, {}, {{}}, ItemTreeNode::Type::OR))));
-	ItemTreePtr candidate(new ItemTree(ItemTree::Node(new ItemTreeNode({}, {}, {{}}, ItemTreeNode::Type::AND))));
-	ItemTreePtr certificate(new ItemTree(ItemTree::Node(new ItemTreeNode)));
+	Result result(new ItemTree(ItemTree::Node(new ItemTreeNode({}, {}, {{}}, ItemTreeNode::Type::OR))));
+	ItemTreeChildPtr candidate(new ItemTree(ItemTree::Node(new ItemTreeNode({}, {}, {{}}, ItemTreeNode::Type::AND))));
+	ItemTreeChildPtr certificate(new ItemTree(ItemTree::Node(new ItemTreeNode)));
 	candidate->addChildAndMerge(std::move(certificate));
 	result->addChildAndMerge(std::move(candidate));
 

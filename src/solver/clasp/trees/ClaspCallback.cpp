@@ -185,7 +185,7 @@ void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
 		rejectLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getRejectAtomKey()].lit));
 }
 
-ItemTreePtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)
+ItemTreeChildPtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)
 {
 	app.getPrinter().uncompressedSolverInvocationResult(decomposition, uncompressedItemTree.get());
 	if(uncompressedItemTree)

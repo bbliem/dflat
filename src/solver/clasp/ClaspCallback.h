@@ -50,7 +50,7 @@ public:
 	ClaspCallback(const Application&);
 
 	// Call this after all answer sets have been processed. It returns the resulting item tree (and calls finalize() on it).
-	virtual ItemTreePtr finalize(bool pruneUndefined, bool pruneRejecting);
+	virtual ItemTreeChildPtr finalize(bool pruneUndefined, bool pruneRejecting);
 
 	// Called when a model has been found
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
@@ -58,7 +58,7 @@ public:
 	// Returns the item tree that is being constructed by this object.
 	// You may use this method before all answer sets have been processed to get the current state of the item tree.
 	// To obtain the finished product, you should probably call finalize() instead.
-	const ItemTreePtr& getItemTree() const;
+	const ItemTreeChildPtr& getItemTree() const;
 
 	// Call this when clasp's symbol table is available to let this object get the clasp literals corresponding to atoms using output predicates
 	virtual void prepare(const Clasp::SymbolTable&) {}
@@ -105,7 +105,7 @@ protected:
 	}
 #endif
 
-	ItemTreePtr itemTree;
+	ItemTreeChildPtr itemTree;
 	const Application& app;
 	bool prune;
 };

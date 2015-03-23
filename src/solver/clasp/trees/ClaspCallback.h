@@ -44,7 +44,7 @@ public:
 
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
 	virtual void prepare(const Clasp::SymbolTable&) override;
-	virtual ItemTreePtr finalize(bool pruneUndefined, bool pruneRejecting) override;
+	virtual ItemTreeChildPtr finalize(bool pruneUndefined, bool pruneRejecting) override;
 
 private:
 	UncompressedItemTreePtr uncompressedItemTree;
