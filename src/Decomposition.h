@@ -76,4 +76,9 @@ protected:
 	bool postJoinNode;
 
 	Parents parents;
+
+private:
+#ifndef NDEBUG
+	void printDebug() const;
+#endif
 };

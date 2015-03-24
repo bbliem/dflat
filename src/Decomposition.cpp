@@ -18,6 +18,10 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
+#ifndef NDEBUG
+#include <iostream>
+#endif
+
 #include "Decomposition.h"
 #include "SolverFactory.h"
 
@@ -113,3 +117,10 @@ void Decomposition::printGraphMlElements(std::ostream& out) const
 		                " target=\"n" << child->node.getGlobalId() << "\"/>" << std::endl;
 	}
 }
+
+#ifndef NDEBUG
+void Decomposition::printDebug() const
+{
+	print(std::cout);
+}
+#endif
