@@ -38,6 +38,11 @@ void Module::select()
 	selected.setSatisfied();
 }
 
+void Module::setSelectedCondition()
+{
+	selected.setSatisfied();
+}
+
 void Module::notify()
 {
 	if(choice.getValue() == optionName)

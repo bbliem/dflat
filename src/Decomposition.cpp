@@ -40,6 +40,13 @@ void Decomposition::addChild(ChildPtr&& child)
 	children.insert(children.end(), std::move(child));
 }
 
+void Decomposition::addChild(const ChildPtr& child)
+{
+	assert(child);
+	child->parents.push_back(this);
+	children.insert(children.end(), child);
+}
+
 Solver& Decomposition::getSolver()
 {
 	if(!solver)

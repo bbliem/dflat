@@ -42,6 +42,7 @@ public:
 
 	const Parents& getParents() const { return parents; }
 	void addChild(ChildPtr&& child);
+	void addChild(const ChildPtr& child);
 
 	Solver& getSolver();
 

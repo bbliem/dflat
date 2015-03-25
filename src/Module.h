@@ -40,6 +40,9 @@ public:
 	// Called when this module has been selected using the choice option given to the constructor
 	virtual void select();
 
+	// Set the "selected" condition so this module's options may be used (not necessarily because the module has been selected using the choice option given to the constructor).
+	void setSelectedCondition();
+
 protected:
 	Application& app;
 	options::Choice& choice;

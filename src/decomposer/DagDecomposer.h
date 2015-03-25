@@ -28,12 +28,14 @@ namespace decomposer {
 class DagDecomposer : public Decomposer
 {
 public:
-	DagDecomposer(const TreeDecomposer& treeDecomposer, Application& app, bool newDefault = false);
+	DagDecomposer(TreeDecomposer& treeDecomposer, Application& app, bool newDefault = false);
+
+	virtual void select() override;
 
 	virtual DecompositionPtr decompose(const Hypergraph& instance) const override;
 
 private:
-	const TreeDecomposer& treeDecomposer;
+	TreeDecomposer& treeDecomposer;
 };
 
 } // namespace decomposer

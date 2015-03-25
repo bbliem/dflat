@@ -88,14 +88,28 @@ private:
 //	using DirectedAcyclicGraph::DirectedAcyclicGraph;
 //};
 
+void updateTopmostNodes(std::map<Hypergraph::Vertex, DecompositionPtr>& topmostNodeContaining, const DecompositionPtr& td)
+{
+	for(const auto& bagElement : td->getNode().getBag())
+		topmostNodeContaining.emplace(bagElement, td);
+	for(const auto& child : td->getChildren())
+		updateTopmostNodes(topmostNodeContaining, child);
+}
+
 }
 
 namespace decomposer {
 
-DagDecomposer::DagDecomposer(const TreeDecomposer& treeDecomposer, Application& app, bool newDefault)
+DagDecomposer::DagDecomposer(TreeDecomposer& treeDecomposer, Application& app, bool newDefault)
 	: Decomposer(app, "dag", "DAG decomposition (connecting TDs of SCCs)", newDefault)
 	, treeDecomposer(treeDecomposer)
 {
+}
+
+void DagDecomposer::select()
+{
+	::Decomposer::select();
+	treeDecomposer.setSelectedCondition(); // XXX ugly
 }
 
 DecompositionPtr DagDecomposer::decompose(const Hypergraph& instance) const
@@ -136,6 +150,7 @@ DecompositionPtr DagDecomposer::decompose(const Hypergraph& instance) const
 
 	// Traversal 2
 	//TdDag tdDag;
+	std::map<Vertex, DecompositionPtr> topmostNodeContaining; // store for each vertex the topmost TD node whose bag contains that vertex
 	DecompositionPtr result(new Decomposition({{}}, app.getSolverFactory()));
 	result->setRoot();
 	// Create a TD for each SCC and add the root of this TD as a child to the node with empty bag in result
@@ -177,7 +192,24 @@ DecompositionPtr DagDecomposer::decompose(const Hypergraph& instance) const
 		}
 
 		// Decompose SCC
-		result->addChild(treeDecomposer.decompose(scc));
+		//result->addChild(treeDecomposer.decompose(scc));
+		DecompositionPtr td = treeDecomposer.decompose(scc);
+		updateTopmostNodes(topmostNodeContaining, td);
+		result->addChild(std::move(td));
+
+		// Find out which edges exist between this SCC and other already generated ones
+		for(const auto& v : sccVertices) {
+			for(const auto& parent : graph.getParents(v)) {
+				if(sccVertices.find(parent) == sccVertices.end()) {
+					// SCC-crossing edge from parent to v
+					DecompositionPtr interfaceNode(new Decomposition({{parent, v}}, app.getSolverFactory()));
+					// Add interfaceNode to the parents of the topmost node containing v
+					interfaceNode->addChild(topmostNodeContaining.at(v));
+					// Add interfaceNode to children of the topmost node containing parent
+					topmostNodeContaining.at(parent)->addChild(std::move(interfaceNode));
+				}
+			}
+		}
 	}
 	assert(visited.size() == instance.getVertices().size());
 
