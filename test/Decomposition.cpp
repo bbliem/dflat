@@ -45,7 +45,8 @@ struct DecompositionTest : public ::testing::Test
 
 TEST_F(DecompositionTest, ReturnsDummySolver)
 {
-	EXPECT_EQ(typeid(solver::dummy::Solver), typeid(decomposition.getSolver()))
+	const Solver& solver = decomposition.getSolver();
+	EXPECT_EQ(typeid(solver::dummy::Solver), typeid(solver))
 		<< "decomposition.getSolver() should return an object of type solver::dummy::Solver";
 }
 
