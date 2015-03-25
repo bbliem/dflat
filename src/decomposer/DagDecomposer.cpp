@@ -39,8 +39,10 @@ public:
 
 	DirectedGraph(const Hypergraph& hg)
 	{
-		for(const auto& v : hg.getVertices())
+		for(const auto& v : hg.getVertices()) {
 			adjacencyList[v];
+			inverseAdjacencyList[v];
+		}
 		for(const auto& e : hg.getEdges()) {
 			if(e.size() != 2)
 				throw std::runtime_error("Tried to build graph from non-binary hypergraph");
@@ -195,6 +197,7 @@ DecompositionPtr DagDecomposer::decompose(const Hypergraph& instance) const
 		//result->addChild(treeDecomposer.decompose(scc));
 		DecompositionPtr td = treeDecomposer.decompose(scc);
 		updateTopmostNodes(topmostNodeContaining, td);
+		td->setRoot(false);
 		result->addChild(std::move(td));
 
 		// Find out which edges exist between this SCC and other already generated ones
