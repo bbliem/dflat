@@ -44,6 +44,8 @@ public:
 			inverseAdjacencyList[v];
 		}
 		for(const auto& e : hg.getEdges()) {
+			if(e.size() == 1)
+				continue;
 			if(e.size() != 2)
 				throw std::runtime_error("Tried to build graph from non-binary hypergraph");
 			const auto& from = e[0];
@@ -154,7 +156,7 @@ DecompositionPtr DagDecomposer::decompose(const Hypergraph& instance) const
 	//TdDag tdDag;
 	std::map<Vertex, DecompositionPtr> topmostNodeContaining; // store for each vertex the topmost TD node whose bag contains that vertex
 	DecompositionPtr result(new Decomposition({{}}, app.getSolverFactory()));
-	// Create a TD for each SCC and add the root of this TD as a child to the node with empty bag in result
+	// Create a TD for each SCC
 
 	std::set<Vertex> visited;
 	while(traversal1Result.empty() == false) {
@@ -195,8 +197,8 @@ DecompositionPtr DagDecomposer::decompose(const Hypergraph& instance) const
 		// Decompose SCC
 		//result->addChild(treeDecomposer.decompose(scc));
 		DecompositionPtr td = treeDecomposer.decompose(scc);
+		//std::cout << "TD:\n" << *td << '\n';
 		updateTopmostNodes(topmostNodeContaining, td);
-		result->addChild(std::move(td));
 
 		// Find out which edges exist between this SCC and other already generated ones
 		for(const auto& v : sccVertices) {
@@ -211,6 +213,9 @@ DecompositionPtr DagDecomposer::decompose(const Hypergraph& instance) const
 				}
 			}
 		}
+		// If the root of this TD has no parent, add it as a child to the node with empty bag in result
+		if(td->isRoot())
+			result->addChild(std::move(td));
 	}
 	assert(visited.size() == instance.getVertices().size());
 
