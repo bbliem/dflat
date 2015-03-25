@@ -113,7 +113,6 @@ DecompositionPtr GraphMl::decompose(const Hypergraph& instance) const
 	}
 	if(nodes.size() != 1)
 		error("Not all non-root nodes connected to parents");
-	nodes.top()->setRoot();
 	return nodes.top();
 }
 

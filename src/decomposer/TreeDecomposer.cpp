@@ -161,9 +161,7 @@ DecompositionPtr TreeDecomposer::decompose(const Hypergraph& instance) const
 	td.reset();
 
 	// Transform SHARP's tree decomposition into our format
-	DecompositionPtr result = transformTd(*normalized, optPostJoin.isUsed(), normalizationType, problem, app);
-	result->setRoot();
-	return result;
+	return transformTd(*normalized, optPostJoin.isUsed(), normalizationType, problem, app);
 }
 
 } // namespace decomposer

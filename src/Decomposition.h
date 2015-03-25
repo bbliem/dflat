@@ -49,11 +49,7 @@ public:
 	// Returns true if the node is a join node, i.e., has at least two children and all children have equal bags
 	bool isJoinNode() const;
 
-	// Mark this node to be the root.
-	// Only do this if this is not a child of any node.
-	void setRoot(bool root = true);
-
-	// Returns true if setRoot(true) has been called.
+	// Returns true if this node has no parents
 	bool isRoot() const;
 
 	// Mark this node to be a node added for post-processing join nodes.
@@ -73,7 +69,6 @@ protected:
 
 	const SolverFactory& solverFactory;
 	std::unique_ptr<Solver> solver;
-	bool root;
 	bool postJoinNode;
 
 	Parents parents;

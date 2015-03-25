@@ -154,7 +154,6 @@ DecompositionPtr DagDecomposer::decompose(const Hypergraph& instance) const
 	//TdDag tdDag;
 	std::map<Vertex, DecompositionPtr> topmostNodeContaining; // store for each vertex the topmost TD node whose bag contains that vertex
 	DecompositionPtr result(new Decomposition({{}}, app.getSolverFactory()));
-	result->setRoot();
 	// Create a TD for each SCC and add the root of this TD as a child to the node with empty bag in result
 
 	std::set<Vertex> visited;
@@ -197,7 +196,6 @@ DecompositionPtr DagDecomposer::decompose(const Hypergraph& instance) const
 		//result->addChild(treeDecomposer.decompose(scc));
 		DecompositionPtr td = treeDecomposer.decompose(scc);
 		updateTopmostNodes(topmostNodeContaining, td);
-		td->setRoot(false);
 		result->addChild(std::move(td));
 
 		// Find out which edges exist between this SCC and other already generated ones
