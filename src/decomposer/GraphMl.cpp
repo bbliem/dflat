@@ -54,6 +54,32 @@ namespace {
 		}
 		return bag;
 	}
+
+	void addEmptyLeaves(Decomposition& decomposition, const Application& app)
+	{
+		if(decomposition.getChildren().empty() && decomposition.getNode().getBag().size() > 0) {
+			Hypergraph::Vertices bag = decomposition.getNode().getBag();
+			bag.erase(bag.begin());
+			DecompositionPtr child(new Decomposition(bag, app.getSolverFactory()));
+			decomposition.addChild(std::move(child));
+		}
+
+		for(const auto& child : decomposition.getChildren())
+			addEmptyLeaves(*child, app);
+	}
+
+	DecompositionPtr addEmptyRoot(DecompositionPtr&& oldRoot, const Application& app)
+	{
+		if(oldRoot->getNode().getBag().size() > 0) {
+			Hypergraph::Vertices bag = oldRoot->getNode().getBag();
+			bag.erase(bag.begin());
+			DecompositionPtr newNode(new Decomposition(bag, app.getSolverFactory()));
+			newNode->addChild(std::move(oldRoot));
+			return addEmptyRoot(std::move(newNode), app);
+		}
+		else
+			return oldRoot;
+	}
 }
 
 namespace decomposer {
@@ -63,9 +89,17 @@ const std::string GraphMl::OPTION_SECTION = "GraphML decomposition reader";
 GraphMl::GraphMl(Application& app, bool newDefault)
 	: Decomposer(app, "graphml", "Use decomposition specified in GraphML file", newDefault)
 	, optFile("graphml-in", "file", "Read decomposition in GraphML format from <file>")
+	, optAddEmptyRoot("add-empty-root", "Add an empty root to the read tree decomposition")
+	, optAddEmptyLeaves("add-empty-leaves", "Add empty leaves to the read tree decomposition")
 {
 	optFile.addCondition(selected);
 	app.getOptionHandler().addOption(optFile, OPTION_SECTION);
+
+	optAddEmptyRoot.addCondition(selected);
+	app.getOptionHandler().addOption(optAddEmptyRoot, OPTION_SECTION);
+
+	optAddEmptyLeaves.addCondition(selected);
+	app.getOptionHandler().addOption(optAddEmptyLeaves, OPTION_SECTION);
 }
 
 void GraphMl::select()
@@ -113,8 +147,16 @@ DecompositionPtr GraphMl::decompose(const Hypergraph& instance) const
 	}
 	if(nodes.size() != 1)
 		error("Not all non-root nodes connected to parents");
-	nodes.top()->setRoot();
-	return nodes.top();
+
+	DecompositionPtr root = nodes.top();
+
+	if(optAddEmptyLeaves.isUsed())
+		addEmptyLeaves(*root, app);
+	if(optAddEmptyRoot.isUsed())
+		root = addEmptyRoot(std::move(root), app);
+
+	root->setRoot();
+	return root;
 }
 
 } // namespace decomposer

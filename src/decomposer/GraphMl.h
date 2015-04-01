@@ -38,6 +38,8 @@ private:
 	static const std::string OPTION_SECTION;
 
 	options::SingleValueOption optFile;
+	options::Option optAddEmptyRoot;
+	options::Option optAddEmptyLeaves;
 };
 
 } // namespace decomposer
