@@ -90,7 +90,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 //				return pair.second->getParent() == prevNode->extended.at(pair.first).get();
 //		}), "Extension pointer at level n+1 does not point to a child of the extended level-n node");
 		assert(curNode->extended.size() == prevNode->extended.size());
-		for(int i = 0; i < curNode->extended.size(); ++i)
+		for(unsigned int i = 0; i < curNode->extended.size(); ++i)
 			ASP_CHECK(curNode->extended[i]->getParent() == prevNode->extended[i].get(), "Extension pointer at level n+1 does not point to a child of the extended level-n node");
 		++prevNode;
 		++curNode;
