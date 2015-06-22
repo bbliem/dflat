@@ -5,7 +5,7 @@ auxItem(dominated(X)) :- extend(R), childAuxItem(R,dominated(X)), current(X).
 :- removed(X), extend(R), not childItem(R,in(X)), not childAuxItem(R,dominated(X)).
 { item(in(X)) : introduced(X) }.
 auxItem(dominated(X)) :- item(in(Y)), edge(Y,X), current(X).
-:- edge(X,Y), item(in(X;Y)).
+:- edge(X,Y), item(in(X)), item(in(Y)).
 
 currentCost(C) :- C = #count { X : item(in(X)) }.
 cost(C) :- initial, currentCost(C).

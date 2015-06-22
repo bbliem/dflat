@@ -6,7 +6,7 @@
 extend(L-1,R) :- extend(L,S), sub(R,S).
 
 % Only join branches that coincide on common atoms
-:- extend(L,X;L,Y), atom(L,A), childItem(X,t(A)), childItem(Y,f(A)).
+:- extend(L,X), extend(L,Y), atom(L,A), childItem(X,t(A)), childItem(Y,f(A)).
 
 auxItem(L,sat(C)) :- extend(L,S), childAuxItem(S,sat(C)), not removed(C).
 item(L,t(X))      :- extend(L,S), childItem(S,t(X)),      not removed(X).

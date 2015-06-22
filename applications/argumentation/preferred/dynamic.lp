@@ -20,9 +20,9 @@ item(2,in(A)) :- item(1,in(A)).
 % Set colors for arguments in current bag
 item(L,in(A))     :- extend(L,S), childItem(S, in(A)),     current(A).
 auxItem(L,def(A)) :- extend(L,S), childAuxItem(S, def(A)), current(A).
-auxItem(L,def(A)) :- current(A;B), att(B,A), item(L,in(B)), not item(L,in(A)).
+auxItem(L,def(A)) :- current(A), current(B), att(B,A), item(L,in(B)), not item(L,in(A)).
 auxItem(L,att(A)) :- extend(L,S), childAuxItem(S, att(A)), not auxItem(L,def(A)).
-auxItem(L,att(A)) :- current(A;B), att(A,B), item(L,in(B)), not item(L,in(A)), not auxItem(L,def(A)).
+auxItem(L,att(A)) :- current(A), current(B), att(A,B), item(L,in(B)), not item(L,in(A)), not auxItem(L,def(A)).
 
 % Attacking but not defeated
 :- extend(L,S), childAuxItem(S, att(A)), removed(A).

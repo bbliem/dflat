@@ -38,8 +38,10 @@ namespace {
 
 namespace solver { namespace clasp { namespace trees {
 
-void EncodingChecker::showsig(Gringo::Location const &loc, Gringo::FWString name, unsigned arity, bool csp)
+void EncodingChecker::showsig(Gringo::Location const &loc, Gringo::FWSignature sig, bool csp)
 {
+	const std::string name = (*sig).name();
+	const unsigned int arity = (*sig).length();
 	assert(!csp);
 	showUsed = true;
 

@@ -9,7 +9,7 @@ connected(X,Z) :- connected(Y,Z), edge(X,Y), X != Z, Y != Z, partition(X,p1), pa
 
 :- partition(X,p1), partition(Y,p1), X < Y, not connected(X,Y).
 
-ok :- vertex(X;Y), partition(X,p1), partition(Y,p2), edge(X,Y).
+ok :- vertex(X), vertex(Y), partition(X,p1), partition(Y,p2), edge(X,Y).
 :- not ok.
 
 cut(X,Y) :- edge(X,Y), partition(X,p1), partition(Y,p2), X < Y.

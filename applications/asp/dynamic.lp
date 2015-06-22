@@ -12,7 +12,7 @@ false(S,X) :- sub(_,S), atNode(S,N), bag(N,X), not childItem(S,X).
 1 { extend(L+1,S) : sub(R,S) } 1 :- extend(L,R), L < 2.
 
 % Only join child item sets that coincide on common atoms
-:- extend(L,X;L,Y), atom(A), childItem(X,A), false(Y,A).
+:- extend(L,X), extend(L,Y), atom(A), childItem(X,A), false(Y,A).
 
 % A child item set cannot be extended if a removed rule is unsatisfied by it
 :- extend(_,S), rule(X), removed(X), false(S,X).
@@ -24,14 +24,14 @@ item(L,X) :- extend(L,S), childItem(S,X), current(X).
 { item(1,A;2,A) : atom(A), introduced(A) }.
 
 % Through the guess, rules may become satisfied
-item(1,R) :- current(R;A), head(R,A),     item(1,A).
-item(1,R) :- current(R;A), pos(R,A),  not item(1,A).
-item(1,R) :- current(R;A), neg(R,A),      item(1,A).
+item(1,R) :- current(R), current(A), head(R,A),     item(1,A).
+item(1,R) :- current(R), current(A), pos(R,A),  not item(1,A).
+item(1,R) :- current(R), current(A), neg(R,A),      item(1,A).
 
-item(2,R) :- current(R;A), head(R,A),     item(2,A).
-item(2,R) :- current(R;A), pos(R,A),  not item(2,A).
+item(2,R) :- current(R), current(A), head(R,A),     item(2,A).
+item(2,R) :- current(R), current(A), pos(R,A),  not item(2,A).
 % If a negative body atom is true on the top level, the rule disappears from reduct (w.r.t. the top level)
-item(2,R) :- current(R;A), neg(R,A),      item(1,A).
+item(2,R) :- current(R), current(A), neg(R,A),      item(1,A).
 
 % Level 2 interpretation must not be bigger than level 1
 :- atom(A), item(2,A), not item(1,A).

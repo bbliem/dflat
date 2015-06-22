@@ -20,22 +20,22 @@ assigned(X) :- iVar(_,X), assign(X,_).
 incomplete(L) :- iVar(L,X), not assigned(X).
 
 % Check: Only join compatible branches; the resulting assignment must be valid
-:- iVar(L,X), assign(X,V;X,W), V != W.
-:- extend(L,S;L,T), atNode(S,NS;T,NT), NS > NT, childItem(S,assign(X,_nn);T,assign(X,_nn)).
-:- extend(L,S;L,T), var(L,X), childItem(S,assign(X,V)), not childItem(T,assign(X,V)), vertex(V).
+:- iVar(L,X), assign(X,V), assign(X,W), V != W.
+:- extend(L,S), extend(L,T), atNode(S,NS), atNode(T,NT), NS > NT, childItem(S,assign(X,_nn)), childItem(T,assign(X,_nn)).
+:- extend(L,S), extend(L,T), var(L,X), childItem(S,assign(X,V)), not childItem(T,assign(X,V)), vertex(V).
 
 % Truth values of atoms
 true (X) :- extend(_,S), childItem(S,true (X)).
 false(X) :- extend(_,S), childItem(S,false(X)).
 
-true (edge(X,Y)) :- atom(edge(X,Y)), assign(X,V;Y,W), edge(V,W).
-false(edge(X,Y)) :- atom(edge(X,Y)), assign(X,V;Y,W), vertex(V;W), not edge(V,W).
+true (edge(X,Y)) :- atom(edge(X,Y)), assign(X,V), assign(Y,W), edge(V,W).
+false(edge(X,Y)) :- atom(edge(X,Y)), assign(X,V), assign(Y,W), vertex(V), vertex(W), not edge(V,W).
 wasAssigned(X) :- iVar(L,X), extend(L,S), childItem(S,assign(X,_)).
 false(edge(X,Y)) :- atom(edge(X,Y)), extend(_,S), childItem(S,assign(X,V)), removed(V), not wasAssigned(Y).
 false(edge(X,Y)) :- atom(edge(X,Y)), extend(_,S), childItem(S,assign(Y,V)), removed(V), not wasAssigned(X).
 % The following rule should take care of the others deriving false(edge(X,Y)).
 % It is slower, though. Useful for the paper since it is shorter and more consistent with the semantic tree approach.
-%false(edge(X,Y)) :- atom(edge(X,Y)), assign(X,_nn;Y,_nn), not true(edge(X,Y)).
+%false(edge(X,Y)) :- atom(edge(X,Y)), assign(X,_nn), assign(Y,_nn), not true(edge(X,Y)).
 
 true (in(X,Y))   :- atom(in(X,Y)), assign(X,V), assign(Y,V).
 false(in(X,Y))   :- atom(in(X,Y)), assign(X,V), vertex(V), not assign(Y,V).

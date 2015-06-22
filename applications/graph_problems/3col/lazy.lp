@@ -5,10 +5,10 @@ color(red;green;blue).
 
 item(map(X,C)) :- childItem(map(X,C)), current(X).
 % Only join matching colorings
-:- item(map(V,C0;V,C1)), C0 != C1.
+:- item(map(V,C0)), item(map(V,C1)), C0 != C1.
 
 1 { item(map(X,C)) : color(C) } 1 :- introduced(X).
-:- edge(X,Y), item(map(X,C;Y,C)).
+:- edge(X,Y), item(map(X,C)), item(map(Y,C)).
 
 
 

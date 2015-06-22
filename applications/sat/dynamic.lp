@@ -7,7 +7,7 @@ unsat(R,C) :- childRow(R,N), bag(N,C), not childAuxItem(R,C).
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
 
 % Only join rows that coincide on common atoms
-:- extend(X;Y), atom(A), childItem(X,A), false(Y,A).
+:- extend(X), extend(Y), atom(A), childItem(X,A), false(Y,A).
 
 % Some child rows cannot be extended since they are killed
 :- clause(C), removed(C), extend(R), unsat(R,C).
@@ -20,8 +20,8 @@ auxItem(C) :- extend(R), childAuxItem(R,C), current(C).
 { item(A) : atom(A), introduced(A) }.
 
 % Through the guess, clauses may become satisfied
-auxItem(C) :- current(C;A), pos(C,A), item(A).
-auxItem(C) :- current(C;A), neg(C,A), not item(A).
+auxItem(C) :- current(C), current(A), pos(C,A), item(A).
+auxItem(C) :- current(C), current(A), neg(C,A), not item(A).
 
 
 

@@ -19,20 +19,20 @@ outc(A) :- extend(R), childItem(R, outc(A)), current(A).
 % Set colors for arguments in current bag
 item(in(A))   :- current(A), extend(R), childItem(R, in(A)).
 item(def(A))  :- current(A), extend(R), childItem(R, def(A)).
-item(def(A))  :- current(A;B), att(B,A), item(in(B)), defc(A).
+item(def(A))  :- current(A), current(B), att(B,A), item(in(B)), defc(A).
 item(defc(A)) :- current(A), defc(A), not item(def(A)).
 item(out(A))  :- current(A), extend(R), childItem(R, out(A)).
-item(out(A))  :- current(A;B), att(B,A), item(out(B)), outc(A).
-item(out(A))  :- current(A;B), att(B,A), outc(B), outc(A).
+item(out(A))  :- current(A), current(B), att(B,A), item(out(B)), outc(A).
+item(out(A))  :- current(A), current(B), att(B,A), outc(B), outc(A).
 item(outc(A)) :- current(A), outc(A), not item(out(A)).
 
 % Not defeated, or not really out
 :- extend(R), childItem(R, defc(A)), removed(A).
 :- extend(R), childItem(R, outc(A)), removed(A).
-:- current(A;B), att(B,A), item(in(B)), item(outc(A)).
-:- current(A;B), att(B,A), item(in(B)), item(out(A)).
-:- current(A;B), att(B,A), item(out(B)), item(in(A)).
-:- current(A;B), att(B,A), item(outc(B)), item(in(A)).
+:- current(A), current(B), att(B,A), item(in(B)), item(outc(A)).
+:- current(A), current(B), att(B,A), item(in(B)), item(out(A)).
+:- current(A), current(B), att(B,A), item(out(B)), item(in(A)).
+:- current(A), current(B), att(B,A), item(outc(B)), item(in(A)).
 
 % Conflict-free
 :- item(in(A)), item(in(B)), att(A,B).

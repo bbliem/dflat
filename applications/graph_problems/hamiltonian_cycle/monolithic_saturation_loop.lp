@@ -23,8 +23,8 @@ all2_upto(Y) :- all2_upto(X), succ(X,Y), s2(Y).
 saturate :- all1.
 saturate :- all2.
 
-notSucc(X,Z) :- vertex(X;Y;Z), X < Y, Y < Z.
-succ(X,Y) :- vertex(X;Y), X < Y, not notSucc(X,Y).
+notSucc(X,Z) :- vertex(X), vertex(Y), vertex(Z), X < Y, Y < Z.
+succ(X,Y) :- vertex(X), vertex(Y), X < Y, not notSucc(X,Y).
 notInf(X) :- succ(_,X).
 inf(X) :- vertex(X), not notInf(X).
 notSup(X) :- succ(X,_).

@@ -1,43 +1,43 @@
 %dflat: -d td -n semi --no-empty-leaves --no-empty-root --tables -e vertex -e edge
-edge(X,Y) :- current(X;Y), edge(Y,X).
+edge(X,Y) :- current(X), current(Y), edge(Y,X).
 
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
 
-0 { item(selectedEdge(X,Y)) } 1 :- current(X;Y), introduced(X), edge(X,Y), X < Y.
-0 { item(selectedEdge(X,Y)) } 1 :- current(X;Y), introduced(Y), edge(X,Y), X < Y.
+0 { item(selectedEdge(X,Y)) } 1 :- current(X), current(Y), introduced(X), edge(X,Y), X < Y.
+0 { item(selectedEdge(X,Y)) } 1 :- current(X), current(Y), introduced(Y), edge(X,Y), X < Y.
 
-item(selectedEdge(X,Y)) :- current(X;Y), extend(R), childItem(R,selectedEdge(X,Y)).
+item(selectedEdge(X,Y)) :- current(X), current(Y), extend(R), childItem(R,selectedEdge(X,Y)).
 
 item(observed(X)) :- current(X), extend(R), childItem(R,observed(X)).
 
-item(observed(X)) :- current(X;Y), terminalVertex(X), item(selectedEdge(X,Y)).
-item(observed(X)) :- current(X;Y), terminalVertex(X), item(selectedEdge(Y,X)).
-item(observed(Y)) :- current(X;Y), terminalVertex(Y), item(selectedEdge(X,Y)).
-item(observed(Y)) :- current(X;Y), terminalVertex(Y), item(selectedEdge(Y,X)).
+item(observed(X)) :- current(X), current(Y), terminalVertex(X), item(selectedEdge(X,Y)).
+item(observed(X)) :- current(X), current(Y), terminalVertex(X), item(selectedEdge(Y,X)).
+item(observed(Y)) :- current(X), current(Y), terminalVertex(Y), item(selectedEdge(X,Y)).
+item(observed(Y)) :- current(X), current(Y), terminalVertex(Y), item(selectedEdge(Y,X)).
 
 item(steinerVertex(X)) :- current(X), extend(R), childItem(R,steinerVertex(X)).
 
-item(steinerVertex(X)) :- current(X;Y), item(selectedEdge(X,Y)), not terminalVertex(X).
-item(steinerVertex(Y)) :- current(X;Y), item(selectedEdge(X,Y)), not terminalVertex(Y).
-item(steinerVertex(X)) :- current(X;Y), item(selectedEdge(Y,X)), not terminalVertex(X).
-item(steinerVertex(Y)) :- current(X;Y), item(selectedEdge(Y,X)), not terminalVertex(Y).
+item(steinerVertex(X)) :- current(X), current(Y), item(selectedEdge(X,Y)), not terminalVertex(X).
+item(steinerVertex(Y)) :- current(X), current(Y), item(selectedEdge(X,Y)), not terminalVertex(Y).
+item(steinerVertex(X)) :- current(X), current(Y), item(selectedEdge(Y,X)), not terminalVertex(X).
+item(steinerVertex(Y)) :- current(X), current(Y), item(selectedEdge(Y,X)), not terminalVertex(Y).
 
-item(connected(X,Y)) :- current(X;Y), item(selectedEdge(X,Y)), X < Y.
+item(connected(X,Y)) :- current(X), current(Y), item(selectedEdge(X,Y)), X < Y.
 
-item(connected(X,Y)) :- current(X;Y), extend(R), childItem(R,connected(X,Y)).
+item(connected(X,Y)) :- current(X), current(Y), extend(R), childItem(R,connected(X,Y)).
 
-item(connected(X,Z)) :- current(X;Y;Z), item(connected(X,Y)), item(connected(Y,Z)), X < Y, Y < Z, X < Z.
-item(connected(X,Z)) :- current(X;Y;Z), item(connected(X,Y)), item(connected(Z,Y)), X < Y, Z < Y, X < Z.
+item(connected(X,Z)) :- current(X), current(Y), current(Z), item(connected(X,Y)), item(connected(Y,Z)), X < Y, Y < Z, X < Z.
+item(connected(X,Z)) :- current(X), current(Y), current(Z), item(connected(X,Y)), item(connected(Z,Y)), X < Y, Z < Y, X < Z.
 
-item(connected(X,Y)) :- current(X;Y;Z), item(connected(X,Z)), item(connected(Y,Z)), X < Y, X < Z, Y < Z.
-item(connected(Y,Z)) :- current(X;Y;Z), item(connected(X,Y)), item(connected(X,Z)), X < Y, X < Z, Y < Z.
+item(connected(X,Y)) :- current(X), current(Y), current(Z), item(connected(X,Z)), item(connected(Y,Z)), X < Y, X < Z, Y < Z.
+item(connected(Y,Z)) :- current(X), current(Y), current(Z), item(connected(X,Y)), item(connected(X,Z)), X < Y, X < Z, Y < Z.
 
-item(establishConnection(X,Y)) :- current(X;Y), terminalVertex(X), terminalVertex(Y), not item(connected(X,Y)), X < Y.
+item(establishConnection(X,Y)) :- current(X), current(Y), terminalVertex(X), terminalVertex(Y), not item(connected(X,Y)), X < Y.
 
-item(establishConnection(X,Y)) :- current(X;Y), terminalVertex(X), item(steinerVertex(Y)), not item(connected(X,Y)), X < Y.
-item(establishConnection(X,Y)) :- current(X;Y), terminalVertex(Y), item(steinerVertex(X)), not item(connected(X,Y)), X < Y.
+item(establishConnection(X,Y)) :- current(X), current(Y), terminalVertex(X), item(steinerVertex(Y)), not item(connected(X,Y)), X < Y.
+item(establishConnection(X,Y)) :- current(X), current(Y), terminalVertex(Y), item(steinerVertex(X)), not item(connected(X,Y)), X < Y.
 
-item(establishConnection(X,Y)) :- current(X;Y), item(steinerVertex(X)), item(steinerVertex(Y)), not item(connected(X,Y)), X < Y.
+item(establishConnection(X,Y)) :- current(X), current(Y), item(steinerVertex(X)), item(steinerVertex(Y)), not item(connected(X,Y)), X < Y.
 
 ok(X) :- current(Y), extend(R), removed(X), childItem(R,connected(X,Y)).
 ok(X) :- current(Y), extend(R), removed(X), childItem(R,connected(Y,X)).
@@ -65,14 +65,14 @@ cost(CC + NC) :- extend(R), childCost(R,CC), additionalCost(NC), 1 #count { N : 
 
 cost(CC - (LC * (EP - 1))) :- localCost(LC), CC = #sum { CC1,R : relevantChildCost(R,CC1) }, EP = #count { N : childNode(N) }, EP >= 2.
 
-:- current(X;Y), extend(R;S), childItem(R,selectedEdge(X,Y)), not childItem(S,selectedEdge(X,Y)), R != S.
+:- current(X), current(Y), extend(R), extend(S), childItem(R,selectedEdge(X,Y)), not childItem(S,selectedEdge(X,Y)), R != S.
 
 :- removed(X); extend(R); childItem(R,establishConnection(X,Y)); not childItem(R,connected(X,Z)) : current(Z); not childItem(R,connected(Z,X)) : current(Z).
 :- removed(X); extend(R); childItem(R,establishConnection(Y,X)); not childItem(R,connected(X,Z)) : current(Z); not childItem(R,connected(Z,X)) : current(Z).
 
 :- extend(R), removed(X), terminalVertex(X), not childItem(R,observed(X)).
 
-:- extend(R;S), childItem(R,stop), childItem(S,stop), R < S.
+:- extend(R), extend(S), childItem(R,stop), childItem(S,stop), R < S.
 
 :- current(X), item(stop), item(selectedEdge(X,Y)).
 :- current(X), item(stop), item(selectedEdge(Y,X)).

@@ -29,8 +29,8 @@ class EncodingChecker : public ::solver::clasp::EncodingChecker
 public:
 	using ::solver::clasp::EncodingChecker::EncodingChecker;
 
-	virtual void showsig(Gringo::Location const &loc, Gringo::FWString name, unsigned arity, bool csp);
-	virtual void check();
+	virtual void showsig(Gringo::Location const &loc, Gringo::FWSignature sig, bool csp) override;
+	virtual void check() override;
 
 private:
 	bool showUsed = false;

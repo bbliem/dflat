@@ -1,11 +1,11 @@
 %dflat: -d td --no-empty-leaves --no-empty-root --tables -e vertex -e edge
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
-:- extend(A;B), childItem(A,X), childRow(B,N), childNode(N), bag(N,X), not childItem(B,X).
+:- extend(A), extend(B), childItem(A,X), childRow(B,N), childNode(N), bag(N,X), not childItem(B,X).
 
 item(X) :- extend(R), childItem(R,X), current(X).
 
 { item(X) : introduced(X) }.
-:- edge(X,Y), current(X;Y), not item(X;Y).
+:- edge(X,Y), current(X), current(Y), not item(X), not item(Y).
 
 % If a vertex is in more than one child node, it must be in the current node (connectedness).
 % If we add the costs of all predecessors, that which we count multiple times is due to vertices which are also in the current node.
