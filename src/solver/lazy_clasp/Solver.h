@@ -20,8 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include <mutex>
-#include <condition_variable>
+#include <list>
 #include <clasp/clasp_facade.h>
 
 #include "ClaspCallback.h"
@@ -41,27 +40,33 @@ public:
 	// When the solver is currently in this->compute(), other objects can get the item tree that has been constructed so far with this method.
 	const ItemTreePtr& getItemTreeSoFar() const;
 
-	// Call this from a worker thread that performs ASP solving to let the waiting main thread proceed.
-	// This method blocks until the worker thread should do more work.
-	// The argument is the lock held by the worker thread.
-	void proceed(std::unique_lock<std::mutex>&);
-
 private:
 	std::vector<std::string> encodingFiles;
+	// FIXME use String class (flyweight)?
 	std::unordered_map<std::string, Clasp::Var> itemsToVars;
 
-	void workerThreadMain();
-	void aspCallsOnNewRowFromChild(ItemTree::Children::const_iterator newRow, const DecompositionPtr& originatingChild, Clasp::ClaspFacade& clasp);
-	bool nextRowCombination(std::vector<std::pair<Decomposition*, ItemTree::Children::const_iterator>>& rowIterators, size_t incrementPos = 1);
+	// Computes the first row for each child table, sets the clasp solving assumptions and starts asynchronous solving
+	bool loadFirstChildRowCombination();
+	bool loadNextChildRowCombination();
+	void startSolvingForCurrentRowCombination();
+	void resetRowIteratorsOnNewRow(ItemTree::Children::const_iterator newRow);
+	bool nextExistingRowCombination(size_t incrementPos = 0);
 
+//	std::unique_ptr<GringoOutputProcessor> gringoOutput;
 	std::unique_ptr<ClaspCallback> claspCallback;
-	bool noMoreModels = false;
+	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut;
+	//bool noMoreModels = false;
 
-	std::mutex workerMutex;
-	std::condition_variable wakeMainThread;
-	std::condition_variable wakeWorkerThread;
-	bool wakeMainThreadRequested = false;
-	bool wakeWorkerThreadRequested = false;
+	Clasp::ClaspFacade clasp;
+	Clasp::ClaspConfig config;
+	std::unique_ptr<Clasp::ClaspFacade::AsyncResult> asyncResult;
+	typedef std::pair<Decomposition*, ItemTree::Children::const_iterator> RowIteratorPair;
+	typedef std::vector<RowIteratorPair> RowIterators;
+	RowIterators rowIterators; // Key: Child node; Value: Row in the item tree at this child
+	//int nextChildNodeToCall = 0;
+	std::list<Solver*> nonExhaustedChildSolvers;
+	std::list<Solver*>::const_iterator nextChildSolverToCall; // points to elements of nonExhaustedChildSolvers
+	unsigned int originOfLastChildRow = -1; // value is the ID of the DecompositionNode where the last child row has been computed
 };
 
 }} // namespace solver::lazy_clasp

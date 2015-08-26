@@ -37,9 +37,9 @@ public:
 	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
 
-	ClaspCallback(const GringoOutputProcessor&, const Application&, Solver&, std::unique_lock<std::mutex>& lock);
+	ClaspCallback(const GringoOutputProcessor&, const Application&);
 
-	void setRootExtensionPointers(ItemTreeNode::ExtensionPointerTuple&&);
+	void initializeItemTree(ItemTreeNode::ExtensionPointerTuple&& rootExtensionPointers);
 	void setExtendedRows(ItemTreeNode::ExtensionPointerTuple&&);
 	ItemTree::Children::const_iterator getNewestRow() const;
 
@@ -54,11 +54,7 @@ private:
 
 	const GringoOutputProcessor& gringoOutput;
 	ItemTree::Children::const_iterator newestRow;
-	Solver& solver;
-	ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
 	ItemTreeNode::ExtensionPointerTuple extendedRows; // The predecessor rows that have given rise to the current call of the (lazy) ASP solver
-
-	std::unique_lock<std::mutex>& lock;
 };
 
 }} // namespace solver::lazy_clasp

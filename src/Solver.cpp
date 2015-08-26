@@ -30,3 +30,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app)
 	, app(app)
 {
 }
+
+Solver::~Solver()
+{
+}

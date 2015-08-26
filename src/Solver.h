@@ -32,6 +32,7 @@ class Solver
 public:
 	// Construct a solver responsible for the root of the given decomposition
 	Solver(const Decomposition& decomposition, const Application& app);
+	virtual ~Solver();
 
 	// Return the complete item tree
 	virtual ItemTreePtr compute() = 0;

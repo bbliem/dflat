@@ -23,17 +23,21 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_clasp {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Application& app, Solver& solver, std::unique_lock<std::mutex>& lock)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Application& app)
 	: ::solver::clasp::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
-	, solver(solver)
-	, lock(lock)
 {
 }
 
-void ClaspCallback::setRootExtensionPointers(ItemTreeNode::ExtensionPointerTuple&& e)
+void ClaspCallback::initializeItemTree(ItemTreeNode::ExtensionPointerTuple&& rootExtensionPointers)
 {
-	rootExtensionPointers = std::move(e);
+	// Create item tree root if it doesn't exist yet {{{
+	if(!itemTree) {
+		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
+		// Set cost to "infinity"
+		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
+	}
+	// }}}
 }
 
 void ClaspCallback::setExtendedRows(ItemTreeNode::ExtensionPointerTuple&& e)
@@ -64,13 +68,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 				return auxItems.find(item) != auxItems.end();
 	}) == items.end(), "Items and auxiliary items not disjoint");
 	// }}}
-	// Create item tree root if it doesn't exist yet {{{
-	if(!itemTree) {
-		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
-		// Set cost to "infinity"
-		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
-	}
-	// }}}
+	assert(itemTree);
 	// Create item tree node {{{
 	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extendedRows}));
 	// }}}
@@ -100,9 +98,6 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 
 	if(newChild != itemTree->getChildren().end())
 		newestRow = newChild;
-
-	// Let the main thread proceed and wait until we should do more work
-	solver.proceed(lock);
 	return true;
 }
 

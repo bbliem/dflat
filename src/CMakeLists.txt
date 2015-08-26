@@ -35,7 +35,9 @@ find_library(gmpxx gmpxx)
 find_library(gmp gmp)
 find_package(FLEX)
 find_package(BISON)
-find_package(Threads)
+#find_package(Threads)
+# TODO check if TBB was found, set WITH_THREADS accordingly, only compile lazy solver if it was found.
+find_package(TBB)
 if(CMAKE_BUILD_TYPE STREQUAL "profiler")
 	find_package(Gperftools)
 endif()
@@ -122,4 +124,5 @@ add_library(dflat-objects
 add_executable(dflat main.cpp)
 
 # GPERFTOOLS_LIBRARIES is only set when find_package(Gperftools) has been called, which is only called if CMAKE_BUILD_TYPE is "profiler".
-target_link_libraries(dflat dflat-objects gringo clasp sharp gmpxx gmp ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
+#target_link_libraries(dflat dflat-objects gringo clasp sharp gmpxx gmp ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
+target_link_libraries(dflat dflat-objects gringo clasp sharp gmpxx gmp tbb ${GPERFTOOLS_LIBRARIES})
