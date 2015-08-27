@@ -124,6 +124,8 @@ ItemTreePtr Solver::compute()
 	// Currently this is only called at the root of the decomposition.
 	assert(decomposition.isRoot());
 	nextRow();
+	//while(nextRow() != getItemTreeSoFar()->getChildren().end())
+	//	;
 	ItemTreePtr result = claspCallback->finalize(false, false);
 	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
@@ -133,56 +135,52 @@ ItemTree::Children::const_iterator Solver::nextRow()
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
-	std::cout << decomposition.getNode().getGlobalId() << " nextRow\n";
+	//std::cout << decomposition.getNode().getGlobalId() << " nextRow\n";
 
-	//if(noMoreModels)
-	//	return claspCallback->getItemTree()->getChildren().end();
-
-	//if(claspCallback->getNewestRow() == claspCallback->getItemTree()->getChildren().end())
 	if(!claspCallback->getItemTree()) {
 		loadFirstChildRowCombination();
-		std::cout << decomposition.getNode().getGlobalId() << " first child row combination loaded\n";
+		//std::cout << decomposition.getNode().getGlobalId() << " first child row combination loaded\n";
 		startSolvingForCurrentRowCombination();
 	}
 
 	assert(claspCallback->getItemTree());
 	assert(getItemTreeSoFar());
 
-	//startSolvingForCurrentRowCombination();
 	assert(asyncResult);
-	//assert(asyncResult->running());
 
-	while(asyncResult->end()) {
-		std::cout << decomposition.getNode().getGlobalId() << " asyncResult->end() == true\n";
-		if(loadNextChildRowCombination() == false)
-			return getItemTreeSoFar()->getChildren().end();
-		startSolvingForCurrentRowCombination();
-	}
+	do {
+		while(asyncResult->end()) {
+			//std::cout << decomposition.getNode().getGlobalId() << " asyncResult->end() == true\n";
+			if(loadNextChildRowCombination() == false)
+				return getItemTreeSoFar()->getChildren().end();
+			startSolvingForCurrentRowCombination();
+		}
 
-	// XXX solver correct / necessary?
-	// XXX claspCallback does not need to be a clasp callback in fact
-	claspCallback->onModel(*clasp.ctx.master(), asyncResult->model());
+		// XXX solver correct / necessary?
+		// XXX claspCallback does not need to be a clasp callback in fact
+		claspCallback->onModel(*clasp.ctx.master(), asyncResult->model());
 
-	std::cout << decomposition.getNode().getGlobalId() << " asyncResult->end() == false\n";
+		//std::cout << decomposition.getNode().getGlobalId() << " asyncResult->end() == false\n";
 
-	// Model has now already been processed by claspCallback
-	asyncResult->next();
+		// Model has now already been processed by claspCallback
+		asyncResult->next();
+
+		if(claspCallback->getNewestRow() == claspCallback->getItemTree()->getChildren().end()) {
+			//std::cout << decomposition.getNode().getGlobalId() << " skipping model not yielding new row\n";
+		}
+	} while(claspCallback->getNewestRow() == claspCallback->getItemTree()->getChildren().end());
+
 	return claspCallback->getNewestRow();
 }
 
 bool Solver::loadFirstChildRowCombination()
 {
 	assert(!claspCallback->getItemTree());
-//	assert(claspCallback->getNewestRow() == claspCallback->getItemTree()->getChildren().end());
 	assert(!asyncResult);
-//	assert(!asyncResult->ready());
-//	assert(!asyncResult->running());
 
-	std::cout << decomposition.getNode().getGlobalId() << " loadFirstChildRowCombination\n";
+	//std::cout << decomposition.getNode().getGlobalId() << " loadFirstChildRowCombination\n";
 
 	// Get the first row from each child node
-//	std::vector<ItemTreeNode::ExtensionPointer> childRows;
-//	childRows.reserve(decomposition.getChildren().size());
 	assert(rowIterators.empty());
 	rowIterators.reserve(decomposition.getChildren().size());
 	for(const auto& child : decomposition.getChildren()) {
@@ -192,16 +190,7 @@ bool Solver::loadFirstChildRowCombination()
 		if(firstRow == dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getChildren().end())
 			return false;
 		rowIterators.emplace_back(child.get(), firstRow);
-//		childRows.push_back((*firstRow)->getNode());
 	}
-
-	// Initialize rowIterators
-//	assert(rowIterators.empty());
-//	rowIterators.reserve(decomposition.getChildren().size());
-//	for(const auto& child : decomposition.getChildren()) {
-//		rowIterators.emplace_back(child.get(), dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getChildren().begin());
-//		assert(rowIterators.back().second != dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getChildren().end());
-//	}
 
 	// Initialize claspCallback by telling it the roots of the child item trees
 	ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
@@ -217,15 +206,15 @@ bool Solver::loadNextChildRowCombination()
 	assert(asyncResult);
 	assert(!asyncResult->running());
 
-	std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination\n";
+	//std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination\n";
 
 	if(decomposition.getChildren().empty()) {
-		std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination return false (no children)\n";
+		//std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination return false (no children)\n";
 		return false;
 	}
 
 	if(nextExistingRowCombination()) {
-		std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination return true (next combination loaded)\n";
+		//std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination return true (next combination loaded)\n";
 		return true;
 	}
 
@@ -236,13 +225,13 @@ bool Solver::loadNextChildRowCombination()
 
 	while(newRow == childSolver->getItemTreeSoFar()->getChildren().end()) {
 		// The child solver is now exhausted
-		std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination child solver " << childSolver->decomposition.getNode().getGlobalId() << " exhausted\n";
+		//std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination child solver " << childSolver->decomposition.getNode().getGlobalId() << " exhausted\n";
 		// Remove it from nonExhaustedChildSolvers
 		// Set nextChildSolverToCall to the next one
 		nonExhaustedChildSolvers.erase(nextChildSolverToCall++);
 
 		if(nonExhaustedChildSolvers.empty()) {
-			std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination return false (no nonexhausted left)\n";
+			//std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination return false (no nonexhausted left)\n";
 			return false;
 		}
 
@@ -262,7 +251,7 @@ bool Solver::loadNextChildRowCombination()
 		nextChildSolverToCall = nonExhaustedChildSolvers.begin();
 	assert(nextChildSolverToCall != nonExhaustedChildSolvers.end());
 
-	std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination return true (new row fetched)\n";
+	//std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination return true (new row fetched)\n";
 	return true;
 }
 
@@ -273,7 +262,7 @@ const ItemTreePtr& Solver::getItemTreeSoFar() const
 
 void Solver::startSolvingForCurrentRowCombination()
 {
-	std::cout << decomposition.getNode().getGlobalId() << " startSolvingForCurrentRowCombination\n";
+	//std::cout << decomposition.getNode().getGlobalId() << " startSolvingForCurrentRowCombination\n";
 
 	// Set extension pointers for all upcoming rows
 	ItemTreeNode::ExtensionPointerTuple extendedRows;
@@ -306,7 +295,7 @@ void Solver::startSolvingForCurrentRowCombination()
 
 void Solver::resetRowIteratorsOnNewRow(ItemTree::Children::const_iterator newRow)
 {
-	std::cout << decomposition.getNode().getGlobalId() << " resetRowIteratorsOnNewRow\n";
+	//std::cout << decomposition.getNode().getGlobalId() << " resetRowIteratorsOnNewRow\n";
 
 	rowIterators.clear();
 	rowIterators.reserve(decomposition.getChildren().size());
@@ -328,26 +317,28 @@ void Solver::resetRowIteratorsOnNewRow(ItemTree::Children::const_iterator newRow
 
 bool Solver::nextExistingRowCombination(size_t incrementPos)
 {
-	std::cout << decomposition.getNode().getGlobalId() << " nextExistingRowCombination " << incrementPos << "\n";
+	//std::cout << decomposition.getNode().getGlobalId() << " nextExistingRowCombination " << incrementPos << "\n";
 	// Increment the iterator at index incrementPos, then reset all iterators before it except at index 0 (this is the new row which should be combined with all "old" rows from other child nodes)
 	if(incrementPos >= rowIterators.size()) {
-		std::cout << decomposition.getNode().getGlobalId() << " nextExistingRowCombination return false\n";
+		//std::cout << decomposition.getNode().getGlobalId() << " nextExistingRowCombination return false\n";
 		return false;
 	}
 
 	// Don't increment originOfLastChildRow since this is the new row we want to combine with all existing ones
 	if(rowIterators[incrementPos].first->getNode().getGlobalId() == originOfLastChildRow) {
-		std::cout << decomposition.getNode().getGlobalId() << " nextExistingRowCombination skip originOfLastChildRow\n";
+		//std::cout << decomposition.getNode().getGlobalId() << " nextExistingRowCombination skip originOfLastChildRow\n";
 		return nextExistingRowCombination(incrementPos+1);
 	}
 
 	if(++rowIterators[incrementPos].second == static_cast<Solver&>(rowIterators[incrementPos].first->getSolver()).getItemTreeSoFar()->getChildren().end())
 		return nextExistingRowCombination(incrementPos+1);
 	else {
-		for(size_t i = 1; i < incrementPos; ++i)
-			rowIterators[i].second = static_cast<Solver&>(rowIterators[i].first->getSolver()).getItemTreeSoFar()->getChildren().begin();
+		for(size_t i = 0; i < incrementPos; ++i) {
+			if(rowIterators[i].first->getNode().getGlobalId() != originOfLastChildRow)
+				rowIterators[i].second = static_cast<Solver&>(rowIterators[i].first->getSolver()).getItemTreeSoFar()->getChildren().begin();
+		}
 	}
-	std::cout << decomposition.getNode().getGlobalId() << " nextExistingRowCombination return true\n";
+	//std::cout << decomposition.getNode().getGlobalId() << " nextExistingRowCombination return true\n";
 	return true;
 }
 

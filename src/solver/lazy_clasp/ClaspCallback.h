@@ -29,6 +29,7 @@ namespace solver { namespace lazy_clasp {
 
 class Solver;
 
+// TODO actually this class does not really need to be a clasp callback
 class ClaspCallback : public ::solver::clasp::ClaspCallback
 {
 public:
@@ -41,6 +42,7 @@ public:
 
 	void initializeItemTree(ItemTreeNode::ExtensionPointerTuple&& rootExtensionPointers);
 	void setExtendedRows(ItemTreeNode::ExtensionPointerTuple&&);
+	// Results in itemTree->getChildren().end() if merging occurred for the last model, otherwise yields the row created by the last model
 	ItemTree::Children::const_iterator getNewestRow() const;
 
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;

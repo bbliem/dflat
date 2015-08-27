@@ -93,11 +93,12 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
 	// }}}
 	// Add node to item tree {{{
-	ItemTree::Children::const_iterator newChild = itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
+	//ItemTree::Children::const_iterator newChild = itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
+	newestRow = itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 	// }}}
 
-	if(newChild != itemTree->getChildren().end())
-		newestRow = newChild;
+	//if(newChild != itemTree->getChildren().end())
+	//	newestRow = newChild;
 	return true;
 }
 
