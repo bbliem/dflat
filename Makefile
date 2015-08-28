@@ -20,7 +20,7 @@ clasp_dir=$(CURDIR)/../clasp-3.1.3
 # FIXME MT paths
 clasp_lib=$(clasp_dir)/build/release_mt/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug_mt/libclasp/lib/libclasp.a
-clasp_lib_gprof=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
+clasp_lib_gprof=$(clasp_dir)/build/gprof_mt/libclasp/lib/libclasp.a
 clasp_lib_profiler=$(clasp_dir)/build/release_mt/libclasp/lib/libclasp.a
 clasp_lib_release32=$(clasp_dir)/build/release_m32/libclasp/lib/libclasp.a
 clasp_lib_static=$(clasp_dir)/build/static/libclasp/lib/libclasp.a

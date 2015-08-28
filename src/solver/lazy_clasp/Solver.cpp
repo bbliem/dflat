@@ -116,6 +116,11 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		}
 	}
 
+	clasp.update();
+	for(const auto& pair : itemsToVars)
+		claspProgramBuilder.freeze(pair.second, Clasp::value_free);
+	clasp.prepare();
+
 	//asyncResult = clasp.solveAsync(claspCallback.get());
 }
 
@@ -273,22 +278,22 @@ void Solver::startSolvingForCurrentRowCombination()
 	// Set external variables to the values of the current child row combination
 	// TODO assumptions instead of freezing
 	Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
-	for(const auto& pair : itemsToVars)
-		prg.freeze(pair.second, Clasp::value_false);
-	for(const auto& nodeAndRow : rowIterators) {
-		for(const auto& item : (*nodeAndRow.second)->getNode()->getItems())
-			prg.freeze(itemsToVars.at(*item), Clasp::value_true);
-	}
+//	for(const auto& pair : itemsToVars)
+//		prg.freeze(pair.second, Clasp::value_false);
+//	for(const auto& nodeAndRow : rowIterators) {
+//		for(const auto& item : (*nodeAndRow.second)->getNode()->getItems())
+//			prg.freeze(itemsToVars.at(*item), Clasp::value_true);
+//	}
 
 	clasp.prepare();
 	claspCallback->prepare(clasp.ctx.symbolTable());
 
-//	for(const auto& nodeAndRow : rowIterators) {
-//		for(const auto& item : (*nodeAndRow.second)->getNode()->getItems()) {
+	for(const auto& nodeAndRow : rowIterators) {
+		for(const auto& item : (*nodeAndRow.second)->getNode()->getItems()) {
 //			std::cout << "assume " << *item << '\n';
-//			clasp.assume(itemsToLiterals.at(*item));
-//		}
-//	}
+			clasp.assume(prg.getLiteral(itemsToVars.at(*item)));
+		}
+	}
 
 	asyncResult.reset(new Clasp::ClaspFacade::AsyncResult(clasp.startSolveAsync()));
 }
