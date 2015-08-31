@@ -287,26 +287,42 @@ void Solver::startSolvingForCurrentRowCombination()
 	clasp.prepare();
 	claspCallback->prepare(clasp.ctx.symbolTable());
 
-	// Collect atoms corresponding to items from the currently extended rows
-	std::set<Clasp::Literal> trueItemLiterals;
+//	// Collect atoms corresponding to items from the currently extended rows
+//	std::set<Clasp::Literal> trueItemLiterals;
+//	for(const auto& nodeAndRow : rowIterators) {
+//		for(const auto& item : (*nodeAndRow.second)->getNode()->getItems()) {
+////			std::cout << "assume " << *item << '\n';
+////			clasp.assume(prg.getLiteral(itemsToVars.at(*item)));
+//			trueItemLiterals.insert(prg.getLiteral(itemsToVars.at(*item)));
+//		}
+//	}
+//	// Set trueItemLiterals to true and all others to false
+//	Clasp::LitVec assumptions;
+//	assumptions.reserve(itemsToVars.size());
+//	for(const auto& pair : itemsToVars) {
+//		const Clasp::Literal posLit = prg.getLiteral(pair.second);
+//		if(trueItemLiterals.find(posLit) != trueItemLiterals.end())
+//			assumptions.push_back(posLit);
+//		else
+//			assumptions.push_back(~posLit);
+//	}
+//	clasp.assume(assumptions);
+
+	// Mark atoms corresponding to items from the currently extended rows
+	const unsigned int IN_SET = 2147483648; // 2^31 (atom IDs are always smaller)
 	for(const auto& nodeAndRow : rowIterators) {
-		for(const auto& item : (*nodeAndRow.second)->getNode()->getItems()) {
-//			std::cout << "assume " << *item << '\n';
-//			clasp.assume(prg.getLiteral(itemsToVars.at(*item)));
-			trueItemLiterals.insert(prg.getLiteral(itemsToVars.at(*item)));
-		}
+		for(const auto& item : (*nodeAndRow.second)->getNode()->getItems())
+			itemsToVars.at(*item) |= IN_SET;
 	}
 	// Set trueItemLiterals to true and all others to false
-	Clasp::LitVec assumptions;
-	assumptions.reserve(itemsToVars.size());
-	for(const auto& pair : itemsToVars) {
-		const Clasp::Literal posLit = prg.getLiteral(pair.second);
-		if(trueItemLiterals.find(posLit) != trueItemLiterals.end())
-			assumptions.push_back(posLit);
+	for(auto& pair : itemsToVars) {
+		if(pair.second & IN_SET) {
+			pair.second ^= IN_SET;
+			clasp.assume(prg.getLiteral(pair.second));
+		}
 		else
-			assumptions.push_back(~posLit);
+			clasp.assume(~prg.getLiteral(pair.second));
 	}
-	clasp.assume(assumptions);
 
 	asyncResult.reset(new Clasp::ClaspFacade::AsyncResult(clasp.startSolveAsync()));
 }
