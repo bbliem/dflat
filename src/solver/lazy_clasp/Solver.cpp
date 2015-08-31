@@ -276,7 +276,7 @@ void Solver::startSolvingForCurrentRowCombination()
 	claspCallback->setExtendedRows(std::move(extendedRows));
 
 	// Set external variables to the values of the current child row combination
-	Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
+	Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update(false, false));
 //	for(const auto& pair : itemsToVars)
 //		prg.freeze(pair.second, Clasp::value_false);
 //	for(const auto& nodeAndRow : rowIterators) {

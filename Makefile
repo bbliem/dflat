@@ -16,7 +16,7 @@ gringo_lib_release32=$(gringo_dir)/build/release32/libgringo.a
 gringo_lib_static=$(gringo_dir)/build/static/libgringo.a
 gringo_lib_static32=$(gringo_dir)/build/static32/libgringo.a
 
-clasp_dir=$(CURDIR)/../clasp-3.1.3
+clasp_dir=$(CURDIR)/../clasp-3.1.3-no-update
 # FIXME MT paths
 clasp_lib=$(clasp_dir)/build/release_mt/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug_mt/libclasp/lib/libclasp.a
