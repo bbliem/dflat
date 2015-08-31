@@ -276,7 +276,6 @@ void Solver::startSolvingForCurrentRowCombination()
 	claspCallback->setExtendedRows(std::move(extendedRows));
 
 	// Set external variables to the values of the current child row combination
-	// TODO assumptions instead of freezing
 	Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
 //	for(const auto& pair : itemsToVars)
 //		prg.freeze(pair.second, Clasp::value_false);
@@ -288,12 +287,26 @@ void Solver::startSolvingForCurrentRowCombination()
 	clasp.prepare();
 	claspCallback->prepare(clasp.ctx.symbolTable());
 
+	// Collect atoms corresponding to items from the currently extended rows
+	std::set<Clasp::Literal> trueItemLiterals;
 	for(const auto& nodeAndRow : rowIterators) {
 		for(const auto& item : (*nodeAndRow.second)->getNode()->getItems()) {
 //			std::cout << "assume " << *item << '\n';
-			clasp.assume(prg.getLiteral(itemsToVars.at(*item)));
+//			clasp.assume(prg.getLiteral(itemsToVars.at(*item)));
+			trueItemLiterals.insert(prg.getLiteral(itemsToVars.at(*item)));
 		}
 	}
+	// Set trueItemLiterals to true and all others to false
+	Clasp::LitVec assumptions;
+	assumptions.reserve(itemsToVars.size());
+	for(const auto& pair : itemsToVars) {
+		const Clasp::Literal posLit = prg.getLiteral(pair.second);
+		if(trueItemLiterals.find(posLit) != trueItemLiterals.end())
+			assumptions.push_back(posLit);
+		else
+			assumptions.push_back(~posLit);
+	}
+	clasp.assume(assumptions);
 
 	asyncResult.reset(new Clasp::ClaspFacade::AsyncResult(clasp.startSolveAsync()));
 }
