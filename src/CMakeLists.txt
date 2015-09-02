@@ -35,9 +35,6 @@ find_library(gmpxx gmpxx)
 find_library(gmp gmp)
 find_package(FLEX)
 find_package(BISON)
-#find_package(Threads)
-# TODO check if TBB was found, set WITH_THREADS accordingly, only compile lazy solver if it was found.
-find_package(TBB)
 if(CMAKE_BUILD_TYPE STREQUAL "profiler")
 	find_package(Gperftools)
 endif()
@@ -95,6 +92,7 @@ add_library(dflat-objects
 	solver/lazy_clasp/Solver.cpp
 	solver/lazy_clasp/ClaspCallback.cpp
 	solver/lazy_clasp/GringoOutputProcessor.cpp
+	solver/lazy_clasp/SolverIter.cpp
 	solver/clasp/tables/ClaspCallback.cpp
 	solver/clasp/tables/GringoOutputProcessor.cpp
 	solver/clasp/trees/ClaspCallback.cpp

@@ -1,9 +1,9 @@
 # You probably need to adjust the *_dir variables before running "make"
-cxxflags_release="-DWITH_THREADS=1"
+cxxflags_release="-DWITH_THREADS=0"
 cxxflags_debug=$(cxxflags_release)
 cxxflags_gprof=$(cxxflags_debug)
 cxxflags_profiler=$(cxxflags_release)
-cxxflags_release32="-DWITH_THREADS=1 -m32 -DNO_UNICODE"
+cxxflags_release32="-DWITH_THREADS=0 -m32 -DNO_UNICODE"
 cxxflags_static=$(cxxflags_release)
 cxxflags_static32=$(cxxflags_release32)
 
@@ -16,12 +16,11 @@ gringo_lib_release32=$(gringo_dir)/build/release32/libgringo.a
 gringo_lib_static=$(gringo_dir)/build/static/libgringo.a
 gringo_lib_static32=$(gringo_dir)/build/static32/libgringo.a
 
-clasp_dir=$(CURDIR)/../clasp-3.1.3-no-update
-# FIXME MT paths
-clasp_lib=$(clasp_dir)/build/release_mt/libclasp/lib/libclasp.a
-clasp_lib_debug=$(clasp_dir)/build/debug_mt/libclasp/lib/libclasp.a
-clasp_lib_gprof=$(clasp_dir)/build/gprof_mt/libclasp/lib/libclasp.a
-clasp_lib_profiler=$(clasp_dir)/build/release_mt/libclasp/lib/libclasp.a
+clasp_dir=$(CURDIR)/../clasp-3.1.3-no-threads
+clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
+clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
+clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
+clasp_lib_profiler=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_release32=$(clasp_dir)/build/release_m32/libclasp/lib/libclasp.a
 clasp_lib_static=$(clasp_dir)/build/static/libclasp/lib/libclasp.a
 clasp_lib_static32=$(clasp_dir)/build/static32/libclasp/lib/libclasp.a

@@ -20,8 +20,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include <mutex>
-
 #include "../clasp/ClaspCallback.h"
 #include "GringoOutputProcessor.h"
 

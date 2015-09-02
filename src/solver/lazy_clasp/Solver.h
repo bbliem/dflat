@@ -25,6 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ClaspCallback.h"
 #include "../../Decomposition.h"
+#include "SolverIter.h"
 
 namespace solver { namespace lazy_clasp {
 
@@ -59,7 +60,7 @@ private:
 
 	Clasp::ClaspFacade clasp;
 	Clasp::ClaspConfig config;
-	std::unique_ptr<Clasp::ClaspFacade::AsyncResult> asyncResult;
+	std::unique_ptr<SolveIter> asyncResult;
 	typedef std::pair<Decomposition*, ItemTree::Children::const_iterator> RowIteratorPair;
 	typedef std::vector<RowIteratorPair> RowIterators;
 	RowIterators rowIterators; // Key: Child node; Value: Row in the item tree at this child

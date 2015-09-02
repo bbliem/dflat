@@ -209,7 +209,6 @@ bool Solver::loadFirstChildRowCombination()
 bool Solver::loadNextChildRowCombination()
 {
 	assert(asyncResult);
-	assert(!asyncResult->running());
 
 	//std::cout << decomposition.getNode().getGlobalId() << " loadNextChildRowCombination\n";
 
@@ -267,6 +266,8 @@ const ItemTreePtr& Solver::getItemTreeSoFar() const
 
 void Solver::startSolvingForCurrentRowCombination()
 {
+	asyncResult.reset();
+
 	//std::cout << decomposition.getNode().getGlobalId() << " startSolvingForCurrentRowCombination\n";
 
 	// Set extension pointers for all upcoming rows
@@ -324,7 +325,7 @@ void Solver::startSolvingForCurrentRowCombination()
 			clasp.assume(~prg.getLiteral(pair.second));
 	}
 
-	asyncResult.reset(new Clasp::ClaspFacade::AsyncResult(clasp.startSolveAsync()));
+	asyncResult.reset(new BasicSolveIter(clasp));
 }
 
 void Solver::resetRowIteratorsOnNewRow(ItemTree::Children::const_iterator newRow)

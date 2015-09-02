@@ -11,6 +11,14 @@ Index: libclasp/clasp/clasp_facade.h
  	//@}
  	
  	//! Solves the current problem.
+@@ -334,6 +334,7 @@
+ 	bool prepared()    const;
+ 	bool interrupted() const;
+ 	bool solved()      const;
++	const LitVec& assumptions() const { return assume_; }
+ 	
+ 	ExpectedQuantity   getStat(const char* path)const;
+ 	const char*        getKeys(const char* path)const;
 Index: libclasp/src/clasp_facade.cpp
 ===================================================================
 --- libclasp/src/clasp_facade.cpp	(revision 47795)
