@@ -104,8 +104,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 
 void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
 {
-	// XXX Necessary to call this before each solving invocation? Otherwise we could dispense with clear()
-	itemAtomInfos.clear();
+	assert(itemAtomInfos.empty());
 	for(const auto& atom : gringoOutput.getItemAtomInfos())
 		itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
 	auxItemAtomInfos.clear();

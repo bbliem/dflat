@@ -103,7 +103,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	// Prepare for solving. (This makes clasp's symbol table available.)
 	// TODO: Prepare reasonable without starting solving yet?
 	clasp.prepare();
-	claspCallback->prepare(clasp.ctx.symbolTable());
+//	claspCallback->prepare(clasp.ctx.symbolTable());
 
 	// We need to know which clasp variable corresponds to each childItem(_) atom.
 	for(const auto& pair : clasp.ctx.symbolTable()) {
@@ -120,6 +120,8 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	for(const auto& pair : itemsToVars)
 		claspProgramBuilder.freeze(pair.second, Clasp::value_free);
 	clasp.prepare();
+
+	claspCallback->prepare(clasp.ctx.symbolTable());
 
 	//asyncResult = clasp.solveAsync(claspCallback.get());
 }
@@ -286,7 +288,7 @@ void Solver::startSolvingForCurrentRowCombination()
 //	}
 
 	clasp.prepare();
-	claspCallback->prepare(clasp.ctx.symbolTable());
+//	claspCallback->prepare(clasp.ctx.symbolTable());
 
 //	// Collect atoms corresponding to items from the currently extended rows
 //	std::set<Clasp::Literal> trueItemLiterals;
