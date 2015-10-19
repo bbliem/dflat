@@ -100,6 +100,10 @@ public:
 	// *this < other.
 	bool costDifferenceSignIncrease(const ItemTreePtr& other) const;
 
+	// Estimates the size of this item tree (i.e., of this node and its children, recursively)
+	// XXX If size_t has, e.g., 32 bits, we can only measure up to 4 GiB
+	std::size_t estimateSize() const;
+
 private:
 	// Recursively unify extension pointers of this itree with the other
 	// one's given that the item sets are all equal.

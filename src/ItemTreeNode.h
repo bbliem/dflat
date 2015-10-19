@@ -108,6 +108,10 @@ public:
 	// Only considers items, type, hasAcceptingChild, hasRejectingChild and auxItems.
 	int compareCostInsensitive(const ItemTreeNode& other) const;
 
+	// Estimates the size of this item tree node
+	// XXX If size_t has, e.g., 32 bits, we can only measure up to 4 GiB
+	std::size_t estimateSize() const;
+
 	// Print this node (no newlines)
 	friend std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node);
 

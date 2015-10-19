@@ -42,6 +42,8 @@ public:
 	// node is popped.
 	// For instance, put the following at the beginning of YourSolver::compute():
 	// const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
+	// A node can be entered/left multiple times as some solvers might have to
+	// revisit nodes.
 	class NodeStackElement
 	{
 	public:

@@ -339,6 +339,15 @@ bool ItemTree::costDifferenceSignIncrease(const ItemTreePtr& other) const
 	return false;
 }
 
+std::size_t ItemTree::estimateSize() const
+{
+	std::size_t sum = 0;
+	sum += node->estimateSize();
+	for(const auto& child : children)
+		sum += child->estimateSize();
+	return sum;
+}
+
 void ItemTree::merge(ItemTree&& other)
 {
 	assert(node->getItems() == other.node->getItems());

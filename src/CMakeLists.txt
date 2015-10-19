@@ -111,6 +111,7 @@ add_library(dflat-objects
 	printer/Progress.cpp
 	printer/DebugHumanReadable.cpp
 	printer/DebugMachineReadable.cpp
+	printer/Performance.cpp
 	String.cpp
 	ItemTreeNode.cpp
 	ItemTree.cpp

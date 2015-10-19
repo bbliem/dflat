@@ -45,6 +45,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "printer/Progress.h"
 #include "printer/DebugHumanReadable.h"
 #include "printer/DebugMachineReadable.h"
+#include "printer/Performance.h"
 
 #include "parser/Driver.h"
 
@@ -129,6 +130,7 @@ int Application::run(int argc, const char* const* const argv)
 	printer::Progress progressPrinter(*this, true);
 	printer::DebugHumanReadable humanReadableDebugPrinter(*this);
 	printer::DebugMachineReadable machineReadableDebugPrinter(*this);
+	printer::Performance performancePrinter(*this);
 
 	time_t seed = time(0);
 	// Parse command line

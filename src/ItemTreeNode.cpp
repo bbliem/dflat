@@ -167,6 +167,17 @@ int ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
 	return compareSets(auxItems, other.auxItems);
 }
 
+std::size_t ItemTreeNode::estimateSize() const
+{
+	std::size_t sum = 0;
+	sum += sizeof(*this);
+	sum += items.size() * sizeof(Items::value_type);
+	sum += auxItems.size() * sizeof(Items::value_type);
+	if(!extensionPointers.empty())
+		sum += extensionPointers.capacity() * extensionPointers.begin()->capacity() * sizeof(ExtensionPointer);
+	return sum;
+}
+
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 {
 	// Print count
