@@ -38,7 +38,7 @@ void Performance::solverInvocationResult(const Decomposition& decompositionNode,
 {
 	assert(&decompositionNode == computationStack.top());
 	NodeData& data = nodeData[&decompositionNode];
-	data.itemTreeSize = result->estimateSize();
+	data.itemTreeSize = result ? result->estimateSize() : 0;
 }
 
 bool Performance::listensForSolverEvents() const
