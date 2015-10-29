@@ -86,12 +86,7 @@ void Performance::leaveNode()
 void Performance::printGraphMlElements(std::ostream& out, const Decomposition* node) const
 {
 	const auto it = nodeData.find(node);
-	if(it == nodeData.end()) {
-		std::ostringstream msg;
-		msg << "No performance data collected for decomposition node " << node->getNode().getGlobalId();
-		throw std::runtime_error(msg.str());
-	}
-	const NodeData& data = it->second;
+	const NodeData data = it == nodeData.end() ? NodeData() : std::move(it->second);
 	out << "    <node id=\"n" << node->getNode().getGlobalId() << "\">" << std::endl;
 	out << "      <data key=\"time\">" << data.elapsedTime.count() << "</data>" << std::endl;
 	out << "      <data key=\"item-tree-size\">" << data.itemTreeSize << "</data>" << std::endl;
