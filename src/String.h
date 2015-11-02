@@ -39,8 +39,10 @@ public:
 	// Deletes all strings. Invalidates all String objects.
 	static void clear();
 
-private:
 	typedef unsigned int Id;
+	Id getId() const { return id; }
+
+private:
 	typedef std::unordered_map<std::string, Id> StringToId;
 	Id id;
 
@@ -49,3 +51,14 @@ private:
 };
 
 std::ostream& operator<<(std::ostream& os, const String& str);
+
+namespace std {
+    template <>
+    struct hash<String>
+    {
+        size_t operator()(const String& str) const
+        {
+            return hash<String::Id>()(str.getId());
+        }
+    };
+} // namespace std
