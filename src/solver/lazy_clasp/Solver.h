@@ -43,8 +43,7 @@ public:
 
 private:
 	std::vector<std::string> encodingFiles;
-	// FIXME use String class (flyweight)?
-	std::unordered_map<std::string, Clasp::Var> itemsToVars;
+	std::unordered_map<String, Clasp::Var> itemsToVars;
 
 	// Computes the first row for each child table, sets the clasp solving assumptions and starts asynchronous solving
 	bool loadFirstChildRowCombination();

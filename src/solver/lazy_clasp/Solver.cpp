@@ -109,10 +109,8 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	for(const auto& pair : clasp.ctx.symbolTable()) {
 		if(!pair.second.name.empty()) {
 			const std::string name = pair.second.name.c_str();
-			if(name.compare(0, 10, "childItem(") == 0) {
-				const std::string argument = name.substr(10, name.length()-11);
-				itemsToVars.emplace(argument, pair.first);
-			}
+			if(name.compare(0, 10, "childItem(") == 0)
+				itemsToVars.emplace(String(name.substr(10, name.length()-11)), pair.first);
 		}
 	}
 
@@ -315,7 +313,7 @@ void Solver::startSolvingForCurrentRowCombination()
 	const unsigned int IN_SET = 2147483648; // 2^31 (atom IDs are always smaller)
 	for(const auto& nodeAndRow : rowIterators) {
 		for(const auto& item : (*nodeAndRow.second)->getNode()->getItems())
-			itemsToVars.at(*item) |= IN_SET;
+			itemsToVars.at(item) |= IN_SET;
 	}
 	// Set trueItemLiterals to true and all others to false
 	for(auto& pair : itemsToVars) {
