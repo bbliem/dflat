@@ -272,6 +272,7 @@ void Solver::startSolvingForCurrentRowCombination()
 
 	// Set extension pointers for all upcoming rows
 	ItemTreeNode::ExtensionPointerTuple extendedRows;
+	extendedRows.reserve(rowIterators.size());
 	for(const auto& nodeAndRow : rowIterators)
 		extendedRows.push_back((*nodeAndRow.second)->getNode());
 	claspCallback->setExtendedRows(std::move(extendedRows));
