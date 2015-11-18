@@ -43,7 +43,8 @@ public:
 
 private:
 	std::vector<std::string> encodingFiles;
-	std::unordered_map<String, Clasp::Var> itemsToVars;
+	std::vector<Clasp::Var> variables;
+	std::unordered_map<String, size_t> itemsToVarIndices;
 
 	// Computes the first row for each child table, sets the clasp solving assumptions and starts asynchronous solving
 	bool loadFirstChildRowCombination();
@@ -52,10 +53,8 @@ private:
 	void resetRowIteratorsOnNewRow(ItemTree::Children::const_iterator newRow);
 	bool nextExistingRowCombination(size_t incrementPos = 0);
 
-//	std::unique_ptr<GringoOutputProcessor> gringoOutput;
 	std::unique_ptr<ClaspCallback> claspCallback;
 	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut;
-	//bool noMoreModels = false;
 
 	Clasp::ClaspFacade clasp;
 	Clasp::ClaspConfig config;
