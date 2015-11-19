@@ -40,6 +40,8 @@ public:
 
 	void initializeItemTree(ItemTreeNode::ExtensionPointerTuple&& rootExtensionPointers);
 	void setExtendedRows(ItemTreeNode::ExtensionPointerTuple&&);
+	// onModel only inserts rows whose cost is below c
+	void setCostBound(long c) { costBound = c; }
 	// Results in itemTree->getChildren().end() if merging occurred for the last model, otherwise yields the row created by the last model
 	ItemTree::Children::const_iterator getNewestRow() const;
 
@@ -55,6 +57,7 @@ private:
 	const GringoOutputProcessor& gringoOutput;
 	ItemTree::Children::const_iterator newestRow;
 	ItemTreeNode::ExtensionPointerTuple extendedRows; // The predecessor rows that have given rise to the current call of the (lazy) ASP solver
+	long costBound;
 };
 
 }} // namespace solver::lazy_clasp

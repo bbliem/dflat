@@ -36,6 +36,7 @@ public:
 
 	virtual ItemTreePtr compute() override;
 
+	// Compute the next row having cost less than costBound
 	ItemTree::Children::const_iterator nextRow(long costBound);
 
 	// When the solver is currently in this->compute(), other objects can get the item tree that has been constructed so far with this method.

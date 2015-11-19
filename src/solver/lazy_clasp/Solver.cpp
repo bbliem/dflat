@@ -126,8 +126,10 @@ ItemTreePtr Solver::compute()
 	// Currently this is only called at the root of the decomposition.
 	assert(decomposition.isRoot());
 	//nextRow(std::numeric_limits<long>::max());
-	while(nextRow(std::numeric_limits<long>::max()) != getItemTreeSoFar()->getChildren().end())
-		;
+	ItemTree::Children::const_iterator row = nextRow(std::numeric_limits<long>::max());
+	while(row != getItemTreeSoFar()->getChildren().end())
+		row = nextRow((*row)->getNode()->getCost());
+
 	ItemTreePtr result = claspCallback->finalize(false, false);
 	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
@@ -136,6 +138,8 @@ ItemTreePtr Solver::compute()
 ItemTree::Children::const_iterator Solver::nextRow(long costBound)
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
+
+	claspCallback->setCostBound(costBound);
 
 	if(!claspCallback->getItemTree()) {
 		loadFirstChildRowCombination(costBound);
@@ -160,7 +164,7 @@ ItemTree::Children::const_iterator Solver::nextRow(long costBound)
 		if(app.getPrinter().listensForSolverEvents()) {
 			std::ostringstream msg;
 			msg << "Node " << decomposition.getNode().getGlobalId() << ": ";
-			if(claspCallback->getNewestRow() == claspCallback->getItemTree()->getChildren().end())
+			if(claspCallback->getNewestRow() == claspCallback->getItemTree()->getChildren().end() || (*claspCallback->getNewestRow())->getNode()->getCost() >= costBound)
 				msg << "[no new or better row]";
 			else
 				msg << (*claspCallback->getNewestRow())->getNode();
@@ -169,11 +173,7 @@ ItemTree::Children::const_iterator Solver::nextRow(long costBound)
 
 		// Model has now already been processed by claspCallback
 		asyncResult->next();
-
-//		if(claspCallback->getNewestRow() == claspCallback->getItemTree()->getChildren().end()) {
-//			//std::cout << decomposition.getNode().getGlobalId() << " skipping model not yielding new row\n";
-//		}
-	} while(claspCallback->getNewestRow() == claspCallback->getItemTree()->getChildren().end());
+	} while(claspCallback->getNewestRow() == claspCallback->getItemTree()->getChildren().end() || (*claspCallback->getNewestRow())->getNode()->getCost() >= costBound);
 
 	return claspCallback->getNewestRow();
 }

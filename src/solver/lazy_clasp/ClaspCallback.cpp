@@ -26,6 +26,7 @@ namespace solver { namespace lazy_clasp {
 ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Application& app)
 	: ::solver::clasp::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
+	, costBound(std::numeric_limits<long>::max())
 {
 }
 
@@ -68,12 +69,8 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 				return auxItems.find(item) != auxItems.end();
 	}) == items.end(), "Items and auxiliary items not disjoint");
 	// }}}
-	assert(itemTree);
-	// Create item tree node {{{
-	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extendedRows}));
-	// }}}
 	// FIXME Do proper cost computations, not this item-set cardinality proof of concept
-	// Set cost {{{
+	// Compute cost {{{
 //	ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
 //	long cost = 0;
 //	forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
@@ -81,15 +78,22 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 //	});
 //	node->setCost(cost);
 
-	const auto& curItems = node->getItems();
-	const auto numCurItems = curItems.size();
-	long cost = numCurItems;
+	long cost = items.size();
 	for(const auto& row : extendedRows) {
 		const auto& oldItems = row->getItems();
 		ItemTreeNode::Items intersection;
-		std::set_intersection(curItems.begin(), curItems.end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
+		std::set_intersection(items.begin(), items.end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
 		cost += row->getCost() - intersection.size();
 	}
+	// }}}
+	if(cost >= costBound)
+		return true;
+
+	assert(itemTree);
+	// Create item tree node {{{
+	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extendedRows}));
+	// }}}
+	// Set cost {{{
 	node->setCost(cost);
 	// }}}
 	// Set current cost {{{
