@@ -52,7 +52,7 @@ ItemTree::Children::const_iterator ClaspCallback::getNewestRow() const
 
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 {
-	solver::clasp::ClaspCallback::onModel(s, m);
+//	solver::clasp::ClaspCallback::onModel(s, m);
 
 	// Get items {{{
 	ItemTreeNode::Items items;
@@ -72,29 +72,41 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	// Create item tree node {{{
 	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extendedRows}));
 	// }}}
+	// FIXME Do proper cost computations, not this item-set cardinality proof of concept
 	// Set cost {{{
-	ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
-	long cost = 0;
-	forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
-			cost = arguments.cost;
-	});
+//	ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
+//	long cost = 0;
+//	forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
+//			cost = arguments.cost;
+//	});
+//	node->setCost(cost);
+
+	const auto& curItems = node->getItems();
+	const auto numCurItems = curItems.size();
+	long cost = numCurItems;
+	for(const auto& row : extendedRows) {
+		const auto& oldItems = row->getItems();
+		ItemTreeNode::Items intersection;
+		std::set_intersection(curItems.begin(), curItems.end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
+		cost += row->getCost() - intersection.size();
+	}
 	node->setCost(cost);
 	// }}}
 	// Set current cost {{{
-	ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
-	ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
-	long currentCost = 0;
-	forFirstTrue(m, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
-			currentCost = arguments.currentCost;
-	});
-	node->setCurrentCost(currentCost);
+//	ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
+//	ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
+//	long currentCost = 0;
+//	forFirstTrue(m, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
+//			currentCost = arguments.currentCost;
+//	});
+//	node->setCurrentCost(currentCost);
 	// }}}
 	// Possibly update cost of root {{{
 	itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
 	// }}}
 	// Add node to item tree {{{
 	//ItemTree::Children::const_iterator newChild = itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
-	newestRow = itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
+	newestRow = itemTree->costChangeAfterAddChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 	// }}}
 
 	//if(newChild != itemTree->getChildren().end())
@@ -110,12 +122,12 @@ void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
 	auxItemAtomInfos.clear();
 	for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
 		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, symTab));
-	currentCostAtomInfos.clear();
-	for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
-		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
-	costAtomInfos.clear();
-	for(const auto& atom : gringoOutput.getCostAtomInfos())
-		costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
+//	currentCostAtomInfos.clear();
+//	for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
+//		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
+//	costAtomInfos.clear();
+//	for(const auto& atom : gringoOutput.getCostAtomInfos())
+//		costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
 }
 
 }} // namespace solver::lazy_clasp

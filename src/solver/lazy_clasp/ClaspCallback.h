@@ -49,8 +49,8 @@ public:
 private:
 	std::vector<ItemAtomInfo>        itemAtomInfos;
 	std::vector<AuxItemAtomInfo>     auxItemAtomInfos;
-	std::vector<CurrentCostAtomInfo> currentCostAtomInfos;
-	std::vector<CostAtomInfo>        costAtomInfos;
+//	std::vector<CurrentCostAtomInfo> currentCostAtomInfos;
+//	std::vector<CostAtomInfo>        costAtomInfos;
 
 	const GringoOutputProcessor& gringoOutput;
 	ItemTree::Children::const_iterator newestRow;

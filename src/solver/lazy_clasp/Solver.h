@@ -36,7 +36,7 @@ public:
 
 	virtual ItemTreePtr compute() override;
 
-	ItemTree::Children::const_iterator nextRow();
+	ItemTree::Children::const_iterator nextRow(long costBound);
 
 	// When the solver is currently in this->compute(), other objects can get the item tree that has been constructed so far with this method.
 	const ItemTreePtr& getItemTreeSoFar() const;
@@ -47,8 +47,8 @@ private:
 	std::unordered_map<String, size_t> itemsToVarIndices;
 
 	// Computes the first row for each child table, sets the clasp solving assumptions and starts asynchronous solving
-	bool loadFirstChildRowCombination();
-	bool loadNextChildRowCombination();
+	bool loadFirstChildRowCombination(long costBound);
+	bool loadNextChildRowCombination(long costBound);
 	void startSolvingForCurrentRowCombination();
 	void resetRowIteratorsOnNewRow(ItemTree::Children::const_iterator newRow);
 	bool nextExistingRowCombination(size_t incrementPos = 0);

@@ -216,8 +216,12 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 //	os << "}, this: " << &node << ", parent: " << node.parent;
 
 	// Print cost
-	if(node.cost != 0)
-		os << " (cost: " << node.cost << "; current: " << node.getCurrentCost() << ')';
+	if(node.cost != 0) {
+		os << " (cost: " << node.cost;
+		if(node.getCurrentCost() != 0)
+			os << "; current: " << node.getCurrentCost();
+		os << ')';
+	}
 
 	return os;
 }
