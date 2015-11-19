@@ -50,13 +50,9 @@ class DummyGringoModule : public Gringo::GringoModule
 }
 
 Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles)
-	: ::Solver(decomposition, app)
+	: ::LazySolver(decomposition, app)
 	, encodingFiles(encodingFiles)
 {
-	for(const auto& child : decomposition.getChildren())
-		nonExhaustedChildSolvers.push_back(static_cast<Solver*>(&child->getSolver()));
-	nextChildSolverToCall = nonExhaustedChildSolvers.begin();
-
 	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
 
 	// Set up ASP solver
@@ -121,135 +117,24 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	claspCallback->prepare(clasp.ctx.symbolTable());
 }
 
-ItemTreePtr Solver::compute()
+const ItemTreePtr& Solver::getItemTree() const
 {
-	// Currently this is only called at the root of the decomposition.
-	assert(decomposition.isRoot());
-	//nextRow(std::numeric_limits<long>::max());
-	ItemTree::Children::const_iterator row = nextRow(std::numeric_limits<long>::max());
-	while(row != getItemTreeSoFar()->getChildren().end())
-		row = nextRow((*row)->getNode()->getCost());
-
-	ItemTreePtr result = claspCallback->finalize(false, false);
-	app.getPrinter().solverInvocationResult(decomposition, result.get());
-	return result;
+	return claspCallback->getItemTree();
 }
 
-ItemTree::Children::const_iterator Solver::nextRow(long costBound)
+void Solver::setItemTree(ItemTreePtr&& itemTree)
 {
-	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
+	claspCallback->setItemTree(std::move(itemTree));
+}
 
-	claspCallback->setCostBound(costBound);
-
-	if(!claspCallback->getItemTree()) {
-		loadFirstChildRowCombination(costBound);
-		startSolvingForCurrentRowCombination();
-	}
-
-	assert(claspCallback->getItemTree());
-	assert(getItemTreeSoFar());
-
-	assert(asyncResult);
-
-	do {
-		while(asyncResult->end()) {
-			if(loadNextChildRowCombination(costBound) == false)
-				return getItemTreeSoFar()->getChildren().end();
-			startSolvingForCurrentRowCombination();
-		}
-
-		// XXX claspCallback does not need to be a clasp callback in fact
-		claspCallback->onModel(*clasp.ctx.master(), asyncResult->model());
-
-		if(app.getPrinter().listensForSolverEvents()) {
-			std::ostringstream msg;
-			msg << "Node " << decomposition.getNode().getGlobalId() << ": ";
-			if(claspCallback->getNewestRow() == claspCallback->getItemTree()->getChildren().end() || (*claspCallback->getNewestRow())->getNode()->getCost() >= costBound)
-				msg << "[no new or better row]";
-			else
-				msg << (*claspCallback->getNewestRow())->getNode();
-			app.getPrinter().solverEvent(msg.str());
-		}
-
-		// Model has now already been processed by claspCallback
-		asyncResult->next();
-	} while(claspCallback->getNewestRow() == claspCallback->getItemTree()->getChildren().end() || (*claspCallback->getNewestRow())->getNode()->getCost() >= costBound);
-
+ItemTree::Children::const_iterator Solver::getNewestRow() const
+{
 	return claspCallback->getNewestRow();
 }
 
-bool Solver::loadFirstChildRowCombination(long costBound)
+ItemTreePtr Solver::finalize()
 {
-	assert(!claspCallback->getItemTree());
-	assert(!asyncResult);
-
-	// Get the first row from each child node
-	assert(rowIterators.empty());
-	rowIterators.reserve(decomposition.getChildren().size());
-	for(const auto& child : decomposition.getChildren()) {
-		assert(!dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar());
-		const ItemTree::Children::const_iterator firstRow = dynamic_cast<Solver&>(child->getSolver()).nextRow(costBound);
-		assert(firstRow == dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getChildren().begin());
-		if(firstRow == dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getChildren().end())
-			return false;
-		rowIterators.emplace_back(child.get(), firstRow);
-	}
-
-	// Initialize claspCallback by telling it the roots of the child item trees
-	ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
-	rootExtensionPointers.reserve(decomposition.getChildren().size());
-	for(const auto& child : decomposition.getChildren())
-		rootExtensionPointers.push_back(dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getNode());
-	claspCallback->initializeItemTree(std::move(rootExtensionPointers));
-	return true;
-}
-
-bool Solver::loadNextChildRowCombination(long costBound)
-{
-	assert(asyncResult);
-
-	if(decomposition.getChildren().empty())
-		return false;
-
-	if(nextExistingRowCombination())
-		return true;
-
-	// There is no combination of existing child rows, so we compute a new one
-	assert(nextChildSolverToCall != nonExhaustedChildSolvers.end());
-	Solver* childSolver = *nextChildSolverToCall;
-	ItemTree::Children::const_iterator newRow = childSolver->nextRow(costBound);
-
-	while(newRow == childSolver->getItemTreeSoFar()->getChildren().end()) {
-		// The child solver is now exhausted
-		// Remove it from nonExhaustedChildSolvers
-		// Set nextChildSolverToCall to the next one
-		nonExhaustedChildSolvers.erase(nextChildSolverToCall++);
-
-		if(nonExhaustedChildSolvers.empty())
-			return false;
-
-		if(nextChildSolverToCall == nonExhaustedChildSolvers.end())
-			nextChildSolverToCall = nonExhaustedChildSolvers.begin();
-
-		assert(nextChildSolverToCall != nonExhaustedChildSolvers.end());
-		childSolver = *nextChildSolverToCall;
-		newRow = childSolver->nextRow(costBound);
-	}
-
-	// Now we have computed a new child row
-	originOfLastChildRow = childSolver->decomposition.getNode().getGlobalId();
-	resetRowIteratorsOnNewRow(newRow);
-	++nextChildSolverToCall;
-	if(nextChildSolverToCall == nonExhaustedChildSolvers.end())
-		nextChildSolverToCall = nonExhaustedChildSolvers.begin();
-	assert(nextChildSolverToCall != nonExhaustedChildSolvers.end());
-
-	return true;
-}
-
-const ItemTreePtr& Solver::getItemTreeSoFar() const
-{
-	return claspCallback->getItemTree();
+	return claspCallback->finalize(false, false);
 }
 
 void Solver::startSolvingForCurrentRowCombination()
@@ -287,39 +172,23 @@ void Solver::startSolvingForCurrentRowCombination()
 	asyncResult.reset(new BasicSolveIter(clasp));
 }
 
-void Solver::resetRowIteratorsOnNewRow(ItemTree::Children::const_iterator newRow)
+bool Solver::endOfRowCandidates()
 {
-	rowIterators.clear();
-	rowIterators.reserve(decomposition.getChildren().size());
-	for(const auto& child : decomposition.getChildren()) {
-		if(child->getNode().getGlobalId() == originOfLastChildRow)
-			rowIterators.emplace_back(child.get(), newRow);
-		else {
-			rowIterators.emplace_back(child.get(), static_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getChildren().begin());
-			assert(rowIterators.back().second != static_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getChildren().end());
-		}
-	}
+	assert(asyncResult);
+	return asyncResult->end();
 }
 
-bool Solver::nextExistingRowCombination(size_t incrementPos)
+void Solver::nextRowCandidate()
 {
-	// Increment the iterator at index incrementPos, then reset all iterators before it except at index 0 (this is the new row which should be combined with all "old" rows from other child nodes)
-	if(incrementPos >= rowIterators.size())
-		return false;
+	assert(asyncResult);
+	asyncResult->next();
+}
 
-	// Don't increment originOfLastChildRow since this is the new row we want to combine with all existing ones
-	if(rowIterators[incrementPos].first->getNode().getGlobalId() == originOfLastChildRow)
-		return nextExistingRowCombination(incrementPos+1);
-
-	if(++rowIterators[incrementPos].second == static_cast<Solver&>(rowIterators[incrementPos].first->getSolver()).getItemTreeSoFar()->getChildren().end())
-		return nextExistingRowCombination(incrementPos+1);
-	else {
-		for(size_t i = 0; i < incrementPos; ++i) {
-			if(rowIterators[i].first->getNode().getGlobalId() != originOfLastChildRow)
-				rowIterators[i].second = static_cast<Solver&>(rowIterators[i].first->getSolver()).getItemTreeSoFar()->getChildren().begin();
-		}
-	}
-	return true;
+void Solver::handleRowCandidate()
+{
+	assert(asyncResult);
+	// XXX claspCallback does not need to be a clasp callback in fact
+	claspCallback->onModel(*clasp.ctx.master(), asyncResult->model());
 }
 
 }} // namespace solver::lazy_clasp

@@ -30,15 +30,9 @@ ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Ap
 {
 }
 
-void ClaspCallback::initializeItemTree(ItemTreeNode::ExtensionPointerTuple&& rootExtensionPointers)
+void ClaspCallback::setItemTree(ItemTreePtr&& it)
 {
-	// Create item tree root if it doesn't exist yet {{{
-	if(!itemTree) {
-		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
-		// Set cost to "infinity"
-		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
-	}
-	// }}}
+	itemTree = std::move(it);
 }
 
 void ClaspCallback::setExtendedRows(ItemTreeNode::ExtensionPointerTuple&& e)

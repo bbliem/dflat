@@ -25,34 +25,31 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "ClaspCallback.h"
 #include "../../Decomposition.h"
+#include "../../LazySolver.h"
 #include "SolverIter.h"
 
 namespace solver { namespace lazy_clasp {
 
-class Solver : public ::Solver
+class Solver : public ::LazySolver
 {
 public:
 	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles);
 
-	virtual ItemTreePtr compute() override;
+protected:
+	virtual const ItemTreePtr& getItemTree() const override;
+	virtual void setItemTree(ItemTreePtr&& itemTree) override;
+	virtual ItemTree::Children::const_iterator getNewestRow() const override;
+	virtual ItemTreePtr finalize() override;
 
-	// Compute the next row having cost less than costBound
-	ItemTree::Children::const_iterator nextRow(long costBound);
-
-	// When the solver is currently in this->compute(), other objects can get the item tree that has been constructed so far with this method.
-	const ItemTreePtr& getItemTreeSoFar() const;
+	virtual void startSolvingForCurrentRowCombination() override;
+	virtual bool endOfRowCandidates() override;
+	virtual void nextRowCandidate() override;
+	virtual void handleRowCandidate() override;
 
 private:
 	std::vector<std::string> encodingFiles;
 	std::vector<Clasp::Var> variables;
 	std::unordered_map<String, size_t> itemsToVarIndices;
-
-	// Computes the first row for each child table, sets the clasp solving assumptions and starts asynchronous solving
-	bool loadFirstChildRowCombination(long costBound);
-	bool loadNextChildRowCombination(long costBound);
-	void startSolvingForCurrentRowCombination();
-	void resetRowIteratorsOnNewRow(ItemTree::Children::const_iterator newRow);
-	bool nextExistingRowCombination(size_t incrementPos = 0);
 
 	std::unique_ptr<ClaspCallback> claspCallback;
 	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut;
@@ -60,13 +57,6 @@ private:
 	Clasp::ClaspFacade clasp;
 	Clasp::ClaspConfig config;
 	std::unique_ptr<SolveIter> asyncResult;
-	typedef std::pair<Decomposition*, ItemTree::Children::const_iterator> RowIteratorPair;
-	typedef std::vector<RowIteratorPair> RowIterators;
-	RowIterators rowIterators; // Key: Child node; Value: Row in the item tree at this child
-	//int nextChildNodeToCall = 0;
-	std::list<Solver*> nonExhaustedChildSolvers;
-	std::list<Solver*>::const_iterator nextChildSolverToCall; // points to elements of nonExhaustedChildSolvers
-	unsigned int originOfLastChildRow = -1; // value is the ID of the DecompositionNode where the last child row has been computed
 };
 
 }} // namespace solver::lazy_clasp

@@ -38,7 +38,7 @@ public:
 
 	ClaspCallback(const GringoOutputProcessor&, const Application&);
 
-	void initializeItemTree(ItemTreeNode::ExtensionPointerTuple&& rootExtensionPointers);
+	void setItemTree(ItemTreePtr&& it);
 	void setExtendedRows(ItemTreeNode::ExtensionPointerTuple&&);
 	// onModel only inserts rows whose cost is below c
 	void setCostBound(long c) { costBound = c; }

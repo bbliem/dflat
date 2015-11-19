@@ -83,29 +83,30 @@ add_library(dflat-objects
 	decomposer/GraphMl.cpp
 	SolverFactory.cpp
 	Solver.cpp
-	solver/dummy/SolverFactory.cpp
-	solver/dummy/Solver.cpp
-	solver/clasp/SolverFactory.cpp
-	solver/clasp/Solver.cpp
+	LazySolver.cpp
+	solver/asp/AtomIntroductionSolver.cpp
+	solver/asp/AtomRemovalSolver.cpp
+	solver/asp/LeafSolver.cpp
+	solver/asp/RuleIntroductionSolver.cpp
+	solver/asp/RuleRemovalSolver.cpp
+	solver/asp/SolverBase.cpp
+	solver/asp/SolverFactory.cpp
 	solver/clasp/ClaspCallback.cpp
 	solver/clasp/GringoOutputProcessor.cpp
-	solver/lazy_clasp/Solver.cpp
-	solver/lazy_clasp/ClaspCallback.cpp
-	solver/lazy_clasp/GringoOutputProcessor.cpp
-	solver/lazy_clasp/SolverIter.cpp
+	solver/clasp/Solver.cpp
+	solver/clasp/SolverFactory.cpp
 	solver/clasp/tables/ClaspCallback.cpp
 	solver/clasp/tables/GringoOutputProcessor.cpp
 	solver/clasp/trees/ClaspCallback.cpp
 	solver/clasp/trees/EncodingChecker.cpp
 	solver/clasp/trees/GringoOutputProcessor.cpp
 	solver/default_join/Solver.cpp
-	solver/asp/SolverFactory.cpp
-	solver/asp/SolverBase.cpp
-	solver/asp/LeafSolver.cpp
-	solver/asp/AtomIntroductionSolver.cpp
-	solver/asp/AtomRemovalSolver.cpp
-	solver/asp/RuleIntroductionSolver.cpp
-	solver/asp/RuleRemovalSolver.cpp
+	solver/dummy/Solver.cpp
+	solver/dummy/SolverFactory.cpp
+	solver/lazy_clasp/ClaspCallback.cpp
+	solver/lazy_clasp/GringoOutputProcessor.cpp
+	solver/lazy_clasp/Solver.cpp
+	solver/lazy_clasp/SolverIter.cpp
 	Printer.cpp
 	printer/Quiet.cpp
 	printer/Progress.cpp
