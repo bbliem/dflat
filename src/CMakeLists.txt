@@ -4,6 +4,7 @@ set(USE_STATIC_LIBS "${USE_STATIC_LIBS}" CACHE BOOL "Link statically")
 
 add_definitions("-Wall -pedantic -std=c++11")
 add_definitions("-Wno-zero-length-array") # XXX Workaround because clasp generates these warnings
+add_definitions("-Wno-pessimizing-move") # XXX Workaround because gringo generates these warnings
 
 set(CMAKE_CXX_FLAGS_GPROF "-O3 -g -pg")
 set(CMAKE_CXX_FLAGS_PROFILER "-O3 -g")
@@ -107,6 +108,7 @@ add_library(dflat-objects
 	solver/lazy_clasp/GringoOutputProcessor.cpp
 	solver/lazy_clasp/Solver.cpp
 	solver/lazy_clasp/SolverIter.cpp
+	solver/lazy_default_join/Solver.cpp
 	Printer.cpp
 	printer/Quiet.cpp
 	printer/Progress.cpp

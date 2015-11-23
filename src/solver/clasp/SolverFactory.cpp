@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Solver.h"
 #include "../default_join/Solver.h"
 #include "../lazy_clasp/Solver.h"
+#include "../lazy_default_join/Solver.h"
 #include "../../Application.h"
 #include "../../Decomposition.h"
 
@@ -66,10 +67,13 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decomposition) const
 {
 	if(optLazy.isUsed()) {
-		// FIXME this should not make --default-join ineffective, and it should not require table mode
-		if(optDefaultJoin.isUsed() || !optTables.isUsed())
-			throw std::runtime_error("Lazy evaluation currently requires table mode and not using the default join");
-		return std::unique_ptr<::Solver>(new lazy_clasp::Solver(decomposition, app, optEncodingFiles.getValues()));
+		// FIXME this should not require table mode
+		if(!optTables.isUsed())
+			throw std::runtime_error("Lazy evaluation currently requires table mode");
+		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
+			return std::unique_ptr<::Solver>(new lazy_default_join::Solver(decomposition, app, decomposition.isRoot()));
+		else
+			return std::unique_ptr<::Solver>(new lazy_clasp::Solver(decomposition, app, optEncodingFiles.getValues()));
 	}
 	else {
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())

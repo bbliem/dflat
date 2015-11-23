@@ -20,43 +20,31 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include <list>
-#include <clasp/clasp_facade.h>
-
-#include "ClaspCallback.h"
-#include "../../Decomposition.h"
 #include "../../LazySolver.h"
-#include "SolverIter.h"
 
-namespace solver { namespace lazy_clasp {
+namespace solver { namespace lazy_default_join {
 
 class Solver : public ::LazySolver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles);
+	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept);
 
 protected:
 	virtual const ItemTreePtr& getItemTree() const override;
 	virtual void setItemTree(ItemTreePtr&& itemTree) override;
 	virtual ItemTree::Children::const_iterator getNewestRow() const override;
 	virtual ItemTreePtr finalize() override;
-
 	virtual void startSolvingForCurrentRowCombination() override;
 	virtual bool endOfRowCandidates() const override;
 	virtual void nextRowCandidate() override;
 	virtual void handleRowCandidate(long costBound) override;
 
 private:
-	std::vector<std::string> encodingFiles;
-	std::vector<Clasp::Var> variables;
-	std::unordered_map<String, size_t> itemsToVarIndices;
+	ItemTreeNode::Type rowType; // ACCEPT or UNDEFINED
+	bool currentRowCombinationExhausted;
 
-	std::unique_ptr<ClaspCallback> claspCallback;
-	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut;
-
-	Clasp::ClaspFacade clasp;
-	Clasp::ClaspConfig config;
-	std::unique_ptr<SolveIter> asyncResult;
+	ItemTreePtr itemTree;
+	ItemTree::Children::const_iterator newestRow;
 };
 
-}} // namespace solver::lazy_clasp
+}} // namespace solver::lazy_default_join

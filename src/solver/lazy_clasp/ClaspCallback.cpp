@@ -23,9 +23,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_clasp {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Application& app)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Application& app, const ItemTreeNode::ExtensionPointerTuple& extendedRows)
 	: ::solver::clasp::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
+	, extendedRows(extendedRows)
 	, costBound(std::numeric_limits<long>::max())
 {
 }
@@ -33,11 +34,6 @@ ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Ap
 void ClaspCallback::setItemTree(ItemTreePtr&& it)
 {
 	itemTree = std::move(it);
-}
-
-void ClaspCallback::setExtendedRows(ItemTreeNode::ExtensionPointerTuple&& e)
-{
-	extendedRows = std::move(e);
 }
 
 ItemTree::Children::const_iterator ClaspCallback::getNewestRow() const

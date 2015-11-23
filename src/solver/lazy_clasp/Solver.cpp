@@ -59,7 +59,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	config.solve.numModels = 0;
 	Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true)); // TODO In leaves updates might not be necessary.
 	lpOut.reset(new GringoOutputProcessor(claspProgramBuilder));
-	claspCallback.reset(new ClaspCallback(dynamic_cast<GringoOutputProcessor&>(*lpOut), app));
+	claspCallback.reset(new ClaspCallback(dynamic_cast<GringoOutputProcessor&>(*lpOut), app, getCurrentRowCombination()));
 	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));
 	Gringo::Input::Program program;
 	DummyGringoModule module;
@@ -141,13 +141,6 @@ void Solver::startSolvingForCurrentRowCombination()
 {
 	asyncResult.reset();
 
-	// Set extension pointers for all upcoming rows
-	ItemTreeNode::ExtensionPointerTuple extendedRows;
-	extendedRows.reserve(rowIterators.size());
-	for(const auto& nodeAndRow : rowIterators)
-		extendedRows.push_back((*nodeAndRow.second)->getNode());
-	claspCallback->setExtendedRows(std::move(extendedRows));
-
 	// Set external variables to the values of the current child row combination
 	Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update(false, false));
 
@@ -155,8 +148,8 @@ void Solver::startSolvingForCurrentRowCombination()
 
 	// Mark atoms corresponding to items from the currently extended rows
 	const unsigned int IN_SET = 2147483648; // 2^31 (atom IDs are always smaller)
-	for(const auto& nodeAndRow : rowIterators) {
-		for(const auto& item : (*nodeAndRow.second)->getNode()->getItems())
+	for(const auto& row : getCurrentRowCombination()) {
+		for(const auto& item : row->getItems())
 			variables[itemsToVarIndices.at(item)] |= IN_SET;
 	}
 	// Set marked atoms to true and all others to false
@@ -172,7 +165,7 @@ void Solver::startSolvingForCurrentRowCombination()
 	asyncResult.reset(new BasicSolveIter(clasp));
 }
 
-bool Solver::endOfRowCandidates()
+bool Solver::endOfRowCandidates() const
 {
 	assert(asyncResult);
 	return asyncResult->end();
@@ -184,10 +177,11 @@ void Solver::nextRowCandidate()
 	asyncResult->next();
 }
 
-void Solver::handleRowCandidate()
+void Solver::handleRowCandidate(long costBound)
 {
 	assert(asyncResult);
 	// XXX claspCallback does not need to be a clasp callback in fact
+	claspCallback->setCostBound(costBound);
 	claspCallback->onModel(*clasp.ctx.master(), asyncResult->model());
 }
 
