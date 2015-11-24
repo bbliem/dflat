@@ -35,13 +35,29 @@ LazySolver::LazySolver(const Decomposition& decomposition, const Application& ap
 	rowIterators.reserve(decomposition.getChildren().size());
 }
 
+bool LazySolver::resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from)
+{
+	rowIterators.clear();
+	for(const auto& child : decomposition.getChildren()) {
+		if(child.get() == &from) {
+			Row end = newRow;
+			++end;
+			rowIterators.push_back({newRow, newRow, end});
+		} else {
+			const auto& rows = static_cast<LazySolver&>(child->getSolver()).getItemTree()->getChildren();
+			assert(rows.begin() != rows.end());
+			rowIterators.push_back({rows.begin(), rows.begin(), rows.end()});
+		}
+	}
+
+	return true;
+}
+
+
 LazySolver::Row LazySolver::nextRow(long costBound)
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
-	//claspCallback->setCostBound(costBound);
-
-	//if(!claspCallback->getItemTree()) {
 	if(!getItemTree()) {
 		if(loadFirstChildRowCombination(costBound) == false)
 			return getItemTree()->getChildren().end();
@@ -81,7 +97,7 @@ bool LazySolver::loadFirstChildRowCombination(long costBound)
 	assert(rowIterators.empty());
 
 	// Get the first row from each child node
-	LazySolver* solver;
+	LazySolver* solver = nullptr;
 	Row newRow;
 	for(const auto& child : decomposition.getChildren()) {
 		solver = static_cast<LazySolver*>(&child->getSolver());
@@ -90,9 +106,10 @@ bool LazySolver::loadFirstChildRowCombination(long costBound)
 		assert(newRow == solver->getItemTree()->getChildren().begin());
 		if(newRow == solver->getItemTree()->getChildren().end())
 			return false;
-//		originOfLastChildRow = childSolver->decomposition.getNode().getGlobalId();
-//		rowIterators.emplace_back(child.get(), firstRow);
 	}
+	// Now (solver != nullptr and newRow is set) iff there are child nodes
+	assert(solver || decomposition.getChildren().empty());
+	assert(!solver || !decomposition.getChildren().empty());
 
 	// Initialize resulting item tree by telling it the roots of the child item trees
 	ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
@@ -104,7 +121,9 @@ bool LazySolver::loadFirstChildRowCombination(long costBound)
 	// Set row iterators.
 	// If this fails, load next child row combination, which will in turn load
 	// new child rows until row iterators can be set.
-	if(resetRowIteratorsOnNewRow(newRow, *solver) == false && loadNextChildRowCombination(costBound) == false)
+	if(solver &&
+			resetRowIteratorsOnNewRow(newRow, solver->decomposition) == false &&
+			loadNextChildRowCombination(costBound) == false)
 		return false;
 
 	assert(rowIterators.size() == decomposition.getChildren().size());
@@ -153,39 +172,12 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 			if(nextChildSolverToCall == nonExhaustedChildSolvers.end())
 				nextChildSolverToCall = nonExhaustedChildSolvers.begin();
 			assert(nextChildSolverToCall != nonExhaustedChildSolvers.end());
-		} while(resetRowIteratorsOnNewRow(newRow, *childSolver) == false);
+		} while(resetRowIteratorsOnNewRow(newRow, childSolver->decomposition) == false);
 	}
 
 	currentRowCombination.clear();
 	for(const auto& it : rowIterators)
 		currentRowCombination.push_back((*it.current)->getNode());
-
-	return true;
-}
-
-bool LazySolver::resetRowIteratorsOnNewRow(Row newRow, LazySolver& from)
-{
-	// TODO make virtual
-	rowIterators.clear();
-	for(const auto& child : decomposition.getChildren()) {
-//		// TODO instead of distinguishing the following cases, implement something like relevantRange
-//		if(child->getNode().getGlobalId() == originOfLastChildRow)
-//			rowIterators.emplace_back(child.get(), newRow);
-//		else {
-//			rowIterators.emplace_back(child.get(), static_cast<LazySolver&>(child->getSolver()).getItemTree()->getChildren().begin());
-//			assert(rowIterators.back().second != static_cast<LazySolver&>(child->getSolver()).getItemTree()->getChildren().end());
-//		}
-
-		if(child.get() == &from.decomposition) {
-			Row end = newRow;
-			++end;
-			rowIterators.push_back({newRow, newRow, end});
-		} else {
-			const auto& rows = static_cast<LazySolver&>(child->getSolver()).getItemTree()->getChildren();
-			assert(rows.begin() != rows.end());
-			rowIterators.push_back({rows.begin(), rows.begin(), rows.end()});
-		}
-	}
 
 	return true;
 }

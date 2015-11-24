@@ -38,6 +38,7 @@ protected:
 	virtual bool endOfRowCandidates() const override;
 	virtual void nextRowCandidate() override;
 	virtual void handleRowCandidate(long costBound) override;
+	virtual bool resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from) override;
 
 private:
 	ItemTreeNode::Type rowType; // ACCEPT or UNDEFINED

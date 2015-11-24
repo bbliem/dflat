@@ -61,7 +61,6 @@ void Solver::startSolvingForCurrentRowCombination()
 {
 	assert(getCurrentRowCombination().empty() == false);
 	assert(currentRowCombinationExhausted);
-	currentRowCombinationExhausted = false;
 	const auto& extended = getCurrentRowCombination();
 	const auto& items = extended[0]->getItems();
 	currentRowCombinationExhausted = !std::all_of(extended.begin()+1, extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
@@ -86,7 +85,6 @@ void Solver::handleRowCandidate(long costBound)
 
 	ItemTreeNode::Items items = (*extended.begin())->getItems();
 	assert(std::all_of(extended.begin(), extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
-				std::cout << "Foo: " << *node << '\n';
 			return node->getItems() == items;
 	}));
 
@@ -112,6 +110,30 @@ void Solver::handleRowCandidate(long costBound)
 		// Add node to item tree
 		newestRow = itemTree->costChangeAfterAddChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 	}
+}
+
+bool Solver::resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from)
+{
+	rowIterators.clear();
+	for(const auto& child : decomposition.getChildren()) {
+		if(child.get() == &from) {
+			Row end = newRow;
+			++end;
+			rowIterators.push_back({newRow, newRow, end});
+		} else {
+			const auto& rows = static_cast<LazySolver&>(child->getSolver()).getItemTree()->getChildren();
+			assert(rows.begin() != rows.end());
+			const auto range = std::equal_range(rows.begin(), rows.end(), *newRow,
+					[](const ItemTreePtr& a, const ItemTreePtr& b) {
+					return a->getNode()->getItems() < b->getNode()->getItems();
+					});
+			if(range.first == range.second)
+				return false;
+			rowIterators.push_back({range.first, range.first, range.second});
+		}
+	}
+
+	return true;
 }
 
 //Solver::RowRange Solver::relevantRange(const ItemTree::Children& rows, const ItemTreePtr& newRow) const

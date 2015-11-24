@@ -31,6 +31,9 @@ public:
 
 	virtual ItemTreePtr compute() override final;
 
+	// While the solver is computing its item tree, other objects can get the item tree that has been constructed so far with this method.
+	virtual const ItemTreePtr& getItemTree() const = 0;
+
 protected:
 	typedef ItemTree::Children::const_iterator Row;
 
@@ -38,9 +41,6 @@ protected:
 	{
 		return currentRowCombination;
 	}
-
-	// While the solver is computing its item tree, other objects can get the item tree that has been constructed so far with this method.
-	virtual const ItemTreePtr& getItemTree() const = 0;
 
 	virtual void setItemTree(ItemTreePtr&& itemTree) = 0;
 
@@ -56,6 +56,16 @@ protected:
 	virtual void nextRowCandidate() = 0;
 	virtual void handleRowCandidate(long costBound) = 0;
 
+	struct RowIterator
+	{
+		Row current;
+		Row begin;
+		Row end;
+	};
+	typedef std::vector<RowIterator> RowIterators;
+	RowIterators rowIterators; // Key: Child node; Value: Row in the item tree at this child
+	virtual bool resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from);
+
 private:
 	// Compute (via lazy solving) the next row having cost less than costBound
 	Row nextRow(long costBound);
@@ -63,23 +73,10 @@ private:
 	bool loadFirstChildRowCombination(long costBound);
 	bool loadNextChildRowCombination(long costBound);
 	// Returns false if we can establish that there is a child table having no relevant child rows joinable with newRow
-	// TODO make virtual
-	bool resetRowIteratorsOnNewRow(Row newRow, LazySolver& from);
 	bool nextExistingRowCombination(size_t incrementPos = 0);
 	void initializeItemTree(ItemTreeNode::ExtensionPointerTuple&& rootExtensionPointers);
 
-	struct RowIterator
-	{
-		Row current;
-		Row begin;
-		Row end;
-	};
-	//typedef std::pair<Decomposition*, Row> RowIteratorPair;
-	//typedef std::vector<RowIteratorPair> RowIterators;
-	typedef std::vector<RowIterator> RowIterators;
-	RowIterators rowIterators; // Key: Child node; Value: Row in the item tree at this child
 	ItemTreeNode::ExtensionPointerTuple currentRowCombination;
 	std::list<LazySolver*> nonExhaustedChildSolvers;
 	std::list<LazySolver*>::const_iterator nextChildSolverToCall; // points to elements of nonExhaustedChildSolvers
-//	unsigned int originOfLastChildRow = -1; // value is the ID of the DecompositionNode where the last child row has been computed
 };
