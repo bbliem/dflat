@@ -56,6 +56,7 @@ private:
 	options::Option           optDefaultJoin;
 	options::Option           optLazy;
 	options::Option           optNoBinarySearch;
+	options::Option           optNoBB;
 	options::Option           optTables;
 #ifdef HAVE_WORDEXP_H
 	options::Option           optIgnoreModelines;

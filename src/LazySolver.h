@@ -27,7 +27,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 class LazySolver : public Solver
 {
 public:
-	LazySolver(const Decomposition& decomposition, const Application& app);
+	LazySolver(const Decomposition& decomposition, const Application& app, bool branchAndBound = true);
 
 	virtual ItemTreePtr compute() override final;
 
@@ -79,4 +79,5 @@ private:
 	ItemTreeNode::ExtensionPointerTuple currentRowCombination;
 	std::list<LazySolver*> nonExhaustedChildSolvers;
 	std::list<LazySolver*>::const_iterator nextChildSolverToCall; // points to elements of nonExhaustedChildSolvers
+	bool branchAndBound;
 };

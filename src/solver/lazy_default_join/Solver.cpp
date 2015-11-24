@@ -28,9 +28,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_default_join {
 
-Solver::Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, bool disableBinarySearch)
-	: ::LazySolver(decomposition, app)
-	, disableBinarySearch(disableBinarySearch)
+Solver::Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, bool branchAndBound, bool binarySearch)
+	: ::LazySolver(decomposition, app, branchAndBound)
+	, binarySearch(binarySearch)
 	, rowType(setLeavesToAccept ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::UNDEFINED)
 	, currentRowCombinationExhausted(true)
 {
@@ -62,19 +62,19 @@ void Solver::startSolvingForCurrentRowCombination()
 {
 	assert(getCurrentRowCombination().empty() == false);
 	assert(currentRowCombinationExhausted);
-	if(disableBinarySearch) {
-		const auto& extended = getCurrentRowCombination();
-		const auto& items = extended[0]->getItems();
-		currentRowCombinationExhausted = !std::all_of(extended.begin()+1, extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
-				return node->getItems() == items;
-				});
-	}
-	else {
+	if(binarySearch) {
 		// Binary search in resetRowIteratorsOnNewRow() ensures that the current row combination is joinable
 		assert(std::all_of(getCurrentRowCombination().begin()+1, getCurrentRowCombination().end(), [this](const ItemTreeNode::ExtensionPointer& node) {
 					return node->getItems() == this->getCurrentRowCombination()[0]->getItems();
 					}));
 		currentRowCombinationExhausted = false;
+	}
+	else {
+		const auto& extended = getCurrentRowCombination();
+		const auto& items = extended[0]->getItems();
+		currentRowCombinationExhausted = !std::all_of(extended.begin()+1, extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
+				return node->getItems() == items;
+				});
 	}
 }
 
@@ -124,7 +124,7 @@ void Solver::handleRowCandidate(long costBound)
 
 bool Solver::resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from)
 {
-	if(disableBinarySearch)
+	if(!binarySearch)
 		return LazySolver::resetRowIteratorsOnNewRow(newRow, from);
 
 	rowIterators.clear();

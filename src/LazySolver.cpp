@@ -25,8 +25,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Printer.h"
 #include "LazySolver.h"
 
-LazySolver::LazySolver(const Decomposition& decomposition, const Application& app)
+LazySolver::LazySolver(const Decomposition& decomposition, const Application& app, bool branchAndBound)
 	: ::Solver(decomposition, app)
+	, branchAndBound(branchAndBound)
 {
 	for(const auto& child : decomposition.getChildren())
 		nonExhaustedChildSolvers.push_back(static_cast<LazySolver*>(&child->getSolver()));
@@ -227,7 +228,8 @@ ItemTreePtr LazySolver::compute()
 			app.getPrinter().solverEvent(msg.str());
 		}
 
-		row = nextRow((*row)->getNode()->getCost());
+		const long newCostBound = branchAndBound ? (*row)->getNode()->getCost() : std::numeric_limits<long>::max();
+		row = nextRow(newCostBound);
 	}
 
 	ItemTreePtr result = finalize();

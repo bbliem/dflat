@@ -33,7 +33,7 @@ namespace solver { namespace lazy_clasp {
 class Solver : public ::LazySolver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles);
+	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool branchAndBound);
 
 protected:
 	virtual const ItemTreePtr& getItemTree() const override;

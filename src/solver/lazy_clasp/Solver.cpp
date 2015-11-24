@@ -49,8 +49,8 @@ class DummyGringoModule : public Gringo::GringoModule
 
 }
 
-Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles)
-	: ::LazySolver(decomposition, app)
+Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool branchAndBound)
+	: ::LazySolver(decomposition, app, branchAndBound)
 	, encodingFiles(encodingFiles)
 {
 	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
