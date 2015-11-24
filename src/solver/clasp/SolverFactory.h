@@ -48,9 +48,14 @@ public:
 private:
 	static const std::string OPTION_SECTION;
 
+	options::Condition        condLazy;
+	options::Condition        condTables;
+	options::Condition        condDefaultJoin;
+
 	options::MultiValueOption optEncodingFiles;
 	options::Option           optDefaultJoin;
 	options::Option           optLazy;
+	options::Option           optNoBinarySearch;
 	options::Option           optTables;
 #ifdef HAVE_WORDEXP_H
 	options::Option           optIgnoreModelines;

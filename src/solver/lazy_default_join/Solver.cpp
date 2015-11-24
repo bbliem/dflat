@@ -28,8 +28,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_default_join {
 
-Solver::Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept)
+Solver::Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, bool disableBinarySearch)
 	: ::LazySolver(decomposition, app)
+	, disableBinarySearch(disableBinarySearch)
 	, rowType(setLeavesToAccept ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::UNDEFINED)
 	, currentRowCombinationExhausted(true)
 {
@@ -61,11 +62,20 @@ void Solver::startSolvingForCurrentRowCombination()
 {
 	assert(getCurrentRowCombination().empty() == false);
 	assert(currentRowCombinationExhausted);
-	const auto& extended = getCurrentRowCombination();
-	const auto& items = extended[0]->getItems();
-	currentRowCombinationExhausted = !std::all_of(extended.begin()+1, extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
-			return node->getItems() == items;
-	});
+	if(disableBinarySearch) {
+		const auto& extended = getCurrentRowCombination();
+		const auto& items = extended[0]->getItems();
+		currentRowCombinationExhausted = !std::all_of(extended.begin()+1, extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
+				return node->getItems() == items;
+				});
+	}
+	else {
+		// Binary search in resetRowIteratorsOnNewRow() ensures that the current row combination is joinable
+		assert(std::all_of(getCurrentRowCombination().begin()+1, getCurrentRowCombination().end(), [this](const ItemTreeNode::ExtensionPointer& node) {
+					return node->getItems() == this->getCurrentRowCombination()[0]->getItems();
+					}));
+		currentRowCombinationExhausted = false;
+	}
 }
 
 bool Solver::endOfRowCandidates() const
@@ -114,6 +124,9 @@ void Solver::handleRowCandidate(long costBound)
 
 bool Solver::resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from)
 {
+	if(disableBinarySearch)
+		return LazySolver::resetRowIteratorsOnNewRow(newRow, from);
+
 	rowIterators.clear();
 	for(const auto& child : decomposition.getChildren()) {
 		if(child.get() == &from) {
@@ -135,13 +148,5 @@ bool Solver::resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from)
 
 	return true;
 }
-
-//Solver::RowRange Solver::relevantRange(const ItemTree::Children& rows, const ItemTreePtr& newRow) const
-//{
-//	return std::equal_range(rows.begin(), rows.end(), newRow,
-//			[](const ItemTreePtr& a, const ItemTreePtr& b) {
-//			return a->getNode()->getItems() < b->getNode()->getItems();
-//			});
-//}
 
 }} // namespace solver::lazy_default_join

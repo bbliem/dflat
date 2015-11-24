@@ -167,7 +167,6 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 			}
 
 			// Now we have computed a new child row
-//			originOfLastChildRow = childSolver->decomposition.getNode().getGlobalId();
 			++nextChildSolverToCall;
 			if(nextChildSolverToCall == nonExhaustedChildSolvers.end())
 				nextChildSolverToCall = nonExhaustedChildSolvers.begin();
@@ -194,19 +193,11 @@ bool LazySolver::nextExistingRowCombination(size_t incrementPos)
 	if(incrementPos >= rowIterators.size())
 		return false;
 
-//	// Don't increment originOfLastChildRow since this is the new row we want to combine with all existing ones
-//	if(rowIterators[incrementPos].first->getNode().getGlobalId() == originOfLastChildRow)
-//		return nextExistingRowCombination(incrementPos+1);
-
-//	if(++rowIterators[incrementPos].second == static_cast<LazySolver&>(rowIterators[incrementPos].first->getSolver()).getItemTree()->getChildren().end())
 	if(++rowIterators[incrementPos].current == rowIterators[incrementPos].end)
 		return nextExistingRowCombination(incrementPos+1);
 	else {
-		for(size_t i = 0; i < incrementPos; ++i) {
-//			if(rowIterators[i].first->getNode().getGlobalId() != originOfLastChildRow)
-//				rowIterators[i].second = static_cast<LazySolver&>(rowIterators[i].first->getSolver()).getItemTree()->getChildren().begin();
+		for(size_t i = 0; i < incrementPos; ++i)
 			rowIterators[i].current = rowIterators[i].begin;
-		}
 	}
 	return true;
 }

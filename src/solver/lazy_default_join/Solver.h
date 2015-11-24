@@ -27,7 +27,7 @@ namespace solver { namespace lazy_default_join {
 class Solver : public ::LazySolver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept);
+	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, bool disableBinarySearch = false);
 
 protected:
 	virtual const ItemTreePtr& getItemTree() const override;
@@ -41,6 +41,7 @@ protected:
 	virtual bool resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from) override;
 
 private:
+	bool disableBinarySearch;
 	ItemTreeNode::Type rowType; // ACCEPT or UNDEFINED
 	bool currentRowCombinationExhausted;
 
