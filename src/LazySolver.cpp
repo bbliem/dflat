@@ -221,6 +221,12 @@ ItemTreePtr LazySolver::compute()
 	//nextRow(std::numeric_limits<long>::max());
 	Row row = nextRow(std::numeric_limits<long>::max());
 	while(row != getItemTree()->getChildren().end()) {
+		if(app.getPrinter().listensForSolverEvents()) {
+			std::ostringstream msg;
+			msg << "Found new solution with cost " << (*row)->getNode()->getCost();
+			app.getPrinter().solverEvent(msg.str());
+		}
+
 		row = nextRow((*row)->getNode()->getCost());
 	}
 
