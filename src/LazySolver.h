@@ -37,6 +37,9 @@ public:
 protected:
 	typedef ItemTree::Children::const_iterator Row;
 
+	// Recursively print all solver invocation results
+	void printAllResults() const;
+
 	const ItemTreeNode::ExtensionPointerTuple& getCurrentRowCombination() const
 	{
 		return currentRowCombination;

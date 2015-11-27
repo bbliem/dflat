@@ -238,7 +238,17 @@ ItemTreePtr LazySolver::compute()
 		}
 	}
 
+	printAllResults();
+
 	ItemTreePtr result = finalize();
-	app.getPrinter().solverInvocationResult(decomposition, result.get());
+	//app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
+}
+
+void LazySolver::printAllResults() const
+{
+	for(const auto& child : decomposition.getChildren())
+		static_cast<LazySolver&>(child->getSolver()).printAllResults();
+
+	app.getPrinter().solverInvocationResult(decomposition, getItemTree().get());
 }
