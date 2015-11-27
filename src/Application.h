@@ -60,6 +60,7 @@ public:
 	void setPrinter(Printer& printer);
 
 	bool isCountingDisabled() const;
+	bool isOptimizationDisabled() const;
 	bool isPruningDisabled() const;
 	bool printDecomposition() const;
 
@@ -79,6 +80,7 @@ private:
 	options::Choice optSolver;
 	options::Choice optPrinter;
 	options::Option optNoCounting;
+	options::Option optNoOptimization;
 	options::Option optNoPruning;
 	options::Option optPrintDecomposition;
 

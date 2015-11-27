@@ -19,6 +19,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
 #include "ClaspCallback.h"
+#include "../../../Application.h"
 
 namespace solver { namespace clasp { namespace tables {
 
@@ -73,31 +74,34 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 		}
 		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
 		// Set cost to "infinity"
-		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
+		if(!app.isOptimizationDisabled())
+			itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
 	}
 	// }}}
 	// Create item tree node {{{
 	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {std::move(extendedRows)}, rowType));
 	// }}}
-	// Set cost {{{
-	ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
-	long cost = 0;
-	forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
-			cost = arguments.cost;
-	});
-	node->setCost(cost);
-	// }}}
-	// Set current cost {{{
-	ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
-	ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
-	long currentCost = 0;
-	forFirstTrue(m, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
-			currentCost = arguments.currentCost;
-	});
-	node->setCurrentCost(currentCost);
-	// }}}
-	// Possibly update cost of root {{{
-	itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
+	if(!app.isOptimizationDisabled()) {
+		// Set cost {{{
+		ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
+		long cost = 0;
+		forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
+				cost = arguments.cost;
+		});
+		node->setCost(cost);
+		// }}}
+		// Set current cost {{{
+		ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
+		ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
+		long currentCost = 0;
+		forFirstTrue(m, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
+				currentCost = arguments.currentCost;
+		});
+		node->setCurrentCost(currentCost);
+		// }}}
+		// Possibly update cost of root {{{
+		itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
+	}
 	// }}}
 	// Add node to item tree {{{
 	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));

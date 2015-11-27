@@ -51,6 +51,7 @@ private:
 	options::Condition        condLazy;
 	options::Condition        condTables;
 	options::Condition        condDefaultJoin;
+	options::Condition        condOptimization;
 
 	options::MultiValueOption optEncodingFiles;
 	options::Option           optDefaultJoin;

@@ -208,8 +208,11 @@ void LazySolver::initializeItemTree(ItemTreeNode::ExtensionPointerTuple&& rootEx
 	// Create item tree root if it doesn't exist yet
 	if(!getItemTree()) {
 		ItemTreePtr itemTree(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
+
 		// Set cost to "infinity"
-		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
+		if(!app.isOptimizationDisabled())
+			itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
+
 		setItemTree(std::move(itemTree));
 	}
 }
@@ -218,18 +221,21 @@ ItemTreePtr LazySolver::compute()
 {
 	// Currently this is only called at the root of the decomposition.
 	assert(decomposition.isRoot());
-	// TODO Make optimization disableable to let us stop after finding the first row
-	//nextRow(std::numeric_limits<long>::max());
 	Row row = nextRow(std::numeric_limits<long>::max());
-	while(row != getItemTree()->getChildren().end()) {
-		if(app.getPrinter().listensForSolverEvents()) {
-			std::ostringstream msg;
-			msg << "Found new solution with cost " << (*row)->getNode()->getCost();
-			app.getPrinter().solverEvent(msg.str());
-		}
 
-		const long newCostBound = branchAndBound ? (*row)->getNode()->getCost() : std::numeric_limits<long>::max();
-		row = nextRow(newCostBound);
+	// If we are solving an optimization problem, check optimality of "row" by
+	// finding more solutions with cost of "row" as the bound
+	if(!app.isOptimizationDisabled()) {
+		while(row != getItemTree()->getChildren().end()) {
+			if(app.getPrinter().listensForSolverEvents()) {
+				std::ostringstream msg;
+				msg << "Found new solution with cost " << (*row)->getNode()->getCost();
+				app.getPrinter().solverEvent(msg.str());
+			}
+
+			const long newCostBound = branchAndBound ? (*row)->getNode()->getCost() : std::numeric_limits<long>::max();
+			row = nextRow(newCostBound);
+		}
 	}
 
 	ItemTreePtr result = finalize();

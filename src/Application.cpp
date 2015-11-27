@@ -72,6 +72,7 @@ Application::Application(const std::string& binaryName)
 	, optSolver("s", "solver", "Use <solver> to compute partial solutions")
 	, optPrinter("output", "module", "Print information during the run using <module>")
 	, optNoCounting("no-counting", "Do not count the number of solutions")
+	, optNoOptimization("no-optimization", "Ignore solution costs")
 	, optNoPruning("no-pruning", "Prune rejecting subtrees only in the decomposition root")
 	, optPrintDecomposition("print-decomposition", "Print the generated decomposition")
 	, decomposer(0)
@@ -105,6 +106,7 @@ int Application::run(int argc, const char* const* const argv)
 	opts.addOption(optInputFile);
 
 	opts.addOption(optNoCounting);
+	opts.addOption(optNoOptimization);
 	opts.addOption(optNoPruning);
 	opts.addOption(optPrintDecomposition);
 	options::SingleValueOption optGraphMlOut("graphml-out", "file", "Write the decomposition in the GraphML format to <file>");
@@ -265,6 +267,11 @@ void Application::setPrinter(Printer& p)
 bool Application::isCountingDisabled() const
 {
 	return optNoCounting.isUsed();
+}
+
+bool Application::isOptimizationDisabled() const
+{
+	return optNoOptimization.isUsed();
 }
 
 bool Application::isPruningDisabled() const

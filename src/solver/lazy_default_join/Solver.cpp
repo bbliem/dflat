@@ -112,10 +112,13 @@ void Solver::handleRowCandidate(long costBound)
 
 		// Create item tree node
 		std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extended}, rowType));
-		node->setCost(cost);
 
-		// Possibly update cost of root
-		itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
+		if(!app.isOptimizationDisabled()) {
+			node->setCost(cost);
+
+			// Possibly update cost of root
+			itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
+		}
 
 		// Add node to item tree
 		newestRow = itemTree->costChangeAfterAddChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));

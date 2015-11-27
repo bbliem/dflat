@@ -40,7 +40,7 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 	: ::SolverFactory(app, "clasp", "Answer Set Programming solver clasp", newDefault)
 	, optEncodingFiles  ("p", "program",     "Use <program> as an ASP encoding for solving")
 	, optDefaultJoin    ("default-join",     "Use built-in implementation for join nodes")
-	, optLazy           ("lazy",             "Use lazy evaluation")
+	, optLazy           ("lazy",             "Use lazy evaluation to find one solution")
 	, optNoBinarySearch ("no-binary-search", "Disable binary search in lazy default join")
 	, optNoBB           ("no-bb",            "Disable branch and bound during lazy solving")
 	, optTables         ("tables",           "Use table mode (for item trees of height at most 1)")
@@ -65,6 +65,7 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 
 	optNoBB.addCondition(selected);
 	optNoBB.addCondition(condLazy);
+	optNoBB.addCondition(condOptimization);
 	app.getOptionHandler().addOption(optNoBB, OPTION_SECTION);
 
 	optTables.addCondition(selected);
@@ -114,6 +115,8 @@ void SolverFactory::notify()
 	if(optDefaultJoin.isUsed())
 		condDefaultJoin.setSatisfied();
 
+	if(!app.isOptimizationDisabled())
+		condOptimization.setSatisfied();
 
 #ifdef HAVE_WORDEXP_H
 	if(!optIgnoreModelines.isUsed()) {
