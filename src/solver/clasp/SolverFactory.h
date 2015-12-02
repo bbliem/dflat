@@ -54,6 +54,7 @@ private:
 	options::Condition        condOptimization;
 
 	options::MultiValueOption optEncodingFiles;
+	options::Option           optCardinalityCost;
 	options::Option           optDefaultJoin;
 	options::Option           optLazy;
 	options::Option           optNoBinarySearch;

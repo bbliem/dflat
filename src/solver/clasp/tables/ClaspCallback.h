@@ -34,7 +34,7 @@ public:
 	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
 
-	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&, bool root);
+	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&, bool root, bool cardinalityCost = false);
 
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
 	virtual void prepare(const Clasp::SymbolTable&) override;
@@ -51,6 +51,7 @@ private:
 	const ItemTreeNode::Type rowType;
 
 	std::unordered_map<const ItemTreeNode*, unsigned int> indexOfChildItemTreeRoot;
+	bool cardinalityCost;
 };
 
 }}} // namespace solver::clasp::tables

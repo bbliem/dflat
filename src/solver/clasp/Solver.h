@@ -27,7 +27,7 @@ namespace solver { namespace clasp {
 class Solver : public ::Solver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode);
+	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode, bool cardinalityCost = false);
 
 	virtual ItemTreePtr compute() override;
 
@@ -37,6 +37,7 @@ public:
 private:
 	std::vector<std::string> encodingFiles;
 	bool tableMode;
+	bool cardinalityCost;
 };
 
 }} // namespace solver::clasp

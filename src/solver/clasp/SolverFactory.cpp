@@ -39,6 +39,7 @@ const std::string SolverFactory::OPTION_SECTION = "Clasp solver";
 SolverFactory::SolverFactory(Application& app, bool newDefault)
 	: ::SolverFactory(app, "clasp", "Answer Set Programming solver clasp", newDefault)
 	, optEncodingFiles  ("p", "program",     "Use <program> as an ASP encoding for solving")
+	, optCardinalityCost("cardinality-cost", "Use item set cardinality as costs")
 	, optDefaultJoin    ("default-join",     "Use built-in implementation for join nodes")
 	, optLazy           ("lazy",             "Use lazy evaluation to find one solution")
 	, optNoBinarySearch ("no-binary-search", "Disable binary search in lazy default join")
@@ -50,6 +51,10 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 {
 	optEncodingFiles.addCondition(selected);
 	app.getOptionHandler().addOption(optEncodingFiles, OPTION_SECTION);
+
+	optCardinalityCost.addCondition(selected);
+	optCardinalityCost.addCondition(condTables);
+	app.getOptionHandler().addOption(optCardinalityCost, OPTION_SECTION);
 
 	optDefaultJoin.addCondition(selected);
 	app.getOptionHandler().addOption(optDefaultJoin, OPTION_SECTION);
@@ -91,7 +96,7 @@ std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decompos
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
 			return std::unique_ptr<::Solver>(new default_join::Solver(decomposition, app, optTables.isUsed() && decomposition.isRoot()));
 		else
-			return std::unique_ptr<::Solver>(new clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optTables.isUsed()));
+			return std::unique_ptr<::Solver>(new clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optTables.isUsed(), optCardinalityCost.isUsed()));
 	}
 }
 
