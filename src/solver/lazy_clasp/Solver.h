@@ -26,7 +26,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "ClaspCallback.h"
 #include "../../Decomposition.h"
 #include "../../LazySolver.h"
-#include "SolverIter.h"
+#include "SolveIter.h"
 
 namespace solver { namespace lazy_clasp {
 

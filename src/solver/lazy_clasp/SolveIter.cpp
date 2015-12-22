@@ -21,7 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <clasp/solver.h>
 #include <cassert>
 
-#include "SolverIter.h"
+#include "SolveIter.h"
 
 namespace solver { namespace lazy_clasp {
 

@@ -107,7 +107,7 @@ add_library(dflat-objects
 	solver/lazy_clasp/ClaspCallback.cpp
 	solver/lazy_clasp/GringoOutputProcessor.cpp
 	solver/lazy_clasp/Solver.cpp
-	solver/lazy_clasp/SolverIter.cpp
+	solver/lazy_clasp/SolveIter.cpp
 	solver/lazy_default_join/Solver.cpp
 	Printer.cpp
 	printer/Quiet.cpp
