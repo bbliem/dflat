@@ -36,9 +36,10 @@ public:
 	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
 	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
 
-	ClaspCallback(const GringoOutputProcessor&, const Application&, const ItemTreeNode::ExtensionPointerTuple& extendedRows);
+	ClaspCallback(const GringoOutputProcessor&, const Application&);
 
 	void setItemTree(ItemTreePtr&& it);
+	void setExtendedRows(const ItemTreeNode::ExtensionPointerTuple& e) { extendedRows = &e; }
 	// onModel only inserts rows whose cost is below c
 	void setCostBound(long c) { costBound = c; }
 	// Results in itemTree->getChildren().end() if merging occurred for the last model, otherwise yields the row created by the last model
@@ -55,7 +56,7 @@ private:
 
 	const GringoOutputProcessor& gringoOutput;
 	ItemTree::Children::const_iterator newestRow;
-	const ItemTreeNode::ExtensionPointerTuple& extendedRows; // The predecessor rows that have given rise to the current call of the (lazy) ASP solver
+	const ItemTreeNode::ExtensionPointerTuple* extendedRows; // The predecessor rows that have given rise to the current call of the (lazy) ASP solver
 	long costBound;
 };
 

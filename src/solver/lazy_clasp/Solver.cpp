@@ -59,7 +59,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	config.solve.numModels = 0;
 	Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true)); // TODO In leaves updates might not be necessary.
 	lpOut.reset(new GringoOutputProcessor(claspProgramBuilder));
-	claspCallback.reset(new ClaspCallback(dynamic_cast<GringoOutputProcessor&>(*lpOut), app, getCurrentRowCombination()));
+	claspCallback.reset(new ClaspCallback(dynamic_cast<GringoOutputProcessor&>(*lpOut), app));
 	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));
 	Gringo::Input::Program program;
 	DummyGringoModule module;
@@ -181,6 +181,7 @@ void Solver::handleRowCandidate(long costBound)
 {
 	assert(asyncResult);
 	// XXX claspCallback does not need to be a clasp callback in fact
+	claspCallback->setExtendedRows(getCurrentRowCombination());
 	claspCallback->setCostBound(costBound);
 	claspCallback->onModel(*clasp.ctx.master(), asyncResult->model());
 }

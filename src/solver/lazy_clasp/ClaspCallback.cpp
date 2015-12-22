@@ -24,10 +24,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_clasp {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Application& app, const ItemTreeNode::ExtensionPointerTuple& extendedRows)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Application& app)
 	: ::solver::clasp::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
-	, extendedRows(extendedRows)
 	, costBound(std::numeric_limits<long>::max())
 {
 }
@@ -70,7 +69,8 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 //	node->setCost(cost);
 
 	long cost = items.size();
-	for(const auto& row : extendedRows) {
+	assert(extendedRows);
+	for(const auto& row : *extendedRows) {
 		const auto& oldItems = row->getItems();
 		ItemTreeNode::Items intersection;
 		std::set_intersection(items.begin(), items.end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
@@ -82,7 +82,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 
 	assert(itemTree);
 	// Create item tree node {{{
-	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extendedRows}));
+	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {*extendedRows}));
 	// }}}
 	if(!app.isOptimizationDisabled()) {
 		// Set cost {{{
