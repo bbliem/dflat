@@ -43,13 +43,6 @@ namespace solver { namespace clasp {
 
 namespace {
 
-class DummyGringoModule : public Gringo::GringoModule
-{
-    virtual Gringo::Control *newControl(int argc, char const **argv) override { throw std::logic_error("DummyGringoModule"); };
-    virtual void freeControl(Gringo::Control *ctrl) override { throw std::logic_error("DummyGringoModule"); };
-    virtual Gringo::Value parseValue(std::string const &repr) override { throw std::logic_error("DummyGringoModule"); };
-};
-
 std::unique_ptr<asp_utils::GringoOutputProcessor> newGringoOutputProcessor(Clasp::Asp::LogicProgram& claspProgramBuilder, const ChildItemTrees& childItemTrees, bool tableMode)
 {
 	if(tableMode)
@@ -87,7 +80,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 			std::ofstream dummyStream;
 			std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, dummyStream));
 			Gringo::Input::Program program;
-			DummyGringoModule module;
+			asp_utils::DummyGringoModule module;
 			Gringo::Scripts scripts(module);
 			Gringo::Defines defs;
 			std::unique_ptr<EncodingChecker> encodingChecker{new trees::EncodingChecker(scripts, program, *out, defs)};
@@ -145,7 +138,7 @@ ItemTreePtr Solver::compute()
 	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut(newGringoOutputProcessor(claspProgramBuilder, childItemTrees, tableMode));
 	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));
 	Gringo::Input::Program program;
-	DummyGringoModule module;
+	asp_utils::DummyGringoModule module;
 	Gringo::Scripts scripts(module);
 	Gringo::Defines defs;
 	Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);

@@ -38,17 +38,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_clasp {
 
-namespace {
-
-class DummyGringoModule : public Gringo::GringoModule
-{
-    virtual Gringo::Control *newControl(int argc, char const **argv) override { throw std::logic_error("DummyGringoModule"); };
-    virtual void freeControl(Gringo::Control *ctrl) override { throw std::logic_error("DummyGringoModule"); };
-    virtual Gringo::Value parseValue(std::string const &repr) override { throw std::logic_error("DummyGringoModule"); };
-};
-
-}
-
 Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool branchAndBound)
 	: ::LazySolver(decomposition, app, branchAndBound)
 	, encodingFiles(encodingFiles)
@@ -62,7 +51,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	claspCallback.reset(new ClaspCallback(dynamic_cast<GringoOutputProcessor&>(*lpOut), app));
 	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));
 	Gringo::Input::Program program;
-	DummyGringoModule module;
+	asp_utils::DummyGringoModule module;
 	Gringo::Scripts scripts(module);
 	Gringo::Defines defs;
 	Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);
