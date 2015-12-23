@@ -20,19 +20,20 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../ClaspCallback.h"
+#include "../../../asp_utils.h"
+#include "../../../asp_utils/ClaspCallback.h"
 #include "GringoOutputProcessor.h"
 
 namespace solver { namespace clasp { namespace tables {
 
-class ClaspCallback : public ::solver::clasp::ClaspCallback
+class ClaspCallback : public asp_utils::ClaspCallback
 {
 public:
-	typedef AtomInfo<GringoOutputProcessor::ExtendAtomArguments> ExtendAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::ExtendAtomArguments> ExtendAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
 
 	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&, bool root, bool cardinalityCost = false);
 

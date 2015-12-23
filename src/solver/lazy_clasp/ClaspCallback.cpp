@@ -25,7 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver { namespace lazy_clasp {
 
 ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Application& app)
-	: ::solver::clasp::ClaspCallback(app)
+	: asp_utils::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
 	, costBound(std::numeric_limits<long>::max())
 {
@@ -43,7 +43,7 @@ ItemTree::Children::const_iterator ClaspCallback::getNewestRow() const
 
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 {
-//	solver::clasp::ClaspCallback::onModel(s, m);
+//	asp_utils::ClaspCallback::onModel(s, m);
 
 	// Get items {{{
 	ItemTreeNode::Items items;

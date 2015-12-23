@@ -92,8 +92,6 @@ add_library(dflat-objects
 	solver/asp/RuleRemovalSolver.cpp
 	solver/asp/SolverBase.cpp
 	solver/asp/SolverFactory.cpp
-	solver/clasp/ClaspCallback.cpp
-	solver/clasp/GringoOutputProcessor.cpp
 	solver/clasp/Solver.cpp
 	solver/clasp/SolverFactory.cpp
 	solver/clasp/tables/ClaspCallback.cpp
@@ -115,6 +113,8 @@ add_library(dflat-objects
 	printer/DebugHumanReadable.cpp
 	printer/DebugMachineReadable.cpp
 	printer/CountRows.cpp
+	asp_utils/GringoOutputProcessor.cpp
+	asp_utils/ClaspCallback.cpp
 	String.cpp
 	ItemTreeNode.cpp
 	ItemTree.cpp

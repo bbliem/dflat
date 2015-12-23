@@ -25,7 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver { namespace clasp { namespace trees {
 
 ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, const Decomposition& decomposition)
-	: ::solver::clasp::ClaspCallback(app)
+	: asp_utils::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
 	, childItemTrees(childItemTrees)
 	, decomposition(decomposition)
@@ -34,7 +34,7 @@ ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Ch
 
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 {
-	solver::clasp::ClaspCallback::onModel(s, m);
+	asp_utils::ClaspCallback::onModel(s, m);
 
 	struct BranchNode
 	{
@@ -192,7 +192,7 @@ ItemTreePtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)
 	app.getPrinter().uncompressedSolverInvocationResult(decomposition, uncompressedItemTree.get());
 	if(uncompressedItemTree)
 		itemTree = uncompressedItemTree->compress(pruneUndefined);
-	return ::solver::clasp::ClaspCallback::finalize(pruneUndefined, pruneRejecting);
+	return asp_utils::ClaspCallback::finalize(pruneUndefined, pruneRejecting);
 }
 
 }}} // namespace solver::clasp::trees

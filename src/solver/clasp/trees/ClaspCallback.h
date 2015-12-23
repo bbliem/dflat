@@ -20,7 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../ClaspCallback.h"
+#include "../../../asp_utils/ClaspCallback.h"
 #include "../../../UncompressedItemTree.h"
 #include "GringoOutputProcessor.h"
 
@@ -28,17 +28,17 @@ class Decomposition;
 
 namespace solver { namespace clasp { namespace trees {
 
-class ClaspCallback : public ::solver::clasp::ClaspCallback
+class ClaspCallback : public asp_utils::ClaspCallback
 {
 public:
-	typedef AtomInfo<GringoOutputProcessor::ExtendAtomArguments> ExtendAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::LengthAtomArguments> LengthAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::OrAtomArguments> OrAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::AndAtomArguments> AndAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::ExtendAtomArguments> ExtendAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::LengthAtomArguments> LengthAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::OrAtomArguments> OrAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::AndAtomArguments> AndAtomInfo;
 
 	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&, const Decomposition&);
 

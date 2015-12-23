@@ -22,32 +22,33 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <memory>
 
-#include "../clasp/GringoOutputProcessor.h"
+#include "../../asp_utils.h"
+#include "../../asp_utils/GringoOutputProcessor.h"
 
 namespace solver { namespace lazy_clasp {
 
-class GringoOutputProcessor : public ::solver::clasp::GringoOutputProcessor
+class GringoOutputProcessor : public asp_utils::GringoOutputProcessor
 {
 public:
 	struct ItemAtomArguments {
 		String item;
 	};
-	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
+	typedef asp_utils::GringoAtomInfo<ItemAtomArguments> ItemAtomInfo;
 
 	struct AuxItemAtomArguments {
 		String item;
 	};
-	typedef AtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
+	typedef asp_utils::GringoAtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
 
 	struct CurrentCostAtomArguments {
 		long currentCost;
 	};
-	typedef AtomInfo<CurrentCostAtomArguments> CurrentCostAtomInfo;
+	typedef asp_utils::GringoAtomInfo<CurrentCostAtomArguments> CurrentCostAtomInfo;
 
 	struct CostAtomArguments {
 		long cost;
 	};
-	typedef AtomInfo<CostAtomArguments> CostAtomInfo;
+	typedef asp_utils::GringoAtomInfo<CostAtomArguments> CostAtomInfo;
 
 	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
 	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;

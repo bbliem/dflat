@@ -20,7 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../clasp/ClaspCallback.h"
+#include "../../asp_utils/ClaspCallback.h"
 #include "GringoOutputProcessor.h"
 
 namespace solver { namespace lazy_clasp {
@@ -28,13 +28,13 @@ namespace solver { namespace lazy_clasp {
 class Solver;
 
 // TODO actually this class does not really need to be a clasp callback
-class ClaspCallback : public ::solver::clasp::ClaspCallback
+class ClaspCallback : public asp_utils::ClaspCallback
 {
 public:
-	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
 
 	ClaspCallback(const GringoOutputProcessor&, const Application&);
 

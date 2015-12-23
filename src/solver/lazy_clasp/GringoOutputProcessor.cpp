@@ -23,7 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver { namespace lazy_clasp {
 
 GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out)
-	: ::solver::clasp::GringoOutputProcessor(out)
+	: asp_utils::GringoOutputProcessor(out)
 {
 }
 

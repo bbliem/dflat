@@ -23,7 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver { namespace clasp { namespace tables {
 
 GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out, const ChildItemTrees& childItemTrees)
-	: ::solver::clasp::GringoOutputProcessor(out)
+	: asp_utils::GringoOutputProcessor(out)
 	, childItemTrees(childItemTrees)
 {
 }

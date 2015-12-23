@@ -39,7 +39,7 @@ std::vector<std::string> getArguments(Gringo::Value v)
 namespace solver { namespace clasp { namespace trees {
 
 GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out, const ChildItemTrees& childItemTrees)
-	: ::solver::clasp::GringoOutputProcessor(out)
+	: asp_utils::GringoOutputProcessor(out)
 	, childItemTrees(childItemTrees)
 {
 }

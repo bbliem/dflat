@@ -26,27 +26,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 class Application;
 
-namespace solver {
-class Asp;
-namespace clasp {
-class ItemSetLookupTable;
+namespace asp_utils {
 
 // Gets called by clasp whenever a model has been found
+// Contains an item tree
 class ClaspCallback : public Clasp::EventHandler
 {
 public:
-	template<typename T>
-	struct AtomInfo {
-		AtomInfo(const GringoOutputProcessor::AtomInfo<T>& gringoAtomInfo, const Clasp::SymbolTable& symTab)
-			: arguments(gringoAtomInfo.arguments) // XXX move?
-			, literal(symTab[gringoAtomInfo.symbolTableKey].lit)
-		{
-		}
-
-		T arguments;
-		Clasp::Literal literal;
-	};
-
 	ClaspCallback(const Application&);
 
 	// Call this after all answer sets have been processed. It returns the resulting item tree (and calls finalize() on it).
@@ -64,50 +50,9 @@ public:
 	virtual void prepare(const Clasp::SymbolTable&) {}
 
 protected:
-	template<typename T, typename F>
-	static void forEachTrue(const Clasp::Model& m, const std::vector<AtomInfo<T>>& atomInfos, F function)
-	{
-		for(const auto& atom : atomInfos) {
-			if(m.isTrue(atom.literal))
-				function(atom.arguments);
-		}
-	}
-
-	template<typename T, typename F>
-	static void forEachTrueLimited(const Clasp::Model& m, const std::vector<AtomInfo<T>>& atomInfos, F function)
-	{
-		for(const auto& atom : atomInfos) {
-			if(m.isTrue(atom.literal)) {
-				if(function(atom.arguments) == false)
-					return;
-			}
-		}
-	}
-
-	template<typename T, typename F>
-	static void forFirstTrue(const Clasp::Model& m, const std::vector<AtomInfo<T>>& atomInfos, F function)
-	{
-		for(const auto& atom : atomInfos) {
-			if(m.isTrue(atom.literal)) {
-				function(atom.arguments);
-				return;
-			}
-		}
-	}
-
-#ifndef DISABLE_CHECKS
-	template<typename T>
-	static size_t countTrue(const Clasp::Model& m, const std::vector<AtomInfo<T>>& atomInfos)
-	{
-		return std::count_if(atomInfos.begin(), atomInfos.end(), [&m](const AtomInfo<T>& atom) {
-			return m.isTrue(atom.literal);
-		});
-	}
-#endif
-
 	ItemTreePtr itemTree;
 	const Application& app;
 	bool prune;
 };
 
-}} // namespace solver::clasp
+} // namespace asp_utils

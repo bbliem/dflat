@@ -36,9 +36,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 // along with gringo.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include "GringoOutputProcessor.h"
-#include "ClaspCallback.h"
 
-namespace solver { namespace clasp {
+namespace asp_utils {
 
 void GringoOutputProcessor::addBody(const LitVec& body) {
     for (auto x : body) {
@@ -115,4 +114,4 @@ bool &GringoOutputProcessor::disposeMinimize() {
     return disposeMinimize_;
 }
 
-}} // namespace solver::clasp
+} // namespace asp_utils

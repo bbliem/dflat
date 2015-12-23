@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver { namespace clasp { namespace tables {
 
 ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, bool root, bool cardinalityCost)
-	: ::solver::clasp::ClaspCallback(app)
+	: asp_utils::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
 	, childItemTrees(childItemTrees)
 	, rowType(root ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::UNDEFINED)
@@ -37,7 +37,7 @@ ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Ch
 
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 {
-	solver::clasp::ClaspCallback::onModel(s, m);
+	asp_utils::ClaspCallback::onModel(s, m);
 
 	// Get items {{{
 	ItemTreeNode::Items items;

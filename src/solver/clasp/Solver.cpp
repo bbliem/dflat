@@ -50,21 +50,21 @@ class DummyGringoModule : public Gringo::GringoModule
     virtual Gringo::Value parseValue(std::string const &repr) override { throw std::logic_error("DummyGringoModule"); };
 };
 
-std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(Clasp::Asp::LogicProgram& claspProgramBuilder, const ChildItemTrees& childItemTrees, bool tableMode)
+std::unique_ptr<asp_utils::GringoOutputProcessor> newGringoOutputProcessor(Clasp::Asp::LogicProgram& claspProgramBuilder, const ChildItemTrees& childItemTrees, bool tableMode)
 {
 	if(tableMode)
-		return std::unique_ptr<GringoOutputProcessor>(new tables::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
+		return std::unique_ptr<asp_utils::GringoOutputProcessor>(new tables::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
 	else
-		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
+		return std::unique_ptr<asp_utils::GringoOutputProcessor>(new trees::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
 }
 
-std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const Gringo::Output::LparseOutputter& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, bool root, const Decomposition& decomposition, bool cardinalityCost)
+std::unique_ptr<asp_utils::ClaspCallback> newClaspCallback(bool tableMode, const Gringo::Output::LparseOutputter& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, bool root, const Decomposition& decomposition, bool cardinalityCost)
 {
 	if(tableMode)
-		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutput), childItemTrees, app, root, cardinalityCost));
+		return std::unique_ptr<asp_utils::ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutput), childItemTrees, app, root, cardinalityCost));
 	else {
 		assert(cardinalityCost == false);
-		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutput), childItemTrees, app, decomposition));
+		return std::unique_ptr<asp_utils::ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutput), childItemTrees, app, decomposition));
 	}
 }
 
@@ -171,7 +171,7 @@ ItemTreePtr Solver::compute()
 	params.clear();
 
 	clasp.prepare();
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, decomposition.isRoot(), decomposition, cardinalityCost));
+	std::unique_ptr<asp_utils::ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, decomposition.isRoot(), decomposition, cardinalityCost));
 	cb->prepare(clasp.ctx.symbolTable());
 	clasp.solve(cb.get());
 
