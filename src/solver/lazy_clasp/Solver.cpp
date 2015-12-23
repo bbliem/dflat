@@ -38,78 +38,81 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_clasp {
 
-Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool branchAndBound)
+Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground, bool branchAndBound)
 	: ::LazySolver(decomposition, app, branchAndBound)
+	, reground(reground)
 	, encodingFiles(encodingFiles)
 {
 	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
 
-	// Set up ASP solver
-	config.solve.numModels = 0;
-	Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true)); // TODO In leaves updates might not be necessary.
-	gringoOutput.reset(new GringoOutputProcessor(claspProgramBuilder));
-	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *gringoOutput));
-	Gringo::Input::Program program;
-	asp_utils::DummyGringoModule module;
-	Gringo::Scripts scripts(module);
-	Gringo::Defines defs;
-	Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);
-	Gringo::Input::NonGroundParser parser(gringoProgramBuilder);
+	if(!reground) {
+		// Set up ASP solver
+		config.solve.numModels = 0;
+		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true)); // TODO In leaves updates might not be necessary.
+		gringoOutput.reset(new GringoOutputProcessor(claspProgramBuilder));
+		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *gringoOutput));
+		Gringo::Input::Program program;
+		asp_utils::DummyGringoModule module;
+		Gringo::Scripts scripts(module);
+		Gringo::Defines defs;
+		Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);
+		Gringo::Input::NonGroundParser parser(gringoProgramBuilder);
 
-	// Input: Original problem instance
-	std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
-	*instanceInput << app.getInputString();
+		// Input: Original problem instance
+		std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
+		*instanceInput << app.getInputString();
 
-	// Input: Decomposition
-	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
-	solver::clasp::Solver::declareDecomposition(decomposition, *decompositionInput);
-	app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
+		// Input: Decomposition
+		std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
+		asp_utils::declareDecomposition(decomposition, *decompositionInput);
+		app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
 
-	// Pass input to ASP solver
-	for(const auto& file : encodingFiles)
-		parser.pushFile(std::string(file));
-	parser.pushStream("<instance>", std::move(instanceInput));
-	parser.pushStream("<decomposition>", std::move(decompositionInput));
-	parser.parse();
+		// Pass input to ASP solver
+		for(const auto& file : encodingFiles)
+			parser.pushFile(std::string(file));
+		parser.pushStream("<instance>", std::move(instanceInput));
+		parser.pushStream("<decomposition>", std::move(decompositionInput));
+		parser.parse();
 
-	// Ground
-	program.rewrite(defs);
-	program.check();
-	if(Gringo::message_printer()->hasError())
-		throw std::runtime_error("Grounding stopped because of errors");
-	auto gPrg = program.toGround(out->domains);
-	Gringo::Ground::Parameters params;
-	params.add("base", {});
-	gPrg.ground(params, scripts, *out);
-	params.clear();
+		// Ground
+		program.rewrite(defs);
+		program.check();
+		if(Gringo::message_printer()->hasError())
+			throw std::runtime_error("Grounding stopped because of errors");
+		auto gPrg = program.toGround(out->domains);
+		Gringo::Ground::Parameters params;
+		params.add("base", {});
+		gPrg.ground(params, scripts, *out);
+		params.clear();
 
-	// Prepare for solving. (This makes clasp's symbol table available.)
-	clasp.prepare();
+		// Prepare for solving. (This makes clasp's symbol table available.)
+		clasp.prepare();
 
-	// We need to know which clasp variable corresponds to each childItem(_) atom.
-	for(const auto& pair : clasp.ctx.symbolTable()) {
-		if(!pair.second.name.empty()) {
-			const std::string name = pair.second.name.c_str();
-			if(name.compare(0, 10, "childItem(") == 0) {
-				itemsToVarIndices.emplace(String(name.substr(10, name.length()-11)), variables.size());
-				variables.push_back(pair.first);
+		// We need to know which clasp variable corresponds to each childItem(_) atom.
+		for(const auto& pair : clasp.ctx.symbolTable()) {
+			if(!pair.second.name.empty()) {
+				const std::string name = pair.second.name.c_str();
+				if(name.compare(0, 10, "childItem(") == 0) {
+					itemsToVarIndices.emplace(String(name.substr(10, name.length()-11)), variables.size());
+					variables.push_back(pair.first);
+				}
 			}
 		}
+
+		clasp.update();
+		for(const auto& var : variables)
+			claspProgramBuilder.freeze(var, Clasp::value_free);
+		clasp.prepare();
+
+		for(const auto& atom : gringoOutput->getItemAtomInfos())
+			itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp.ctx.symbolTable()));
+		for(const auto& atom : gringoOutput->getAuxItemAtomInfos())
+			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp.ctx.symbolTable()));
+//		for(const auto& atom : gringoOutput->getCurrentCostAtomInfos())
+//			currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, clasp.ctx.symbolTable()));
+//		for(const auto& atom : gringoOutput->getCostAtomInfos())
+//			costAtomInfos.emplace_back(CostAtomInfo(atom, clasp.ctx.symbolTable()));
 	}
-
-	clasp.update();
-	for(const auto& var : variables)
-		claspProgramBuilder.freeze(var, Clasp::value_free);
-	clasp.prepare();
-
-	for(const auto& atom : gringoOutput->getItemAtomInfos())
-		itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp.ctx.symbolTable()));
-	for(const auto& atom : gringoOutput->getAuxItemAtomInfos())
-		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp.ctx.symbolTable()));
-//	for(const auto& atom : gringoOutput->getCurrentCostAtomInfos())
-//		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, clasp.ctx.symbolTable()));
-//	for(const auto& atom : gringoOutput->getCostAtomInfos())
-//		costAtomInfos.emplace_back(CostAtomInfo(atom, clasp.ctx.symbolTable()));
 }
 
 const ItemTreePtr& Solver::getItemTree() const
@@ -138,25 +141,90 @@ void Solver::startSolvingForCurrentRowCombination()
 {
 	asyncResult.reset();
 
-	// Set external variables to the values of the current child row combination
-	Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update(false, false));
+	if(reground) {
+		// Set up ASP solver
+		config.solve.numModels = 0;
+		// TODO The last parameter of clasp.startAsp in the next line is "allowUpdate". Does setting it to false have benefits?
+		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config));
+		gringoOutput.reset(new GringoOutputProcessor(claspProgramBuilder));
+		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *gringoOutput));
+		Gringo::Input::Program program;
+		asp_utils::DummyGringoModule module;
+		Gringo::Scripts scripts(module);
+		Gringo::Defines defs;
+		Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);
+		Gringo::Input::NonGroundParser parser(gringoProgramBuilder);
 
-	clasp.prepare();
+		// Input: Original problem instance
+		std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
+		*instanceInput << app.getInputString();
 
-	// Mark atoms corresponding to items from the currently extended rows
-	const unsigned int IN_SET = 2147483648; // 2^31 (atom IDs are always smaller)
-	for(const auto& row : getCurrentRowCombination()) {
-		for(const auto& item : row->getItems())
-			variables[itemsToVarIndices.at(item)] |= IN_SET;
-	}
-	// Set marked atoms to true and all others to false
-	for(auto& var : variables) {
-		if(var & IN_SET) {
-			var ^= IN_SET;
-			clasp.assume(prg.getLiteral(var));
+		// Input: Decomposition
+		std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
+		asp_utils::declareDecomposition(decomposition, *decompositionInput);
+		app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
+
+		// Input: Child item trees
+		std::unique_ptr<std::stringstream> childRowsInput(new std::stringstream);
+		*childRowsInput << "% Child row facts" << std::endl;
+		for(const auto& row : getCurrentRowCombination()) {
+			for(const auto& item : row->getItems())
+				*childRowsInput << "childItem(" << item << ")." << std::endl;
+			// TODO auxItems, costs, etc.
 		}
-		else
-			clasp.assume(~prg.getLiteral(var));
+		app.getPrinter().solverInvocationInput(decomposition, childRowsInput->str());
+
+		// Pass input to ASP solver
+		for(const auto& file : encodingFiles)
+			parser.pushFile(std::string(file));
+		parser.pushStream("<instance>", std::move(instanceInput));
+		parser.pushStream("<decomposition>", std::move(decompositionInput));
+		parser.pushStream("<child_rows>", std::move(childRowsInput));
+		parser.parse();
+
+		// Ground
+		program.rewrite(defs);
+		program.check();
+		if(Gringo::message_printer()->hasError())
+			throw std::runtime_error("Grounding stopped because of errors");
+		auto gPrg = program.toGround(out->domains);
+		Gringo::Ground::Parameters params;
+		params.add("base", {});
+		gPrg.ground(params, scripts, *out);
+		params.clear();
+
+		clasp.prepare();
+
+		itemAtomInfos.clear();
+		for(const auto& atom : gringoOutput->getItemAtomInfos())
+			itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp.ctx.symbolTable()));
+		auxItemAtomInfos.clear();
+		for(const auto& atom : gringoOutput->getAuxItemAtomInfos())
+			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp.ctx.symbolTable()));
+		// TODO costs etc.
+	}
+
+	else {
+		// Set external variables to the values of the current child row combination
+		Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update(false, false));
+
+		clasp.prepare();
+
+		// Mark atoms corresponding to items from the currently extended rows
+		const unsigned int IN_SET = 2147483648; // 2^31 (atom IDs are always smaller)
+		for(const auto& row : getCurrentRowCombination()) {
+			for(const auto& item : row->getItems())
+				variables[itemsToVarIndices.at(item)] |= IN_SET;
+		}
+		// Set marked atoms to true and all others to false
+		for(auto& var : variables) {
+			if(var & IN_SET) {
+				var ^= IN_SET;
+				clasp.assume(prg.getLiteral(var));
+			}
+			else
+				clasp.assume(~prg.getLiteral(var));
+		}
 	}
 
 	asyncResult.reset(new BasicSolveIter(clasp));

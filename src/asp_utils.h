@@ -23,6 +23,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <clasp/clasp_facade.h>
 #include <gringo/control.hh>
 
+#include "Decomposition.h"
+
 #ifdef DISABLE_CHECKS
 #	define ASP_CHECK(cond, error)
 #else
@@ -99,4 +101,6 @@ namespace asp_utils {
 	}
 #endif
 
+	void declareDecomposition(const Decomposition& decomposition, std::ostream& out);
+	void declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0);
 } // namespace asp_utils

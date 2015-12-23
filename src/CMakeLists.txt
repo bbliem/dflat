@@ -112,6 +112,7 @@ add_library(dflat-objects
 	printer/DebugHumanReadable.cpp
 	printer/DebugMachineReadable.cpp
 	printer/CountRows.cpp
+	asp_utils.cpp
 	asp_utils/GringoOutputProcessor.cpp
 	asp_utils/ClaspCallback.cpp
 	String.cpp
@@ -126,4 +127,4 @@ add_executable(dflat main.cpp)
 
 # GPERFTOOLS_LIBRARIES is only set when find_package(Gperftools) has been called, which is only called if CMAKE_BUILD_TYPE is "profiler".
 #target_link_libraries(dflat dflat-objects gringo clasp sharp gmpxx gmp ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
-target_link_libraries(dflat dflat-objects gringo clasp sharp gmpxx gmp tbb ${GPERFTOOLS_LIBRARIES})
+target_link_libraries(dflat dflat-objects gringo clasp sharp gmpxx gmp ${GPERFTOOLS_LIBRARIES})

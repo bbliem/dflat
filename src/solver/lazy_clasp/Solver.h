@@ -34,7 +34,7 @@ namespace solver { namespace lazy_clasp {
 class Solver : public ::LazySolver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool branchAndBound = true);
+	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground = false, bool branchAndBound = true);
 
 protected:
 	virtual const ItemTreePtr& getItemTree() const override;
@@ -63,6 +63,7 @@ private:
 	ItemTreePtr itemTree;
 	ItemTree::Children::const_iterator newestRow;
 
+	bool reground;
 	std::vector<std::string> encodingFiles;
 	std::vector<Clasp::Var> variables;
 	std::unordered_map<String, size_t> itemsToVarIndices;

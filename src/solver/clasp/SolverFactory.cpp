@@ -44,6 +44,7 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 	, optLazy           ("lazy",             "Use lazy evaluation to find one solution")
 	, optNoBinarySearch ("no-binary-search", "Disable binary search in lazy default join")
 	, optNoBB           ("no-bb",            "Disable branch and bound during lazy solving")
+	, optReground       ("reground",         "Reground instead of external atoms in lazy solving")
 	, optTables         ("tables",           "Use table mode (for item trees of height at most 1)")
 #ifdef HAVE_WORDEXP_H
 	, optIgnoreModelines("ignore-modelines", "Do not scan the encoding files for modelines")
@@ -73,6 +74,10 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 	optNoBB.addCondition(condOptimization);
 	app.getOptionHandler().addOption(optNoBB, OPTION_SECTION);
 
+	optReground.addCondition(selected);
+	optReground.addCondition(condLazy);
+	app.getOptionHandler().addOption(optReground, OPTION_SECTION);
+
 	optTables.addCondition(selected);
 	app.getOptionHandler().addOption(optTables, OPTION_SECTION);
 
@@ -90,7 +95,7 @@ std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decompos
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
 			return std::unique_ptr<::Solver>(new lazy_default_join::Solver(decomposition, app, decomposition.isRoot(), !optNoBB.isUsed(), !optNoBinarySearch.isUsed()));
 		else
-			return std::unique_ptr<::Solver>(new lazy_clasp::Solver(decomposition, app, optEncodingFiles.getValues(), !optNoBB.isUsed()));
+			return std::unique_ptr<::Solver>(new lazy_clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optReground.isUsed(), !optNoBB.isUsed()));
 	}
 	else {
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())

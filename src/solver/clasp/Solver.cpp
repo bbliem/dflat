@@ -114,7 +114,7 @@ ItemTreePtr Solver::compute()
 	for(const auto& childItemTree : childItemTrees) {
 		std::ostringstream rootItemSetName;
 		rootItemSetName << 'n' << childItemTree.first;
-		declareItemTree(*childItemTreesInput, childItemTree.second.get(), tableMode, childItemTree.first, rootItemSetName.str());
+		asp_utils::declareItemTree(*childItemTreesInput, childItemTree.second.get(), tableMode, childItemTree.first, rootItemSetName.str());
 	}
 
 	app.getPrinter().solverInvocationInput(decomposition, childItemTreesInput->str());
@@ -125,7 +125,7 @@ ItemTreePtr Solver::compute()
 
 	// Input: Decomposition
 	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
-	declareDecomposition(decomposition, *decompositionInput);
+	asp_utils::declareDecomposition(decomposition, *decompositionInput);
 
 	app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
 
@@ -171,101 +171,6 @@ ItemTreePtr Solver::compute()
 	ItemTreePtr result = cb->finalize(decomposition.isRoot(), app.isPruningDisabled() == false || decomposition.isRoot());
 	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
-}
-
-void Solver::declareDecomposition(const Decomposition& decomposition, std::ostream& out)
-{
-	out << "% Decomposition facts" << std::endl;
-	out << "currentNode(" << decomposition.getNode().getGlobalId() << ")." << std::endl;
-	for(const auto& v : decomposition.getNode().getBag()) {
-		out << "bag(" << decomposition.getNode().getGlobalId() << ',' << v << "). ";
-		out << "current(" << v << ")." << std::endl;
-	}
-
-	out << "#const numChildNodes=" << decomposition.getChildren().size() << '.' << std::endl;
-	if(decomposition.getChildren().empty())
-		out << "initial." << std::endl;
-	else {
-		for(const auto& child : decomposition.getChildren()) {
-			out << "childNode(" << child->getNode().getGlobalId() << ")." << std::endl;
-			for(const auto& v : child->getNode().getBag()) {
-				out << "bag(" << child->getNode().getGlobalId() << ',' << v << "). ";
-				out << "-introduced(" << v << ")." << std::endl; // Redundant
-			}
-		}
-	}
-
-	if(decomposition.isRoot())
-		out << "final." << std::endl;
-
-	if(decomposition.isPostJoinNode())
-		out << "postJoin." << std::endl;
-
-	// Redundant predicates for convenience...
-	out << "introduced(X) :- current(X), not -introduced(X)." << std::endl;
-	out << "removed(X) :- childNode(N), bag(N,X), not current(X)." << std::endl;
-}
-
-void Solver::declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent, unsigned int level)
-{
-	if(!itemTree)
-		return;
-
-	// Declare this item set
-	if(tableMode) {
-		if(parent.empty() == false)
-			out << "childRow(" << itemSetName << ',' << nodeId << ")." << std::endl;
-	} else {
-		out << "atLevel(" << itemSetName << ',' << level << ")." << std::endl;
-		out << "atNode(" << itemSetName << ',' << nodeId << ")." << std::endl;
-		if(parent.empty()) {
-			out << "root(" << itemSetName << ")." << std::endl;
-			out << "rootOf(" << itemSetName << ',' << nodeId << ")." << std::endl;
-		} else {
-			out << "sub(" << parent << ',' << itemSetName << ")." << std::endl;
-			if(itemTree->getChildren().empty()) {
-				out << "leaf(" << itemSetName << ")." << std::endl;
-				out << "leafOf(" << itemSetName << ',' << nodeId << ")." << std::endl;
-			}
-		}
-	}
-	for(const auto& item : itemTree->getNode()->getItems())
-		out << "childItem(" << itemSetName << ',' << item << ")." << std::endl;
-	for(const auto& item : itemTree->getNode()->getAuxItems())
-		out << "childAuxItem(" << itemSetName << ',' << item << ")." << std::endl;
-
-	// Declare item tree node type
-	switch(itemTree->getNode()->getType()) {
-		case ItemTreeNode::Type::UNDEFINED:
-			break;
-		case ItemTreeNode::Type::OR:
-			out << "childOr(" << itemSetName << ")." << std::endl;
-			break;
-		case ItemTreeNode::Type::AND:
-			out << "childAnd(" << itemSetName << ")." << std::endl;
-			break;
-		case ItemTreeNode::Type::ACCEPT:
-			out << "childAccept(" << itemSetName << ")." << std::endl;
-			break;
-		case ItemTreeNode::Type::REJECT:
-			out << "childReject(" << itemSetName << ")." << std::endl;
-			break;
-	}
-
-	// If this is a leaf, declare cost
-	const ItemTree::Children& children = itemTree->getChildren();
-	if(children.empty()) {
-		out << "childCost(" << itemSetName << ',' << itemTree->getNode()->getCost() << ")." << std::endl;
-	}
-	else {
-		// Declare child item sets
-		size_t i = 0;
-		for(const auto& child : children) {
-			std::ostringstream childName;
-			childName << itemSetName << '_' << i++;
-			declareItemTree(out, child.get(), tableMode, nodeId, childName.str(), itemSetName, level+1);
-		}
-	}
 }
 
 }} // namespace solver::clasp

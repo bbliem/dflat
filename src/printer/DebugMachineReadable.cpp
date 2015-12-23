@@ -25,6 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../Decomposition.h"
 #include "../Application.h"
 #include "../solver/clasp/Solver.h"
+#include "../asp_utils.h"
 
 namespace {
 
@@ -67,7 +68,7 @@ void declareExtensionPointers(std::ostream& out, const ItemTree* itemTree, const
 
 void declareDerivedCosts(std::ostream& out, const ItemTree* itemTree, const std::string& itemSetName)
 {
-	// Only print the costs for non-leaf nodes, as leaves' costs have already been printed in solver::clasp::Solver::declareItemTree().
+	// Only print the costs for non-leaf nodes, as leaves' costs have already been printed in asp_utils::declareItemTree().
 	if(!itemTree || itemTree->getChildren().empty())
 		return;
 
@@ -106,7 +107,7 @@ void DebugMachineReadable::solverInvocationResult(const Decomposition& decomposi
 		std::cout << "% Facts describing the resulting item tree at node " << id << std::endl;
 		std::ostringstream rootItemSetName;
 		rootItemSetName << 'n' << id;
-		solver::clasp::Solver::declareItemTree(std::cout, result, false, id, rootItemSetName.str());
+		asp_utils::declareItemTree(std::cout, result, false, id, rootItemSetName.str());
 		std::cout << std::endl;
 
 		std::cout << "% Memory locations of the item tree nodes at decomposition node " << id << " (not passed to ASP)" << std::endl;

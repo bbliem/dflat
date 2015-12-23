@@ -59,6 +59,7 @@ private:
 	options::Option           optLazy;
 	options::Option           optNoBinarySearch;
 	options::Option           optNoBB;
+	options::Option           optReground;
 	options::Option           optTables;
 #ifdef HAVE_WORDEXP_H
 	options::Option           optIgnoreModelines;
