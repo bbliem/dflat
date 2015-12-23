@@ -102,7 +102,6 @@ add_library(dflat-objects
 	solver/default_join/Solver.cpp
 	solver/dummy/Solver.cpp
 	solver/dummy/SolverFactory.cpp
-	solver/lazy_clasp/ClaspCallback.cpp
 	solver/lazy_clasp/GringoOutputProcessor.cpp
 	solver/lazy_clasp/Solver.cpp
 	solver/lazy_clasp/SolveIter.cpp

@@ -47,9 +47,8 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	// Set up ASP solver
 	config.solve.numModels = 0;
 	Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true)); // TODO In leaves updates might not be necessary.
-	lpOut.reset(new GringoOutputProcessor(claspProgramBuilder));
-	claspCallback.reset(new ClaspCallback(dynamic_cast<GringoOutputProcessor&>(*lpOut), app));
-	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));
+	gringoOutput.reset(new GringoOutputProcessor(claspProgramBuilder));
+	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *gringoOutput));
 	Gringo::Input::Program program;
 	asp_utils::DummyGringoModule module;
 	Gringo::Scripts scripts(module);
@@ -103,27 +102,36 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		claspProgramBuilder.freeze(var, Clasp::value_free);
 	clasp.prepare();
 
-	claspCallback->prepare(clasp.ctx.symbolTable());
+	for(const auto& atom : gringoOutput->getItemAtomInfos())
+		itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp.ctx.symbolTable()));
+	for(const auto& atom : gringoOutput->getAuxItemAtomInfos())
+		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp.ctx.symbolTable()));
+//	for(const auto& atom : gringoOutput->getCurrentCostAtomInfos())
+//		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, clasp.ctx.symbolTable()));
+//	for(const auto& atom : gringoOutput->getCostAtomInfos())
+//		costAtomInfos.emplace_back(CostAtomInfo(atom, clasp.ctx.symbolTable()));
 }
 
 const ItemTreePtr& Solver::getItemTree() const
 {
-	return claspCallback->getItemTree();
+	return itemTree;
 }
 
-void Solver::setItemTree(ItemTreePtr&& itemTree)
+void Solver::setItemTree(ItemTreePtr&& i)
 {
-	claspCallback->setItemTree(std::move(itemTree));
+	itemTree = std::move(i);
 }
 
 ItemTree::Children::const_iterator Solver::getNewestRow() const
 {
-	return claspCallback->getNewestRow();
+	return newestRow;
 }
 
 ItemTreePtr Solver::finalize()
 {
-	return claspCallback->finalize(false, false);
+	if(itemTree && itemTree->finalize(app, false, false) == false)
+		itemTree.reset();
+	return std::move(itemTree);
 }
 
 void Solver::startSolvingForCurrentRowCombination()
@@ -169,10 +177,73 @@ void Solver::nextRowCandidate()
 void Solver::handleRowCandidate(long costBound)
 {
 	assert(asyncResult);
-	// XXX claspCallback does not need to be a clasp callback in fact
-	claspCallback->setExtendedRows(getCurrentRowCombination());
-	claspCallback->setCostBound(costBound);
-	claspCallback->onModel(*clasp.ctx.master(), asyncResult->model());
+	onModel(*clasp.ctx.master(), asyncResult->model(), costBound);
+}
+
+void Solver::onModel(const Clasp::Solver& s, const Clasp::Model& m, long costBound)
+{
+	// Get items {{{
+	ItemTreeNode::Items items;
+	asp_utils::forEachTrue(m, itemAtomInfos, [&items](const GringoOutputProcessor::ItemAtomArguments& arguments) {
+			items.insert(arguments.item);
+	});
+	ItemTreeNode::Items auxItems;
+	asp_utils::forEachTrue(m, auxItemAtomInfos, [&auxItems](const GringoOutputProcessor::AuxItemAtomArguments& arguments) {
+			auxItems.insert(arguments.item);
+	});
+
+	ASP_CHECK(std::find_if(items.begin(), items.end(), [&auxItems](const String& item) {
+				return auxItems.find(item) != auxItems.end();
+	}) == items.end(), "Items and auxiliary items not disjoint");
+	// }}}
+	// FIXME Do proper cost computations, not this item-set cardinality proof of concept
+	// Compute cost {{{
+//	ASP_CHECK(asp_utils::countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
+//	long cost = 0;
+//	asp_utils::forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
+//			cost = arguments.cost;
+//	});
+//	node->setCost(cost);
+
+	long cost = items.size();
+	for(const auto& row : getCurrentRowCombination()) {
+		const auto& oldItems = row->getItems();
+		ItemTreeNode::Items intersection;
+		std::set_intersection(items.begin(), items.end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
+		cost += row->getCost() - intersection.size();
+	}
+	// }}}
+	if(cost >= costBound)
+		return;
+
+	assert(itemTree);
+	// Create item tree node {{{
+	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {getCurrentRowCombination()}));
+	// }}}
+	if(!app.isOptimizationDisabled()) {
+		// Set cost {{{
+		node->setCost(cost);
+		// }}}
+		// Set current cost {{{
+//		ASP_CHECK(asp_utils::countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
+//		ASP_CHECK(asp_utils::countTrue(m, currentCostAtomInfos) == 0 || asp_utils::countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
+//		long currentCost = 0;
+//		asp_utils::forFirstTrue(m, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
+//				currentCost = arguments.currentCost;
+//		});
+//		node->setCurrentCost(currentCost);
+		// }}}
+		// Possibly update cost of root {{{
+		itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
+		// }}}
+	}
+	// Add node to item tree {{{
+	//ItemTree::Children::const_iterator newChild = itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
+	newestRow = itemTree->costChangeAfterAddChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
+	// }}}
+
+	//if(newChild != itemTree->getChildren().end())
+	//	newestRow = newChild;
 }
 
 }} // namespace solver::lazy_clasp

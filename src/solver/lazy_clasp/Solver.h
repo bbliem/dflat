@@ -23,9 +23,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <list>
 #include <clasp/clasp_facade.h>
 
-#include "ClaspCallback.h"
+#include "../../asp_utils.h"
 #include "../../Decomposition.h"
 #include "../../LazySolver.h"
+#include "GringoOutputProcessor.h"
 #include "SolveIter.h"
 
 namespace solver { namespace lazy_clasp {
@@ -47,12 +48,26 @@ protected:
 	virtual void handleRowCandidate(long costBound) override;
 
 private:
+	void onModel(const Clasp::Solver&, const Clasp::Model&, long cost_bound);
+
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
+
+	std::vector<ItemAtomInfo>        itemAtomInfos;
+	std::vector<AuxItemAtomInfo>     auxItemAtomInfos;
+//	std::vector<CurrentCostAtomInfo> currentCostAtomInfos;
+//	std::vector<CostAtomInfo>        costAtomInfos;
+
+	ItemTreePtr itemTree;
+	ItemTree::Children::const_iterator newestRow;
+
 	std::vector<std::string> encodingFiles;
 	std::vector<Clasp::Var> variables;
 	std::unordered_map<String, size_t> itemsToVarIndices;
 
-	std::unique_ptr<ClaspCallback> claspCallback;
-	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut;
+	std::unique_ptr<GringoOutputProcessor> gringoOutput;
 
 	Clasp::ClaspFacade clasp;
 	Clasp::ClaspConfig config;
