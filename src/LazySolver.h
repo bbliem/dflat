@@ -32,7 +32,7 @@ public:
 	virtual ItemTreePtr compute() override final;
 
 	// While the solver is computing its item tree, other objects can get the item tree that has been constructed so far with this method.
-	virtual const ItemTreePtr& getItemTree() const = 0;
+	const ItemTreePtr& getItemTree() const { return itemTree; }
 
 protected:
 	typedef ItemTree::Children::const_iterator Row;
@@ -45,11 +45,6 @@ protected:
 		return currentRowCombination;
 	}
 
-	virtual void setItemTree(ItemTreePtr&& itemTree) = 0;
-
-	// Results in getItemTree()->getChildren().end() if merging occurred for the last added row candidate, otherwise yields the newest row
-	virtual Row getNewestRow() const = 0;
-
 	// Call this when the solver will not compute any more rows. It returns the resulting item tree (and calls finalize() on it).
 	virtual ItemTreePtr finalize() = 0;
 
@@ -57,6 +52,7 @@ protected:
 	virtual void startSolvingForCurrentRowCombination() = 0;
 	virtual bool endOfRowCandidates() const = 0;
 	virtual void nextRowCandidate() = 0;
+	// Sets newestRow to the newest row or itemTree->getChildren().end() if no new row was produced
 	virtual void handleRowCandidate(long costBound) = 0;
 
 	struct RowIterator
@@ -69,6 +65,11 @@ protected:
 	RowIterators rowIterators; // Key: Child node; Value: Row in the item tree at this child
 	virtual bool resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from);
 
+	ItemTreePtr itemTree;
+	// Equal to itemTree->getChildren().end() if merging occurred for the last added row candidate
+	Row newestRow;
+
+
 private:
 	// Compute (via lazy solving) the next row having cost less than costBound
 	Row nextRow(long costBound);
@@ -77,7 +78,7 @@ private:
 	bool loadNextChildRowCombination(long costBound);
 	// Returns false if we can establish that there is a child table having no relevant child rows joinable with newRow
 	bool nextExistingRowCombination(size_t incrementPos = 0);
-	void initializeItemTree(ItemTreeNode::ExtensionPointerTuple&& rootExtensionPointers);
+	void initializeItemTrees();
 
 	ItemTreeNode::ExtensionPointerTuple currentRowCombination;
 	std::list<LazySolver*> nonExhaustedChildSolvers;

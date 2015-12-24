@@ -115,21 +115,6 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	}
 }
 
-const ItemTreePtr& Solver::getItemTree() const
-{
-	return itemTree;
-}
-
-void Solver::setItemTree(ItemTreePtr&& i)
-{
-	itemTree = std::move(i);
-}
-
-ItemTree::Children::const_iterator Solver::getNewestRow() const
-{
-	return newestRow;
-}
-
 ItemTreePtr Solver::finalize()
 {
 	if(itemTree && itemTree->finalize(app, false, false) == false)
@@ -227,13 +212,14 @@ void Solver::startSolvingForCurrentRowCombination()
 		}
 	}
 
-	asyncResult.reset(new BasicSolveIter(clasp));
+	// If there was already a conflict, clasp.prepared() is false
+	if(clasp.prepared())
+		asyncResult.reset(new BasicSolveIter(clasp));
 }
 
 bool Solver::endOfRowCandidates() const
 {
-	assert(asyncResult);
-	return asyncResult->end();
+	return !asyncResult || asyncResult->end();
 }
 
 void Solver::nextRowCandidate()
@@ -245,11 +231,8 @@ void Solver::nextRowCandidate()
 void Solver::handleRowCandidate(long costBound)
 {
 	assert(asyncResult);
-	onModel(*clasp.ctx.master(), asyncResult->model(), costBound);
-}
+	const Clasp::Model& m = asyncResult->model();
 
-void Solver::onModel(const Clasp::Solver& s, const Clasp::Model& m, long costBound)
-{
 	// Get items {{{
 	ItemTreeNode::Items items;
 	asp_utils::forEachTrue(m, itemAtomInfos, [&items](const GringoOutputProcessor::ItemAtomArguments& arguments) {
@@ -281,8 +264,10 @@ void Solver::onModel(const Clasp::Solver& s, const Clasp::Model& m, long costBou
 		cost += row->getCost() - intersection.size();
 	}
 	// }}}
-	if(cost >= costBound)
+	if(cost >= costBound) {
+		newestRow = itemTree->getChildren().end();
 		return;
+	}
 
 	assert(itemTree);
 	// Create item tree node {{{

@@ -37,24 +37,10 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, bool 
 	assert(decomposition.getChildren().size() > 1);
 }
 
-const ItemTreePtr& Solver::getItemTree() const
-{
-	return itemTree;
-}
-
-void Solver::setItemTree(ItemTreePtr&& it)
-{
-	itemTree = std::move(it);
-}
-
-ItemTree::Children::const_iterator Solver::getNewestRow() const
-{
-	return newestRow;
-}
-
 ItemTreePtr Solver::finalize()
 {
-	itemTree->finalize(app, false, false);
+	if(itemTree && itemTree->finalize(app, false, false) == false)
+		itemTree.reset();
 	return std::move(itemTree);
 }
 

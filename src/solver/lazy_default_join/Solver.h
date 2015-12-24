@@ -30,9 +30,6 @@ public:
 	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, bool branchAndBound = true, bool binarySearch = true);
 
 protected:
-	virtual const ItemTreePtr& getItemTree() const override;
-	virtual void setItemTree(ItemTreePtr&& itemTree) override;
-	virtual ItemTree::Children::const_iterator getNewestRow() const override;
 	virtual ItemTreePtr finalize() override;
 	virtual void startSolvingForCurrentRowCombination() override;
 	virtual bool endOfRowCandidates() const override;
@@ -44,9 +41,6 @@ private:
 	bool binarySearch;
 	ItemTreeNode::Type rowType; // ACCEPT or UNDEFINED
 	bool currentRowCombinationExhausted;
-
-	ItemTreePtr itemTree;
-	ItemTree::Children::const_iterator newestRow;
 };
 
 }} // namespace solver::lazy_default_join

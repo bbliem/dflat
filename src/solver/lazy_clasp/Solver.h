@@ -37,9 +37,6 @@ public:
 	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground = false, bool branchAndBound = true);
 
 protected:
-	virtual const ItemTreePtr& getItemTree() const override;
-	virtual void setItemTree(ItemTreePtr&& itemTree) override;
-	virtual ItemTree::Children::const_iterator getNewestRow() const override;
 	virtual ItemTreePtr finalize() override;
 
 	virtual void startSolvingForCurrentRowCombination() override;
@@ -48,8 +45,6 @@ protected:
 	virtual void handleRowCandidate(long costBound) override;
 
 private:
-	void onModel(const Clasp::Solver&, const Clasp::Model&, long cost_bound);
-
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
@@ -59,9 +54,6 @@ private:
 	std::vector<AuxItemAtomInfo>     auxItemAtomInfos;
 //	std::vector<CurrentCostAtomInfo> currentCostAtomInfos;
 //	std::vector<CostAtomInfo>        costAtomInfos;
-
-	ItemTreePtr itemTree;
-	ItemTree::Children::const_iterator newestRow;
 
 	bool reground;
 	std::vector<std::string> encodingFiles;
