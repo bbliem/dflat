@@ -38,16 +38,17 @@ class Driver
 public:
 	typedef std::set<std::string> Predicates;
 
-	Driver(const std::string& input, const Predicates& hyperedgePredicateNames);
+	// If filename.empty(), use stdin
+	Driver(const std::string& filename, const Predicates& hyperedgePredicateNames);
 	~Driver();
 	void scan_begin();
 	void scan_end();
-	Hypergraph parse();
+	Instance parse();
 	void error(const yy::location& l, const std::string& m);
-	void processFact(Hypergraph& hypergraph, const std::string& predicate, const Terms* arguments = 0);
+	void processFact(Instance& instance, const std::string& predicate, const Terms* arguments = 0);
 
 private:
-	const std::string& input;
+	const std::string& filename;
 	const Predicates& hyperedgePredicateNames;
 };
 

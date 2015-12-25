@@ -26,7 +26,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-AtomRemovalSolver::AtomRemovalSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& removedAtom)
+AtomRemovalSolver::AtomRemovalSolver(const Decomposition& decomposition, const Application& app, String removedAtom)
 	: SolverBase(decomposition, app)
 	, removedAtom(removedAtom)
 {

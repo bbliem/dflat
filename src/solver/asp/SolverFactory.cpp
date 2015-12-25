@@ -56,14 +56,14 @@ std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decompos
 	else {
 		assert(decomposition.getChildren().size() == 1);
 		Decomposition& childNode = **decomposition.getChildren().begin();
-		const Hypergraph::Vertices& bag = decomposition.getNode().getBag();
-		const Hypergraph::Vertices& childBag = childNode.getNode().getBag();
+		const DecompositionNode::Bag& bag = decomposition.getNode().getBag();
+		const DecompositionNode::Bag& childBag = childNode.getNode().getBag();
 
-		Hypergraph::Vertices bagDifference;
+		DecompositionNode::Bag bagDifference;
 		std::set_symmetric_difference(bag.begin(), bag.end(), childBag.begin(), childBag.end(), std::inserter(bagDifference, bagDifference.begin()));
 		if(bagDifference.size() != 1)
 			throw std::runtime_error("ASP solver requires normalization");
-		const Hypergraph::Vertex& differentElement = *bagDifference.begin();
+		const String differentElement = *bagDifference.begin();
 
 		if(bag.size() > childBag.size()) {
 			// Introduction node
@@ -86,10 +86,10 @@ std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decompos
 	}
 }
 
-bool SolverFactory::isAtom(const Hypergraph::Vertex& v) const
+bool SolverFactory::isAtom(String v) const
 {
 	// FIXME inefficient
-	for(const Hypergraph::Edge& edge : app.getInputHypergraph().getEdgesOfKind("atom")) {
+	for(const Instance::Edge& edge : app.getInstance().getEdgeFactsOfPredicate("atom")) {
 		if(edge.size() != 1)
 			throw std::runtime_error("Atom hyperedges must have arity 1");
 		if(edge.front() == v)
@@ -98,10 +98,10 @@ bool SolverFactory::isAtom(const Hypergraph::Vertex& v) const
 	return false;
 }
 
-bool SolverFactory::isRule(const Hypergraph::Vertex& v) const
+bool SolverFactory::isRule(String v) const
 {
 	// FIXME inefficient
-	for(const Hypergraph::Edge& edge : app.getInputHypergraph().getEdgesOfKind("rule")) {
+	for(const Instance::Edge& edge : app.getInstance().getEdgeFactsOfPredicate("rule")) {
 		if(edge.size() != 1)
 			throw std::runtime_error("Rule hyperedges must have arity 1");
 		if(edge.front() == v)

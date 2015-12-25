@@ -30,9 +30,15 @@ Dummy::Dummy(Application& app, bool newDefault)
 {
 }
 
-DecompositionPtr Dummy::decompose(const Hypergraph& instance) const
+DecompositionPtr Dummy::decompose(const Instance& instance) const
 {
-	DecompositionPtr result(new Decomposition(instance.getVertices(), app.getSolverFactory()));
+	// Create set of all vertices
+	DecompositionNode::Bag vertices;
+	for(const auto edgeFacts : instance.getEdgeFacts())
+		for(const auto& arguments : edgeFacts.second)
+			vertices.insert(arguments.begin(), arguments.end());
+
+	DecompositionPtr result(new Decomposition(vertices, app.getSolverFactory()));
 	result->setRoot();
 	return result;
 }

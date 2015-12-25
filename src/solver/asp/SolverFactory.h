@@ -21,7 +21,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 //}}}
 #include "../../SolverFactory.h"
-#include "../../Hypergraph.h"
 
 namespace solver { namespace asp {
 
@@ -33,8 +32,8 @@ public:
 	virtual std::unique_ptr<::Solver> newSolver(const Decomposition& decomposition) const override;
 
 private:
-	bool isAtom(const Hypergraph::Vertex& v) const;
-	bool isRule(const Hypergraph::Vertex& v) const;
+	bool isAtom(String v) const;
+	bool isRule(String v) const;
 };
 
 }} // namespace solver::asp

@@ -117,4 +117,27 @@ void declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode
 	}
 }
 
+void induceSubinstance(std::ostream& out, const Instance& instance, const DecompositionNode::Bag& bag)
+{
+	out << "% Induced subinstance" << std::endl;
+	for(const auto& str : instance.getNonEdgeFacts())
+		out << str << '.' << std::endl;
+
+	// Select edge facts whose arguments are all in the bag
+	for(auto facts : instance.getEdgeFacts()) {
+		for(const Instance::Edge& edge : facts.second) {
+			if(!std::any_of(edge.begin(), edge.end(), [&](String v) { return bag.find(v) == bag.end();})) {
+				out << facts.first;
+				char sep = '(';
+				assert(edge.size() > 0);
+				for(String v : edge) {
+					out << sep << v;
+					sep = ',';
+				}
+				out << ")." << std::endl;
+			}
+		}
+	}
+}
+
 } // namespace asp_utils

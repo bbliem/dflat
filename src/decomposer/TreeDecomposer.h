@@ -30,7 +30,7 @@ class TreeDecomposer : public Decomposer
 public:
 	TreeDecomposer(Application& app, bool newDefault = false);
 
-	virtual DecompositionPtr decompose(const Hypergraph& instance) const override;
+	virtual DecompositionPtr decompose(const Instance& instance) const override;
 
 private:
 	static const std::string OPTION_SECTION;

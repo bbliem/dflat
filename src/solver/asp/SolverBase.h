@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_map>
 
 #include "../../Solver.h"
-#include "../../Hypergraph.h"
+#include "../../Instance.h"
 #include "../../ItemTree.h"
 
 namespace solver { namespace asp {
@@ -44,9 +44,9 @@ protected:
 	// Return new item tree node extending childCertificate
 	static ItemTreePtr extendCertificate(ItemTreeNode::Items&& items, ItemTreeNode::Items&& auxItems, const ItemTreePtr& childCertificate, ItemTreeNode::Type type = ItemTreeNode::Type::UNDEFINED);
 
-	typedef Hypergraph::Vertices Atoms;
-	typedef Hypergraph::Vertices Rules;
-	typedef std::map<Hypergraph::Vertex, Atoms> AtomsInRule;
+	typedef std::set<String> Atoms;
+	typedef std::set<String> Rules;
+	typedef std::map<String, Atoms> AtomsInRule;
 
 	// Part of the logic program concerning only the bag contents
 	Atoms atoms;
@@ -55,7 +55,7 @@ protected:
 	AtomsInRule positiveBody;
 	AtomsInRule negativeBody;
 
-	bool isInBag(const Hypergraph::Vertex& element) const;
+	bool isInBag(const String& element) const;
 };
 
 }} // namespace solver::asp

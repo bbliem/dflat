@@ -20,6 +20,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
+#include <sstream>
+
 #include "../../Solver.h"
 
 namespace solver { namespace clasp {

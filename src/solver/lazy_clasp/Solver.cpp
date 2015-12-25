@@ -58,9 +58,10 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);
 		Gringo::Input::NonGroundParser parser(gringoProgramBuilder);
 
-		// Input: Original problem instance
+		// Input: Induced subinstance
 		std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
-		*instanceInput << app.getInputString();
+		asp_utils::induceSubinstance(*instanceInput, app.getInstance(), decomposition.getNode().getBag());
+		app.getPrinter().solverInvocationInput(decomposition, instanceInput->str());
 
 		// Input: Decomposition
 		std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
@@ -140,9 +141,10 @@ void Solver::startSolvingForCurrentRowCombination()
 		Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);
 		Gringo::Input::NonGroundParser parser(gringoProgramBuilder);
 
-		// Input: Original problem instance
+		// Input: Induced subinstance
 		std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
-		*instanceInput << app.getInputString();
+		asp_utils::induceSubinstance(*instanceInput, app.getInstance(), decomposition.getNode().getBag());
+		app.getPrinter().solverInvocationInput(decomposition, instanceInput->str());
 
 		// Input: Decomposition
 		std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);

@@ -22,7 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include "options/OptionHandler.h"
 #include "options/Choice.h"
-#include "Hypergraph.h"
+#include "Instance.h"
 
 class Decomposer;
 class SolverFactory;
@@ -42,10 +42,8 @@ public:
 	// Print version number to stdout
 	void printVersion() const;
 
-	const std::string& getInputString() const;
-
-	//! @return the hypergraph obtained from the input string
-	const Hypergraph& getInputHypergraph() const;
+	//! @return the instance obtained from the input string
+	const Instance& getInstance() const;
 
 	options::OptionHandler& getOptionHandler();
 	options::Choice& getDecomposerChoice();
@@ -72,8 +70,7 @@ private:
 	static const std::string MODULE_SECTION;
 
 	std::string binaryName;
-	std::string inputString;
-	Hypergraph inputHypergraph;
+	Instance instance;
 
 	options::OptionHandler opts;
 	options::Choice optDecomposer;

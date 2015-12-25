@@ -24,19 +24,18 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_map>
 
 #include "SolverBase.h"
-#include "../../Hypergraph.h"
 
 namespace solver { namespace asp {
 
 class RuleRemovalSolver : public SolverBase
 {
 public:
-	RuleRemovalSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& removedRule);
+	RuleRemovalSolver(const Decomposition& decomposition, const Application& app, String removedRule);
 
 	virtual ItemTreePtr compute() override;
 
 private:
-	const Hypergraph::Vertex removedRule;
+	const String removedRule;
 };
 
 }} // namespace solver::asp

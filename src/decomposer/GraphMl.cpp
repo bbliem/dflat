@@ -35,14 +35,14 @@ namespace {
 		throw std::runtime_error(str.str());
 	}
 
-	Hypergraph::Vertices bagOfNode(const tinyxml2::XMLElement* node)
+	DecompositionNode::Bag bagOfNode(const tinyxml2::XMLElement* node)
 	{
 		assert(node);
 		const tinyxml2::XMLElement* data = node->FirstChildElement("data");
 		if(!data)
 			error("Node without data element");
 
-		Hypergraph::Vertices bag;
+		DecompositionNode::Bag bag;
 		if(data->GetText()) {
 			std::stringstream ss(data->GetText());
 			std::string item;
@@ -58,7 +58,7 @@ namespace {
 	void addEmptyLeaves(Decomposition& decomposition, const Application& app)
 	{
 		if(decomposition.getChildren().empty() && decomposition.getNode().getBag().size() > 0) {
-			Hypergraph::Vertices bag = decomposition.getNode().getBag();
+			DecompositionNode::Bag bag = decomposition.getNode().getBag();
 			bag.erase(bag.begin());
 			DecompositionPtr child(new Decomposition(bag, app.getSolverFactory()));
 			decomposition.addChild(std::move(child));
@@ -71,7 +71,7 @@ namespace {
 	DecompositionPtr addEmptyRoot(DecompositionPtr&& oldRoot, const Application& app)
 	{
 		if(oldRoot->getNode().getBag().size() > 0) {
-			Hypergraph::Vertices bag = oldRoot->getNode().getBag();
+			DecompositionNode::Bag bag = oldRoot->getNode().getBag();
 			bag.erase(bag.begin());
 			DecompositionPtr newNode(new Decomposition(bag, app.getSolverFactory()));
 			newNode->addChild(std::move(oldRoot));
@@ -109,7 +109,7 @@ void GraphMl::select()
 		throw std::runtime_error("GraphML decomposition reader requires a file to be specified");
 }
 
-DecompositionPtr GraphMl::decompose(const Hypergraph& instance) const
+DecompositionPtr GraphMl::decompose(const Instance& instance) const
 {
 	using namespace tinyxml2;
 	XMLDocument doc;

@@ -29,7 +29,7 @@ class Dummy : public Decomposer
 public:
 	Dummy(Application& app, bool newDefault = false);
 
-	virtual DecompositionPtr decompose(const Hypergraph& instance) const override;
+	virtual DecompositionPtr decompose(const Instance& instance) const override;
 };
 
 } // namespace decomposer

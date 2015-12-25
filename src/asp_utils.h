@@ -24,6 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <gringo/control.hh>
 
 #include "Decomposition.h"
+#include "Instance.h"
 
 #ifdef DISABLE_CHECKS
 #	define ASP_CHECK(cond, error)
@@ -103,4 +104,5 @@ namespace asp_utils {
 
 	void declareDecomposition(const Decomposition& decomposition, std::ostream& out);
 	void declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0);
+	void induceSubinstance(std::ostream& out, const Instance& instance, const DecompositionNode::Bag& bag);
 } // namespace asp_utils

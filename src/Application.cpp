@@ -162,27 +162,11 @@ int Application::run(int argc, const char* const* const argv)
 	// Get (hyper-)edge predicate names
 	parser::Driver::Predicates edgePredicates(optEdge.getValues().begin(), optEdge.getValues().end());
 
-	// Store the problem instance in a string
-	// FIXME This should only be done for solvers that need it.
-	if(optInputFile.isUsed()) {
-		std::ifstream inputFile(optInputFile.getValue());
-		if(!inputFile)
-			throw std::runtime_error("Could not open input file");
-		std::ostringstream inputStringStream;
-		inputStringStream << inputFile.rdbuf();
-		inputString = inputStringStream.str();
-	}
-	else {
-		std::ostringstream inputStringStream;
-		inputStringStream << std::cin.rdbuf();
-		inputString = inputStringStream.str();
-	}
-
 	// Parse instance
-	inputHypergraph = parser::Driver(inputString, edgePredicates).parse();
+	instance = parser::Driver(optInputFile.getValue(), edgePredicates).parse();
 
 	// Decompose instance
-	DecompositionPtr decomposition = decomposer->decompose(inputHypergraph);
+	DecompositionPtr decomposition = decomposer->decompose(instance);
 	if(optGraphMlOut.isUsed()) {
 		std::ofstream graphMlFile(optGraphMlOut.getValue().c_str());
 		decomposition->printGraphMl(graphMlFile);
@@ -209,14 +193,9 @@ void Application::printVersion() const
 	std::cout << "D-FLAT version " VERSION_NUMBER << std::endl;
 }
 
-const std::string& Application::getInputString() const
+const Instance& Application::getInstance() const
 {
-	return inputString;
-}
-
-const Hypergraph& Application::getInputHypergraph() const
-{
-	return inputHypergraph;
+	return instance;
 }
 
 options::OptionHandler& Application::getOptionHandler()

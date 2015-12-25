@@ -53,7 +53,7 @@ namespace {
 
 namespace solver { namespace asp {
 
-RuleIntroductionSolver::RuleIntroductionSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& introducedRule)
+RuleIntroductionSolver::RuleIntroductionSolver(const Decomposition& decomposition, const Application& app, String introducedRule)
 	: SolverBase(decomposition, app)
 	, introducedRule(introducedRule)
 {
@@ -78,7 +78,7 @@ ItemTreePtr RuleIntroductionSolver::compute()
 			ItemTreeNode::Items candidateAuxItems = childCandidate->getNode()->getAuxItems();
 
 			// Calculate false atoms of this candidate
-			Hypergraph::Vertices candidateFalseAtoms;
+			Atoms candidateFalseAtoms;
 			std::set_symmetric_difference(decomposition.getNode().getBag().begin(), decomposition.getNode().getBag().end(), candidateItems.begin(), candidateItems.end(), std::inserter(candidateFalseAtoms, candidateFalseAtoms.begin()));
 
 			const bool introducedRuleDisappears = doesIntroducedRuleDisappear(candidateItems);
@@ -93,7 +93,7 @@ ItemTreePtr RuleIntroductionSolver::compute()
 					certificateAuxItems.insert(introducedRule);
 				else {
 					// Calculate false atoms of this certificate
-					Hypergraph::Vertices certificateFalseAtoms;
+					Atoms certificateFalseAtoms;
 					std::set_symmetric_difference(decomposition.getNode().getBag().begin(), decomposition.getNode().getBag().end(), certificateItems.begin(), certificateItems.end(), std::inserter(certificateFalseAtoms, certificateFalseAtoms.begin()));
 					if(isIntroducedRuleSatisfied(certificateItems, certificateFalseAtoms))
 						certificateAuxItems.insert(introducedRule);
@@ -114,7 +114,7 @@ ItemTreePtr RuleIntroductionSolver::compute()
 	return result;
 }
 
-inline bool RuleIntroductionSolver::isIntroducedRuleSatisfied(const Hypergraph::Vertices& trueAtoms, const Hypergraph::Vertices& falseAtoms) const
+inline bool RuleIntroductionSolver::isIntroducedRuleSatisfied(const Atoms& trueAtoms, const Atoms& falseAtoms) const
 {
 	assert(heads.find(introducedRule) != heads.end());
 	assert(positiveBody.find(introducedRule) != positiveBody.end());
@@ -122,7 +122,7 @@ inline bool RuleIntroductionSolver::isIntroducedRuleSatisfied(const Hypergraph::
 	return !disjoint(heads.at(introducedRule), trueAtoms) || !disjoint(positiveBody.at(introducedRule), falseAtoms) || !disjoint(negativeBody.at(introducedRule), trueAtoms);
 }
 
-inline bool RuleIntroductionSolver::doesIntroducedRuleDisappear(const Hypergraph::Vertices& trueAtoms) const
+inline bool RuleIntroductionSolver::doesIntroducedRuleDisappear(const Atoms& trueAtoms) const
 {
 	assert(negativeBody.find(introducedRule) != negativeBody.end());
 	return !disjoint(negativeBody.at(introducedRule), trueAtoms);

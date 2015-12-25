@@ -19,6 +19,5 @@ COMPILATION FLAGS
 
 D-FLAT supports the following preprocessor defines:
 
-- DECOMPOSITION_COMPATIBILITY: Causes D-FLAT to build identical decompositions as the old version 0.2, when both are supplied with identical random seeds. (Causes a little overhead.)
 - DISABLE_CHECKS: Disables some checks to make sure the user-supplied program is correct. Not recommended unless you have tested the program thoroughly and want to gain extra performance.
 - NO_UNICODE: Avoids unicode special symbols for printing item trees in favor of ASCII symbols. Less beautiful, but probably more portable.

@@ -18,16 +18,17 @@ You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
+#include <cassert>
 #include <stdexcept>
 
 #include "Driver.h"
 #include "Terms.h"
-#include "../Hypergraph.h"
+#include "../Instance.h"
 
 namespace parser {
 
-Driver::Driver(const std::string& input, const Predicates& hyperedgePredicateNames)
-	: input(input)
+Driver::Driver(const std::string& filename, const Predicates& hyperedgePredicateNames)
+	: filename(filename)
 	, hyperedgePredicateNames(hyperedgePredicateNames)
 {
 }
@@ -36,16 +37,16 @@ Driver::~Driver()
 {
 }
 
-Hypergraph Driver::parse()
+Instance Driver::parse()
 {
-	Hypergraph hypergraph;
+	Instance instance;
 	scan_begin();
-	::yy::Parser parser(*this, hypergraph);
+	::yy::Parser parser(*this, instance);
 	int res = parser.parse();
 	scan_end();
 	if(res != 0)
 		throw std::runtime_error("Parse error");
-	return hypergraph;
+	return instance;
 }
 
 void Driver::error(const yy::location& l, const std::string& m)
@@ -55,20 +56,32 @@ void Driver::error(const yy::location& l, const std::string& m)
 	throw std::runtime_error(ss.str());
 }
 
-void Driver::processFact(Hypergraph& hypergraph, const std::string& predicate, const Terms* arguments)
+void Driver::processFact(Instance& instance, const std::string& predicate, const Terms* arguments)
 {
-	if(hyperedgePredicateNames.find(predicate) != hyperedgePredicateNames.end()) {
-		Hypergraph::Edge hyperedge;
+	if(hyperedgePredicateNames.find(predicate) == hyperedgePredicateNames.end()) {
+		std::stringstream fact;
+		fact << predicate;
+		if(arguments) {
+			assert(arguments->getTerms().empty() == false);
+			char sep = '(';
+			for(const std::string* term : arguments->getTerms()) {
+				fact << sep << *term;
+				sep = ',';
+			}
+			fact << ')';
+		}
+		instance.addNonEdgeFact(fact.str());
+	}
+
+	else {
+		Instance::Edge hyperedge;
 
 		if(arguments) {
-			for(const auto* term : arguments->getTerms()) {
-				String s{std::string(*term)};
-				hypergraph.addVertex(s);
-				hyperedge.push_back(s);
-			}
+			for(const std::string* term : arguments->getTerms())
+				hyperedge.emplace_back(std::string(*term));
 		}
 
-		hypergraph.addEdgeOfKind(hyperedge, predicate);
+		instance.addEdgeFact(predicate, hyperedge);
 	}
 }
 

@@ -26,7 +26,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-RuleRemovalSolver::RuleRemovalSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& removedRule)
+RuleRemovalSolver::RuleRemovalSolver(const Decomposition& decomposition, const Application& app, String removedRule)
 	: SolverBase(decomposition, app)
 	, removedRule(removedRule)
 {

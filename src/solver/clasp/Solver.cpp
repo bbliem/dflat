@@ -116,17 +116,16 @@ ItemTreePtr Solver::compute()
 		rootItemSetName << 'n' << childItemTree.first;
 		asp_utils::declareItemTree(*childItemTreesInput, childItemTree.second.get(), tableMode, childItemTree.first, rootItemSetName.str());
 	}
-
 	app.getPrinter().solverInvocationInput(decomposition, childItemTreesInput->str());
 
-	// Input: Original problem instance
+	// Input: Induced subinstance
 	std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
-	*instanceInput << app.getInputString();
+	asp_utils::induceSubinstance(*instanceInput, app.getInstance(), decomposition.getNode().getBag());
+	app.getPrinter().solverInvocationInput(decomposition, instanceInput->str());
 
 	// Input: Decomposition
 	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
 	asp_utils::declareDecomposition(decomposition, *decompositionInput);
-
 	app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
 
 	// Set up ASP solver

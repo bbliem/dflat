@@ -28,7 +28,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <sharp/MaximumCardinalitySearchOrdering.hpp>
 
 #include "TreeDecomposer.h"
-#include "../Hypergraph.h"
+#include "../Instance.h"
 #include "../Decomposition.h"
 #include "../Application.h"
 
@@ -36,7 +36,7 @@ namespace {
 	class SharpProblem : public sharp::Problem
 	{
 	public:
-		SharpProblem(const Hypergraph& instance, sharp::AbstractHypertreeDecompositionAlgorithm& algorithm)
+		SharpProblem(const Instance& instance, sharp::AbstractHypertreeDecompositionAlgorithm& algorithm)
 			: sharp::Problem(&algorithm)
 			, instance(instance)
 		{
@@ -49,32 +49,30 @@ namespace {
 			sharp::VertexSet vertices;
 			sharp::HyperedgeSet hyperedges;
 
-			for(auto v : instance.getVertices())
-				vertices.insert(storeVertexName(*v));
-
-			for(auto e : instance.getEdges()) {
-				sharp::VertexSet vs;
-				for(auto v : e)
-					vs.insert(getVertexId(*v));
-				hyperedges.insert(vs);
+			for(auto fact : instance.getEdgeFacts()) {
+				for(const auto& e : fact.second) {
+					sharp::VertexSet vs;
+					for(auto v : e) {
+						auto id = storeVertexName(*v);
+						vertices.insert(id);
+						vs.insert(id);
+					}
+					hyperedges.insert(vs);
+				}
 			}
 
 			return createHypergraphFromSets(vertices, hyperedges);
 		}
 
 	private:
-		const Hypergraph& instance;
+		const Instance& instance;
 	};
 
 	DecompositionPtr transformTd(sharp::ExtendedHypertree& td, bool addPostJoinNodes, sharp::NormalizationType normalizationType, sharp::Problem& problem, const Application& app)
 	{
-		Hypergraph::Vertices bag;
+		DecompositionNode::Bag bag;
 		for(sharp::Vertex v : td.getVertices())
-#ifdef DECOMPOSITION_COMPATIBILITY // Define this to generate the same decompositions as D-FLAT 0.2 when setting the same random seed
-			bag.push_back(problem.getVertexName(v));
-#else
 			bag.insert(problem.getVertexName(v));
-#endif
 
 		DecompositionPtr result(new Decomposition(bag, app.getSolverFactory()));
 
@@ -128,7 +126,7 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	app.getOptionHandler().addOption(optPostJoin, OPTION_SECTION);
 }
 
-DecompositionPtr TreeDecomposer::decompose(const Hypergraph& instance) const
+DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 {
 	// Which algorithm to use?
 	sharp::AbstractEliminationOrdering* ordering;
