@@ -92,6 +92,7 @@ void Driver::scan_begin()
 
 void Driver::scan_end()
 {
+	fclose(yyin);
 	yylex_destroy();
 }
 
