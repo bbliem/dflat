@@ -36,7 +36,7 @@ private:
 	static const std::string OPTION_SECTION;
 
 	options::Choice optNormalization;
-	options::Choice optEliminationOrdering;
+//	options::Choice optEliminationOrdering;
 	options::Option optNoEmptyRoot;
 	options::Option optNoEmptyLeaves;
 	options::Option optPostJoin;

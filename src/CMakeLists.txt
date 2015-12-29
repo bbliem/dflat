@@ -11,8 +11,8 @@ set(CMAKE_CXX_FLAGS_PROFILER "-O3 -g")
 # If there is voodoo in liblasp's pod_vector.h, it might be that you compiled it with -D_DEBUG. Consider compiling D-FLAT with this flag, too (uncomment next line). Otherwise the size of our Clasp::PodVector is different than when we built clasp's debug release.
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 
-include_directories(${sharp_dir}/include ${gringo_dir}/libgringo)
-include_directories(SYSTEM ${clasp_dir}/libclasp) # declared as system header to suppress warnings due to clasp
+include_directories(${gringo_dir}/libgringo)
+include_directories(SYSTEM ${clasp_dir}/libclasp ${htd_dir}/include) # declared as system header to suppress warnings due to clasp and htd
 
 if(USE_STATIC_LIBS)
 	set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)
@@ -29,8 +29,8 @@ add_library(gringo STATIC IMPORTED)
 set_target_properties(gringo PROPERTIES IMPORTED_LOCATION ${gringo_lib})
 add_library(clasp STATIC IMPORTED)
 set_target_properties(clasp PROPERTIES IMPORTED_LOCATION ${clasp_lib})
-add_library(sharp STATIC IMPORTED)
-set_target_properties(sharp PROPERTIES IMPORTED_LOCATION ${sharp_lib})
+add_library(htd STATIC IMPORTED)
+set_target_properties(htd PROPERTIES IMPORTED_LOCATION ${htd_lib})
 
 find_library(gmpxx gmpxx)
 find_library(gmp gmp)
@@ -126,5 +126,4 @@ add_library(dflat-objects
 add_executable(dflat main.cpp)
 
 # GPERFTOOLS_LIBRARIES is only set when find_package(Gperftools) has been called, which is only called if CMAKE_BUILD_TYPE is "profiler".
-#target_link_libraries(dflat dflat-objects gringo clasp sharp gmpxx gmp ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
-target_link_libraries(dflat dflat-objects gringo clasp sharp gmpxx gmp ${GPERFTOOLS_LIBRARIES})
+target_link_libraries(dflat dflat-objects gringo clasp htd gmpxx gmp ${GPERFTOOLS_LIBRARIES})

@@ -19,72 +19,92 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
 #include <cassert>
-#include <sharp/Problem.hpp>
-#include <sharp/ExtendedHypertree.hpp>
-#include <sharp/BucketEliminationAlgorithm.hpp>
-#include <sharp/AbstractEliminationOrdering.hpp>
-#include <sharp/MinimumDegreeOrdering.hpp>
-#include <sharp/MinimumFillOrdering.hpp>
-#include <sharp/MaximumCardinalitySearchOrdering.hpp>
+#include <stack>
+#include <htd/AddEmptyLeavesOperation.hpp>
+#include <htd/AddEmptyRootOperation.hpp>
+#include <htd/CompressionOperation.hpp>
+#include <htd/NormalizationOperation.hpp>
+#include <htd/SemiNormalizationOperation.hpp>
+#include <htd/WeakNormalizationOperation.hpp>
+#include <htd/NamedHypergraph.hpp>
+#include <htd/TreeDecompositionFactory.hpp>
+#include <htd/TreeDecompositionAlgorithmFactory.hpp>
 
 #include "TreeDecomposer.h"
 #include "../Instance.h"
 #include "../Decomposition.h"
 #include "../Application.h"
 
+typedef htd::NamedHypergraph<String, String> Hypergraph;
+
 namespace {
-	class SharpProblem : public sharp::Problem
+	Hypergraph buildNamedHypergraph(const Instance& instance)
 	{
-	public:
-		SharpProblem(const Instance& instance, sharp::AbstractHypertreeDecompositionAlgorithm& algorithm)
-			: sharp::Problem(&algorithm)
-			, instance(instance)
-		{
-		}
+		Hypergraph graph;
 
-		virtual void parse() override {}
-
-		virtual sharp::Hypergraph* buildHypergraphRepresentation() override
-		{
-			sharp::VertexSet vertices;
-			sharp::HyperedgeSet hyperedges;
-
-			for(auto fact : instance.getEdgeFacts()) {
-				for(const auto& e : fact.second) {
-					sharp::VertexSet vs;
-					for(auto v : e) {
-						auto id = storeVertexName(*v);
-						vertices.insert(id);
-						vs.insert(id);
-					}
-					hyperedges.insert(vs);
-				}
+		for(auto fact : instance.getEdgeFacts()) {
+			for(const auto& e : fact.second) {
+				std::vector<String> vs;
+				for(auto v : e)
+					vs.push_back(v);
+				graph.addEdge(vs);
 			}
-
-			return createHypergraphFromSets(vertices, hyperedges);
 		}
 
-	private:
-		const Instance& instance;
-	};
+		return graph;
+	}
 
-	DecompositionPtr transformTd(sharp::ExtendedHypertree& td, bool addPostJoinNodes, sharp::NormalizationType normalizationType, sharp::Problem& problem, const Application& app)
+	DecompositionPtr transformTd(htd::IMutableTreeDecomposition& decomposition, const Hypergraph& graph, bool addPostJoinNodes, const Application& app)
 	{
-		DecompositionNode::Bag bag;
-		for(sharp::Vertex v : td.getVertices())
-			bag.insert(problem.getVertexName(v));
+		if(decomposition.root() == htd::Vertex::UNKNOWN)
+			return DecompositionPtr{};
 
-		DecompositionPtr result(new Decomposition(bag, app.getSolverFactory()));
+		auto htdRootBag = decomposition.bagContent(decomposition.root());
+		DecompositionNode::Bag rootBag;
+		for(auto v : htdRootBag)
+			rootBag.insert(graph.vertexName(v));
+		DecompositionPtr result{new Decomposition{rootBag, app.getSolverFactory()}};
 
-		for(sharp::Hypertree* child : *td.getChildren())
-			result->addChild(transformTd(*dynamic_cast<sharp::ExtendedHypertree*>(child), addPostJoinNodes, normalizationType, problem, app));
+		// If root is a join node, maybe add post join node
+		DecompositionPtr rootOrPostJoinNode = result;
 
-		// XXX Join post processing nodes currently lead to weird node numbering
-		if(addPostJoinNodes && result->isJoinNode()) {
-			DecompositionPtr joinNode = std::move(result);
-			result.reset(new Decomposition(bag, app.getSolverFactory()));
-			result->addChild(std::move(joinNode));
-			result->setPostJoinNode();
+		if(addPostJoinNodes && decomposition.isJoinNode(decomposition.root())) {
+			DecompositionPtr postJoin{new Decomposition{rootBag, app.getSolverFactory()}};
+			postJoin->setPostJoinNode();
+			rootOrPostJoinNode = postJoin;
+			result->addChild(postJoin);
+		}
+
+		// Simulate recursion on htd's generated TD
+		std::stack<std::pair<htd::vertex_t, DecompositionPtr>> stack;
+		stack.push({decomposition.root(), rootOrPostJoinNode});
+
+		while(stack.empty() == false) {
+			htd::vertex_t htdParent = stack.top().first;
+			DecompositionPtr parent = stack.top().second;
+			stack.pop();
+			size_t numChildren = decomposition.childCount(htdParent);
+			for(size_t i = 0; i < numChildren; ++i) {
+				htd::vertex_t htdChild = decomposition.child(htdParent, i);
+				const auto htdChildBag = decomposition.bagContent(htdChild);
+				DecompositionNode::Bag childBag;
+				for(auto v : htdChildBag)
+					childBag.insert(graph.vertexName(v));
+
+				// Add post join node if necessary
+				Decomposition* parentOrPostJoinNode = parent.get();
+
+				if(addPostJoinNodes && decomposition.isJoinNode(htdChild)) {
+					DecompositionPtr postJoin{new Decomposition{childBag, app.getSolverFactory()}};
+					postJoin->setPostJoinNode();
+					parentOrPostJoinNode = postJoin.get();
+					parent->addChild(std::move(postJoin));
+				}
+
+				DecompositionPtr child{new Decomposition{childBag, app.getSolverFactory()}};
+				parentOrPostJoinNode->addChild(child);
+				stack.push({htdChild, child});
+			}
 		}
 
 		return result;
@@ -98,7 +118,7 @@ const std::string TreeDecomposer::OPTION_SECTION = "Tree decomposition";
 TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	: Decomposer(app, "td", "Tree decomposition (bucket elimination)", newDefault)
 	, optNormalization("n", "normalization", "Use normal form <normalization> for the tree decomposition")
-	, optEliminationOrdering("elimination", "h", "Use heuristic <h> for bucket elimination")
+//	, optEliminationOrdering("elimination", "h", "Use heuristic <h> for bucket elimination")
 	, optNoEmptyRoot("no-empty-root", "Do not add an empty root to the tree decomposition")
 	, optNoEmptyLeaves("no-empty-leaves", "Do not add empty leaves to the tree decomposition")
 	, optPostJoin("post-join", "To each join node, add a parent with identical bag")
@@ -110,11 +130,11 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	optNormalization.addChoice("normalized", "Normalization");
 	app.getOptionHandler().addOption(optNormalization, OPTION_SECTION);
 
-	optEliminationOrdering.addCondition(selected);
-	optEliminationOrdering.addChoice("min-degree", "Minimum degree ordering", true);
-	optEliminationOrdering.addChoice("min-fill", "Minimum fill ordering");
-	optEliminationOrdering.addChoice("mcs", "Maximum cardinality search");
-	app.getOptionHandler().addOption(optEliminationOrdering, OPTION_SECTION);
+//	optEliminationOrdering.addCondition(selected);
+//	optEliminationOrdering.addChoice("min-degree", "Minimum degree ordering", true);
+//	optEliminationOrdering.addChoice("min-fill", "Minimum fill ordering");
+//	optEliminationOrdering.addChoice("mcs", "Maximum cardinality search");
+//	app.getOptionHandler().addOption(optEliminationOrdering, OPTION_SECTION);
 
 	optNoEmptyRoot.addCondition(selected);
 	app.getOptionHandler().addOption(optNoEmptyRoot, OPTION_SECTION);
@@ -129,37 +149,46 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 {
 	// Which algorithm to use?
-	sharp::AbstractEliminationOrdering* ordering;
+	/*
 	if(optEliminationOrdering.getValue() == "min-degree")
-		ordering = new sharp::MinimumDegreeOrdering;
+		; // TODO
 	else if(optEliminationOrdering.getValue() == "min-fill")
-		ordering = new sharp::MinimumFillOrdering;
+		; // TODO
 	else {
 		assert(optEliminationOrdering.getValue() == "mcs");
-		ordering = new sharp::MaximumCardinalitySearchOrdering;
+		; // TODO
 	}
-	sharp::BucketEliminationAlgorithm algorithm(ordering);
+	*/
+	Hypergraph graph = buildNamedHypergraph(instance);
 
-	// Use SHARP to decompose
-	SharpProblem problem(instance, algorithm);
-	std::unique_ptr<sharp::ExtendedHypertree> td(problem.calculateHypertreeDecomposition());
-	assert(td);
+	// Use htd to decompose
+	std::unique_ptr<htd::ITreeDecompositionAlgorithm> treeDecompositionAlgorithm{htd::TreeDecompositionAlgorithmFactory::instance().getTreeDecompositionAlgorithm()};
+	std::unique_ptr<htd::ITreeDecomposition> decomposition{treeDecompositionAlgorithm->computeDecomposition(graph.internalGraph())};
+
+	// Make mutable decomposition (for normalization etc.)
+	std::unique_ptr<htd::IMutableTreeDecomposition> mutableDecomposition{htd::TreeDecompositionFactory::instance().getTreeDecomposition(*decomposition)};
+
+	// Compress
+	htd::CompressionOperation{}.apply(*mutableDecomposition);
+
+	// Add empty leaves
+	if(optNoEmptyLeaves.isUsed() == false)
+		htd::AddEmptyLeavesOperation{}.apply(*mutableDecomposition);
+
+	// Add empty root
+	if(optNoEmptyRoot.isUsed() == false)
+		htd::AddEmptyRootOperation{}.apply(*mutableDecomposition);
 
 	// Normalize
-	sharp::NormalizationType normalizationType;
 	if(optNormalization.getValue() == "semi")
-		normalizationType = sharp::SemiNormalization;
+		htd::SemiNormalizationOperation{}.apply(*mutableDecomposition);
 	else if(optNormalization.getValue() == "weak")
-		normalizationType = sharp::WeakNormalization;
+		htd::WeakNormalizationOperation{}.apply(*mutableDecomposition);
 	else if(optNormalization.getValue() == "normalized")
-		normalizationType = sharp::DefaultNormalization;
-	else
-		normalizationType = sharp::NoNormalization;
-	std::unique_ptr<sharp::ExtendedHypertree> normalized(td->normalize(normalizationType, !optNoEmptyLeaves.isUsed(), !optNoEmptyRoot.isUsed()));
-	td.reset();
+		htd::NormalizationOperation{}.apply(*mutableDecomposition);
 
-	// Transform SHARP's tree decomposition into our format
-	DecompositionPtr result = transformTd(*normalized, optPostJoin.isUsed(), normalizationType, problem, app);
+	// Transform htd's tree decomposition into our format
+	DecompositionPtr result = transformTd(*mutableDecomposition, graph, optPostJoin.isUsed(), app);
 	result->setRoot();
 	return result;
 }

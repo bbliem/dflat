@@ -25,14 +25,14 @@ clasp_lib_release32=$(clasp_dir)/build/release_m32/libclasp/lib/libclasp.a
 clasp_lib_static=$(clasp_dir)/build/static/libclasp/lib/libclasp.a
 clasp_lib_static32=$(clasp_dir)/build/static32/libclasp/lib/libclasp.a
 
-sharp_dir=$(CURDIR)/../sharp-1.1.1
-sharp_lib=$(sharp_dir)/src/.libs/libsharp.a
-sharp_lib_debug=$(sharp_dir)/src/.libs/libsharp.a
-sharp_lib_gprof=$(sharp_dir)/src/.libs/libsharp.a
-sharp_lib_profiler=$(sharp_dir)/src/.libs/libsharp.a
-sharp_lib_release32=$(CURDIR)/../sharp-1.1.1-32bit/src/.libs/libsharp.a
-sharp_lib_static=$(sharp_dir)/src/.libs/libsharp.a
-sharp_lib_static32=$(CURDIR)/../sharp-1.1.1-32bit/src/.libs/libsharp.a
+htd_dir=$(CURDIR)/../htd
+htd_lib=$(htd_dir)/build/release/lib/libhtd.a
+htd_lib_debug=$(htd_dir)/build/debug/lib/libhtd.a
+htd_lib_gprof=$(htd_dir)/build/release/lib/libhtd.a
+htd_lib_profiler=$(htd_dir)/build/release/lib/libhtd.a
+htd_lib_release32=$(htd_dir)/build/release32/lib/libhtd.a
+htd_lib_static=$(htd_dir)/build/static/lib/libhtd.a
+htd_lib_static32=$(htd_dir)/build/static32/lib/libhtd.a
 
 gtest_dir=/usr/src/gtest
 
@@ -64,10 +64,10 @@ release:
 		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_release) \
 		-Dgringo_lib=$(gringo_lib) \
 		-Dclasp_lib=$(clasp_lib) \
-		-Dsharp_lib=$(sharp_lib) \
+		-Dhtd_lib=$(htd_lib) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
-		-Dsharp_dir=$(sharp_dir) \
+		-Dhtd_dir=$(htd_dir) \
 	&& $(MAKE)
 
 .PHONY: debug
@@ -81,10 +81,10 @@ debug:
 		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_debug) \
 		-Dgringo_lib=$(gringo_lib_debug) \
 		-Dclasp_lib=$(clasp_lib_debug) \
-		-Dsharp_lib=$(sharp_lib) \
+		-Dhtd_lib=$(htd_lib) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
-		-Dsharp_dir=$(sharp_dir) \
+		-Dhtd_dir=$(htd_dir) \
 	&& $(MAKE)
 
 .PHONY: gprof
@@ -98,10 +98,10 @@ gprof:
 		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_gprof) \
 		-Dgringo_lib=$(gringo_lib_gprof) \
 		-Dclasp_lib=$(clasp_lib_gprof) \
-		-Dsharp_lib=$(sharp_lib) \
+		-Dhtd_lib=$(htd_lib) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
-		-Dsharp_dir=$(sharp_dir) \
+		-Dhtd_dir=$(htd_dir) \
 	&& $(MAKE)
 
 .PHONY: profiler
@@ -115,10 +115,10 @@ profiler:
 		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_profiler) \
 		-Dgringo_lib=$(gringo_lib_profiler) \
 		-Dclasp_lib=$(clasp_lib_profiler) \
-		-Dsharp_lib=$(sharp_lib) \
+		-Dhtd_lib=$(htd_lib) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
-		-Dsharp_dir=$(sharp_dir) \
+		-Dhtd_dir=$(htd_dir) \
 	&& $(MAKE)
 
 .PHONY: release32
@@ -132,10 +132,10 @@ release32:
 		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_release32) \
 		-Dgringo_lib=$(gringo_lib_release32) \
 		-Dclasp_lib=$(clasp_lib_release32) \
-		-Dsharp_lib=$(sharp_lib_release32) \
+		-Dhtd_lib=$(htd_lib_release32) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
-		-Dsharp_dir=$(sharp_dir) \
+		-Dhtd_dir=$(htd_dir) \
 	&& $(MAKE)
 
 .PHONY: static
@@ -150,10 +150,10 @@ static:
 		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_static) \
 		-Dgringo_lib=$(gringo_lib_static) \
 		-Dclasp_lib=$(clasp_lib_static) \
-		-Dsharp_lib=$(sharp_lib_static) \
+		-Dhtd_lib=$(htd_lib_static) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
-		-Dsharp_dir=$(sharp_dir) \
+		-Dhtd_dir=$(htd_dir) \
 	&& $(MAKE)
 
 .PHONY: static32
@@ -168,10 +168,10 @@ static32:
 		-DCMAKE_CXX_FLAGS:STRING=$(cxxflags_static32) \
 		-Dgringo_lib=$(gringo_lib_static32) \
 		-Dclasp_lib=$(clasp_lib_static32) \
-		-Dsharp_lib=$(sharp_lib_static32) \
+		-Dhtd_lib=$(htd_lib_static32) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
-		-Dsharp_dir=$(sharp_dir) \
+		-Dhtd_dir=$(htd_dir) \
 	&& $(MAKE)
 
 .PHONY: dist
@@ -215,10 +215,10 @@ test:
 		-Dgtest_dir=$(gtest_dir) \
 		-Dgringo_lib=$(gringo_lib_debug) \
 		-Dclasp_lib=$(clasp_lib_debug) \
-		-Dsharp_lib=$(sharp_lib) \
+		-Dhtd_lib=$(htd_lib) \
 		-Dgringo_dir=$(gringo_dir) \
 		-Dclasp_dir=$(clasp_dir) \
-		-Dsharp_dir=$(sharp_dir) \
+		-Dhtd_dir=$(htd_dir) \
 	&& $(MAKE) && dflat-tests/tests
 # For what it's worth, it should also be possible to run "make test" in
 # build/release if you want to use ctest.
