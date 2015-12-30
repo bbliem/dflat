@@ -29,6 +29,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <htd/NamedHypergraph.hpp>
 #include <htd/TreeDecompositionFactory.hpp>
 #include <htd/TreeDecompositionAlgorithmFactory.hpp>
+#include <htd/MinDegreeOrderingAlgorithm.hpp>
+#include <htd/MinFillOrderingAlgorithm.hpp>
+#include <htd/OrderingAlgorithmFactory.hpp>
 
 #include "TreeDecomposer.h"
 #include "../Instance.h"
@@ -118,7 +121,7 @@ const std::string TreeDecomposer::OPTION_SECTION = "Tree decomposition";
 TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	: Decomposer(app, "td", "Tree decomposition (bucket elimination)", newDefault)
 	, optNormalization("n", "normalization", "Use normal form <normalization> for the tree decomposition")
-//	, optEliminationOrdering("elimination", "h", "Use heuristic <h> for bucket elimination")
+	, optEliminationOrdering("elimination", "h", "Use heuristic <h> for bucket elimination")
 	, optNoEmptyRoot("no-empty-root", "Do not add an empty root to the tree decomposition")
 	, optNoEmptyLeaves("no-empty-leaves", "Do not add empty leaves to the tree decomposition")
 	, optPostJoin("post-join", "To each join node, add a parent with identical bag")
@@ -130,11 +133,10 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	optNormalization.addChoice("normalized", "Normalization");
 	app.getOptionHandler().addOption(optNormalization, OPTION_SECTION);
 
-//	optEliminationOrdering.addCondition(selected);
-//	optEliminationOrdering.addChoice("min-degree", "Minimum degree ordering", true);
-//	optEliminationOrdering.addChoice("min-fill", "Minimum fill ordering");
-//	optEliminationOrdering.addChoice("mcs", "Maximum cardinality search");
-//	app.getOptionHandler().addOption(optEliminationOrdering, OPTION_SECTION);
+	optEliminationOrdering.addCondition(selected);
+	optEliminationOrdering.addChoice("min-degree", "Minimum degree ordering", true);
+	optEliminationOrdering.addChoice("min-fill", "Minimum fill ordering");
+	app.getOptionHandler().addOption(optEliminationOrdering, OPTION_SECTION);
 
 	optNoEmptyRoot.addCondition(selected);
 	app.getOptionHandler().addOption(optNoEmptyRoot, OPTION_SECTION);
@@ -149,16 +151,12 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 {
 	// Which algorithm to use?
-	/*
 	if(optEliminationOrdering.getValue() == "min-degree")
-		; // TODO
-	else if(optEliminationOrdering.getValue() == "min-fill")
-		; // TODO
+		htd::OrderingAlgorithmFactory::instance().setConstructionTemplate(new htd::MinDegreeOrderingAlgorithm());
 	else {
-		assert(optEliminationOrdering.getValue() == "mcs");
-		; // TODO
+		assert(optEliminationOrdering.getValue() == "min-fill");
+		htd::OrderingAlgorithmFactory::instance().setConstructionTemplate(new htd::MinFillOrderingAlgorithm());
 	}
-	*/
 	Hypergraph graph = buildNamedHypergraph(instance);
 
 	// Use htd to decompose
