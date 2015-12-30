@@ -137,8 +137,8 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	app.getOptionHandler().addOption(optNormalization, OPTION_SECTION);
 
 	optEliminationOrdering.addCondition(selected);
-	optEliminationOrdering.addChoice("min-degree", "Minimum degree ordering", true);
-	optEliminationOrdering.addChoice("min-fill", "Minimum fill ordering");
+	optEliminationOrdering.addChoice("min-fill", "Minimum fill ordering", true);
+	optEliminationOrdering.addChoice("min-degree", "Minimum degree ordering");
 	app.getOptionHandler().addOption(optEliminationOrdering, OPTION_SECTION);
 
 	optNoEmptyRoot.addCondition(selected);
