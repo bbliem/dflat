@@ -40,6 +40,7 @@ private:
 	options::Option optNoEmptyRoot;
 	options::Option optNoEmptyLeaves;
 	options::Option optPostJoin;
+	options::Option optPathDecomposition;
 };
 
 } // namespace decomposer

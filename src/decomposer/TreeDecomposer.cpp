@@ -27,6 +27,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <htd/SemiNormalizationOperation.hpp>
 #include <htd/WeakNormalizationOperation.hpp>
 #include <htd/NamedHypergraph.hpp>
+#include <htd/PathDecompositionFactory.hpp>
+#include <htd/PathDecompositionAlgorithmFactory.hpp>
 #include <htd/TreeDecompositionFactory.hpp>
 #include <htd/TreeDecompositionAlgorithmFactory.hpp>
 #include <htd/MinDegreeOrderingAlgorithm.hpp>
@@ -125,6 +127,7 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	, optNoEmptyRoot("no-empty-root", "Do not add an empty root to the tree decomposition")
 	, optNoEmptyLeaves("no-empty-leaves", "Do not add empty leaves to the tree decomposition")
 	, optPostJoin("post-join", "To each join node, add a parent with identical bag")
+	, optPathDecomposition("path-decomposition", "Generate a path decomposition")
 {
 	optNormalization.addCondition(selected);
 	optNormalization.addChoice("none", "No normalization", true);
@@ -146,6 +149,9 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 
 	optPostJoin.addCondition(selected);
 	app.getOptionHandler().addOption(optPostJoin, OPTION_SECTION);
+
+	optPathDecomposition.addCondition(selected);
+	app.getOptionHandler().addOption(optPathDecomposition, OPTION_SECTION);
 }
 
 DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
@@ -160,7 +166,11 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 	Hypergraph graph = buildNamedHypergraph(instance);
 
 	// Use htd to decompose
-	std::unique_ptr<htd::ITreeDecompositionAlgorithm> treeDecompositionAlgorithm{htd::TreeDecompositionAlgorithmFactory::instance().getTreeDecompositionAlgorithm()};
+	std::unique_ptr<htd::ITreeDecompositionAlgorithm> treeDecompositionAlgorithm;
+	if(optPathDecomposition.isUsed())
+		treeDecompositionAlgorithm.reset(htd::PathDecompositionAlgorithmFactory::instance().getPathDecompositionAlgorithm());
+	else
+		treeDecompositionAlgorithm.reset(htd::TreeDecompositionAlgorithmFactory::instance().getTreeDecompositionAlgorithm());
 	std::unique_ptr<htd::ITreeDecomposition> decomposition{treeDecompositionAlgorithm->computeDecomposition(graph.internalGraph())};
 
 	// Make mutable decomposition (for normalization etc.)
