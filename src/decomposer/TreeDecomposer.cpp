@@ -52,7 +52,7 @@ namespace {
 				std::vector<String> vs;
 				for(auto v : e)
 					vs.push_back(v);
-				graph.addEdge(vs);
+				graph.addEdge(htd::ConstCollection<String>(vs.begin(), vs.end()));
 			}
 		}
 
@@ -173,30 +173,30 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 		treeDecompositionAlgorithm.reset(htd::TreeDecompositionAlgorithmFactory::instance().getTreeDecompositionAlgorithm());
 	std::unique_ptr<htd::ITreeDecomposition> decomposition{treeDecompositionAlgorithm->computeDecomposition(graph.internalGraph())};
 
-	// Make mutable decomposition (for normalization etc.)
-	std::unique_ptr<htd::IMutableTreeDecomposition> mutableDecomposition{htd::TreeDecompositionFactory::instance().getTreeDecomposition(*decomposition)};
+	// Get mutable decomposition (for normalization etc.)
+	htd::IMutableTreeDecomposition& mutableDecomposition = htd::TreeDecompositionFactory::instance().accessMutableTreeDecomposition(*decomposition);
 
 	// Compress
-	htd::CompressionOperation{}.apply(*mutableDecomposition);
+	htd::CompressionOperation{}.apply(mutableDecomposition);
 
 	// Add empty leaves
 	if(optNoEmptyLeaves.isUsed() == false)
-		htd::AddEmptyLeavesOperation{}.apply(*mutableDecomposition);
+		htd::AddEmptyLeavesOperation{}.apply(mutableDecomposition);
 
 	// Add empty root
 	if(optNoEmptyRoot.isUsed() == false)
-		htd::AddEmptyRootOperation{}.apply(*mutableDecomposition);
+		htd::AddEmptyRootOperation{}.apply(mutableDecomposition);
 
 	// Normalize
 	if(optNormalization.getValue() == "semi")
-		htd::SemiNormalizationOperation{}.apply(*mutableDecomposition);
+		htd::SemiNormalizationOperation{}.apply(mutableDecomposition);
 	else if(optNormalization.getValue() == "weak")
-		htd::WeakNormalizationOperation{}.apply(*mutableDecomposition);
+		htd::WeakNormalizationOperation{}.apply(mutableDecomposition);
 	else if(optNormalization.getValue() == "normalized")
-		htd::NormalizationOperation{}.apply(*mutableDecomposition);
+		htd::NormalizationOperation{}.apply(mutableDecomposition);
 
 	// Transform htd's tree decomposition into our format
-	DecompositionPtr result = transformTd(*mutableDecomposition, graph, optPostJoin.isUsed(), app);
+	DecompositionPtr result = transformTd(mutableDecomposition, graph, optPostJoin.isUsed(), app);
 	result->setRoot();
 	return result;
 }
