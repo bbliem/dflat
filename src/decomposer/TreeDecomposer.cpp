@@ -177,7 +177,7 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 	htd::IMutableTreeDecomposition& mutableDecomposition = htd::TreeDecompositionFactory::instance().accessMutableTreeDecomposition(*decomposition);
 
 	// Compress
-	htd::CompressionOperation{}.apply(mutableDecomposition);
+	//htd::CompressionOperation{}.apply(mutableDecomposition);
 
 	// Add empty leaves
 	if(optNoEmptyLeaves.isUsed() == false)
