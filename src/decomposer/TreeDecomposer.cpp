@@ -179,21 +179,16 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 	// Compress
 	//htd::CompressionOperation{}.apply(mutableDecomposition);
 
-	// Add empty leaves
-	if(optNoEmptyLeaves.isUsed() == false)
-		htd::AddEmptyLeavesOperation{}.apply(mutableDecomposition);
-
-	// Add empty root
-	if(optNoEmptyRoot.isUsed() == false)
-		htd::AddEmptyRootOperation{}.apply(mutableDecomposition);
-
 	// Normalize
+	const bool emptyLeaves = !optNoEmptyLeaves.isUsed();
+	const bool emptyRoot = !optNoEmptyRoot.isUsed();
+	const bool postJoin = optPostJoin.isUsed();
 	if(optNormalization.getValue() == "semi")
-		htd::SemiNormalizationOperation{}.apply(mutableDecomposition);
+		htd::SemiNormalizationOperation(emptyRoot, emptyLeaves, postJoin).apply(mutableDecomposition);
 	else if(optNormalization.getValue() == "weak")
-		htd::WeakNormalizationOperation{}.apply(mutableDecomposition);
+		htd::WeakNormalizationOperation(emptyRoot, emptyLeaves, postJoin).apply(mutableDecomposition);
 	else if(optNormalization.getValue() == "normalized")
-		htd::NormalizationOperation{}.apply(mutableDecomposition);
+		htd::NormalizationOperation(emptyRoot, emptyLeaves, postJoin).apply(mutableDecomposition);
 
 	// Transform htd's tree decomposition into our format
 	DecompositionPtr result = transformTd(mutableDecomposition, graph, optPostJoin.isUsed(), app);
