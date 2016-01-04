@@ -89,12 +89,16 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		// Prepare for solving. (This makes clasp's symbol table available.)
 		clasp.prepare();
 
-		// We need to know which clasp variable corresponds to each childItem(_) atom.
+		// We need to know which clasp variable corresponds to each childItem(_) or childAuxItem(_) atom.
 		for(const auto& pair : clasp.ctx.symbolTable()) {
 			if(!pair.second.name.empty()) {
 				const std::string name = pair.second.name.c_str();
 				if(name.compare(0, 10, "childItem(") == 0) {
 					itemsToVarIndices.emplace(String(name.substr(10, name.length()-11)), variables.size());
+					variables.push_back(pair.first);
+				}
+				else if(name.compare(0, 13, "childAuxItem(") == 0) {
+					auxItemsToVarIndices.emplace(String(name.substr(13, name.length()-14)), variables.size());
 					variables.push_back(pair.first);
 				}
 			}
@@ -202,6 +206,8 @@ void Solver::startSolvingForCurrentRowCombination()
 		for(const auto& row : getCurrentRowCombination()) {
 			for(const auto& item : row->getItems())
 				variables[itemsToVarIndices.at(item)] |= IN_SET;
+			for(const auto& item : row->getAuxItems())
+				variables[auxItemsToVarIndices.at(item)] |= IN_SET;
 		}
 		// Set marked atoms to true and all others to false
 		for(auto& var : variables) {

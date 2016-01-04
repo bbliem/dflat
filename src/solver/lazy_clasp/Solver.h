@@ -59,6 +59,7 @@ private:
 	std::vector<std::string> encodingFiles;
 	std::vector<Clasp::Var> variables;
 	std::unordered_map<String, size_t> itemsToVarIndices;
+	std::unordered_map<String, size_t> auxItemsToVarIndices;
 
 	std::unique_ptr<GringoOutputProcessor> gringoOutput;
 
