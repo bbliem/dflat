@@ -48,7 +48,8 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	if(!reground) {
 		// Set up ASP solver
 		config.solve.numModels = 0;
-		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true)); // TODO In leaves updates might not be necessary.
+		clasp.reset(new Clasp::ClaspFacade);
+		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp->startAsp(config, true)); // TODO In leaves updates might not be necessary.
 		gringoOutput.reset(new GringoOutputProcessor(claspProgramBuilder));
 		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *gringoOutput));
 		Gringo::Input::Program program;
@@ -87,10 +88,10 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		params.clear();
 
 		// Prepare for solving. (This makes clasp's symbol table available.)
-		clasp.prepare();
+		clasp->prepare();
 
 		// We need to know which clasp variable corresponds to each childItem(_) or childAuxItem(_) atom.
-		for(const auto& pair : clasp.ctx.symbolTable()) {
+		for(const auto& pair : clasp->ctx.symbolTable()) {
 			if(!pair.second.name.empty()) {
 				const std::string name = pair.second.name.c_str();
 				if(name.compare(0, 10, "childItem(") == 0) {
@@ -104,19 +105,19 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 			}
 		}
 
-		clasp.update();
+		clasp->update();
 		for(const auto& var : variables)
 			claspProgramBuilder.freeze(var, Clasp::value_free);
-		clasp.prepare();
+		clasp->prepare();
 
 		for(const auto& atom : gringoOutput->getItemAtomInfos())
-			itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp.ctx.symbolTable()));
+			itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp->ctx.symbolTable()));
 		for(const auto& atom : gringoOutput->getAuxItemAtomInfos())
-			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp.ctx.symbolTable()));
+			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp->ctx.symbolTable()));
 //		for(const auto& atom : gringoOutput->getCurrentCostAtomInfos())
-//			currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, clasp.ctx.symbolTable()));
+//			currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, clasp->ctx.symbolTable()));
 //		for(const auto& atom : gringoOutput->getCostAtomInfos())
-//			costAtomInfos.emplace_back(CostAtomInfo(atom, clasp.ctx.symbolTable()));
+//			costAtomInfos.emplace_back(CostAtomInfo(atom, clasp->ctx.symbolTable()));
 	}
 }
 
@@ -133,9 +134,10 @@ void Solver::startSolvingForCurrentRowCombination()
 
 	if(reground) {
 		// Set up ASP solver
+		clasp.reset(new Clasp::ClaspFacade);
 		config.solve.numModels = 0;
-		// TODO The last parameter of clasp.startAsp in the next line is "allowUpdate". Does setting it to false have benefits?
-		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config));
+		// TODO The last parameter of clasp->startAsp in the next line is "allowUpdate". Does setting it to false have benefits?
+		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp->startAsp(config));
 		gringoOutput.reset(new GringoOutputProcessor(claspProgramBuilder));
 		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *gringoOutput));
 		Gringo::Input::Program program;
@@ -184,22 +186,22 @@ void Solver::startSolvingForCurrentRowCombination()
 		gPrg.ground(params, scripts, *out);
 		params.clear();
 
-		clasp.prepare();
+		clasp->prepare();
 
 		itemAtomInfos.clear();
 		for(const auto& atom : gringoOutput->getItemAtomInfos())
-			itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp.ctx.symbolTable()));
+			itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp->ctx.symbolTable()));
 		auxItemAtomInfos.clear();
 		for(const auto& atom : gringoOutput->getAuxItemAtomInfos())
-			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp.ctx.symbolTable()));
+			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp->ctx.symbolTable()));
 		// TODO costs etc.
 	}
 
 	else {
 		// Set external variables to the values of the current child row combination
-		Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update(false, false));
+		Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp->update(false, false));
 
-		clasp.prepare();
+		clasp->prepare();
 
 		// Mark atoms corresponding to items from the currently extended rows
 		const unsigned int IN_SET = 2147483648; // 2^31 (atom IDs are always smaller)
@@ -213,16 +215,16 @@ void Solver::startSolvingForCurrentRowCombination()
 		for(auto& var : variables) {
 			if(var & IN_SET) {
 				var ^= IN_SET;
-				clasp.assume(prg.getLiteral(var));
+				clasp->assume(prg.getLiteral(var));
 			}
 			else
-				clasp.assume(~prg.getLiteral(var));
+				clasp->assume(~prg.getLiteral(var));
 		}
 	}
 
-	// If there was already a conflict, clasp.prepared() is false
-	if(clasp.prepared())
-		asyncResult.reset(new BasicSolveIter(clasp));
+	// If there was already a conflict, clasp->prepared() is false
+	if(clasp->prepared())
+		asyncResult.reset(new BasicSolveIter(*clasp));
 }
 
 bool Solver::endOfRowCandidates() const
