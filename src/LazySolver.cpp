@@ -233,6 +233,7 @@ ItemTreePtr LazySolver::compute()
 				msg << "Found new solution with cost " << (*row)->getNode()->getCost();
 				app.getPrinter().solverEvent(msg.str());
 			}
+			app.getPrinter().provisionalSolution(*(*row)->getNode());
 
 			const long newCostBound = branchAndBound ? (*row)->getNode()->getCost() : std::numeric_limits<long>::max();
 			row = nextRow(newCostBound);

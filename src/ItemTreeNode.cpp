@@ -167,6 +167,18 @@ int ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
 	return compareSets(auxItems, other.auxItems);
 }
 
+ItemTreeNode::Items ItemTreeNode::firstExtension() const
+{
+	Items result = items;
+	assert(extensionPointers.size() > 0);
+	ExtensionPointerTuple ept = extensionPointers.front();
+	for(const ExtensionPointer& ep : ept) {
+		const Items childResult = ep->firstExtension();
+		result.insert(childResult.begin(), childResult.end());
+	}
+	return result;
+}
+
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 {
 	// Print count

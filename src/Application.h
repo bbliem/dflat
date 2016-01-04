@@ -61,6 +61,7 @@ public:
 	bool isOptimizationDisabled() const;
 	bool isPruningDisabled() const;
 	bool printDecomposition() const;
+	bool printProvisionalSolutions() const;
 
 	// Returns the depth until which the solution item tree should be materialized.
 	// If the user did not specify a value, returns the greatest unsigned int.
@@ -80,6 +81,7 @@ private:
 	options::Option optNoOptimization;
 	options::Option optNoPruning;
 	options::Option optPrintDecomposition;
+	options::Option optPrintProvisional;
 
 	Decomposer* decomposer;
 	SolverFactory* solverFactory;

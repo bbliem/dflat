@@ -108,6 +108,9 @@ public:
 	// Only considers items, type, hasAcceptingChild, hasRejectingChild and auxItems.
 	int compareCostInsensitive(const ItemTreeNode& other) const;
 
+	// Materialize just one extension
+	Items firstExtension() const;
+
 	// Print this node (no newlines)
 	friend std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node);
 

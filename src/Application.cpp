@@ -76,6 +76,7 @@ Application::Application(const std::string& binaryName)
 	, optNoOptimization("no-optimization", "Ignore solution costs")
 	, optNoPruning("no-pruning", "Prune rejecting subtrees only in the decomposition root")
 	, optPrintDecomposition("print-decomposition", "Print the generated decomposition")
+	, optPrintProvisional("print-provisional", "Report possibly non-optimal solutions")
 	, decomposer(0)
 	, solverFactory(0)
 	, depth(std::numeric_limits<unsigned int>::max())
@@ -110,6 +111,7 @@ int Application::run(int argc, const char* const* const argv)
 	opts.addOption(optNoOptimization);
 	opts.addOption(optNoPruning);
 	opts.addOption(optPrintDecomposition);
+	opts.addOption(optPrintProvisional);
 	options::SingleValueOption optGraphMlOut("graphml-out", "file", "Write the decomposition in the GraphML format to <file>");
 	opts.addOption(optGraphMlOut);
 
@@ -263,6 +265,11 @@ bool Application::isPruningDisabled() const
 bool Application::printDecomposition() const
 {
 	return optPrintDecomposition.isUsed();
+}
+
+bool Application::printProvisionalSolutions() const
+{
+	return optPrintProvisional.isUsed();
 }
 
 unsigned int Application::getMaterializationDepth() const

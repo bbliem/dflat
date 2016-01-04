@@ -69,9 +69,11 @@ public:
 
 	virtual void select() override;
 
+	// Report possibly suboptimal solutions (if run as an anytime algorithm)
+	void provisionalSolution(const ItemTreeNode& solution);
+
 protected:
 	// Called by NodeStackElement
 	virtual void enterNode(const Decomposition& decompositionNode);
 	virtual void leaveNode();
-
 };
