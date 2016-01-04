@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2015, Benjamin Kaufmann
+Copyright 2015-2016, Benjamin Kaufmann
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
