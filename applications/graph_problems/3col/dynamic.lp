@@ -1,4 +1,4 @@
-%dflat: --tables -e vertex -e edge --no-empty-leaves --no-empty-root
+%dflat: --tables -e vertex -e edge --default-join --no-empty-leaves --no-empty-root -n semi
 color(red;green;blue).
 
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).

@@ -1,4 +1,4 @@
-%dflat: --lazy --tables -e vertex -e edge  --no-empty-leaves --no-empty-root
+%dflat: --lazy --tables -e vertex -e edge  --no-empty-leaves --no-empty-root --default-join -n semi --no-optimization
 #external childItem(map(V,C)) : childNode(N), bag(N,V), color(C).
 #show childItem/1. % FIXME: This should not be necessary, but otherwise childItem(_) atoms are not in clasp's symbol table and I do not know how to assign the value of external atoms otherwise.
 
