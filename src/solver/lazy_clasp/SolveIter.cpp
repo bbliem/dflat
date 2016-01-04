@@ -32,8 +32,7 @@ BasicSolveIter::BasicSolveIter(Clasp::ClaspFacade& f)
 	, solve_(*f.ctx.master(), f.ctx.configuration()->search(0))
 	, res_(Clasp::value_free)
 {
-	assert(f.prepared());
-	if (!f.enumerator()->start(solve_.solver(), f.assumptions())) {
+	if (!f.prepared() || solve_.solver().hasConflict() || !f.enumerator()->start(solve_.solver(), f.assumptions())) {
 		res_ = Clasp::value_false;
 	}
 }

@@ -222,9 +222,7 @@ void Solver::startSolvingForCurrentRowCombination()
 		}
 	}
 
-	// If there was already a conflict, clasp->prepared() is false
-	if(clasp->prepared())
-		asyncResult.reset(new BasicSolveIter(*clasp));
+	asyncResult.reset(new BasicSolveIter(*clasp));
 }
 
 bool Solver::endOfRowCandidates() const
