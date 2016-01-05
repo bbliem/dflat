@@ -1,4 +1,4 @@
-%dflat: --tables -e vertex -e edge -d td -n semi --no-empty-leaves
+%dflat: --tables -e vertex -e edge -d td --no-empty-leaves -n semi --default-join
 1 { extend(R) : childRow(R,N) } 1 :- childNode(N).
 :- extend(R), extend(S), childItem(R,in(X)), not childItem(S,in(X)).
 
