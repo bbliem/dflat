@@ -37,8 +37,6 @@ public:
 	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground = false, bool branchAndBound = true);
 
 protected:
-	virtual ItemTreePtr finalize() override;
-
 	virtual void startSolvingForCurrentRowCombination() override;
 	virtual bool endOfRowCandidates() const override;
 	virtual void nextRowCandidate() override;

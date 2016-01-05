@@ -30,7 +30,6 @@ public:
 	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, bool branchAndBound = true, bool binarySearch = true);
 
 protected:
-	virtual ItemTreePtr finalize() override;
 	virtual void startSolvingForCurrentRowCombination() override;
 	virtual bool endOfRowCandidates() const override;
 	virtual void nextRowCandidate() override;

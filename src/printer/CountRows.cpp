@@ -24,24 +24,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../Decomposition.h"
 #include "../Application.h"
 
-namespace {
-
-	size_t countNodes(const ItemTree& tree)
-	{
-		size_t nodes = 1;
-
-		for(const auto& child : tree.getChildren())
-			nodes += countNodes(*child);
-
-		return nodes;
-	}
-
-} // anonymous namespace
-
 namespace printer {
 
 CountRows::CountRows(Application& app, bool newDefault)
-	: Printer(app, "count-rows", "Number of rows per decomposition node", newDefault)
+	: Printer(app, "count-rows", "Number of level-1 item tree nodes per decomposition node", newDefault)
 {
 }
 
@@ -49,7 +35,7 @@ void CountRows::solverInvocationResult(const Decomposition& decompositionNode, c
 {
 	std::cout << "Number of rows at decomposition node " << decompositionNode.getNode().getGlobalId() << ": ";
 	if(result)
-		std::cout << countNodes(*result);
+		std::cout << result->getChildren().size();
 	else
 		std::cout << '0';
 	std::cout << std::endl;

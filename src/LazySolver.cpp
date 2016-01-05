@@ -28,6 +28,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 LazySolver::LazySolver(const Decomposition& decomposition, const Application& app, bool branchAndBound)
 	: ::Solver(decomposition, app)
 	, branchAndBound(branchAndBound)
+	, finalized(false)
 {
 	for(const auto& child : decomposition.getChildren())
 		nonExhaustedChildSolvers.push_back(static_cast<LazySolver*>(&child->getSolver()));
@@ -60,15 +61,19 @@ LazySolver::Row LazySolver::nextRow(long costBound)
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
 	if(itemTree->getChildren().empty()) {
-		if(loadFirstChildRowCombination(costBound) == false)
+		if(loadFirstChildRowCombination(costBound) == false) {
+			finalize();
 			return itemTree->getChildren().end();
+		}
 		startSolvingForCurrentRowCombination();
 	}
 
 	do {
 		while(endOfRowCandidates()) {
-			if(loadNextChildRowCombination(costBound) == false)
+			if(loadNextChildRowCombination(costBound) == false) {
+				finalize();
 				return itemTree->getChildren().end();
+			}
 			startSolvingForCurrentRowCombination();
 		}
 
@@ -240,17 +245,24 @@ ItemTreePtr LazySolver::compute()
 		}
 	}
 
-	printAllResults();
-
-	ItemTreePtr result = finalize();
-	//app.getPrinter().solverInvocationResult(decomposition, result.get());
-	return result;
+	finalizeRecursively();
+	return std::move(itemTree);
 }
 
-void LazySolver::printAllResults() const
+void LazySolver::finalizeRecursively()
 {
 	for(const auto& child : decomposition.getChildren())
-		static_cast<LazySolver&>(child->getSolver()).printAllResults();
+		static_cast<LazySolver&>(child->getSolver()).finalizeRecursively();
 
+	if(!finalized)
+		finalize();
+}
+
+void LazySolver::finalize()
+{
+	assert(!finalized);
+	if(itemTree && itemTree->finalize(app, false, false) == false)
+		itemTree.reset();
 	app.getPrinter().solverInvocationResult(decomposition, itemTree.get());
+	finalized = true;
 }

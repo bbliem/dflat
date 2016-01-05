@@ -121,13 +121,6 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	}
 }
 
-ItemTreePtr Solver::finalize()
-{
-	if(itemTree && itemTree->finalize(app, false, false) == false)
-		itemTree.reset();
-	return std::move(itemTree);
-}
-
 void Solver::startSolvingForCurrentRowCombination()
 {
 	asyncResult.reset();

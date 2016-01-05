@@ -37,16 +37,16 @@ public:
 protected:
 	typedef ItemTree::Children::const_iterator Row;
 
-	// Recursively print all solver invocation results
-	void printAllResults() const;
+	// Recursively call finalize() (and thus print all solver invocation results)
+	void finalizeRecursively();
 
 	const ItemTreeNode::ExtensionPointerTuple& getCurrentRowCombination() const
 	{
 		return currentRowCombination;
 	}
 
-	// Call this when the solver will not compute any more rows. It returns the resulting item tree (and calls finalize() on it).
-	virtual ItemTreePtr finalize() = 0;
+	// Call this when the solver will not compute any more rows. It calls finalize() on the resulting item tree and calls Printer::solverInvocationResult.
+	void finalize();
 
 	// Prepare solving step for child rows referred to by rowIterators such that subsequent calls to nextRowCandidate() return rows resulting from that combination
 	virtual void startSolvingForCurrentRowCombination() = 0;
@@ -84,4 +84,5 @@ private:
 	std::list<LazySolver*> nonExhaustedChildSolvers;
 	std::list<LazySolver*>::const_iterator nextChildSolverToCall; // points to elements of nonExhaustedChildSolvers
 	bool branchAndBound;
+	bool finalized;
 };

@@ -37,13 +37,6 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, bool 
 	assert(decomposition.getChildren().size() > 1);
 }
 
-ItemTreePtr Solver::finalize()
-{
-	if(itemTree && itemTree->finalize(app, false, false) == false)
-		itemTree.reset();
-	return std::move(itemTree);
-}
-
 void Solver::startSolvingForCurrentRowCombination()
 {
 	assert(getCurrentRowCombination().empty() == false);
