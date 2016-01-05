@@ -150,13 +150,15 @@ void Solver::startSolvingForCurrentRowCombination()
 		asp_utils::declareDecomposition(decomposition, *decompositionInput);
 		app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
 
-		// Input: Child item trees
+		// Input: Child rows
 		std::unique_ptr<std::stringstream> childRowsInput(new std::stringstream);
 		*childRowsInput << "% Child row facts" << std::endl;
 		for(const auto& row : getCurrentRowCombination()) {
 			for(const auto& item : row->getItems())
 				*childRowsInput << "childItem(" << item << ")." << std::endl;
-			// TODO auxItems, costs, etc.
+			for(const auto& item : row->getAuxItems())
+				*childRowsInput << "childAuxItem(" << item << ")." << std::endl;
+			// TODO costs, etc.
 		}
 		app.getPrinter().solverInvocationInput(decomposition, childRowsInput->str());
 
