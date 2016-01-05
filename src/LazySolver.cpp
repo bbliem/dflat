@@ -82,8 +82,10 @@ LazySolver::Row LazySolver::nextRow(long costBound)
 		if(app.getPrinter().listensForSolverEvents()) {
 			std::ostringstream msg;
 			msg << "Node " << decomposition.getNode().getGlobalId() << ": ";
-			if(newestRow == itemTree->getChildren().end() || (*newestRow)->getNode()->getCost() >= costBound)
-				msg << "[no new or better row]";
+			if(newestRow == itemTree->getChildren().end())
+				msg << "[existing row]";
+			else if((*newestRow)->getNode()->getCost() >= costBound)
+				msg << "[too expensive row]";
 			else
 				msg << (*newestRow)->getNode();
 			app.getPrinter().solverEvent(msg.str());

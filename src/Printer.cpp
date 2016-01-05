@@ -79,10 +79,10 @@ void Printer::solverEvent(const std::string& msg)
 void Printer::provisionalSolution(const ItemTreeNode& solution)
 {
 	if(app.printProvisionalSolutions()) {
-		std::cout << "Provisional solution (cost " << solution.getCost() << "): ";
+		std::cout << "Provisional solution:" << std::endl;
 		for(const auto& item : solution.firstExtension())
 			std::cout << item << ' ';
-		std::cout << std::endl;
+		std::cout << std::endl << "Cost: " << solution.getCost() << std::endl;
 	}
 }
 
