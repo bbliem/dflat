@@ -288,6 +288,7 @@ void Solver::handleRowCandidate(long costBound)
 //				currentCost = arguments.currentCost;
 //		});
 //		node->setCurrentCost(currentCost);
+		node->setCurrentCost(node->getItems().size());
 		// }}}
 		// Possibly update cost of root {{{
 		itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));

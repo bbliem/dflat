@@ -98,6 +98,7 @@ void Solver::handleRowCandidate(long costBound)
 
 	if(!app.isOptimizationDisabled()) {
 		node->setCost(cost);
+		node->setCurrentCost(node->getItems().size());
 
 		// Possibly update cost of root
 		itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));

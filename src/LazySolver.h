@@ -40,6 +40,9 @@ protected:
 	// Recursively call finalize() (and thus print all solver invocation results)
 	void finalizeRecursively();
 
+	// Return the currently known lower bound for the cost of a solution for the forgotten subgraph (0 until finalized)
+	long getForgottenCostLowerBound() const;
+
 	const ItemTreeNode::ExtensionPointerTuple& getCurrentRowCombination() const
 	{
 		return currentRowCombination;

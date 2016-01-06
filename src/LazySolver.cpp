@@ -19,6 +19,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
 #include <sstream>
+#include <algorithm>
 
 #include "Decomposition.h"
 #include "Application.h"
@@ -145,7 +146,15 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 		do {
 			assert(nextChildSolverToCall != nonExhaustedChildSolvers.end());
 			childSolver = *nextChildSolverToCall;
-			newRow = childSolver->nextRow(costBound);
+
+			// For computing a row at this child, reduce cost bound by sum of lower bounds on costs for forgotten vertices
+			long forgottenCostLowerBound = 0;
+			for(const auto& child : decomposition.getChildren()) {
+				const auto& solver = static_cast<LazySolver&>(child->getSolver());
+				forgottenCostLowerBound += solver.getForgottenCostLowerBound();
+			}
+
+			newRow = childSolver->nextRow(costBound - forgottenCostLowerBound);
 
 			while(newRow == childSolver->itemTree->getChildren().end()) {
 				// The child solver is now exhausted
@@ -161,7 +170,14 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 
 				assert(nextChildSolverToCall != nonExhaustedChildSolvers.end());
 				childSolver = *nextChildSolverToCall;
-				newRow = childSolver->nextRow(costBound);
+
+				forgottenCostLowerBound = 0;
+				for(const auto& child : decomposition.getChildren()) {
+					const auto& solver = static_cast<LazySolver&>(child->getSolver());
+					forgottenCostLowerBound += solver.getForgottenCostLowerBound();
+				}
+
+				newRow = childSolver->nextRow(costBound - forgottenCostLowerBound);
 			}
 
 			// Now we have computed a new child row
@@ -257,6 +273,25 @@ void LazySolver::finalizeRecursively()
 
 	if(!finalized)
 		finalize();
+}
+
+long LazySolver::getForgottenCostLowerBound() const
+{
+	if(finalized) {
+		long lowerBound = std::numeric_limits<long>::max();
+		assert(itemTree->getChildren().empty() == false);
+
+		for(const auto& row : itemTree->getChildren()) {
+			const auto& node = *row->getNode();
+			// FIXME We should eventually be able to deal with negative costs
+			assert(node.getCost() >= 0);
+			lowerBound = std::min(lowerBound, node.getCost() - node.getCurrentCost());
+		}
+
+		return lowerBound;
+	}
+	else
+		return 0;
 }
 
 void LazySolver::finalize()
