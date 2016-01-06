@@ -42,19 +42,10 @@ public:
 protected:
 	typedef ItemTree::Children::const_iterator Row;
 
-	// Recursively call finalize() (and thus print all solver invocation results)
-	void finalizeRecursively();
-
-	// Return the currently known lower bound for the cost of a solution for the forgotten subgraph (0 until finalized)
-	long getForgottenCostLowerBound() const;
-
 	const ItemTreeNode::ExtensionPointerTuple& getCurrentRowCombination() const
 	{
 		return currentRowCombination;
 	}
-
-	// Call this when the solver will not compute any more rows. It calls finalize() on the resulting item tree and calls Printer::solverInvocationResult.
-	void finalize();
 
 	// Prepare solving step for child rows referred to by rowIterators such that subsequent calls to nextRowCandidate() return rows resulting from that combination
 	virtual void startSolvingForCurrentRowCombination() = 0;
@@ -77,7 +68,6 @@ protected:
 	// Equal to itemTree->getChildren().end() if merging occurred for the last added row candidate
 	Row newestRow;
 
-
 private:
 	// Compute (via lazy solving) the next row having cost less than costBound
 	Row nextRow(long costBound);
@@ -88,9 +78,23 @@ private:
 	bool nextExistingRowCombination(size_t incrementPos = 0);
 	void initializeItemTrees();
 
+	// Call this when the solver will not compute any more rows. It calls finalize() on the resulting item tree and calls Printer::solverInvocationResult.
+	void finalize();
+
+	// Recursively call finalize() (and thus print all solver invocation results)
+	void finalizeRecursively();
+
+	long getForgottenCostLowerBound() const
+	{
+		return forgottenCostLowerBound;
+	}
+
 	ItemTreeNode::ExtensionPointerTuple currentRowCombination;
 	std::list<LazySolver*> nonExhaustedChildSolvers;
 	std::list<LazySolver*>::const_iterator nextChildSolverToCall; // points to elements of nonExhaustedChildSolvers
 	BranchAndBoundLevel bbLevel;
 	bool finalized;
+
+	// Currently known lower bound for the cost of a solution for the forgotten subgraph (0 until finalized)
+	long forgottenCostLowerBound;
 };

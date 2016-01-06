@@ -27,6 +27,10 @@ namespace solver { namespace lazy_default_join {
 class Solver : public ::LazySolver
 {
 public:
+//	static unsigned joinSetups;
+//	static unsigned joinCalls;
+//	static unsigned discardedJoinResults;
+
 	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full, bool binarySearch = true);
 
 protected:

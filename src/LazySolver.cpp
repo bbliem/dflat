@@ -26,10 +26,15 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Printer.h"
 #include "LazySolver.h"
 
+//// XXX remove
+//#include "solver/lazy_clasp/Solver.h"
+//#include "solver/lazy_default_join/Solver.h"
+
 LazySolver::LazySolver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel)
 	: ::Solver(decomposition, app)
 	, bbLevel(bbLevel)
 	, finalized(false)
+	, forgottenCostLowerBound(0)
 {
 	for(const auto& child : decomposition.getChildren())
 		nonExhaustedChildSolvers.push_back(static_cast<LazySolver*>(&child->getSolver()));
@@ -152,7 +157,7 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 			if(bbLevel == BranchAndBoundLevel::full) {
 				for(const auto& child : decomposition.getChildren()) {
 					const auto& solver = static_cast<LazySolver&>(child->getSolver());
-					forgottenCostLowerBound += solver.getForgottenCostLowerBound();
+					forgottenCostLowerBound += solver.forgottenCostLowerBound;
 				}
 			}
 
@@ -177,7 +182,7 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 				if(bbLevel == BranchAndBoundLevel::full) {
 					for(const auto& child : decomposition.getChildren()) {
 						const auto& solver = static_cast<LazySolver&>(child->getSolver());
-						forgottenCostLowerBound += solver.getForgottenCostLowerBound();
+						forgottenCostLowerBound += solver.forgottenCostLowerBound;
 					}
 				}
 
@@ -266,36 +271,18 @@ ItemTreePtr LazySolver::compute()
 		}
 	}
 
+//	std::cout << "ASP:\n"
+//		<< "setups: " << solver::lazy_clasp::Solver::solverSetups << '\n'
+//		<< "solve calls: " << solver::lazy_clasp::Solver::solverSetups << '\n'
+//		<< "models: " << solver::lazy_clasp::Solver::models << '\n'
+//		<< "discarded models: " << solver::lazy_clasp::Solver::discardedModels << '\n'
+//		<< "Join:\n"
+//		<< "setups: " << solver::lazy_default_join::Solver::joinSetups << '\n'
+//		<< "join calls: " << solver::lazy_default_join::Solver::joinCalls << '\n'
+//		<< "discarded join results: " << solver::lazy_default_join::Solver::discardedJoinResults << '\n';
+
 	finalizeRecursively();
 	return std::move(itemTree);
-}
-
-void LazySolver::finalizeRecursively()
-{
-	for(const auto& child : decomposition.getChildren())
-		static_cast<LazySolver&>(child->getSolver()).finalizeRecursively();
-
-	if(!finalized)
-		finalize();
-}
-
-long LazySolver::getForgottenCostLowerBound() const
-{
-	if(finalized) {
-		long lowerBound = std::numeric_limits<long>::max();
-		assert(itemTree->getChildren().empty() == false);
-
-		for(const auto& row : itemTree->getChildren()) {
-			const auto& node = *row->getNode();
-			// FIXME We should eventually be able to deal with negative costs
-			assert(node.getCost() >= 0);
-			lowerBound = std::min(lowerBound, node.getCost() - node.getCurrentCost());
-		}
-
-		return lowerBound;
-	}
-	else
-		return 0;
 }
 
 void LazySolver::finalize()
@@ -305,4 +292,26 @@ void LazySolver::finalize()
 		itemTree.reset();
 	app.getPrinter().solverInvocationResult(decomposition, itemTree.get());
 	finalized = true;
+
+	// Calculate lower bound for the cost of a solution for the forgotten subgraph
+	if(itemTree) {
+		forgottenCostLowerBound = std::numeric_limits<long>::max();
+		assert(itemTree->getChildren().empty() == false);
+
+		for(const auto& row : itemTree->getChildren()) {
+			const auto& node = *row->getNode();
+			// FIXME We should eventually be able to deal with negative costs
+			assert(node.getCost() >= 0);
+			forgottenCostLowerBound = std::min(forgottenCostLowerBound, node.getCost() - node.getCurrentCost());
+		}
+	}
+}
+
+void LazySolver::finalizeRecursively()
+{
+	for(const auto& child : decomposition.getChildren())
+		static_cast<LazySolver&>(child->getSolver()).finalizeRecursively();
+
+	if(!finalized)
+		finalize();
 }

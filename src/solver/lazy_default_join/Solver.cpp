@@ -28,6 +28,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_default_join {
 
+//unsigned Solver::joinSetups = 0;
+//unsigned Solver::joinCalls = 0;
+//unsigned Solver::discardedJoinResults = 0;
+
 Solver::Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, BranchAndBoundLevel bbLevel, bool binarySearch)
 	: ::LazySolver(decomposition, app, bbLevel)
 	, binarySearch(binarySearch)
@@ -39,6 +43,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, bool 
 
 void Solver::startSolvingForCurrentRowCombination()
 {
+//	++joinSetups;
 	assert(getCurrentRowCombination().empty() == false);
 	assert(currentRowCombinationExhausted);
 	if(binarySearch) {
@@ -69,6 +74,7 @@ void Solver::nextRowCandidate()
 
 void Solver::handleRowCandidate(long costBound)
 {
+//	++joinCalls;
 	const auto& extended = getCurrentRowCombination();
 	assert(extended.empty() == false);
 
@@ -87,6 +93,7 @@ void Solver::handleRowCandidate(long costBound)
 		cost += node->getCost() - node->getItems().size();
 
 	if(cost >= costBound) {
+//		++discardedJoinResults;
 		newestRow = itemTree->getChildren().end();
 		return;
 	}

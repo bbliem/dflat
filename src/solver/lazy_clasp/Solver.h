@@ -34,6 +34,11 @@ namespace solver { namespace lazy_clasp {
 class Solver : public ::LazySolver
 {
 public:
+//	static unsigned solverSetups;
+//	static unsigned solveCalls;
+//	static unsigned models;
+//	static unsigned discardedModels;
+
 	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground = false, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full);
 
 protected:

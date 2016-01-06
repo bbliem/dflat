@@ -38,6 +38,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_clasp {
 
+//unsigned Solver::solverSetups = 0;
+//unsigned Solver::solveCalls = 0;
+//unsigned Solver::models = 0;
+//unsigned Solver::discardedModels = 0;
+
 Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground, BranchAndBoundLevel bbLevel)
 	: ::LazySolver(decomposition, app, bbLevel)
 	, reground(reground)
@@ -123,6 +128,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 
 void Solver::startSolvingForCurrentRowCombination()
 {
+//	++solverSetups;
 	asyncResult.reset();
 
 	if(reground) {
@@ -222,6 +228,7 @@ void Solver::startSolvingForCurrentRowCombination()
 
 bool Solver::endOfRowCandidates() const
 {
+//	++solveCalls;
 	return !asyncResult || asyncResult->end();
 }
 
@@ -233,6 +240,7 @@ void Solver::nextRowCandidate()
 
 void Solver::handleRowCandidate(long costBound)
 {
+//	++models;
 	assert(asyncResult);
 	const Clasp::Model& m = asyncResult->model();
 
@@ -268,6 +276,7 @@ void Solver::handleRowCandidate(long costBound)
 	}
 	// }}}
 	if(cost >= costBound) {
+//		++discardedModels;
 		newestRow = itemTree->getChildren().end();
 		return;
 	}
