@@ -28,8 +28,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_default_join {
 
-Solver::Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, bool branchAndBound, bool binarySearch)
-	: ::LazySolver(decomposition, app, branchAndBound)
+Solver::Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, BranchAndBoundLevel bbLevel, bool binarySearch)
+	: ::LazySolver(decomposition, app, bbLevel)
 	, binarySearch(binarySearch)
 	, rowType(setLeavesToAccept ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::UNDEFINED)
 	, currentRowCombinationExhausted(true)

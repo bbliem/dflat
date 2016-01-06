@@ -26,9 +26,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Printer.h"
 #include "LazySolver.h"
 
-LazySolver::LazySolver(const Decomposition& decomposition, const Application& app, bool branchAndBound)
+LazySolver::LazySolver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel)
 	: ::Solver(decomposition, app)
-	, branchAndBound(branchAndBound)
+	, bbLevel(bbLevel)
 	, finalized(false)
 {
 	for(const auto& child : decomposition.getChildren())
@@ -149,9 +149,11 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 
 			// For computing a row at this child, reduce cost bound by sum of lower bounds on costs for forgotten vertices
 			long forgottenCostLowerBound = 0;
-			for(const auto& child : decomposition.getChildren()) {
-				const auto& solver = static_cast<LazySolver&>(child->getSolver());
-				forgottenCostLowerBound += solver.getForgottenCostLowerBound();
+			if(bbLevel == BranchAndBoundLevel::full) {
+				for(const auto& child : decomposition.getChildren()) {
+					const auto& solver = static_cast<LazySolver&>(child->getSolver());
+					forgottenCostLowerBound += solver.getForgottenCostLowerBound();
+				}
 			}
 
 			newRow = childSolver->nextRow(costBound - forgottenCostLowerBound);
@@ -172,9 +174,11 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 				childSolver = *nextChildSolverToCall;
 
 				forgottenCostLowerBound = 0;
-				for(const auto& child : decomposition.getChildren()) {
-					const auto& solver = static_cast<LazySolver&>(child->getSolver());
-					forgottenCostLowerBound += solver.getForgottenCostLowerBound();
+				if(bbLevel == BranchAndBoundLevel::full) {
+					for(const auto& child : decomposition.getChildren()) {
+						const auto& solver = static_cast<LazySolver&>(child->getSolver());
+						forgottenCostLowerBound += solver.getForgottenCostLowerBound();
+					}
 				}
 
 				newRow = childSolver->nextRow(costBound - forgottenCostLowerBound);
@@ -257,7 +261,7 @@ ItemTreePtr LazySolver::compute()
 			}
 			app.getPrinter().provisionalSolution(*(*row)->getNode());
 
-			const long newCostBound = branchAndBound ? (*row)->getNode()->getCost() : std::numeric_limits<long>::max();
+			const long newCostBound = bbLevel == BranchAndBoundLevel::none ? std::numeric_limits<long>::max() : (*row)->getNode()->getCost();
 			row = nextRow(newCostBound);
 		}
 	}

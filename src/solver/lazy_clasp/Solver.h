@@ -34,7 +34,7 @@ namespace solver { namespace lazy_clasp {
 class Solver : public ::LazySolver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground = false, bool branchAndBound = true);
+	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground = false, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full);
 
 protected:
 	virtual void startSolvingForCurrentRowCombination() override;

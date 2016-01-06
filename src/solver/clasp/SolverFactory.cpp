@@ -43,7 +43,7 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 	, optDefaultJoin    ("default-join",     "Use built-in implementation for join nodes")
 	, optLazy           ("lazy",             "Use lazy evaluation to find one solution")
 	, optNoBinarySearch ("no-binary-search", "Disable binary search in lazy default join")
-	, optNoBB           ("no-bb",            "Disable branch and bound during lazy solving")
+	, optBbLevel        ("bb", "s",          "Use branch and bound stategy <s> for lazy solving")
 	, optReground       ("reground",         "Reground instead of external atoms in lazy solving")
 	, optTables         ("tables",           "Use table mode (for item trees of height at most 1)")
 #ifdef HAVE_WORDEXP_H
@@ -69,10 +69,13 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 	optNoBinarySearch.addCondition(condDefaultJoin);
 	app.getOptionHandler().addOption(optNoBinarySearch, OPTION_SECTION);
 
-	optNoBB.addCondition(selected);
-	optNoBB.addCondition(condLazy);
-	optNoBB.addCondition(condOptimization);
-	app.getOptionHandler().addOption(optNoBB, OPTION_SECTION);
+	optBbLevel.addCondition(selected);
+	optBbLevel.addCondition(condLazy);
+	optBbLevel.addCondition(condOptimization);
+	optBbLevel.addChoice("none", "No branch and bound");
+	optBbLevel.addChoice("basic", "Prevent rows not cheaper than current provisional solution");
+	optBbLevel.addChoice("full", "Improve bounds using solutions for forgotten subgraphs", true);
+	app.getOptionHandler().addOption(optBbLevel, OPTION_SECTION);
 
 	optReground.addCondition(selected);
 	optReground.addCondition(condLazy);
@@ -92,10 +95,19 @@ std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decompos
 	if(optLazy.isUsed()) {
 		assert(optTables.isUsed() && condTables.isSatisfied());
 		assert(!optNoBinarySearch.isUsed() || optDefaultJoin.isUsed());
+		LazySolver::BranchAndBoundLevel bbLevel;
+		if(optBbLevel.getValue() == "none")
+			bbLevel = LazySolver::BranchAndBoundLevel::none;
+		else if(optBbLevel.getValue() == "basic")
+			bbLevel = LazySolver::BranchAndBoundLevel::basic;
+		else {
+			assert(optBbLevel.getValue() == "full");
+			bbLevel = LazySolver::BranchAndBoundLevel::full;
+		}
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
-			return std::unique_ptr<::Solver>(new lazy_default_join::Solver(decomposition, app, decomposition.isRoot(), !optNoBB.isUsed(), !optNoBinarySearch.isUsed()));
+			return std::unique_ptr<::Solver>(new lazy_default_join::Solver(decomposition, app, decomposition.isRoot(), bbLevel, !optNoBinarySearch.isUsed()));
 		else
-			return std::unique_ptr<::Solver>(new lazy_clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optReground.isUsed(), !optNoBB.isUsed()));
+			return std::unique_ptr<::Solver>(new lazy_clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optReground.isUsed(), bbLevel));
 	}
 	else {
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())

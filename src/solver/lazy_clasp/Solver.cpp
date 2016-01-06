@@ -38,8 +38,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_clasp {
 
-Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground, bool branchAndBound)
-	: ::LazySolver(decomposition, app, branchAndBound)
+Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground, BranchAndBoundLevel bbLevel)
+	: ::LazySolver(decomposition, app, bbLevel)
 	, reground(reground)
 	, encodingFiles(encodingFiles)
 {

@@ -27,7 +27,7 @@ namespace solver { namespace lazy_default_join {
 class Solver : public ::LazySolver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, bool branchAndBound = true, bool binarySearch = true);
+	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full, bool binarySearch = true);
 
 protected:
 	virtual void startSolvingForCurrentRowCombination() override;

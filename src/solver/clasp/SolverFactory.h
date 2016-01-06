@@ -23,6 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #include "../../SolverFactory.h"
 #include "../../options/MultiValueOption.h"
+#include "../../options/Choice.h"
 
 #ifdef HAVE_WORDEXP_H
 #include <vector>
@@ -58,7 +59,7 @@ private:
 	options::Option           optDefaultJoin;
 	options::Option           optLazy;
 	options::Option           optNoBinarySearch;
-	options::Option           optNoBB;
+	options::Choice           optBbLevel;
 	options::Option           optReground;
 	options::Option           optTables;
 #ifdef HAVE_WORDEXP_H
