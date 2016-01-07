@@ -205,10 +205,16 @@ void Solver::startSolvingForCurrentRowCombination()
 		// Mark atoms corresponding to items from the currently extended rows
 		const unsigned int IN_SET = 2147483648; // 2^31 (atom IDs are always smaller)
 		for(const auto& row : getCurrentRowCombination()) {
-			for(const auto& item : row->getItems())
+			for(const auto& item : row->getItems()) {
+				assert(itemsToVarIndices.find(item) != itemsToVarIndices.end());
+				assert(itemsToVarIndices.at(item) < variables.size());
 				variables[itemsToVarIndices.at(item)] |= IN_SET;
-			for(const auto& item : row->getAuxItems())
+			}
+			for(const auto& item : row->getAuxItems()) {
+				assert(auxItemsToVarIndices.find(item) != auxItemsToVarIndices.end());
+				assert(auxItemsToVarIndices.at(item) < variables.size());
 				variables[auxItemsToVarIndices.at(item)] |= IN_SET;
+			}
 		}
 		// Set marked atoms to true and all others to false
 		for(auto& var : variables) {
