@@ -113,7 +113,14 @@ bool LazySolver::loadFirstChildRowCombination(long costBound)
 	for(const auto& child : decomposition.getChildren()) {
 		solver = static_cast<LazySolver*>(&child->getSolver());
 		assert(solver->itemTree->getChildren().empty());
-		newRow = solver->nextRow(costBound);
+
+		assert(forgottenCostLowerBound >= solver->forgottenCostLowerBound);
+		assert(bbLevel != BranchAndBoundLevel::none || forgottenCostLowerBound == 0);
+		assert(bbLevel != BranchAndBoundLevel::none || solver->forgottenCostLowerBound == 0);
+		forgottenCostLowerBound -= solver->forgottenCostLowerBound;
+		newRow = solver->nextRow(costBound - forgottenCostLowerBound);
+		forgottenCostLowerBound += solver->forgottenCostLowerBound;
+
 		assert(newRow == solver->itemTree->getChildren().begin());
 		if(newRow == solver->itemTree->getChildren().end())
 			return false;
@@ -153,15 +160,12 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 			childSolver = *nextChildSolverToCall;
 
 			// For computing a row at this child, reduce cost bound by sum of lower bounds on costs for forgotten vertices
-			long forgottenCostLowerBound = 0;
-			if(bbLevel == BranchAndBoundLevel::full) {
-				for(const auto& child : decomposition.getChildren()) {
-					const auto& solver = static_cast<LazySolver&>(child->getSolver());
-					forgottenCostLowerBound += solver.forgottenCostLowerBound;
-				}
-			}
-
+			assert(forgottenCostLowerBound >= childSolver->forgottenCostLowerBound);
+			assert(bbLevel != BranchAndBoundLevel::none || forgottenCostLowerBound == 0);
+			assert(bbLevel != BranchAndBoundLevel::none || childSolver->forgottenCostLowerBound == 0);
+			forgottenCostLowerBound -= childSolver->forgottenCostLowerBound;
 			newRow = childSolver->nextRow(costBound - forgottenCostLowerBound);
+			forgottenCostLowerBound += childSolver->forgottenCostLowerBound;
 
 			while(newRow == childSolver->itemTree->getChildren().end()) {
 				// The child solver is now exhausted
@@ -178,15 +182,12 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 				assert(nextChildSolverToCall != nonExhaustedChildSolvers.end());
 				childSolver = *nextChildSolverToCall;
 
-				forgottenCostLowerBound = 0;
-				if(bbLevel == BranchAndBoundLevel::full) {
-					for(const auto& child : decomposition.getChildren()) {
-						const auto& solver = static_cast<LazySolver&>(child->getSolver());
-						forgottenCostLowerBound += solver.forgottenCostLowerBound;
-					}
-				}
-
+				assert(forgottenCostLowerBound >= childSolver->forgottenCostLowerBound);
+				assert(bbLevel != BranchAndBoundLevel::none || forgottenCostLowerBound == 0);
+				assert(bbLevel != BranchAndBoundLevel::none || childSolver->forgottenCostLowerBound == 0);
+				forgottenCostLowerBound -= childSolver->forgottenCostLowerBound;
 				newRow = childSolver->nextRow(costBound - forgottenCostLowerBound);
+				forgottenCostLowerBound += childSolver->forgottenCostLowerBound;
 			}
 
 			// Now we have computed a new child row
@@ -294,7 +295,7 @@ void LazySolver::finalize()
 	finalized = true;
 
 	// Calculate lower bound for the cost of a solution for the forgotten subgraph
-	if(itemTree) {
+	if(itemTree && bbLevel == BranchAndBoundLevel::full) {
 		forgottenCostLowerBound = std::numeric_limits<long>::max();
 		assert(itemTree->getChildren().empty() == false);
 

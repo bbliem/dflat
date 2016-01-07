@@ -84,11 +84,6 @@ private:
 	// Recursively call finalize() (and thus print all solver invocation results)
 	void finalizeRecursively();
 
-	long getForgottenCostLowerBound() const
-	{
-		return forgottenCostLowerBound;
-	}
-
 	ItemTreeNode::ExtensionPointerTuple currentRowCombination;
 	std::list<LazySolver*> nonExhaustedChildSolvers;
 	std::list<LazySolver*>::const_iterator nextChildSolverToCall; // points to elements of nonExhaustedChildSolvers
