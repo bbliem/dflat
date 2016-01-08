@@ -97,13 +97,15 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		// We need to know which clasp variable corresponds to each childItem(_) or childAuxItem(_) atom.
 		for(const auto& pair : clasp.ctx.symbolTable()) {
 			if(!pair.second.name.empty()) {
-				const std::string name = pair.second.name.c_str();
-				if(name.compare(0, 10, "childItem(") == 0) {
-					itemsToVarIndices.emplace(String(name.substr(10, name.length()-11)), variables.size());
+				const char* name = pair.second.name.c_str();
+				if (std::strncmp(name, "childItem(", 10) == 0) {
+					name += 10;
+					itemsToVarIndices.emplace(String(std::string(name, std::strlen(name)-1)), variables.size());
 					variables.push_back(pair.first);
 				}
-				else if(name.compare(0, 13, "childAuxItem(") == 0) {
-					auxItemsToVarIndices.emplace(String(name.substr(13, name.length()-14)), variables.size());
+				else if(std::strncmp(name, "childAuxItem(", 13) == 0) {
+					name += 13;
+					auxItemsToVarIndices.emplace(String(std::string(name, std::strlen(name)-1)), variables.size());
 					variables.push_back(pair.first);
 				}
 			}
