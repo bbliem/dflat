@@ -54,7 +54,29 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		// Set up ASP solver
 		config.solve.numModels = 0;
 		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true)); // TODO In leaves updates might not be necessary.
-		GringoOutputProcessor gringoOutput(claspProgramBuilder);
+		struct LazyGringoOutputProcessor : GringoOutputProcessor {
+			LazyGringoOutputProcessor(Solver* s, Clasp::Asp::LogicProgram& prg) : GringoOutputProcessor(prg), self(s) {
+			}
+			void storeAtom(unsigned int atomUid, Gringo::Value v) override {
+				const std::string& n = *v.name();
+				if(n == "childItem") {
+					ASP_CHECK(v.args().size() == 1, "'childItem' predicate does not have arity 1");
+					std::ostringstream argument;
+					v.args().front().print(argument);
+					self->itemsToVarIndices.emplace(String(argument.str()), self->variables.size());
+					self->variables.push_back(atomUid);
+				}
+				else if (n == "childAuxItem") {
+					ASP_CHECK(v.args().size() == 1, "'childAuxItem' predicate does not have arity 1");
+					std::ostringstream argument;
+					v.args().front().print(argument);
+					self->auxItemsToVarIndices.emplace(String(argument.str()), self->variables.size());
+					self->variables.push_back(atomUid);
+				}
+				GringoOutputProcessor::storeAtom(atomUid, v);
+			}
+			Solver* self;
+		} gringoOutput(this, claspProgramBuilder);
 		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, gringoOutput));
 		Gringo::Input::Program program;
 		asp_utils::DummyGringoModule module;
@@ -91,32 +113,11 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		gPrg.ground(params, scripts, *out);
 		params.clear();
 
-		// Prepare for solving. (This makes clasp's symbol table available.)
-		clasp.prepare();
-		// Because we want to change the value of external atoms
-		clasp.update();
-
-		// We need to know which clasp variable corresponds to each childItem(_) or childAuxItem(_) atom.
-		for(const auto& pair : clasp.ctx.symbolTable()) {
-			if(!pair.second.name.empty()) {
-				const char* name = pair.second.name.c_str();
-				Clasp::Var  add  = 0;
-				if (std::strncmp(name, "childItem(", 10) == 0) {
-					name += 10;
-					add   = pair.first;
-					itemsToVarIndices.emplace(String(std::string(name, std::strlen(name)-1)), variables.size());
-				}
-				else if(std::strncmp(name, "childAuxItem(", 13) == 0) {
-					name += 13;
-					add   = pair.first;
-					auxItemsToVarIndices.emplace(String(std::string(name, std::strlen(name)-1)), variables.size());
-				}
-				if (add) {
-					variables.push_back(add);
-					claspProgramBuilder.freeze(add, Clasp::value_free);
-				}
-			}
+		// Set value of external atoms to free
+		for (auto&& v : variables) {
+			claspProgramBuilder.freeze(v, Clasp::value_free);
 		}
+		// Prepare for solving. (This makes clasp's symbol table available.)
 		clasp.prepare();
 
 		for(const auto& atom : gringoOutput.getItemAtomInfos())
