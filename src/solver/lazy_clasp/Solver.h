@@ -64,8 +64,6 @@ private:
 	std::unordered_map<String, size_t> itemsToVarIndices;
 	std::unordered_map<String, size_t> auxItemsToVarIndices;
 
-	std::unique_ptr<GringoOutputProcessor> gringoOutput;
-
 	Clasp::ClaspFacade clasp;
 	Clasp::ClaspConfig config;
 	std::unique_ptr<SolveIter> asyncResult;

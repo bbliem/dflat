@@ -54,8 +54,8 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		// Set up ASP solver
 		config.solve.numModels = 0;
 		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true)); // TODO In leaves updates might not be necessary.
-		gringoOutput.reset(new GringoOutputProcessor(claspProgramBuilder));
-		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *gringoOutput));
+		GringoOutputProcessor gringoOutput(claspProgramBuilder);
+		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, gringoOutput));
 		Gringo::Input::Program program;
 		asp_utils::DummyGringoModule module;
 		Gringo::Scripts scripts(module);
@@ -114,9 +114,9 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 			claspProgramBuilder.freeze(var, Clasp::value_free);
 		clasp.prepare();
 
-		for(const auto& atom : gringoOutput->getItemAtomInfos())
+		for(const auto& atom : gringoOutput.getItemAtomInfos())
 			itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp.ctx.symbolTable()));
-		for(const auto& atom : gringoOutput->getAuxItemAtomInfos())
+		for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
 			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp.ctx.symbolTable()));
 //		for(const auto& atom : gringoOutput->getCurrentCostAtomInfos())
 //			currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, clasp.ctx.symbolTable()));
@@ -135,8 +135,8 @@ void Solver::startSolvingForCurrentRowCombination()
 		config.solve.numModels = 0;
 		// TODO The last parameter of clasp.startAsp in the next line is "allowUpdate". Does setting it to false have benefits?
 		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config));
-		gringoOutput.reset(new GringoOutputProcessor(claspProgramBuilder));
-		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *gringoOutput));
+		GringoOutputProcessor gringoOutput(claspProgramBuilder);
+		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, gringoOutput));
 		Gringo::Input::Program program;
 		asp_utils::DummyGringoModule module;
 		Gringo::Scripts scripts(module);
@@ -188,10 +188,10 @@ void Solver::startSolvingForCurrentRowCombination()
 		clasp.prepare();
 
 		itemAtomInfos.clear();
-		for(const auto& atom : gringoOutput->getItemAtomInfos())
+		for(const auto& atom : gringoOutput.getItemAtomInfos())
 			itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp.ctx.symbolTable()));
 		auxItemAtomInfos.clear();
-		for(const auto& atom : gringoOutput->getAuxItemAtomInfos())
+		for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
 			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp.ctx.symbolTable()));
 		// TODO costs etc.
 	}
