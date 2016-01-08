@@ -93,27 +93,30 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 
 		// Prepare for solving. (This makes clasp's symbol table available.)
 		clasp.prepare();
+		// Because we want to change the value of external atoms
+		clasp.update();
 
 		// We need to know which clasp variable corresponds to each childItem(_) or childAuxItem(_) atom.
 		for(const auto& pair : clasp.ctx.symbolTable()) {
 			if(!pair.second.name.empty()) {
 				const char* name = pair.second.name.c_str();
+				Clasp::Var  add  = 0;
 				if (std::strncmp(name, "childItem(", 10) == 0) {
 					name += 10;
+					add   = pair.first;
 					itemsToVarIndices.emplace(String(std::string(name, std::strlen(name)-1)), variables.size());
-					variables.push_back(pair.first);
 				}
 				else if(std::strncmp(name, "childAuxItem(", 13) == 0) {
 					name += 13;
+					add   = pair.first;
 					auxItemsToVarIndices.emplace(String(std::string(name, std::strlen(name)-1)), variables.size());
-					variables.push_back(pair.first);
+				}
+				if (add) {
+					variables.push_back(add);
+					claspProgramBuilder.freeze(add, Clasp::value_free);
 				}
 			}
 		}
-
-		clasp.update();
-		for(const auto& var : variables)
-			claspProgramBuilder.freeze(var, Clasp::value_free);
 		clasp.prepare();
 
 		for(const auto& atom : gringoOutput.getItemAtomInfos())
