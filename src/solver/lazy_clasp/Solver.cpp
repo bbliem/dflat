@@ -54,10 +54,16 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		// Set up ASP solver
 		config.solve.numModels = 0;
 		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true)); // TODO In leaves updates might not be necessary.
-		struct LazyGringoOutputProcessor : GringoOutputProcessor {
-			LazyGringoOutputProcessor(Solver* s, Clasp::Asp::LogicProgram& prg) : GringoOutputProcessor(prg), self(s) {
+
+		struct LazyGringoOutputProcessor : GringoOutputProcessor
+		{
+			LazyGringoOutputProcessor(Solver* s, Clasp::Asp::LogicProgram& prg)
+				: GringoOutputProcessor(prg), self(s)
+			{
 			}
-			void storeAtom(unsigned int atomUid, Gringo::Value v) override {
+
+			void storeAtom(unsigned int atomUid, Gringo::Value v) override
+			{
 				const std::string& n = *v.name();
 				if(n == "childItem") {
 					ASP_CHECK(v.args().size() == 1, "'childItem' predicate does not have arity 1");
@@ -66,7 +72,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 					self->itemsToVarIndices.emplace(String(argument.str()), self->variables.size());
 					self->variables.push_back(atomUid);
 				}
-				else if (n == "childAuxItem") {
+				else if(n == "childAuxItem") {
 					ASP_CHECK(v.args().size() == 1, "'childAuxItem' predicate does not have arity 1");
 					std::ostringstream argument;
 					v.args().front().print(argument);
@@ -75,8 +81,10 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 				}
 				GringoOutputProcessor::storeAtom(atomUid, v);
 			}
+
 			Solver* self;
 		} gringoOutput(this, claspProgramBuilder);
+
 		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, gringoOutput));
 		Gringo::Input::Program program;
 		asp_utils::DummyGringoModule module;
@@ -114,9 +122,9 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		params.clear();
 
 		// Set value of external atoms to free
-		for (auto&& v : variables) {
+		for(auto&& v : variables)
 			claspProgramBuilder.freeze(v, Clasp::value_free);
-		}
+
 		// Prepare for solving. (This makes clasp's symbol table available.)
 		clasp.prepare();
 
