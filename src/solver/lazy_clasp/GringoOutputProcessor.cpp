@@ -50,7 +50,7 @@ const GringoOutputProcessor::CostAtomInfos& GringoOutputProcessor::getCostAtomIn
 void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 {
 	// Store the atom together with its symbol table key and extracted arguments
-	const std::string predicate = *v.name();
+	const std::string& predicate = *v.name();
 	if(predicate == "item") {
 		ASP_CHECK(v.args().size() == 1, "'item' predicate does not have arity 1");
 		std::ostringstream argument;
