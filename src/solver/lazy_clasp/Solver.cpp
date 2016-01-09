@@ -222,12 +222,34 @@ void Solver::startSolvingForCurrentRowCombination()
 			for(const auto& item : row->getItems()) {
 				assert(itemsToVarIndices.find(item) != itemsToVarIndices.end());
 				assert(itemsToVarIndices.at(item) < variables.size());
+#ifdef DISABLE_CHECKS
 				variables[itemsToVarIndices.at(item)] |= IN_SET;
+#else
+				try {
+					variables[itemsToVarIndices.at(item)] |= IN_SET;
+				}
+				catch(const std::out_of_range&) {
+					std::ostringstream msg;
+					msg << "Unknown variable; atom childItem(" << *item << ") not shown or not declared as external?";
+					throw std::runtime_error(msg.str());
+				}
+#endif
 			}
 			for(const auto& item : row->getAuxItems()) {
 				assert(auxItemsToVarIndices.find(item) != auxItemsToVarIndices.end());
 				assert(auxItemsToVarIndices.at(item) < variables.size());
+#ifdef DISABLE_CHECKS
 				variables[auxItemsToVarIndices.at(item)] |= IN_SET;
+#else
+				try {
+					variables[auxItemsToVarIndices.at(item)] |= IN_SET;
+				}
+				catch(const std::out_of_range&) {
+					std::ostringstream msg;
+					msg << "Unknown variable; atom childAuxItem(" << *item << ") not shown or not declared as external?";
+					throw std::runtime_error(msg.str());
+				}
+#endif
 			}
 		}
 		// Set marked atoms to true and all others to false
