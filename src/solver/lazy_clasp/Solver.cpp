@@ -148,6 +148,11 @@ void Solver::startSolvingForCurrentRowCombination()
 		// Set up ASP solver
 		config.solve.numModels = 0;
 		// TODO The last parameter of clasp.startAsp in the next line is "allowUpdate". Does setting it to false have benefits?
+		// WORKAROUND for BUG in ClaspFacade::startAsp()
+		// TODO remove on update to new version
+		if(clasp.ctx.numVars() == 0 && clasp.ctx.frozen())
+			clasp.ctx.reset();
+
 		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config));
 		GringoOutputProcessor gringoOutput(claspProgramBuilder);
 		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, gringoOutput));
