@@ -38,7 +38,7 @@ public:
 	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&, bool root, bool cardinalityCost = false);
 
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
-	virtual void prepare(const Clasp::SymbolTable&) override;
+	virtual void prepare(const Clasp::Asp::LogicProgram&) override;
 
 private:
 	std::vector<ItemAtomInfo>        itemAtomInfos;

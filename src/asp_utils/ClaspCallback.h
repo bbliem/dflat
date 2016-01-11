@@ -46,8 +46,8 @@ public:
 	// To obtain the finished product, you should probably call finalize() instead.
 	const ItemTreePtr& getItemTree() const;
 
-	// Call this when clasp's symbol table is available to let this object get the clasp literals corresponding to atoms using output predicates
-	virtual void prepare(const Clasp::SymbolTable&) {}
+	// Call this when clasp's program is available to let this object get the clasp solver literals corresponding to atoms using output predicates
+	virtual void prepare(const Clasp::Asp::LogicProgram& claspPrg) {}
 
 protected:
 	ItemTreePtr itemTree;

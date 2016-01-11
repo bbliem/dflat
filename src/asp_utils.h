@@ -45,14 +45,14 @@ namespace asp_utils {
 	template<typename T>
 	struct GringoAtomInfo {
 		T arguments;
-		Clasp::SymbolTable::key_type symbolTableKey;
+		Clasp::Var atomId;
 	};
 
 	template<typename T>
 	struct ClaspAtomInfo {
-		ClaspAtomInfo(const GringoAtomInfo<T>& gringoAtomInfo, const Clasp::SymbolTable& symTab)
+		ClaspAtomInfo(const GringoAtomInfo<T>& gringoAtomInfo, const Clasp::Asp::LogicProgram& prg)
 			: arguments(gringoAtomInfo.arguments) // XXX move?
-			, literal(symTab[gringoAtomInfo.symbolTableKey].lit)
+			, literal(prg.getLiteral(gringoAtomInfo.atomId))
 		{
 		}
 

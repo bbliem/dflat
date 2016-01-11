@@ -161,10 +161,12 @@ ItemTreePtr Solver::compute()
 	params.add("base", {});
 	gPrg.ground(params, scripts, *out);
 	params.clear();
+	// Finalize ground program and create solver variables
+	claspProgramBuilder.endProgram();
 
-	clasp.prepare();
 	std::unique_ptr<asp_utils::ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, decomposition.isRoot(), decomposition, cardinalityCost));
-	cb->prepare(clasp.ctx.symbolTable());
+	cb->prepare(claspProgramBuilder);
+	clasp.prepare();
 	clasp.solve(cb.get());
 
 	ItemTreePtr result = cb->finalize(decomposition.isRoot(), app.isPruningDisabled() == false || decomposition.isRoot());

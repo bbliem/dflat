@@ -162,29 +162,30 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	return true;
 }
 
-void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
+void ClaspCallback::prepare(const Clasp::Asp::LogicProgram& prg)
 {
+	assert(prg.frozen()); // Ground program must be frozen
 	for(const auto& atom : gringoOutput.getItemAtomInfos())
-		itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
+		itemAtomInfos.emplace_back(ItemAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
-		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, symTab));
+		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getExtendAtomInfos())
-		extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
+		extendAtomInfos.emplace_back(ExtendAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
-		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
+		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getCostAtomInfos())
-		costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
+		costAtomInfos.emplace_back(CostAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getLengthAtomInfos())
-		lengthAtomInfos.emplace_back(LengthAtomInfo(atom, symTab));
+		lengthAtomInfos.emplace_back(LengthAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getOrAtomInfos())
-		orAtomInfos.emplace_back(OrAtomInfo(atom, symTab));
+		orAtomInfos.emplace_back(OrAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getAndAtomInfos())
-		andAtomInfos.emplace_back(AndAtomInfo(atom, symTab));
+		andAtomInfos.emplace_back(AndAtomInfo(atom, prg));
 
 	if(gringoOutput.getAcceptAtomKey())
-		acceptLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getAcceptAtomKey()].lit));
+		acceptLiteral.reset(new Clasp::Literal(prg.getLiteral(*gringoOutput.getAcceptAtomKey())));
 	if(gringoOutput.getRejectAtomKey())
-		rejectLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getRejectAtomKey()].lit));
+		rejectLiteral.reset(new Clasp::Literal(prg.getLiteral(*gringoOutput.getRejectAtomKey())));
 }
 
 ItemTreePtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)

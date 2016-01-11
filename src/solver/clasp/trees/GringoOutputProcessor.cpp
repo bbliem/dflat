@@ -84,12 +84,12 @@ const GringoOutputProcessor::AndAtomInfos& GringoOutputProcessor::getAndAtomInfo
 	return andAtomInfos;
 }
 
-const Clasp::SymbolTable::key_type* GringoOutputProcessor::getAcceptAtomKey() const
+const Clasp::Var* GringoOutputProcessor::getAcceptAtomKey() const
 {
 	return acceptAtomKey.get();
 }
 
-const Clasp::SymbolTable::key_type* GringoOutputProcessor::getRejectAtomKey() const
+const Clasp::Var* GringoOutputProcessor::getRejectAtomKey() const
 {
 	return rejectAtomKey.get();
 }
@@ -150,11 +150,11 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 	} else if(predicate == "accept") {
 		ASP_CHECK(v.type() == Gringo::Value::ID, "'accept' predicate does not have arity 0");
 		assert(!acceptAtomKey);
-		acceptAtomKey.reset(new Clasp::SymbolTable::key_type(atomUid));
+		acceptAtomKey.reset(new Clasp::Var(atomUid));
 	} else if(predicate == "reject") {
 		ASP_CHECK(v.type() == Gringo::Value::ID, "'reject' predicate does not have arity 0");
 		assert(!rejectAtomKey);
-		rejectAtomKey.reset(new Clasp::SymbolTable::key_type(atomUid));
+		rejectAtomKey.reset(new Clasp::Var(atomUid));
 	}
 }
 

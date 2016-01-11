@@ -125,23 +125,26 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		for(const auto& p : literals)
 			claspProgramBuilder.freeze(p.var(), Clasp::value_free);
 
-		// Prepare for solving. (This makes clasp's symbol table available.)
-		clasp.prepare();
+		// Finalize ground program and create solver literals
+		claspProgramBuilder.endProgram();
 
-		// Map external to their solver literals
+		// Map externals to their solver literals
 		for(auto& p : literals) {
 			p = claspProgramBuilder.getLiteral(p.var());
 			assert(!p.watched()); // Literal must not be watched
 		}
 
 		for(const auto& atom : gringoOutput.getItemAtomInfos())
-			itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp.ctx.symbolTable()));
+			itemAtomInfos.emplace_back(ItemAtomInfo(atom, claspProgramBuilder));
 		for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
-			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp.ctx.symbolTable()));
+			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, claspProgramBuilder));
 //		for(const auto& atom : gringoOutput->getCurrentCostAtomInfos())
-//			currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, clasp.ctx.symbolTable()));
+//			currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, claspProgramBuilder));
 //		for(const auto& atom : gringoOutput->getCostAtomInfos())
-//			costAtomInfos.emplace_back(CostAtomInfo(atom, clasp.ctx.symbolTable()));
+//			costAtomInfos.emplace_back(CostAtomInfo(atom, claspProgramBuilder)));
+
+		// Prepare for solving.
+		clasp.prepare();
 	}
 }
 
@@ -210,15 +213,17 @@ void Solver::startSolvingForCurrentRowCombination()
 		gPrg.ground(params, scripts, *out);
 		params.clear();
 
-		clasp.prepare();
+		claspProgramBuilder.endProgram();
 
 		itemAtomInfos.clear();
 		for(const auto& atom : gringoOutput.getItemAtomInfos())
-			itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp.ctx.symbolTable()));
+			itemAtomInfos.emplace_back(ItemAtomInfo(atom, claspProgramBuilder));
 		auxItemAtomInfos.clear();
 		for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
-			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, clasp.ctx.symbolTable()));
+			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, claspProgramBuilder));
 		// TODO costs etc.
+
+		clasp.prepare();
 	}
 
 	else {

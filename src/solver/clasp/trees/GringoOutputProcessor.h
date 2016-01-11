@@ -94,8 +94,8 @@ public:
 	const OrAtomInfos&             getOrAtomInfos()             const;
 	const AndAtomInfos&            getAndAtomInfos()            const;
 
-	const Clasp::SymbolTable::key_type* getAcceptAtomKey() const;
-	const Clasp::SymbolTable::key_type* getRejectAtomKey() const;
+	const Clasp::Var* getAcceptAtomKey() const;
+	const Clasp::Var* getRejectAtomKey() const;
 
 protected:
 	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) override;
@@ -109,8 +109,8 @@ protected:
 	OrAtomInfos             orAtomInfos;
 	AndAtomInfos            andAtomInfos;
 
-	std::unique_ptr<Clasp::SymbolTable::key_type> acceptAtomKey;
-	std::unique_ptr<Clasp::SymbolTable::key_type> rejectAtomKey;
+	std::unique_ptr<Clasp::Var> acceptAtomKey;
+	std::unique_ptr<Clasp::Var> rejectAtomKey;
 
 	const ChildItemTrees& childItemTrees;
 };
