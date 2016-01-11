@@ -20,6 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <cassert>
 #include <memory>
+#include <limits>
 
 #include "ItemTreeNode.h"
 #include "ExtensionIterator.h"
