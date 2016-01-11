@@ -60,9 +60,9 @@ private:
 
 	bool reground;
 	std::vector<std::string> encodingFiles;
-	std::vector<Clasp::Var> variables;
-	std::unordered_map<String, size_t> itemsToVarIndices;
-	std::unordered_map<String, size_t> auxItemsToVarIndices;
+	std::vector<Clasp::Literal> literals;
+	std::unordered_map<String, size_t> itemsToLitIndices;
+	std::unordered_map<String, size_t> auxItemsToLitIndices;
 
 	Clasp::ClaspFacade clasp;
 	Clasp::ClaspConfig config;

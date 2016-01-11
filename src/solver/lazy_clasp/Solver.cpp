@@ -69,15 +69,15 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 					ASP_CHECK(v.args().size() == 1, "'childItem' predicate does not have arity 1");
 					std::ostringstream argument;
 					v.args().front().print(argument);
-					self->itemsToVarIndices.emplace(String(argument.str()), self->variables.size());
-					self->variables.push_back(atomUid);
+					self->itemsToLitIndices.emplace(String(argument.str()), self->literals.size());
+					self->literals.push_back(Clasp::posLit(atomUid));
 				}
 				else if(n == "childAuxItem") {
 					ASP_CHECK(v.args().size() == 1, "'childAuxItem' predicate does not have arity 1");
 					std::ostringstream argument;
 					v.args().front().print(argument);
-					self->auxItemsToVarIndices.emplace(String(argument.str()), self->variables.size());
-					self->variables.push_back(atomUid);
+					self->auxItemsToLitIndices.emplace(String(argument.str()), self->literals.size());
+					self->literals.push_back(Clasp::posLit(atomUid));
 				}
 				GringoOutputProcessor::storeAtom(atomUid, v);
 			}
@@ -122,11 +122,17 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 		params.clear();
 
 		// Set value of external atoms to free
-		for(auto&& v : variables)
-			claspProgramBuilder.freeze(v, Clasp::value_free);
+		for(const auto& p : literals)
+			claspProgramBuilder.freeze(p.var(), Clasp::value_free);
 
 		// Prepare for solving. (This makes clasp's symbol table available.)
 		clasp.prepare();
+
+		// Map external to their solver literals
+		for(auto& p : literals) {
+			p = claspProgramBuilder.getLiteral(p.var());
+			assert(!p.watched()); // Literal must not be watched
+		}
 
 		for(const auto& atom : gringoOutput.getItemAtomInfos())
 			itemAtomInfos.emplace_back(ItemAtomInfo(atom, clasp.ctx.symbolTable()));
@@ -217,21 +223,20 @@ void Solver::startSolvingForCurrentRowCombination()
 
 	else {
 		// Set external variables to the values of the current child row combination
-		Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update(false, false));
+		clasp.update(false, false);
 
 		clasp.prepare();
 
 		// Mark atoms corresponding to items from the currently extended rows
-		const unsigned int IN_SET = 2147483648; // 2^31 (atom IDs are always smaller)
 		for(const auto& row : getCurrentRowCombination()) {
 			for(const auto& item : row->getItems()) {
-				assert(itemsToVarIndices.find(item) != itemsToVarIndices.end());
-				assert(itemsToVarIndices.at(item) < variables.size());
+				assert(itemsToLitIndices.find(item) != itemsToLitIndices.end());
+				assert(itemsToLitIndices.at(item) < literals.size());
 #ifdef DISABLE_CHECKS
-				variables[itemsToVarIndices.at(item)] |= IN_SET;
+				literals[itemsToLitIndices.at(item)].watch();
 #else
 				try {
-					variables[itemsToVarIndices.at(item)] |= IN_SET;
+					literals[itemsToLitIndices.at(item)].watch();
 				}
 				catch(const std::out_of_range&) {
 					std::ostringstream msg;
@@ -241,13 +246,13 @@ void Solver::startSolvingForCurrentRowCombination()
 #endif
 			}
 			for(const auto& item : row->getAuxItems()) {
-				assert(auxItemsToVarIndices.find(item) != auxItemsToVarIndices.end());
-				assert(auxItemsToVarIndices.at(item) < variables.size());
+				assert(auxItemsToLitIndices.find(item) != auxItemsToLitIndices.end());
+				assert(auxItemsToLitIndices.at(item) < literals.size());
 #ifdef DISABLE_CHECKS
-				variables[auxItemsToVarIndices.at(item)] |= IN_SET;
+				literals[auxItemsToLitIndices.at(item)].watch();
 #else
 				try {
-					variables[auxItemsToVarIndices.at(item)] |= IN_SET;
+					literals[auxItemsToLitIndices.at(item)].watch();
 				}
 				catch(const std::out_of_range&) {
 					std::ostringstream msg;
@@ -257,14 +262,14 @@ void Solver::startSolvingForCurrentRowCombination()
 #endif
 			}
 		}
-		// Set marked atoms to true and all others to false
-		for(auto& var : variables) {
-			if(var & IN_SET) {
-				var ^= IN_SET;
-				clasp.assume(prg.getLiteral(var));
+		// Set marked literals to true and all others to false
+		for(auto& lit : literals) {
+			if(lit.watched()) {
+				lit.clearWatch();
+				clasp.assume(lit);
 			}
 			else
-				clasp.assume(~prg.getLiteral(var));
+				clasp.assume(~lit);
 		}
 	}
 
