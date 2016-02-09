@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -22,11 +22,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <memory>
 
-#include "../GringoOutputProcessor.h"
+#include "../../../asp_utils.h"
+#include "../../../asp_utils/GringoOutputProcessor.h"
 
 namespace solver { namespace clasp { namespace trees {
 
-class GringoOutputProcessor : public ::solver::clasp::GringoOutputProcessor
+class GringoOutputProcessor : public asp_utils::GringoOutputProcessor
 {
 public:
 	struct ExtendAtomArguments {
@@ -34,44 +35,44 @@ public:
 		unsigned int decompositionNodeId;
 		std::weak_ptr<ItemTreeNode> extendedNode;
 	};
-	typedef AtomInfo<ExtendAtomArguments> ExtendAtomInfo;
+	typedef asp_utils::GringoAtomInfo<ExtendAtomArguments> ExtendAtomInfo;
 
 	struct ItemAtomArguments {
 		unsigned int level;
 		String item;
 	};
-	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
+	typedef asp_utils::GringoAtomInfo<ItemAtomArguments> ItemAtomInfo;
 
 	struct AuxItemAtomArguments {
 		unsigned int level;
 		String item;
 	};
-	typedef AtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
+	typedef asp_utils::GringoAtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
 
 	struct CurrentCostAtomArguments {
 		long currentCost;
 	};
-	typedef AtomInfo<CurrentCostAtomArguments> CurrentCostAtomInfo;
+	typedef asp_utils::GringoAtomInfo<CurrentCostAtomArguments> CurrentCostAtomInfo;
 
 	struct CostAtomArguments {
 		long cost;
 	};
-	typedef AtomInfo<CostAtomArguments> CostAtomInfo;
+	typedef asp_utils::GringoAtomInfo<CostAtomArguments> CostAtomInfo;
 
 	struct LengthAtomArguments {
 		unsigned int length;
 	};
-	typedef AtomInfo<LengthAtomArguments> LengthAtomInfo;
+	typedef asp_utils::GringoAtomInfo<LengthAtomArguments> LengthAtomInfo;
 
 	struct OrAtomArguments {
 		unsigned int level;
 	};
-	typedef AtomInfo<OrAtomArguments> OrAtomInfo;
+	typedef asp_utils::GringoAtomInfo<OrAtomArguments> OrAtomInfo;
 
 	struct AndAtomArguments {
 		unsigned int level;
 	};
-	typedef AtomInfo<AndAtomArguments> AndAtomInfo;
+	typedef asp_utils::GringoAtomInfo<AndAtomArguments> AndAtomInfo;
 
 	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
 	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;
@@ -93,8 +94,8 @@ public:
 	const OrAtomInfos&             getOrAtomInfos()             const;
 	const AndAtomInfos&            getAndAtomInfos()            const;
 
-	const Clasp::SymbolTable::key_type* getAcceptAtomKey() const;
-	const Clasp::SymbolTable::key_type* getRejectAtomKey() const;
+	const Clasp::Var* getAcceptAtomKey() const;
+	const Clasp::Var* getRejectAtomKey() const;
 
 protected:
 	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) override;
@@ -108,8 +109,8 @@ protected:
 	OrAtomInfos             orAtomInfos;
 	AndAtomInfos            andAtomInfos;
 
-	std::unique_ptr<Clasp::SymbolTable::key_type> acceptAtomKey;
-	std::unique_ptr<Clasp::SymbolTable::key_type> rejectAtomKey;
+	std::unique_ptr<Clasp::Var> acceptAtomKey;
+	std::unique_ptr<Clasp::Var> rejectAtomKey;
 
 	const ChildItemTrees& childItemTrees;
 };

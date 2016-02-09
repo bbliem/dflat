@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -21,10 +21,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <clasp/solver.h>
 
 #include "ClaspCallback.h"
-#include "../../Application.h"
-#include "../../Printer.h"
+#include "../Application.h"
+#include "../Printer.h"
 
-namespace solver { namespace clasp {
+namespace asp_utils {
 
 ClaspCallback::ClaspCallback(const Application& app)
 	: app(app)
@@ -58,4 +58,4 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	return true;
 }
 
-}} // namespace solver::clasp
+} // namespace asp_utils

@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -20,6 +20,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
+#include <sstream>
+
 #include "../../Solver.h"
 
 namespace solver { namespace clasp {
@@ -27,16 +29,14 @@ namespace solver { namespace clasp {
 class Solver : public ::Solver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode);
+	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode, bool cardinalityCost = false);
 
 	virtual ItemTreePtr compute() override;
-
-	static void declareDecomposition(const Decomposition& decomposition, std::ostream& out);
-	static void declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent = "", unsigned int level = 0);
 
 private:
 	std::vector<std::string> encodingFiles;
 	bool tableMode;
+	bool cardinalityCost;
 };
 
 }} // namespace solver::clasp

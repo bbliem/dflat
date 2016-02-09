@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -19,14 +19,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
 #include "ClaspCallback.h"
+#include "../../../Application.h"
 
 namespace solver { namespace clasp { namespace tables {
 
-ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, bool root)
-	: ::solver::clasp::ClaspCallback(app)
+ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, bool root, bool cardinalityCost)
+	: asp_utils::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
 	, childItemTrees(childItemTrees)
 	, rowType(root ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::UNDEFINED)
+	, cardinalityCost(cardinalityCost)
 {
 	unsigned int i = 0;
 	for(const auto& pair : childItemTrees)
@@ -35,7 +37,7 @@ ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Ch
 
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 {
-	solver::clasp::ClaspCallback::onModel(s, m);
+	asp_utils::ClaspCallback::onModel(s, m);
 
 	// Get items {{{
 	ItemTreeNode::Items items;
@@ -73,50 +75,72 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 		}
 		itemTree = ItemTreePtr(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
 		// Set cost to "infinity"
-		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
+		if(!app.isOptimizationDisabled())
+			itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
 	}
 	// }}}
+
+	long cost = 0;
+	long currentCost = 0;
+	if(!app.isOptimizationDisabled()) {
+		if(cardinalityCost) {
+			cost = items.size();
+			for(const auto& row : extendedRows) {
+				const auto& oldItems = row->getItems();
+				ItemTreeNode::Items intersection;
+				std::set_intersection(items.begin(), items.end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
+				cost += row->getCost() - intersection.size();
+			}
+
+			currentCost = items.size();
+		}
+		else {
+			// Set cost {{{
+			ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
+			//long cost = 0;
+			forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
+					cost = arguments.cost;
+					});
+			//node->setCost(cost);
+			// }}}
+			// Set current cost {{{
+			ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
+			ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
+			//long currentCost = 0;
+			forFirstTrue(m, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
+					currentCost = arguments.currentCost;
+					});
+			//node->setCurrentCost(currentCost);
+			// }}}
+		}
+	}
+
 	// Create item tree node {{{
 	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {std::move(extendedRows)}, rowType));
 	// }}}
-	// Set cost {{{
-	ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
-	long cost = 0;
-	forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
-			cost = arguments.cost;
-	});
 	node->setCost(cost);
-	// }}}
-	// Set current cost {{{
-	ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
-	ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
-	long currentCost = 0;
-	forFirstTrue(m, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
-			currentCost = arguments.currentCost;
-	});
 	node->setCurrentCost(currentCost);
-	// }}}
-	// Possibly update cost of root {{{
+	// Possibly update cost of root
 	itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
-	// }}}
 	// Add node to item tree {{{
 	itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 	// }}}
 	return true;
 }
 
-void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
+void ClaspCallback::prepare(const Clasp::Asp::LogicProgram& prg)
 {
+	assert(prg.frozen());  // Ground program must be frozen
 	for(const auto& atom : gringoOutput.getItemAtomInfos())
-		itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
+		itemAtomInfos.emplace_back(ItemAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
-		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, symTab));
+		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getExtendAtomInfos())
-		extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
+		extendAtomInfos.emplace_back(ExtendAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
-		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
+		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getCostAtomInfos())
-		costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
+		costAtomInfos.emplace_back(CostAtomInfo(atom, prg));
 }
 
 }}} // namespace solver::clasp::tables

@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -23,6 +23,20 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "DebugHumanReadable.h"
 #include "../Decomposition.h"
 #include "../Application.h"
+
+namespace {
+
+	size_t countNodes(const ItemTree& tree)
+	{
+		size_t nodes = 1;
+
+		for(const auto& child : tree.getChildren())
+			nodes += countNodes(*child);
+
+		return nodes;
+	}
+
+} // anonymous namespace
 
 namespace printer {
 
@@ -57,11 +71,16 @@ void DebugHumanReadable::solverInvocationInput(const Decomposition& decompositio
 
 void DebugHumanReadable::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
 {
-	std::cout << std::endl << "Resulting item tree at decomposition node " << decompositionNode.getNode().getGlobalId();
+	std::cout << std::endl << "Resulting item tree (";
 	if(result)
-		std::cout << ':' << std::endl << *result;
+		std::cout << countNodes(*result);
 	else
-		std::cout << " is empty.";
+		std::cout << '0';
+	std::cout << " nodes) at decomposition node " << decompositionNode.getNode().getGlobalId() << ':' << std::endl;
+	if(result)
+		std::cout << *result;
+	else
+		std::cout << "(empty)";
 	std::cout << std::endl;
 }
 

@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -25,7 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver { namespace clasp { namespace trees {
 
 ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, const Decomposition& decomposition)
-	: ::solver::clasp::ClaspCallback(app)
+	: asp_utils::ClaspCallback(app)
 	, gringoOutput(gringoOutput)
 	, childItemTrees(childItemTrees)
 	, decomposition(decomposition)
@@ -34,7 +34,7 @@ ClaspCallback::ClaspCallback(const GringoOutputProcessor& gringoOutput, const Ch
 
 bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 {
-	solver::clasp::ClaspCallback::onModel(s, m);
+	asp_utils::ClaspCallback::onModel(s, m);
 
 	struct BranchNode
 	{
@@ -135,22 +135,24 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	for(size_t i = 1; i < branchData.size(); ++i)
 		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), std::move(branchData[i].auxItems), {std::move(branchData[i].extended)}, branchData[i].type)));
 	// }}}
-	// Set cost {{{
-	ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
-	ASP_CHECK(countTrue(m, costAtomInfos) == 0 || std::all_of(branchData.begin(), branchData.end()-1, [](const BranchNode& node) {
-			return node.type != ItemTreeNode::Type::UNDEFINED;
-	}), "Cost specified but not all types of (non-leaf) nodes are defined");
-	forFirstTrue(m, costAtomInfos, [&branch](const GringoOutputProcessor::CostAtomArguments& arguments) {
-			branch.back()->setCost(arguments.cost);
-	});
-	// }}}
-	// Set current cost {{{
-	ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
-	ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
-	forFirstTrue(m, currentCostAtomInfos, [&branch](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
-			branch.back()->setCurrentCost(arguments.currentCost);
-	});
-	// }}}
+	if(!app.isOptimizationDisabled()) {
+		// Set cost {{{
+		ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
+		ASP_CHECK(countTrue(m, costAtomInfos) == 0 || std::all_of(branchData.begin(), branchData.end()-1, [](const BranchNode& node) {
+				return node.type != ItemTreeNode::Type::UNDEFINED;
+		}), "Cost specified but not all types of (non-leaf) nodes are defined");
+		forFirstTrue(m, costAtomInfos, [&branch](const GringoOutputProcessor::CostAtomArguments& arguments) {
+				branch.back()->setCost(arguments.cost);
+		});
+		// }}}
+		// Set current cost {{{
+		ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
+		ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
+		forFirstTrue(m, currentCostAtomInfos, [&branch](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
+				branch.back()->setCurrentCost(arguments.currentCost);
+		});
+		// }}}
+	}
 	// Insert branch into tree {{{
 	if(!uncompressedItemTree)
 		uncompressedItemTree = UncompressedItemTreePtr(new UncompressedItemTree(std::move(branch.front())));
@@ -160,29 +162,30 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	return true;
 }
 
-void ClaspCallback::prepare(const Clasp::SymbolTable& symTab)
+void ClaspCallback::prepare(const Clasp::Asp::LogicProgram& prg)
 {
+	assert(prg.frozen()); // Ground program must be frozen
 	for(const auto& atom : gringoOutput.getItemAtomInfos())
-		itemAtomInfos.emplace_back(ItemAtomInfo(atom, symTab));
+		itemAtomInfos.emplace_back(ItemAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
-		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, symTab));
+		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getExtendAtomInfos())
-		extendAtomInfos.emplace_back(ExtendAtomInfo(atom, symTab));
+		extendAtomInfos.emplace_back(ExtendAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
-		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, symTab));
+		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getCostAtomInfos())
-		costAtomInfos.emplace_back(CostAtomInfo(atom, symTab));
+		costAtomInfos.emplace_back(CostAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getLengthAtomInfos())
-		lengthAtomInfos.emplace_back(LengthAtomInfo(atom, symTab));
+		lengthAtomInfos.emplace_back(LengthAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getOrAtomInfos())
-		orAtomInfos.emplace_back(OrAtomInfo(atom, symTab));
+		orAtomInfos.emplace_back(OrAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getAndAtomInfos())
-		andAtomInfos.emplace_back(AndAtomInfo(atom, symTab));
+		andAtomInfos.emplace_back(AndAtomInfo(atom, prg));
 
 	if(gringoOutput.getAcceptAtomKey())
-		acceptLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getAcceptAtomKey()].lit));
+		acceptLiteral.reset(new Clasp::Literal(prg.getLiteral(*gringoOutput.getAcceptAtomKey())));
 	if(gringoOutput.getRejectAtomKey())
-		rejectLiteral.reset(new Clasp::Literal(symTab[*gringoOutput.getRejectAtomKey()].lit));
+		rejectLiteral.reset(new Clasp::Literal(prg.getLiteral(*gringoOutput.getRejectAtomKey())));
 }
 
 ItemTreePtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)
@@ -190,7 +193,7 @@ ItemTreePtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)
 	app.getPrinter().uncompressedSolverInvocationResult(decomposition, uncompressedItemTree.get());
 	if(uncompressedItemTree)
 		itemTree = uncompressedItemTree->compress(pruneUndefined);
-	return ::solver::clasp::ClaspCallback::finalize(pruneUndefined, pruneRejecting);
+	return asp_utils::ClaspCallback::finalize(pruneUndefined, pruneRejecting);
 }
 
 }}} // namespace solver::clasp::trees

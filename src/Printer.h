@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -69,9 +69,11 @@ public:
 
 	virtual void select() override;
 
+	// Report possibly suboptimal solutions (if run as an anytime algorithm)
+	void provisionalSolution(const ItemTreeNode& solution);
+
 protected:
 	// Called by NodeStackElement
 	virtual void enterNode(const Decomposition& decompositionNode);
 	virtual void leaveNode();
-
 };

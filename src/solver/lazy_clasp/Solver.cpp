@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -19,7 +19,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
 #include <sstream>
-#include <thread>
 #include <gringo/input/nongroundparser.hh>
 #include <gringo/input/program.hh>
 #include <gringo/input/programbuilder.hh>
@@ -39,276 +38,333 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace lazy_clasp {
 
-namespace {
+//unsigned Solver::solverSetups = 0;
+//unsigned Solver::solveCalls = 0;
+//unsigned Solver::models = 0;
+//unsigned Solver::discardedModels = 0;
 
-class DummyGringoModule : public Gringo::GringoModule
-{
-    virtual Gringo::Control *newControl(int argc, char const **argv) override { throw std::logic_error("DummyGringoModule"); };
-    virtual void freeControl(Gringo::Control *ctrl) override { throw std::logic_error("DummyGringoModule"); };
-    virtual Gringo::Value parseValue(std::string const &repr) override { throw std::logic_error("DummyGringoModule"); };
-};
-
-}
-
-Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles)
-	: ::Solver(decomposition, app)
+Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground, BranchAndBoundLevel bbLevel)
+	: ::LazySolver(decomposition, app, bbLevel)
+	, reground(reground)
 	, encodingFiles(encodingFiles)
 {
 	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
 
-	// Start solver thread and wait until it signals us to proceed
-	std::thread(&Solver::workerThreadMain, this).detach();
-	std::unique_lock<std::mutex> lock(workerMutex);
-	wakeMainThread.wait(lock, [&]() { return wakeMainThreadRequested; });
-	wakeMainThreadRequested = false;
-}
+	if(!reground) {
+		// Set up ASP solver
+		config.solve.numModels = 0;
+		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true)); // TODO In leaves updates might not be necessary.
 
-ItemTreePtr Solver::compute()
-{
-	// Currently this is only called at the root of the decomposition.
-	assert(decomposition.isRoot());
-	nextRow();
-	ItemTreePtr result = claspCallback->finalize(false, false);
-	app.getPrinter().solverInvocationResult(decomposition, result.get());
-	return result;
-}
-
-ItemTree::Children::const_iterator Solver::nextRow()
-{
-	std::unique_lock<std::mutex> lock(workerMutex);
-	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
-
-	if(noMoreModels)
-		return claspCallback->getItemTree()->getChildren().end();
-
-	// Let the solver know we want it to work
-	wakeWorkerThreadRequested = true;
-	wakeWorkerThread.notify_one();
-
-	// Wait until a new row has been produced
-	wakeMainThread.wait(lock, [&]() { return wakeMainThreadRequested; });
-	wakeMainThreadRequested = false;
-
-	assert(noMoreModels || claspCallback->getNewestRow() != claspCallback->getItemTree()->getChildren().end());
-	if(noMoreModels)
-		return claspCallback->getItemTree()->getChildren().end();
-
-	return claspCallback->getNewestRow();
-}
-
-const ItemTreePtr& Solver::getItemTreeSoFar() const
-{
-	return claspCallback->getItemTree();
-}
-
-void Solver::proceed(std::unique_lock<std::mutex>& lock)
-{
-	assert(lock.mutex() == &workerMutex && lock.owns_lock());
-	wakeMainThreadRequested = true;
-	wakeMainThread.notify_one();
-	wakeWorkerThread.wait(lock, [&]() { return wakeWorkerThreadRequested; });
-	wakeWorkerThreadRequested = false;
-}
-
-void Solver::workerThreadMain()
-{
-	std::unique_lock<std::mutex> lock(workerMutex);
-
-	// Set up ASP solver
-	Clasp::ClaspFacade clasp;
-	Clasp::ClaspConfig config;
-	config.solve.numModels = 0;
-	Clasp::Asp::LogicProgram& claspProgramBuilder = dynamic_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config, true));
-	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut(new GringoOutputProcessor(claspProgramBuilder));
-	claspCallback.reset(new ClaspCallback(dynamic_cast<GringoOutputProcessor&>(*lpOut), app, *this, lock));
-	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));
-	Gringo::Input::Program program;
-	DummyGringoModule module;
-	Gringo::Scripts scripts(module);
-	Gringo::Defines defs;
-	Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);
-	Gringo::Input::NonGroundParser parser(gringoProgramBuilder);
-
-	// Input: Original problem instance
-	std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
-	*instanceInput << app.getInputString();
-
-	// Input: Decomposition
-	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
-	solver::clasp::Solver::declareDecomposition(decomposition, *decompositionInput);
-	app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
-
-	// Pass input to ASP solver
-	for(const auto& file : encodingFiles)
-		parser.pushFile(std::string(file));
-	parser.pushStream("<instance>", std::move(instanceInput));
-	parser.pushStream("<decomposition>", std::move(decompositionInput));
-	parser.parse();
-
-	// Ground
-	program.rewrite(defs);
-	program.check();
-	if(Gringo::message_printer()->hasError())
-		throw std::runtime_error("Grounding stopped because of errors");
-	auto gPrg = program.toGround(out->domains);
-	Gringo::Ground::Parameters params;
-	params.add("base", {});
-	gPrg.ground(params, scripts, *out);
-	params.clear();
-
-	// Prepare for solving. (This makes clasp's symbol table available.)
-	clasp.prepare();
-	claspCallback->prepare(clasp.ctx.symbolTable());
-
-	// We need to know which clasp variable corresponds to each childItem(_) atom.
-	for(const auto& pair : clasp.ctx.symbolTable()) {
-		if(!pair.second.name.empty()) {
-			const std::string name = pair.second.name.c_str();
-			if(name.compare(0, 10, "childItem(") == 0) {
-				const std::string argument = name.substr(10, name.length()-11);
-				itemsToVars.emplace(argument, pair.first);
-			}
-		}
-	}
-
-	// Let main thread finish the constructor
-	wakeMainThreadRequested = true;
-	wakeMainThread.notify_one();
-
-	// Wait until we should do work
-	wakeWorkerThread.wait(lock, [&]() { return wakeWorkerThreadRequested; });
-	wakeWorkerThreadRequested = false;
-
-	if(decomposition.getChildren().empty()) {
-		// This is a leaf solver.
-		clasp.solve(claspCallback.get());
-	}
-	else {
-		// Get the first row from each child node
-		std::vector<ItemTreeNode::ExtensionPointer> childRows;
-		childRows.reserve(decomposition.getChildren().size());
-		for(const auto& child : decomposition.getChildren()) {
-			const ItemTree::Children::const_iterator newRow = dynamic_cast<Solver&>(child->getSolver()).nextRow();
-			if(newRow == dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getChildren().end()) {
-				// Notify main thread that solving is complete
-				noMoreModels = true;
-				wakeMainThreadRequested = true;
-				wakeMainThread.notify_one();
-				return;
-			}
-			childRows.push_back((*newRow)->getNode());
-		}
-
-		// Let the combination of these rows be the input for our ASP call
-		ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
-		for(const auto& child : decomposition.getChildren())
-			rootExtensionPointers.push_back(dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getNode());
-		claspCallback->setRootExtensionPointers(std::move(rootExtensionPointers));
-
-		ItemTreeNode::ExtensionPointerTuple extendedRows;
-		for(const auto& row : childRows)
-			extendedRows.push_back(row);
-		claspCallback->setExtendedRows(std::move(extendedRows));
-
+		struct LazyGringoOutputProcessor : GringoOutputProcessor
 		{
-			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
-			for(const auto& row : childRows) {
-				for(const auto& item : row->getItems()) {
-					prg.freeze(itemsToVars.at(*item), Clasp::value_true);
-				}
+			LazyGringoOutputProcessor(Solver* s, Clasp::Asp::LogicProgram& prg)
+				: GringoOutputProcessor(prg), self(s)
+			{
 			}
+
+			void storeAtom(unsigned int atomUid, Gringo::Value v) override
+			{
+				const std::string& n = *v.name();
+				if(n == "childItem") {
+					ASP_CHECK(v.args().size() == 1, "'childItem' predicate does not have arity 1");
+					std::ostringstream argument;
+					v.args().front().print(argument);
+					self->itemsToLitIndices.emplace(String(argument.str()), self->literals.size());
+					self->literals.push_back(Clasp::posLit(atomUid));
+				}
+				else if(n == "childAuxItem") {
+					ASP_CHECK(v.args().size() == 1, "'childAuxItem' predicate does not have arity 1");
+					std::ostringstream argument;
+					v.args().front().print(argument);
+					self->auxItemsToLitIndices.emplace(String(argument.str()), self->literals.size());
+					self->literals.push_back(Clasp::posLit(atomUid));
+				}
+				GringoOutputProcessor::storeAtom(atomUid, v);
+			}
+
+			Solver* self;
+		} gringoOutput(this, claspProgramBuilder);
+
+		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, gringoOutput));
+		Gringo::Input::Program program;
+		asp_utils::DummyGringoModule module;
+		Gringo::Scripts scripts(module);
+		Gringo::Defines defs;
+		Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);
+		Gringo::Input::NonGroundParser parser(gringoProgramBuilder);
+
+		// Input: Induced subinstance
+		std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
+		asp_utils::induceSubinstance(*instanceInput, app.getInstance(), decomposition.getNode().getBag());
+		app.getPrinter().solverInvocationInput(decomposition, instanceInput->str());
+
+		// Input: Decomposition
+		std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
+		asp_utils::declareDecomposition(decomposition, *decompositionInput);
+		app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
+
+		// Pass input to ASP solver
+		for(const auto& file : encodingFiles)
+			parser.pushFile(std::string(file));
+		parser.pushStream("<instance>", std::move(instanceInput));
+		parser.pushStream("<decomposition>", std::move(decompositionInput));
+		parser.parse();
+
+		// Ground
+		program.rewrite(defs);
+		program.check();
+		if(Gringo::message_printer()->hasError())
+			throw std::runtime_error("Grounding stopped because of errors");
+		auto gPrg = program.toGround(out->domains);
+		Gringo::Ground::Parameters params;
+		params.add("base", {});
+		gPrg.ground(params, scripts, *out);
+		params.clear();
+
+		// Set value of external atoms to free
+		for(const auto& p : literals)
+			claspProgramBuilder.freeze(p.var(), Clasp::value_free);
+
+		// Finalize ground program and create solver literals
+		claspProgramBuilder.endProgram();
+
+		// Map externals to their solver literals
+		for(auto& p : literals) {
+			p = claspProgramBuilder.getLiteral(p.var());
+			assert(!p.watched()); // Literal must not be watched
 		}
+
+		for(const auto& atom : gringoOutput.getItemAtomInfos())
+			itemAtomInfos.emplace_back(ItemAtomInfo(atom, claspProgramBuilder));
+		for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
+			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, claspProgramBuilder));
+//		for(const auto& atom : gringoOutput->getCurrentCostAtomInfos())
+//			currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, claspProgramBuilder));
+//		for(const auto& atom : gringoOutput->getCostAtomInfos())
+//			costAtomInfos.emplace_back(CostAtomInfo(atom, claspProgramBuilder)));
+
+		// Prepare for solving.
 		clasp.prepare();
-		claspCallback->prepare(clasp.ctx.symbolTable());
-		clasp.solve(claspCallback.get());
-		{
-			// XXX Necessary to update so often? Is the overhead bad?
-			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
-			for(const auto& row : childRows) {
-				for(const auto& item : row->getItems()) {
-					prg.freeze(itemsToVars.at(*item), Clasp::value_false);
-				}
-			}
-		}
-
-		// Now there are no models anymore for this row combination
-		// Until there are no new rows anymore, generate one new row at some child node and combine it with all rows from other child nodes
-		bool foundNewRow;
-		do {
-			foundNewRow = false;
-			for(const auto& child : decomposition.getChildren()) {
-				ItemTree::Children::const_iterator newRow = dynamic_cast<Solver&>(child->getSolver()).nextRow();
-				if(newRow != dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getChildren().end()) {
-					foundNewRow = true;
-					aspCallsOnNewRowFromChild(newRow, child, clasp);
-				}
-			}
-		} while(foundNewRow);
 	}
-
-	// Notify main thread that solving is complete
-	noMoreModels = true;
-	wakeMainThreadRequested = true;
-	wakeMainThread.notify_one();
 }
 
-void Solver::aspCallsOnNewRowFromChild(ItemTree::Children::const_iterator newRow, const DecompositionPtr& originatingChild, Clasp::ClaspFacade& clasp)
+void Solver::startSolvingForCurrentRowCombination()
 {
-	std::vector<std::pair<Decomposition*, ItemTree::Children::const_iterator>> rowIterators; // Key: Child node; Value: Row in the item tree at this child
-	rowIterators.reserve(decomposition.getChildren().size());
-	// At index 0 we will store newRow. This iterator will not be incremented.
-	rowIterators.emplace_back(originatingChild.get(), newRow);
-	for(const auto& child : decomposition.getChildren()) {
-		if(child != originatingChild) {
-			rowIterators.emplace_back(child.get(), dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getChildren().begin());
-			assert(rowIterators.back().second != dynamic_cast<Solver&>(child->getSolver()).getItemTreeSoFar()->getChildren().end());
-		}
-	}
+//	++solverSetups;
+	asyncResult.reset();
 
-	do {
-		ItemTreeNode::ExtensionPointerTuple extendedRows;
-		for(const auto& nodeAndRow : rowIterators)
-			extendedRows.push_back((*nodeAndRow.second)->getNode());
-		claspCallback->setExtendedRows(std::move(extendedRows));
+	if(reground) {
+		// Set up ASP solver
+		config.solve.numModels = 0;
+		// TODO The last parameter of clasp.startAsp in the next line is "allowUpdate". Does setting it to false have benefits?
+		// WORKAROUND for BUG in ClaspFacade::startAsp()
+		// TODO remove on update to new version
+		if(clasp.ctx.numVars() == 0 && clasp.ctx.frozen())
+			clasp.ctx.reset();
 
-		{
-			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
-			for(const auto& nodeAndRow : rowIterators) {
-				for(const auto& item : (*nodeAndRow.second)->getNode()->getItems()) {
-					//				std::cout << "W " << std::this_thread::get_id() << " [" << decomposition.getNode().getGlobalId() << "]: Setting " << item << " to true\n";
-					prg.freeze(itemsToVars.at(*item), Clasp::value_true);
-				}
-			}
+		Clasp::Asp::LogicProgram& claspProgramBuilder = static_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config));
+		GringoOutputProcessor gringoOutput(claspProgramBuilder);
+		std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, gringoOutput));
+		Gringo::Input::Program program;
+		asp_utils::DummyGringoModule module;
+		Gringo::Scripts scripts(module);
+		Gringo::Defines defs;
+		Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);
+		Gringo::Input::NonGroundParser parser(gringoProgramBuilder);
+
+		// Input: Induced subinstance
+		std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
+		asp_utils::induceSubinstance(*instanceInput, app.getInstance(), decomposition.getNode().getBag());
+		app.getPrinter().solverInvocationInput(decomposition, instanceInput->str());
+
+		// Input: Decomposition
+		std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
+		asp_utils::declareDecomposition(decomposition, *decompositionInput);
+		app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
+
+		// Input: Child rows
+		std::unique_ptr<std::stringstream> childRowsInput(new std::stringstream);
+		*childRowsInput << "% Child row facts" << std::endl;
+		for(const auto& row : getCurrentRowCombination()) {
+			for(const auto& item : row->getItems())
+				*childRowsInput << "childItem(" << item << ")." << std::endl;
+			for(const auto& item : row->getAuxItems())
+				*childRowsInput << "childAuxItem(" << item << ")." << std::endl;
+			// TODO costs, etc.
 		}
+		app.getPrinter().solverInvocationInput(decomposition, childRowsInput->str());
+
+		// Pass input to ASP solver
+		for(const auto& file : encodingFiles)
+			parser.pushFile(std::string(file));
+		parser.pushStream("<instance>", std::move(instanceInput));
+		parser.pushStream("<decomposition>", std::move(decompositionInput));
+		parser.pushStream("<child_rows>", std::move(childRowsInput));
+		parser.parse();
+
+		// Ground
+		program.rewrite(defs);
+		program.check();
+		if(Gringo::message_printer()->hasError())
+			throw std::runtime_error("Grounding stopped because of errors");
+		auto gPrg = program.toGround(out->domains);
+		Gringo::Ground::Parameters params;
+		params.add("base", {});
+		gPrg.ground(params, scripts, *out);
+		params.clear();
+
+		claspProgramBuilder.endProgram();
+
+		itemAtomInfos.clear();
+		for(const auto& atom : gringoOutput.getItemAtomInfos())
+			itemAtomInfos.emplace_back(ItemAtomInfo(atom, claspProgramBuilder));
+		auxItemAtomInfos.clear();
+		for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
+			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, claspProgramBuilder));
+		// TODO costs etc.
+
 		clasp.prepare();
-		claspCallback->prepare(clasp.ctx.symbolTable());
-		clasp.solve(claspCallback.get());
-		{
-			// XXX Necessary to update so often? Is the overhead bad?
-			Clasp::Asp::LogicProgram& prg = static_cast<Clasp::Asp::LogicProgram&>(clasp.update());
-			for(const auto& nodeAndRow : rowIterators) {
-				for(const auto& item : (*nodeAndRow.second)->getNode()->getItems()) {
-					//				std::cout << "W " << std::this_thread::get_id() << " [" << decomposition.getNode().getGlobalId() << "]: Setting " << item << " to false\n";
-					prg.freeze(itemsToVars.at(*item), Clasp::value_false);
+	}
+
+	else {
+		// Set external variables to the values of the current child row combination
+		clasp.update(false, false);
+
+		clasp.prepare();
+
+		// Mark atoms corresponding to items from the currently extended rows
+		for(const auto& row : getCurrentRowCombination()) {
+			for(const auto& item : row->getItems()) {
+				assert(itemsToLitIndices.find(item) != itemsToLitIndices.end());
+				assert(itemsToLitIndices.at(item) < literals.size());
+#ifdef DISABLE_CHECKS
+				literals[itemsToLitIndices.at(item)].watch();
+#else
+				try {
+					literals[itemsToLitIndices.at(item)].watch();
 				}
+				catch(const std::out_of_range&) {
+					std::ostringstream msg;
+					msg << "Unknown variable; atom childItem(" << *item << ") not shown or not declared as external?";
+					throw std::runtime_error(msg.str());
+				}
+#endif
+			}
+			for(const auto& item : row->getAuxItems()) {
+				assert(auxItemsToLitIndices.find(item) != auxItemsToLitIndices.end());
+				assert(auxItemsToLitIndices.at(item) < literals.size());
+#ifdef DISABLE_CHECKS
+				literals[auxItemsToLitIndices.at(item)].watch();
+#else
+				try {
+					literals[auxItemsToLitIndices.at(item)].watch();
+				}
+				catch(const std::out_of_range&) {
+					std::ostringstream msg;
+					msg << "Unknown variable; atom childAuxItem(" << *item << ") not shown or not declared as external?";
+					throw std::runtime_error(msg.str());
+				}
+#endif
 			}
 		}
-	} while(nextRowCombination(rowIterators));
+		// Set marked literals to true and all others to false
+		for(auto& lit : literals) {
+			if(lit.watched()) {
+				lit.clearWatch();
+				clasp.assume(lit);
+			}
+			else
+				clasp.assume(~lit);
+		}
+	}
+
+	asyncResult.reset(new BasicSolveIter(clasp));
 }
 
-bool Solver::nextRowCombination(std::vector<std::pair<Decomposition*, ItemTree::Children::const_iterator>>& rowIterators, size_t incrementPos)
+bool Solver::endOfRowCandidates() const
 {
-	// Increment the iterator at index incrementPos, then reset all iterators before it except at index 0 (this is the new row which should be combined with all "old" rows from other child nodes)
-	if(incrementPos == rowIterators.size())
-		return false;
+//	++solveCalls;
+	return !asyncResult || asyncResult->end();
+}
 
-	if(++rowIterators[incrementPos].second == dynamic_cast<Solver&>(rowIterators[incrementPos].first->getSolver()).getItemTreeSoFar()->getChildren().end())
-		return nextRowCombination(rowIterators, incrementPos+1);
-	else {
-		for(size_t i = 1; i < incrementPos; ++i)
-			rowIterators[i].second = dynamic_cast<Solver&>(rowIterators[i].first->getSolver()).getItemTreeSoFar()->getChildren().begin();
+void Solver::nextRowCandidate()
+{
+	assert(asyncResult);
+	asyncResult->next();
+}
+
+void Solver::handleRowCandidate(long costBound)
+{
+//	++models;
+	assert(asyncResult);
+	const Clasp::Model& m = asyncResult->model();
+
+	// Get items {{{
+	ItemTreeNode::Items items;
+	asp_utils::forEachTrue(m, itemAtomInfos, [&items](const GringoOutputProcessor::ItemAtomArguments& arguments) {
+			items.insert(arguments.item);
+	});
+	ItemTreeNode::Items auxItems;
+	asp_utils::forEachTrue(m, auxItemAtomInfos, [&auxItems](const GringoOutputProcessor::AuxItemAtomArguments& arguments) {
+			auxItems.insert(arguments.item);
+	});
+
+	ASP_CHECK(std::find_if(items.begin(), items.end(), [&auxItems](const String& item) {
+				return auxItems.find(item) != auxItems.end();
+	}) == items.end(), "Items and auxiliary items not disjoint");
+	// }}}
+	// FIXME Do proper cost computations, not this item-set cardinality proof of concept
+	// Compute cost {{{
+//	ASP_CHECK(asp_utils::countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
+//	long cost = 0;
+//	asp_utils::forFirstTrue(m, costAtomInfos, [&cost](const GringoOutputProcessor::CostAtomArguments& arguments) {
+//			cost = arguments.cost;
+//	});
+//	node->setCost(cost);
+
+	long cost = items.size();
+	for(const auto& row : getCurrentRowCombination()) {
+		const auto& oldItems = row->getItems();
+		ItemTreeNode::Items intersection;
+		std::set_intersection(items.begin(), items.end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
+		cost += row->getCost() - intersection.size();
 	}
-	return true;
+	// }}}
+	if(cost >= costBound) {
+//		++discardedModels;
+		newestRow = itemTree->getChildren().end();
+		return;
+	}
+
+	assert(itemTree);
+	// Create item tree node {{{
+	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {getCurrentRowCombination()}));
+	// }}}
+	if(!app.isOptimizationDisabled()) {
+		// Set cost {{{
+		node->setCost(cost);
+		// }}}
+		// Set current cost {{{
+//		ASP_CHECK(asp_utils::countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
+//		ASP_CHECK(asp_utils::countTrue(m, currentCostAtomInfos) == 0 || asp_utils::countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
+//		long currentCost = 0;
+//		asp_utils::forFirstTrue(m, currentCostAtomInfos, [&currentCost](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
+//				currentCost = arguments.currentCost;
+//		});
+//		node->setCurrentCost(currentCost);
+		node->setCurrentCost(node->getItems().size());
+		// }}}
+		// Possibly update cost of root {{{
+		itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
+		// }}}
+	}
+	// Add node to item tree {{{
+	//ItemTree::Children::const_iterator newChild = itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
+	newestRow = itemTree->costChangeAfterAddChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
+	// }}}
+
+	//if(newChild != itemTree->getChildren().end())
+	//	newestRow = newChild;
 }
 
 }} // namespace solver::lazy_clasp

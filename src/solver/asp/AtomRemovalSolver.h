@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -24,19 +24,18 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <unordered_map>
 
 #include "SolverBase.h"
-#include "../../Hypergraph.h"
 
 namespace solver { namespace asp {
 
 class AtomRemovalSolver : public SolverBase
 {
 public:
-	AtomRemovalSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& removedAtom);
+	AtomRemovalSolver(const Decomposition& decomposition, const Application& app, String removedAtom);
 
 	virtual ItemTreePtr compute() override;
 
 private:
-	const Hypergraph::Vertex removedAtom;
+	const String removedAtom;
 };
 
 }} // namespace solver::asp

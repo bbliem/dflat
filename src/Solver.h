@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -32,6 +32,7 @@ class Solver
 public:
 	// Construct a solver responsible for the root of the given decomposition
 	Solver(const Decomposition& decomposition, const Application& app);
+	virtual ~Solver();
 
 	// Return the complete item tree
 	virtual ItemTreePtr compute() = 0;

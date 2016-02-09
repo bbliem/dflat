@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -20,14 +20,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include "DecompositionNode.h"
 
-DecompositionNode::DecompositionNode(const Hypergraph::Vertices& bag)
+DecompositionNode::DecompositionNode(const Bag& bag)
 	: bag(bag)
 {
 	static unsigned int nextGlobalId = 1;
 	globalId = nextGlobalId++;
 }
 
-const Hypergraph::Vertices& DecompositionNode::getBag() const
+const DecompositionNode::Bag& DecompositionNode::getBag() const
 {
 	return bag;
 }
@@ -42,7 +42,7 @@ std::ostream& operator<<(std::ostream& os, const DecompositionNode& node)
 	os << node.globalId << ' ';
 	// Print bag
 	os << '{';
-	Hypergraph::Vertices::const_iterator it = node.bag.begin();
+	DecompositionNode::Bag::const_iterator it = node.bag.begin();
 	if(it != node.bag.end()) {
 			os << *it;
 		while(++it != node.bag.end())

@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -23,14 +23,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Module.h"
 #include "Decomposition.h"
 
-class Hypergraph;
+class Instance;
 
 class Decomposer : public Module
 {
 public:
 	Decomposer(Application& app, const std::string& optionName, const std::string& optionDescription, bool newDefault = false);
 
-	virtual DecompositionPtr decompose(const Hypergraph& instance) const = 0;
+	virtual DecompositionPtr decompose(const Instance& instance) const = 0;
 
 	virtual void select() override;
 };

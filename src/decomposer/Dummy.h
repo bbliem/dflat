@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -29,7 +29,7 @@ class Dummy : public Decomposer
 public:
 	Dummy(Application& app, bool newDefault = false);
 
-	virtual DecompositionPtr decompose(const Hypergraph& instance) const override;
+	virtual DecompositionPtr decompose(const Instance& instance) const override;
 };
 
 } // namespace decomposer

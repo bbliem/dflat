@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -74,6 +74,16 @@ bool Printer::listensForSolverEvents() const
 
 void Printer::solverEvent(const std::string& msg)
 {
+}
+
+void Printer::provisionalSolution(const ItemTreeNode& solution)
+{
+	if(app.printProvisionalSolutions()) {
+		std::cout << "Provisional solution:" << std::endl;
+		for(const auto& item : solution.firstExtension())
+			std::cout << item << ' ';
+		std::cout << std::endl << "Cost: " << solution.getCost() << std::endl;
+	}
 }
 
 void Printer::result(const ItemTreePtr& rootItemTree)

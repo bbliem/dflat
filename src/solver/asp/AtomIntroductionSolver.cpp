@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -26,7 +26,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-AtomIntroductionSolver::AtomIntroductionSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& introducedAtom)
+AtomIntroductionSolver::AtomIntroductionSolver(const Decomposition& decomposition, const Application& app, String introducedAtom)
 	: SolverBase(decomposition, app)
 	, introducedAtom(introducedAtom)
 {
@@ -47,10 +47,10 @@ ItemTreePtr AtomIntroductionSolver::compute()
 
 		// Find out which rules are satisfied by setting introducedAtom to true or false, respectively, and which disappear from the reduct by setting introducedAtom to true.
 		// TODO unordered_set?
-		Hypergraph::Vertices rulesSatisfiedByTrue;
-		Hypergraph::Vertices rulesSatisfiedByFalse;
-		Hypergraph::Vertices rulesDisappearingByTrue;
-		for(const Hypergraph::Vertex& bagElement : decomposition.getNode().getBag()) {
+		Rules rulesSatisfiedByTrue;
+		Rules rulesSatisfiedByFalse;
+		Rules rulesDisappearingByTrue;
+		for(String bagElement : decomposition.getNode().getBag()) {
 			AtomsInRule::const_iterator it = heads.find(bagElement);
 			if(it != heads.end() && it->second.find(introducedAtom) != it->second.end())
 				rulesSatisfiedByTrue.insert(bagElement);

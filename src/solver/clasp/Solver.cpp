@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -43,35 +43,31 @@ namespace solver { namespace clasp {
 
 namespace {
 
-class DummyGringoModule : public Gringo::GringoModule
-{
-    virtual Gringo::Control *newControl(int argc, char const **argv) override { throw std::logic_error("DummyGringoModule"); };
-    virtual void freeControl(Gringo::Control *ctrl) override { throw std::logic_error("DummyGringoModule"); };
-    virtual Gringo::Value parseValue(std::string const &repr) override { throw std::logic_error("DummyGringoModule"); };
-};
-
-std::unique_ptr<GringoOutputProcessor> newGringoOutputProcessor(Clasp::Asp::LogicProgram& claspProgramBuilder, const ChildItemTrees& childItemTrees, bool tableMode)
+std::unique_ptr<asp_utils::GringoOutputProcessor> newGringoOutputProcessor(Clasp::Asp::LogicProgram& claspProgramBuilder, const ChildItemTrees& childItemTrees, bool tableMode)
 {
 	if(tableMode)
-		return std::unique_ptr<GringoOutputProcessor>(new tables::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
+		return std::unique_ptr<asp_utils::GringoOutputProcessor>(new tables::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
 	else
-		return std::unique_ptr<GringoOutputProcessor>(new trees::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
+		return std::unique_ptr<asp_utils::GringoOutputProcessor>(new trees::GringoOutputProcessor(claspProgramBuilder, childItemTrees));
 }
 
-std::unique_ptr<ClaspCallback> newClaspCallback(bool tableMode, const Gringo::Output::LparseOutputter& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, bool root, const Decomposition& decomposition)
+std::unique_ptr<asp_utils::ClaspCallback> newClaspCallback(bool tableMode, const Gringo::Output::LparseOutputter& gringoOutput, const ChildItemTrees& childItemTrees, const Application& app, bool root, const Decomposition& decomposition, bool cardinalityCost)
 {
 	if(tableMode)
-		return std::unique_ptr<ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutput), childItemTrees, app, root));
-	else
-		return std::unique_ptr<ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutput), childItemTrees, app, decomposition));
+		return std::unique_ptr<asp_utils::ClaspCallback>(new tables::ClaspCallback(dynamic_cast<const tables::GringoOutputProcessor&>(gringoOutput), childItemTrees, app, root, cardinalityCost));
+	else {
+		assert(cardinalityCost == false);
+		return std::unique_ptr<asp_utils::ClaspCallback>(new trees::ClaspCallback(dynamic_cast<const trees::GringoOutputProcessor&>(gringoOutput), childItemTrees, app, decomposition));
+	}
 }
 
 } // anonymous namespace
 
-Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode)
+Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode, bool cardinalityCost)
 	: ::Solver(decomposition, app)
 	, encodingFiles(encodingFiles)
 	, tableMode(tableMode)
+	, cardinalityCost(cardinalityCost)
 {
 	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
 
@@ -84,7 +80,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 			std::ofstream dummyStream;
 			std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, dummyStream));
 			Gringo::Input::Program program;
-			DummyGringoModule module;
+			asp_utils::DummyGringoModule module;
 			Gringo::Scripts scripts(module);
 			Gringo::Defines defs;
 			std::unique_ptr<EncodingChecker> encodingChecker{new trees::EncodingChecker(scripts, program, *out, defs)};
@@ -118,19 +114,18 @@ ItemTreePtr Solver::compute()
 	for(const auto& childItemTree : childItemTrees) {
 		std::ostringstream rootItemSetName;
 		rootItemSetName << 'n' << childItemTree.first;
-		declareItemTree(*childItemTreesInput, childItemTree.second.get(), tableMode, childItemTree.first, rootItemSetName.str());
+		asp_utils::declareItemTree(*childItemTreesInput, childItemTree.second.get(), tableMode, childItemTree.first, rootItemSetName.str());
 	}
-
 	app.getPrinter().solverInvocationInput(decomposition, childItemTreesInput->str());
 
-	// Input: Original problem instance
+	// Input: Induced subinstance
 	std::unique_ptr<std::stringstream> instanceInput(new std::stringstream);
-	*instanceInput << app.getInputString();
+	asp_utils::induceSubinstance(*instanceInput, app.getInstance(), decomposition.getNode().getBag());
+	app.getPrinter().solverInvocationInput(decomposition, instanceInput->str());
 
 	// Input: Decomposition
 	std::unique_ptr<std::stringstream> decompositionInput(new std::stringstream);
-	declareDecomposition(decomposition, *decompositionInput);
-
+	asp_utils::declareDecomposition(decomposition, *decompositionInput);
 	app.getPrinter().solverInvocationInput(decomposition, decompositionInput->str());
 
 	// Set up ASP solver
@@ -142,7 +137,7 @@ ItemTreePtr Solver::compute()
 	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut(newGringoOutputProcessor(claspProgramBuilder, childItemTrees, tableMode));
 	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));
 	Gringo::Input::Program program;
-	DummyGringoModule module;
+	asp_utils::DummyGringoModule module;
 	Gringo::Scripts scripts(module);
 	Gringo::Defines defs;
 	Gringo::Input::NongroundProgramBuilder gringoProgramBuilder(scripts, program, *out, defs);
@@ -166,110 +161,17 @@ ItemTreePtr Solver::compute()
 	params.add("base", {});
 	gPrg.ground(params, scripts, *out);
 	params.clear();
+	// Finalize ground program and create solver variables
+	claspProgramBuilder.endProgram();
 
+	std::unique_ptr<asp_utils::ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, decomposition.isRoot(), decomposition, cardinalityCost));
+	cb->prepare(claspProgramBuilder);
 	clasp.prepare();
-	std::unique_ptr<ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, decomposition.isRoot(), decomposition));
-	cb->prepare(clasp.ctx.symbolTable());
 	clasp.solve(cb.get());
 
 	ItemTreePtr result = cb->finalize(decomposition.isRoot(), app.isPruningDisabled() == false || decomposition.isRoot());
 	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
-}
-
-void Solver::declareDecomposition(const Decomposition& decomposition, std::ostream& out)
-{
-	out << "% Decomposition facts" << std::endl;
-	out << "currentNode(" << decomposition.getNode().getGlobalId() << ")." << std::endl;
-	for(const auto& v : decomposition.getNode().getBag()) {
-		out << "bag(" << decomposition.getNode().getGlobalId() << ',' << v << "). ";
-		out << "current(" << v << ")." << std::endl;
-	}
-
-	out << "#const numChildNodes=" << decomposition.getChildren().size() << '.' << std::endl;
-	if(decomposition.getChildren().empty())
-		out << "initial." << std::endl;
-	else {
-		for(const auto& child : decomposition.getChildren()) {
-			out << "childNode(" << child->getNode().getGlobalId() << ")." << std::endl;
-			for(const auto& v : child->getNode().getBag()) {
-				out << "bag(" << child->getNode().getGlobalId() << ',' << v << "). ";
-				out << "-introduced(" << v << ")." << std::endl; // Redundant
-			}
-		}
-	}
-
-	if(decomposition.isRoot())
-		out << "final." << std::endl;
-
-	if(decomposition.isPostJoinNode())
-		out << "postJoin." << std::endl;
-
-	// Redundant predicates for convenience...
-	out << "introduced(X) :- current(X), not -introduced(X)." << std::endl;
-	out << "removed(X) :- childNode(N), bag(N,X), not current(X)." << std::endl;
-}
-
-void Solver::declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode, unsigned int nodeId, const std::string& itemSetName, const std::string& parent, unsigned int level)
-{
-	if(!itemTree)
-		return;
-
-	// Declare this item set
-	if(tableMode) {
-		if(parent.empty() == false)
-			out << "childRow(" << itemSetName << ',' << nodeId << ")." << std::endl;
-	} else {
-		out << "atLevel(" << itemSetName << ',' << level << ")." << std::endl;
-		out << "atNode(" << itemSetName << ',' << nodeId << ")." << std::endl;
-		if(parent.empty()) {
-			out << "root(" << itemSetName << ")." << std::endl;
-			out << "rootOf(" << itemSetName << ',' << nodeId << ")." << std::endl;
-		} else {
-			out << "sub(" << parent << ',' << itemSetName << ")." << std::endl;
-			if(itemTree->getChildren().empty()) {
-				out << "leaf(" << itemSetName << ")." << std::endl;
-				out << "leafOf(" << itemSetName << ',' << nodeId << ")." << std::endl;
-			}
-		}
-	}
-	for(const auto& item : itemTree->getNode()->getItems())
-		out << "childItem(" << itemSetName << ',' << item << ")." << std::endl;
-	for(const auto& item : itemTree->getNode()->getAuxItems())
-		out << "childAuxItem(" << itemSetName << ',' << item << ")." << std::endl;
-
-	// Declare item tree node type
-	switch(itemTree->getNode()->getType()) {
-		case ItemTreeNode::Type::UNDEFINED:
-			break;
-		case ItemTreeNode::Type::OR:
-			out << "childOr(" << itemSetName << ")." << std::endl;
-			break;
-		case ItemTreeNode::Type::AND:
-			out << "childAnd(" << itemSetName << ")." << std::endl;
-			break;
-		case ItemTreeNode::Type::ACCEPT:
-			out << "childAccept(" << itemSetName << ")." << std::endl;
-			break;
-		case ItemTreeNode::Type::REJECT:
-			out << "childReject(" << itemSetName << ")." << std::endl;
-			break;
-	}
-
-	// If this is a leaf, declare cost
-	const ItemTree::Children& children = itemTree->getChildren();
-	if(children.empty()) {
-		out << "childCost(" << itemSetName << ',' << itemTree->getNode()->getCost() << ")." << std::endl;
-	}
-	else {
-		// Declare child item sets
-		size_t i = 0;
-		for(const auto& child : children) {
-			std::ostringstream childName;
-			childName << itemSetName << '_' << i++;
-			declareItemTree(out, child.get(), tableMode, nodeId, childName.str(), itemSetName, level+1);
-		}
-	}
 }
 
 }} // namespace solver::clasp

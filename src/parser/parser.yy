@@ -1,5 +1,5 @@
  /*
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -26,7 +26,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 %code requires
 {
 	#include <sstream>
-	class Hypergraph;
+	class Instance;
 	namespace parser {
 		class Driver;
 		class Terms;
@@ -34,7 +34,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 }
 
 %parse-param { parser::Driver& driver }
-%parse-param { Hypergraph& hypergraph }
+%parse-param { Instance& instance }
 %lex-param   { parser::Driver& driver }
 %locations
 %error-verbose
@@ -90,11 +90,11 @@ function: "identifier" '(' terms ')' {
         ;
 
 fact: "identifier" '.'               {
-                                       driver.processFact(hypergraph, *$1);
+                                       driver.processFact(instance, *$1);
                                        delete $1;
                                      }
     | "identifier" '(' terms ')' '.' {
-                                       driver.processFact(hypergraph, *$1, $3);
+                                       driver.processFact(instance, *$1, $3);
                                        delete $1;
                                        delete $3;
                                      }

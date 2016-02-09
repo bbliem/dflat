@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -45,6 +45,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "printer/Progress.h"
 #include "printer/DebugHumanReadable.h"
 #include "printer/DebugMachineReadable.h"
+#include "printer/CountRows.h"
 
 #include "parser/Driver.h"
 
@@ -72,8 +73,10 @@ Application::Application(const std::string& binaryName)
 	, optSolver("s", "solver", "Use <solver> to compute partial solutions")
 	, optPrinter("output", "module", "Print information during the run using <module>")
 	, optNoCounting("no-counting", "Do not count the number of solutions")
+	, optNoOptimization("no-optimization", "Ignore solution costs")
 	, optNoPruning("no-pruning", "Prune rejecting subtrees only in the decomposition root")
 	, optPrintDecomposition("print-decomposition", "Print the generated decomposition")
+	, optPrintProvisional("print-provisional", "Report possibly non-optimal solutions")
 	, decomposer(0)
 	, solverFactory(0)
 	, depth(std::numeric_limits<unsigned int>::max())
@@ -105,8 +108,10 @@ int Application::run(int argc, const char* const* const argv)
 	opts.addOption(optInputFile);
 
 	opts.addOption(optNoCounting);
+	opts.addOption(optNoOptimization);
 	opts.addOption(optNoPruning);
 	opts.addOption(optPrintDecomposition);
+	opts.addOption(optPrintProvisional);
 	options::SingleValueOption optGraphMlOut("graphml-out", "file", "Write the decomposition in the GraphML format to <file>");
 	opts.addOption(optGraphMlOut);
 
@@ -129,6 +134,7 @@ int Application::run(int argc, const char* const* const argv)
 	printer::Progress progressPrinter(*this, true);
 	printer::DebugHumanReadable humanReadableDebugPrinter(*this);
 	printer::DebugMachineReadable machineReadableDebugPrinter(*this);
+	printer::CountRows countRows(*this);
 
 	time_t seed = time(0);
 	// Parse command line
@@ -158,27 +164,11 @@ int Application::run(int argc, const char* const* const argv)
 	// Get (hyper-)edge predicate names
 	parser::Driver::Predicates edgePredicates(optEdge.getValues().begin(), optEdge.getValues().end());
 
-	// Store the problem instance in a string
-	// FIXME This should only be done for solvers that need it.
-	if(optInputFile.isUsed()) {
-		std::ifstream inputFile(optInputFile.getValue());
-		if(!inputFile)
-			throw std::runtime_error("Could not open input file");
-		std::ostringstream inputStringStream;
-		inputStringStream << inputFile.rdbuf();
-		inputString = inputStringStream.str();
-	}
-	else {
-		std::ostringstream inputStringStream;
-		inputStringStream << std::cin.rdbuf();
-		inputString = inputStringStream.str();
-	}
-
 	// Parse instance
-	inputHypergraph = parser::Driver(inputString, edgePredicates).parse();
+	instance = parser::Driver(optInputFile.getValue(), edgePredicates).parse();
 
 	// Decompose instance
-	DecompositionPtr decomposition = decomposer->decompose(inputHypergraph);
+	DecompositionPtr decomposition = decomposer->decompose(instance);
 	if(optGraphMlOut.isUsed()) {
 		std::ofstream graphMlFile(optGraphMlOut.getValue().c_str());
 		decomposition->printGraphMl(graphMlFile);
@@ -205,14 +195,9 @@ void Application::printVersion() const
 	std::cout << "D-FLAT version " VERSION_NUMBER << std::endl;
 }
 
-const std::string& Application::getInputString() const
+const Instance& Application::getInstance() const
 {
-	return inputString;
-}
-
-const Hypergraph& Application::getInputHypergraph() const
-{
-	return inputHypergraph;
+	return instance;
 }
 
 options::OptionHandler& Application::getOptionHandler()
@@ -267,6 +252,11 @@ bool Application::isCountingDisabled() const
 	return optNoCounting.isUsed();
 }
 
+bool Application::isOptimizationDisabled() const
+{
+	return optNoOptimization.isUsed();
+}
+
 bool Application::isPruningDisabled() const
 {
 	return optNoPruning.isUsed();
@@ -275,6 +265,11 @@ bool Application::isPruningDisabled() const
 bool Application::printDecomposition() const
 {
 	return optPrintDecomposition.isUsed();
+}
+
+bool Application::printProvisionalSolutions() const
+{
+	return optPrintProvisional.isUsed();
 }
 
 unsigned int Application::getMaterializationDepth() const

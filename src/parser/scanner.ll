@@ -1,5 +1,5 @@
 /*
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -83,11 +83,16 @@ namespace parser {
 
 void Driver::scan_begin()
 {
-	yy_scan_string(input.c_str());
+	//yy_scan_string(input.c_str());
+	if(filename.empty())
+		yyin = stdin;
+	else if(!(yyin = fopen(filename.c_str(), "r")))
+		throw std::runtime_error("Could not open input file");
 }
 
 void Driver::scan_end()
 {
+	fclose(yyin);
 	yylex_destroy();
 }
 

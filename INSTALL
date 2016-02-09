@@ -1,15 +1,15 @@
 COMPILING
 
 Compilation of D-FLAT has been tested with the following versions of the dependencies:
-- CMake (http://cmake.org/), version 2.8.12.2
-- libgringo (http://potassco.sourceforge.net/), version 4.3.0
-- libclasp (http://potassco.sourceforge.net/), version 3.0.2
-- GMP (http://gmplib.org/), version 6.0.0 -- make sure to also compile the C++ interface
-- SHARP (http://www.dbai.tuwien.ac.at/research/project/sharp/), version 1.1.1
+- CMake (http://cmake.org/), version 3.4.1
+- libgringo (http://potassco.sourceforge.net/), version 4.5.0
+- libclasp (http://potassco.sourceforge.net/), version 3.1.3 with patch supplied with D-FLAT source code
+- GMP (http://gmplib.org/), version 6.1.0 -- make sure to also compile the C++ interface
+- htd (https://github.com/mabseher/htd), commit eecc179 (Dec. 28, 2015)
 
-Compilation was tested with the stated version numbers and GCC 4.8.2, as well as with clang 3.4. Unless the developers of the dependencies introduce incompatible changes, later versions should work too. (Older versions might work if you're lucky.) If you run into any problems with later releases, try compiling D-FLAT with the version specified above.
+Compilation was tested with the stated version numbers and GCC 5,3,0, as well as with clang 3.7.0. Unless the developers of the dependencies introduce incompatible changes, later versions should work too. (Older versions might work if you're lucky.) If you run into any problems with later releases, try compiling D-FLAT with the version specified above.
 
-You need to adjust the paths in D-FLAT's Makefile. In particular, the variables gringo_dir, clasp_dir and sharp_dir.
+You need to adjust the paths in D-FLAT's Makefile. In particular, the variables gringo_dir, clasp_dir and htd_dir.
 
 Then, running "make" in the D-FLAT top-level directory should build the binary at build/release/dflat.
 
@@ -19,6 +19,5 @@ COMPILATION FLAGS
 
 D-FLAT supports the following preprocessor defines:
 
-- DECOMPOSITION_COMPATIBILITY: Causes D-FLAT to build identical decompositions as the old version 0.2, when both are supplied with identical random seeds. (Causes a little overhead.)
 - DISABLE_CHECKS: Disables some checks to make sure the user-supplied program is correct. Not recommended unless you have tested the program thoroughly and want to gain extra performance.
 - NO_UNICODE: Avoids unicode special symbols for printing item trees in favor of ASCII symbols. Less beautiful, but probably more portable.

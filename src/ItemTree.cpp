@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -69,7 +69,7 @@ bool ItemTreePtrComparator::operator()(const ItemTreePtr& lhs, const ItemTreePtr
 	return compareRecursively(lhs, rhs) < 0;
 }
 
-ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree)
+void ItemTree::addChildAndMerge(ChildPtr&& subtree)
 {
 	assert(subtree);
 	assert(subtree->getNode()->getParent() == nullptr);
@@ -86,7 +86,23 @@ ItemTree::Children::const_iterator ItemTree::addChildAndMerge(ChildPtr&& subtree
 
 		// Unify subtree with origChild
 		origChild->merge(std::move(*subtree));
-		return children.end();
+	}
+}
+
+ItemTree::Children::const_iterator ItemTree::costChangeAfterAddChildAndMerge(ChildPtr&& subtree)
+{
+	assert(subtree);
+	assert(subtree->getNode()->getParent() == nullptr);
+	subtree->getNode()->setParent(node.get());
+	std::pair<Children::iterator, bool> result = children.insert(std::move(subtree));
+
+	if(!result.second) {
+		assert(subtree);
+		const ItemTreePtr& origChild = *result.first;
+		const long oldCost = origChild->getNode()->getCost();
+		origChild->merge(std::move(*subtree));
+		if(origChild->getNode()->getCost() == oldCost)
+			return children.end();
 	}
 	return result.first;
 }

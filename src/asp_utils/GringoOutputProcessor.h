@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -26,27 +26,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <clasp/logic_program.h>
 #include <unordered_map>
 
-#include "../../ItemTree.h"
+#include "../ItemTree.h"
 
-#ifdef DISABLE_CHECKS
-#	define ASP_CHECK(cond, error)
-#else
-#	define ASP_CHECK(cond, error)\
-	if((cond) == false)                 \
-		throw std::runtime_error(error);
-#endif
-
-namespace solver { namespace clasp {
+namespace asp_utils {
 
 class GringoOutputProcessor : public Gringo::Output::LparseOutputter
 {
 public:
-	template<typename T>
-	struct AtomInfo {
-		T arguments;
-		Clasp::SymbolTable::key_type symbolTableKey;
-	};
-
 	GringoOutputProcessor(Clasp::Asp::LogicProgram& out) : prg_(out) {
 		false_ = prg_.newAtom();
 		prg_.setCompute(false_, false);
@@ -79,4 +65,4 @@ protected:
 	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) = 0;
 };
 
-}} // namespace solver::clasp
+} // namespace asp_utils

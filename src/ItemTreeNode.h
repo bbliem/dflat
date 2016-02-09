@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -107,6 +107,9 @@ public:
 	// Returns zero if this is equal to other, without considering costs.
 	// Only considers items, type, hasAcceptingChild, hasRejectingChild and auxItems.
 	int compareCostInsensitive(const ItemTreeNode& other) const;
+
+	// Materialize just one extension
+	Items firstExtension() const;
 
 	// Print this node (no newlines)
 	friend std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node);

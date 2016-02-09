@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -42,11 +42,16 @@ public:
 	// If there is a subtree rooted at a child of this node that has equal item
 	// sets as the given one, the existing subtree is unified with the given
 	// one.
-	// If no merging has occurred (i.e., "subtree" was added as a new child),
-	// returns an iterator to this new child; otherwise returns an iterator to
-	// this->children.end().
 	// The parent of subtree->node must be undefined and is set to this->node.
-	Children::const_iterator addChildAndMerge(ChildPtr&& subtree);
+	void addChildAndMerge(ChildPtr&& subtree);
+
+	// Like addChildAndMerge but does some additional work (right now for lazy
+	// solving):
+	// If no merging has occurred (i.e., "subtree" was added as a new child),
+	// or if merging resulted in a change of costs (i.e., "subtree" leads to a
+	// better partial solution), returns an iterator to this new child;
+	// otherwise returns an iterator to this->children.end().
+	Children::const_iterator costChangeAfterAddChildAndMerge(ChildPtr&& subtree);
 
 	// 1. Prunes children with UNDEFINED type recursively if pruneUndefined is
 	// true.

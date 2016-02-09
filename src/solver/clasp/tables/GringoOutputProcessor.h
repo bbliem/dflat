@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -22,37 +22,38 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <memory>
 
-#include "../GringoOutputProcessor.h"
+#include "../../../asp_utils.h"
+#include "../../../asp_utils/GringoOutputProcessor.h"
 
 namespace solver { namespace clasp { namespace tables {
 
-class GringoOutputProcessor : public ::solver::clasp::GringoOutputProcessor
+class GringoOutputProcessor : public asp_utils::GringoOutputProcessor
 {
 public:
 	struct ExtendAtomArguments {
 		std::weak_ptr<ItemTreeNode> extendedRow;
 	};
-	typedef AtomInfo<ExtendAtomArguments> ExtendAtomInfo;
+	typedef asp_utils::GringoAtomInfo<ExtendAtomArguments> ExtendAtomInfo;
 
 	struct ItemAtomArguments {
 		String item;
 	};
-	typedef AtomInfo<ItemAtomArguments> ItemAtomInfo;
+	typedef asp_utils::GringoAtomInfo<ItemAtomArguments> ItemAtomInfo;
 
 	struct AuxItemAtomArguments {
 		String item;
 	};
-	typedef AtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
+	typedef asp_utils::GringoAtomInfo<AuxItemAtomArguments> AuxItemAtomInfo;
 
 	struct CurrentCostAtomArguments {
 		long currentCost;
 	};
-	typedef AtomInfo<CurrentCostAtomArguments> CurrentCostAtomInfo;
+	typedef asp_utils::GringoAtomInfo<CurrentCostAtomArguments> CurrentCostAtomInfo;
 
 	struct CostAtomArguments {
 		long cost;
 	};
-	typedef AtomInfo<CostAtomArguments> CostAtomInfo;
+	typedef asp_utils::GringoAtomInfo<CostAtomArguments> CostAtomInfo;
 
 	typedef std::vector<ItemAtomInfo>        ItemAtomInfos;
 	typedef std::vector<AuxItemAtomInfo>     AuxItemAtomInfos;

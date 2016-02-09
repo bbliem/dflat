@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Solver.h"
 #include "../default_join/Solver.h"
 #include "../lazy_clasp/Solver.h"
+#include "../lazy_default_join/Solver.h"
 #include "../../Application.h"
 #include "../../Decomposition.h"
 
@@ -38,8 +39,12 @@ const std::string SolverFactory::OPTION_SECTION = "Clasp solver";
 SolverFactory::SolverFactory(Application& app, bool newDefault)
 	: ::SolverFactory(app, "clasp", "Answer Set Programming solver clasp", newDefault)
 	, optEncodingFiles  ("p", "program",     "Use <program> as an ASP encoding for solving")
+	, optCardinalityCost("cardinality-cost", "Use item set cardinality as costs")
 	, optDefaultJoin    ("default-join",     "Use built-in implementation for join nodes")
-	, optLazy           ("lazy",             "Use lazy evaluation (experimental)")
+	, optLazy           ("lazy",             "Use lazy evaluation to find one solution")
+	, optNoBinarySearch ("no-binary-search", "Disable binary search in lazy default join")
+	, optBbLevel        ("bb", "s",          "Use branch and bound stategy <s> for lazy solving")
+	, optReground       ("reground",         "Reground instead of external atoms in lazy solving")
 	, optTables         ("tables",           "Use table mode (for item trees of height at most 1)")
 #ifdef HAVE_WORDEXP_H
 	, optIgnoreModelines("ignore-modelines", "Do not scan the encoding files for modelines")
@@ -48,11 +53,33 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 	optEncodingFiles.addCondition(selected);
 	app.getOptionHandler().addOption(optEncodingFiles, OPTION_SECTION);
 
+	optCardinalityCost.addCondition(selected);
+	optCardinalityCost.addCondition(condTables);
+	app.getOptionHandler().addOption(optCardinalityCost, OPTION_SECTION);
+
 	optDefaultJoin.addCondition(selected);
 	app.getOptionHandler().addOption(optDefaultJoin, OPTION_SECTION);
 
 	optLazy.addCondition(selected);
+	optLazy.addCondition(condTables); // TODO Lazy solving should not require table mode?
 	app.getOptionHandler().addOption(optLazy, OPTION_SECTION);
+
+	optNoBinarySearch.addCondition(selected);
+	optNoBinarySearch.addCondition(condLazy);
+	optNoBinarySearch.addCondition(condDefaultJoin);
+	app.getOptionHandler().addOption(optNoBinarySearch, OPTION_SECTION);
+
+	optBbLevel.addCondition(selected);
+	optBbLevel.addCondition(condLazy);
+	optBbLevel.addCondition(condOptimization);
+	optBbLevel.addChoice("none", "No branch and bound");
+	optBbLevel.addChoice("basic", "Prevent rows not cheaper than current provisional solution");
+	optBbLevel.addChoice("full", "Improve bounds using solutions for forgotten subgraphs", true);
+	app.getOptionHandler().addOption(optBbLevel, OPTION_SECTION);
+
+	optReground.addCondition(selected);
+	optReground.addCondition(condLazy);
+	app.getOptionHandler().addOption(optReground, OPTION_SECTION);
 
 	optTables.addCondition(selected);
 	app.getOptionHandler().addOption(optTables, OPTION_SECTION);
@@ -66,16 +93,27 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decomposition) const
 {
 	if(optLazy.isUsed()) {
-		// FIXME this should not make --default-join ineffective, and it should not require table mode
-		if(optDefaultJoin.isUsed() || !optTables.isUsed())
-			throw std::runtime_error("Lazy evaluation currently requires table mode and not using the default join");
-		return std::unique_ptr<::Solver>(new lazy_clasp::Solver(decomposition, app, optEncodingFiles.getValues()));
+		assert(optTables.isUsed() && condTables.isSatisfied());
+		assert(!optNoBinarySearch.isUsed() || optDefaultJoin.isUsed());
+		LazySolver::BranchAndBoundLevel bbLevel;
+		if(optBbLevel.getValue() == "none")
+			bbLevel = LazySolver::BranchAndBoundLevel::none;
+		else if(optBbLevel.getValue() == "basic")
+			bbLevel = LazySolver::BranchAndBoundLevel::basic;
+		else {
+			assert(optBbLevel.getValue() == "full");
+			bbLevel = LazySolver::BranchAndBoundLevel::full;
+		}
+		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
+			return std::unique_ptr<::Solver>(new lazy_default_join::Solver(decomposition, app, decomposition.isRoot(), bbLevel, !optNoBinarySearch.isUsed()));
+		else
+			return std::unique_ptr<::Solver>(new lazy_clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optReground.isUsed(), bbLevel));
 	}
 	else {
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
 			return std::unique_ptr<::Solver>(new default_join::Solver(decomposition, app, optTables.isUsed() && decomposition.isRoot()));
 		else
-			return std::unique_ptr<::Solver>(new clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optTables.isUsed()));
+			return std::unique_ptr<::Solver>(new clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optTables.isUsed(), optCardinalityCost.isUsed()));
 	}
 }
 
@@ -86,11 +124,23 @@ void SolverFactory::select()
 		throw std::runtime_error("Clasp solver requires at least one program to be specified");
 }
 
-#ifdef HAVE_WORDEXP_H
 void SolverFactory::notify()
 {
 	::SolverFactory::notify();
 
+	if(optLazy.isUsed())
+		condLazy.setSatisfied();
+
+	if(optTables.isUsed())
+		condTables.setSatisfied();
+
+	if(optDefaultJoin.isUsed())
+		condDefaultJoin.setSatisfied();
+
+	if(!app.isOptimizationDisabled())
+		condOptimization.setSatisfied();
+
+#ifdef HAVE_WORDEXP_H
 	if(!optIgnoreModelines.isUsed()) {
 		// Scan for modelines in encoding files
 		for(const std::string& filename : optEncodingFiles.getValues()) {
@@ -120,7 +170,7 @@ void SolverFactory::notify()
 			modelineStack.pop_back();
 		}
 	}
-}
 #endif
+}
 
 }} // namespace solver::clasp

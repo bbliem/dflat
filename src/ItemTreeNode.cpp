@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -20,6 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <cassert>
 #include <memory>
+#include <limits>
 
 #include "ItemTreeNode.h"
 #include "ExtensionIterator.h"
@@ -167,6 +168,18 @@ int ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
 	return compareSets(auxItems, other.auxItems);
 }
 
+ItemTreeNode::Items ItemTreeNode::firstExtension() const
+{
+	Items result = items;
+	assert(extensionPointers.size() > 0);
+	ExtensionPointerTuple ept = extensionPointers.front();
+	for(const ExtensionPointer& ep : ept) {
+		const Items childResult = ep->firstExtension();
+		result.insert(childResult.begin(), childResult.end());
+	}
+	return result;
+}
+
 std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 {
 	// Print count
@@ -216,8 +229,12 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 //	os << "}, this: " << &node << ", parent: " << node.parent;
 
 	// Print cost
-	if(node.cost != 0)
-		os << " (cost: " << node.cost << "; current: " << node.getCurrentCost() << ')';
+	if(node.cost != 0) {
+		os << " (cost: " << node.cost;
+		if(node.getCurrentCost() != 0)
+			os << "; current: " << node.getCurrentCost();
+		os << ')';
+	}
 
 	return os;
 }

@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -26,7 +26,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace asp {
 
-AtomRemovalSolver::AtomRemovalSolver(const Decomposition& decomposition, const Application& app, const Hypergraph::Vertex& removedAtom)
+AtomRemovalSolver::AtomRemovalSolver(const Decomposition& decomposition, const Application& app, String removedAtom)
 	: SolverBase(decomposition, app)
 	, removedAtom(removedAtom)
 {

@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -30,22 +30,22 @@ SolverBase::SolverBase(const Decomposition& decomposition, const Application& ap
 	: ::Solver(decomposition, app)
 {
 	// FIXME This should not be computed for each solver
-	for(const Hypergraph::Edge& edge : app.getInputHypergraph().getEdgesOfKind("atom")) {
+	for(const Instance::Edge& edge : app.getInstance().getEdgeFactsOfPredicate("atom")) {
 #ifndef DISABLE_CHECKS
 		if(edge.size() != 1)
 			throw std::runtime_error("Atom hyperedges must have arity 1");
 #endif
-		const Hypergraph::Vertex& v = edge.front();
+		const String& v = edge.front();
 		if(isInBag(v))
 			atoms.insert(v);
 	}
 
-	for(const Hypergraph::Edge& edge : app.getInputHypergraph().getEdgesOfKind("rule")) {
+	for(const Instance::Edge& edge : app.getInstance().getEdgeFactsOfPredicate("rule")) {
 #ifndef DISABLE_CHECKS
 		if(edge.size() != 1)
 			throw std::runtime_error("Rule hyperedges must have arity 1");
 #endif
-		const Hypergraph::Vertex& v = edge.front();
+		const String& v = edge.front();
 		if(isInBag(v)) {
 			rules.insert(v);
 			// Make sure that for this rule v, heads[v], positiveBody[v] and negativeBody[v] exist.
@@ -56,11 +56,11 @@ SolverBase::SolverBase(const Decomposition& decomposition, const Application& ap
 		}
 	}
 
-	for(const Hypergraph::Edge& edge : app.getInputHypergraph().getEdgesOfKind("head")) {
+	for(const Instance::Edge& edge : app.getInstance().getEdgeFactsOfPredicate("head")) {
 #ifndef DISABLE_CHECKS
 		if(edge.size() != 2)
 			throw std::runtime_error("Head hyperedges must have arity 2");
-		const auto& declaredRules = app.getInputHypergraph().getEdgesOfKind("rule");
+		const auto& declaredRules = app.getInstance().getEdgeFactsOfPredicate("rule");
 		if(declaredRules.find({edge[0]}) == declaredRules.end())
 			throw std::runtime_error("Rules used in head/2, pos/2 or neg/2 must be declared via rule/1");
 #endif
@@ -68,11 +68,11 @@ SolverBase::SolverBase(const Decomposition& decomposition, const Application& ap
 			heads[edge[0]].insert(edge[1]);
 	}
 
-	for(const Hypergraph::Edge& edge : app.getInputHypergraph().getEdgesOfKind("pos")) {
+	for(const Instance::Edge& edge : app.getInstance().getEdgeFactsOfPredicate("pos")) {
 #ifndef DISABLE_CHECKS
 		if(edge.size() != 2)
 			throw std::runtime_error("Positive body hyperedges must have arity 2");
-		const auto& declaredRules = app.getInputHypergraph().getEdgesOfKind("rule");
+		const auto& declaredRules = app.getInstance().getEdgeFactsOfPredicate("rule");
 		if(declaredRules.find({edge[0]}) == declaredRules.end())
 			throw std::runtime_error("Rules used in head/2, pos/2 or neg/2 must be declared via rule/1");
 #endif
@@ -80,11 +80,11 @@ SolverBase::SolverBase(const Decomposition& decomposition, const Application& ap
 			positiveBody[edge[0]].insert(edge[1]);
 	}
 
-	for(const Hypergraph::Edge& edge : app.getInputHypergraph().getEdgesOfKind("neg")) {
+	for(const Instance::Edge& edge : app.getInstance().getEdgeFactsOfPredicate("neg")) {
 #ifndef DISABLE_CHECKS
 		if(edge.size() != 2)
 			throw std::runtime_error("Negative body hyperedges must have arity 2");
-		const auto& declaredRules = app.getInputHypergraph().getEdgesOfKind("rule");
+		const auto& declaredRules = app.getInstance().getEdgeFactsOfPredicate("rule");
 		if(declaredRules.find({edge[0]}) == declaredRules.end())
 			throw std::runtime_error("Rules used in head/2, pos/2 or neg/2 must be declared via rule/1");
 #endif
@@ -108,7 +108,7 @@ ItemTreePtr SolverBase::extendCertificate(ItemTreeNode::Items&& items, ItemTreeN
 	return ItemTreePtr(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), {{childCertificate->getNode()}}, type))));
 }
 
-inline bool SolverBase::isInBag(const Hypergraph::Vertex& element) const
+inline bool SolverBase::isInBag(const String& element) const
 {
 	return decomposition.getNode().getBag().find(element) != decomposition.getNode().getBag().end();
 }

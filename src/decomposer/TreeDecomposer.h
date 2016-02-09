@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -30,7 +30,7 @@ class TreeDecomposer : public Decomposer
 public:
 	TreeDecomposer(Application& app, bool newDefault = false);
 
-	virtual DecompositionPtr decompose(const Hypergraph& instance) const override;
+	virtual DecompositionPtr decompose(const Instance& instance) const override;
 
 private:
 	static const std::string OPTION_SECTION;
@@ -40,6 +40,7 @@ private:
 	options::Option optNoEmptyRoot;
 	options::Option optNoEmptyLeaves;
 	options::Option optPostJoin;
+	options::Option optPathDecomposition;
 };
 
 } // namespace decomposer

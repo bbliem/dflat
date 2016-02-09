@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -23,7 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace solver { namespace clasp { namespace tables {
 
 GringoOutputProcessor::GringoOutputProcessor(Clasp::Asp::LogicProgram& out, const ChildItemTrees& childItemTrees)
-	: ::solver::clasp::GringoOutputProcessor(out)
+	: asp_utils::GringoOutputProcessor(out)
 	, childItemTrees(childItemTrees)
 {
 }

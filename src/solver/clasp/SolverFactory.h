@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -23,6 +23,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #include "../../SolverFactory.h"
 #include "../../options/MultiValueOption.h"
+#include "../../options/Choice.h"
 
 #ifdef HAVE_WORDEXP_H
 #include <vector>
@@ -48,9 +49,18 @@ public:
 private:
 	static const std::string OPTION_SECTION;
 
+	options::Condition        condLazy;
+	options::Condition        condTables;
+	options::Condition        condDefaultJoin;
+	options::Condition        condOptimization;
+
 	options::MultiValueOption optEncodingFiles;
+	options::Option           optCardinalityCost;
 	options::Option           optDefaultJoin;
 	options::Option           optLazy;
+	options::Option           optNoBinarySearch;
+	options::Choice           optBbLevel;
+	options::Option           optReground;
 	options::Option           optTables;
 #ifdef HAVE_WORDEXP_H
 	options::Option           optIgnoreModelines;

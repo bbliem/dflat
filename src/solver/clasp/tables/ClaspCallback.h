@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -20,24 +20,25 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../ClaspCallback.h"
+#include "../../../asp_utils.h"
+#include "../../../asp_utils/ClaspCallback.h"
 #include "GringoOutputProcessor.h"
 
 namespace solver { namespace clasp { namespace tables {
 
-class ClaspCallback : public ::solver::clasp::ClaspCallback
+class ClaspCallback : public asp_utils::ClaspCallback
 {
 public:
-	typedef AtomInfo<GringoOutputProcessor::ExtendAtomArguments> ExtendAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
-	typedef AtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::ExtendAtomArguments> ExtendAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::ItemAtomArguments> ItemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
 
-	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&, bool root);
+	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&, bool root, bool cardinalityCost = false);
 
 	virtual bool onModel(const Clasp::Solver&, const Clasp::Model&) override;
-	virtual void prepare(const Clasp::SymbolTable&) override;
+	virtual void prepare(const Clasp::Asp::LogicProgram&) override;
 
 private:
 	std::vector<ItemAtomInfo>        itemAtomInfos;
@@ -51,6 +52,7 @@ private:
 	const ItemTreeNode::Type rowType;
 
 	std::unordered_map<const ItemTreeNode*, unsigned int> indexOfChildItemTreeRoot;
+	bool cardinalityCost;
 };
 
 }}} // namespace solver::clasp::tables

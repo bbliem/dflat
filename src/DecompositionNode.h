@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2015, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -21,15 +21,19 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 //}}}
 #include <ostream>
+#include <set>
 
-#include "Hypergraph.h"
+#include "String.h"
 
 class DecompositionNode
 {
 public:
-	DecompositionNode(const Hypergraph::Vertices& bag);
+	typedef String BagElement;
+	typedef std::set<BagElement> Bag;
 
-	const Hypergraph::Vertices& getBag() const;
+	DecompositionNode(const Bag& bag);
+
+	const Bag& getBag() const;
 
 	// Each DecompositionNode object that is created gets assigned a unique number starting from 1. This can, for instance, be used for printing when nodes should have unique names.
 	unsigned int getGlobalId() const;
@@ -39,5 +43,5 @@ public:
 
 private:
 	unsigned int globalId;
-	Hypergraph::Vertices bag;
+	Bag bag;
 };
