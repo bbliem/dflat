@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <stack>
 #include <htd/AddEmptyLeavesOperation.hpp>
 #include <htd/AddEmptyRootOperation.hpp>
+#include <htd/AddIdenticalJoinNodeParentOperation.hpp>
 #include <htd/JoinNodeReplacementOperation.hpp>
 #include <htd/NormalizationOperation.hpp>
 #include <htd/SemiNormalizationOperation.hpp>
@@ -57,7 +58,7 @@ namespace {
 		return graph;
 	}
 
-	DecompositionPtr transformTd(htd::ITreeDecomposition& decomposition, const Hypergraph& graph, bool addPostJoinNodes, const Application& app)
+	DecompositionPtr transformTd(htd::ITreeDecomposition& decomposition, const Hypergraph& graph, const Application& app)
 	{
 		if(decomposition.root() == htd::Vertex::UNKNOWN)
 			return DecompositionPtr{};
@@ -70,13 +71,6 @@ namespace {
 
 		// If root is a join node, maybe add post join node
 		DecompositionPtr rootOrPostJoinNode = result;
-
-		if(addPostJoinNodes && decomposition.isJoinNode(decomposition.root())) {
-			DecompositionPtr postJoin{new Decomposition{rootBag, app.getSolverFactory()}};
-			postJoin->setPostJoinNode();
-			rootOrPostJoinNode = postJoin;
-			result->addChild(postJoin);
-		}
 
 		// Simulate recursion on htd's generated TD
 		std::stack<std::pair<htd::vertex_t, DecompositionPtr>> stack;
@@ -96,13 +90,6 @@ namespace {
 
 				// Add post join node if necessary
 				Decomposition* parentOrPostJoinNode = parent.get();
-
-				if(addPostJoinNodes && decomposition.isJoinNode(htdChild)) {
-					DecompositionPtr postJoin{new Decomposition{childBag, app.getSolverFactory()}};
-					postJoin->setPostJoinNode();
-					parentOrPostJoinNode = postJoin.get();
-					parent->addChild(std::move(postJoin));
-				}
 
 				DecompositionPtr child{new Decomposition{childBag, app.getSolverFactory()}};
 				parentOrPostJoinNode->addChild(child);
@@ -186,12 +173,14 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 	else if(optNormalization.getValue() == "normalized")
 		treeDecompositionAlgorithm->addManipulationOperation(new htd::NormalizationOperation());
 
+	if(optPostJoin.isUsed())
+		treeDecompositionAlgorithm->addManipulationOperation(new htd::AddIdenticalJoinNodeParentOperation());
+
 	// Compute decomposition
 	std::unique_ptr<htd::ITreeDecomposition> decomposition{treeDecompositionAlgorithm->computeDecomposition(graph.internalGraph())};
 
 	// Transform htd's tree decomposition into our format
-	// TODO let HTD handle post join
-	DecompositionPtr result = transformTd(*decomposition, graph, optPostJoin.isUsed(), app);
+	DecompositionPtr result = transformTd(*decomposition, graph, app);
 	result->setRoot();
 	return result;
 }
