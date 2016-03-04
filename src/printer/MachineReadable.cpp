@@ -21,7 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include <sstream>
 
-#include "DebugMachineReadable.h"
+#include "MachineReadable.h"
 #include "../Decomposition.h"
 #include "../Application.h"
 #include "../solver/clasp/Solver.h"
@@ -86,21 +86,21 @@ void declareDerivedCosts(std::ostream& out, const ItemTree* itemTree, const std:
 
 namespace printer {
 
-DebugMachineReadable::DebugMachineReadable(Application& app, bool newDefault)
+MachineReadable::MachineReadable(Application& app, bool newDefault)
 	: Printer(app, "machine", "Machine-readable debugging output", newDefault)
 {
 }
 
-void DebugMachineReadable::decomposerResult(const Decomposition& result)
+void MachineReadable::decomposerResult(const Decomposition& result)
 {
 }
 
-void DebugMachineReadable::solverInvocationInput(const Decomposition& decompositionNode, const std::string& input)
+void MachineReadable::solverInvocationInput(const Decomposition& decompositionNode, const std::string& input)
 {
 	std::cout << "% Input for solver at decomposition node " << decompositionNode.getNode().getGlobalId() << std::endl << input << std::endl;
 }
 
-void DebugMachineReadable::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
+void MachineReadable::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
 {
 	const auto id = decompositionNode.getNode().getGlobalId();
 	if(result) {
@@ -126,12 +126,12 @@ void DebugMachineReadable::solverInvocationResult(const Decomposition& decomposi
 		std::cout << "% Item tree of node " << id << " is empty." << std::endl;
 }
 
-bool DebugMachineReadable::listensForSolverEvents() const
+bool MachineReadable::listensForSolverEvents() const
 {
 	return false;
 }
 
-void DebugMachineReadable::solverEvent(const std::string& msg)
+void MachineReadable::solverEvent(const std::string& msg)
 {
 }
 

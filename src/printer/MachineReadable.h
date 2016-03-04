@@ -21,28 +21,19 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 //}}}
 #include "../Printer.h"
-#include "../options/Option.h"
 
 namespace printer {
 
-class DebugHumanReadable : public Printer
+class MachineReadable : public Printer
 {
 public:
-	DebugHumanReadable(Application& app, bool newDefault = false);
+	MachineReadable(Application& app, bool newDefault = false);
 
 	virtual void decomposerResult(const Decomposition& result) override;
 	virtual void solverInvocationInput(const Decomposition& decompositionNode, const std::string& input) override;
 	virtual void solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result) override;
-	virtual void uncompressedSolverInvocationResult(const Decomposition& decompositionNode, const UncompressedItemTree* result) override;
 	virtual bool listensForSolverEvents() const override;
 	virtual void solverEvent(const std::string& msg) override;
-
-private:
-	static const std::string OPTION_SECTION;
-
-	options::Option optPrintSolverEvents;
-	options::Option optPrintSolverInvocationInput;
-	options::Option optPrintUncompressedItemTrees;
 };
 
 } // namespace printer

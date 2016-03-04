@@ -43,8 +43,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "printer/Quiet.h"
 #include "printer/Progress.h"
-#include "printer/DebugHumanReadable.h"
-#include "printer/DebugMachineReadable.h"
+#include "printer/Debug.h"
+#include "printer/MachineReadable.h"
 #include "printer/CountRows.h"
 
 #include "parser/Driver.h"
@@ -132,8 +132,8 @@ int Application::run(int argc, const char* const* const argv)
 	opts.addOption(optPrinter, MODULE_SECTION);
 	printer::Quiet quietPrinter(*this);
 	printer::Progress progressPrinter(*this, true);
-	printer::DebugHumanReadable humanReadableDebugPrinter(*this);
-	printer::DebugMachineReadable machineReadableDebugPrinter(*this);
+	printer::Debug debugPrinter(*this);
+	printer::MachineReadable machineReadablePrinter(*this);
 	printer::CountRows countRows(*this);
 
 	time_t seed = time(0);

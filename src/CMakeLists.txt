@@ -109,8 +109,8 @@ add_library(dflat-objects
 	Printer.cpp
 	printer/Quiet.cpp
 	printer/Progress.cpp
-	printer/DebugHumanReadable.cpp
-	printer/DebugMachineReadable.cpp
+	printer/Debug.cpp
+	printer/MachineReadable.cpp
 	printer/CountRows.cpp
 	asp_utils.cpp
 	asp_utils/GringoOutputProcessor.cpp
