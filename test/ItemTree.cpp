@@ -268,9 +268,9 @@ TEST_F(ItemTreeTest, AddChildAndMergeWithoutMerging)
 {
 	// Add t1 and t3 as children to some item tree
 	EXPECT_EQ(0, undefNode->getChildren().size());
-	EXPECT_NE(undefNode->getChildren().end(), undefNode->addChildAndMerge(std::move(t1)));
+	undefNode->addChildAndMerge(std::move(t1));
 	EXPECT_EQ(1, undefNode->getChildren().size());
-	EXPECT_NE(undefNode->getChildren().end(), undefNode->addChildAndMerge(std::move(t3)));
+	undefNode->addChildAndMerge(std::move(t3));
 	EXPECT_EQ(2, undefNode->getChildren().size());
 }
 
@@ -278,9 +278,9 @@ TEST_F(ItemTreeTest, AddChildAndMergeWithMerging)
 {
 	// Add t1 and t2 as children to some item tree
 	EXPECT_EQ(0, undefNode->getChildren().size());
-	EXPECT_NE(undefNode->getChildren().end(), undefNode->addChildAndMerge(std::move(t1)));
+	undefNode->addChildAndMerge(std::move(t1));
 	EXPECT_EQ(1, undefNode->getChildren().size());
-	EXPECT_EQ(undefNode->getChildren().end(), undefNode->addChildAndMerge(std::move(t2)));
+	undefNode->addChildAndMerge(std::move(t2));
 	EXPECT_EQ(1, undefNode->getChildren().size());
 }
 

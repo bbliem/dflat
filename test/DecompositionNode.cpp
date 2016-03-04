@@ -24,7 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 TEST(DecompositionNode, ReturnsBag)
 {
-	Hypergraph::Vertices bag = {{"a"}, {"b"}};
+	DecompositionNode::Bag bag = {{"a"}, {"b"}};
 	EXPECT_EQ(bag, DecompositionNode(bag).getBag());
 }
 

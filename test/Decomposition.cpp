@@ -60,7 +60,7 @@ TEST_F(DecompositionTest, ReportsCorrectWidth)
 TEST_F(DecompositionTest, IdentifiesJoinNodes)
 {
 	EXPECT_FALSE(decomposition.isJoinNode());
-	const Hypergraph::Vertices bag = {{"x"}, {"y"}};
+	const DecompositionNode::Bag bag = {{"x"}, {"y"}};
 	Decomposition& joinNode = addDecompositionChild(decomposition, bag);
 	addDecompositionChild(joinNode, bag);
 	addDecompositionChild(joinNode, bag);
