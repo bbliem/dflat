@@ -33,7 +33,7 @@ bool isJoinable(const ItemTreeNode& left, const ItemTreeNode& right)
 		(left.getType() == ItemTreeNode::Type::UNDEFINED || right.getType() == ItemTreeNode::Type::UNDEFINED || left.getType() == right.getType());
 }
 
-ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned int rightNodeIndex, const ItemTreePtr& right, bool setLeavesToAccept, bool optimize)
+ItemTreePtr join(const ItemTreePtr& left, const ItemTreePtr& right, bool setLeavesToAccept, bool optimize)
 {
 	assert(left);
 	assert(right);
@@ -94,7 +94,7 @@ ItemTreePtr join(unsigned int leftNodeIndex, const ItemTreePtr& left, unsigned i
 	auto lit = left->getChildren().begin();
 	auto rit = right->getChildren().begin();
 	while(lit != left->getChildren().end() && rit != right->getChildren().end()) {
-		ItemTreePtr childResult = join(leftNodeIndex, *lit, rightNodeIndex, *rit, setLeavesToAccept, optimize);
+		ItemTreePtr childResult = join(*lit, *rit, setLeavesToAccept, optimize);
 		if(childResult) {
 			// lit and rit match
 			// Remember position of rit. We will later advance rit until is doesn't match with lit anymore.
@@ -126,14 +126,14 @@ join_lit_with_all_matches:
 				++rit;
 				if(rit == right->getChildren().end())
 					break;
-				childResult = join(leftNodeIndex, *lit, rightNodeIndex, *rit, setLeavesToAccept, optimize);
+				childResult = join(*lit, *rit, setLeavesToAccept, optimize);
 			} while(childResult);
 
 			// lit and rit don't match anymore (or rit is past the end)
 			// Advance lit. If it joins with mark, reset rit to mark.
 			++lit;
 			if(lit != left->getChildren().end()) {
-				childResult = join(leftNodeIndex, *lit, rightNodeIndex, *mark, setLeavesToAccept, optimize);
+				childResult = join(*lit, *mark, setLeavesToAccept, optimize);
 				if(childResult) {
 					rit = mark;
 					goto join_lit_with_all_matches;
@@ -185,7 +185,7 @@ ItemTreePtr Solver::compute()
 		ItemTreePtr itree = (*it)->getSolver().compute();
 		if(!itree)
 			return ItemTreePtr();
-		result = join(leftChildIndex, result, (*it)->getNode().getGlobalId(), itree, setLeavesToAccept, !app.isOptimizationDisabled());
+		result = join(result, itree, setLeavesToAccept, !app.isOptimizationDisabled());
 		leftChildIndex = (*it)->getNode().getGlobalId();
 	}
 
