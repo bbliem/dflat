@@ -56,6 +56,7 @@ private:
 
 	options::MultiValueOption optEncodingFiles;
 	options::Option           optCardinalityCost;
+	options::Option           optPrintStatistics;
 	options::Option           optDefaultJoin;
 	options::Option           optLazy;
 	options::Option           optNoBinarySearch;
