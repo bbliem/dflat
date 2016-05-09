@@ -23,6 +23,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 String::StringToId String::stringToId;
 std::vector<const std::string*> String::strings;
 
+//String::String()
+//{
+//
+//}
+
 String::String(std::string&& content)
 {
 	auto result = stringToId.emplace(std::move(content), strings.size());

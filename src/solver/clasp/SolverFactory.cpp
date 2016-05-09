@@ -40,6 +40,7 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 	: ::SolverFactory(app, "clasp", "Answer Set Programming solver clasp", newDefault)
 	, optEncodingFiles  ("p", "program",     "Use <program> as an ASP encoding for solving")
 	, optCardinalityCost("cardinality-cost", "Use item set cardinality as costs")
+    , optPrintStatistics("stats",            "Print clasp statistics")
 	, optDefaultJoin    ("default-join",     "Use built-in implementation for join nodes")
 	, optLazy           ("lazy",             "Use lazy evaluation to find one solution")
 	, optNoBinarySearch ("no-binary-search", "Disable binary search in lazy default join")
@@ -59,6 +60,9 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 
 	optDefaultJoin.addCondition(selected);
 	app.getOptionHandler().addOption(optDefaultJoin, OPTION_SECTION);
+
+    optPrintStatistics.addCondition(selected);
+    app.getOptionHandler().addOption(optPrintStatistics, OPTION_SECTION);
 
 	optLazy.addCondition(selected);
 	optLazy.addCondition(condTables); // TODO Lazy solving should not require table mode?
@@ -113,7 +117,7 @@ std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decompos
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
 			return std::unique_ptr<::Solver>(new default_join::Solver(decomposition, app, optTables.isUsed() && decomposition.isRoot()));
 		else
-			return std::unique_ptr<::Solver>(new clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optTables.isUsed(), optCardinalityCost.isUsed()));
+            return std::unique_ptr<::Solver>(new clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optTables.isUsed(), optCardinalityCost.isUsed(), optPrintStatistics.isUsed()));
 	}
 }
 

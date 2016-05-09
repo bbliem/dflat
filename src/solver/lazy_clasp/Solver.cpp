@@ -228,7 +228,7 @@ void Solver::startSolvingForCurrentRowCombination()
 
 	else {
 		// Set external variables to the values of the current child row combination
-		clasp.update(false, false);
+        clasp.update(false, false);
 
 		clasp.prepare();
 
@@ -327,7 +327,7 @@ void Solver::handleRowCandidate(long costBound)
 		const auto& oldItems = row->getItems();
 		ItemTreeNode::Items intersection;
 		std::set_intersection(items.begin(), items.end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
-		cost += row->getCost() - intersection.size();
+        cost += row->getCounter("cost") - intersection.size();
 	}
 	// }}}
 	if(cost >= costBound) {
@@ -342,7 +342,7 @@ void Solver::handleRowCandidate(long costBound)
 	// }}}
 	if(!app.isOptimizationDisabled()) {
 		// Set cost {{{
-		node->setCost(cost);
+        node->setCounter("cost", cost);
 		// }}}
 		// Set current cost {{{
 //		ASP_CHECK(asp_utils::countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
@@ -352,10 +352,10 @@ void Solver::handleRowCandidate(long costBound)
 //				currentCost = arguments.currentCost;
 //		});
 //		node->setCurrentCost(currentCost);
-		node->setCurrentCost(node->getItems().size());
+        node->setCurrentCounter("cost", node->getItems().size());
 		// }}}
 		// Possibly update cost of root {{{
-		itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
+        itemTree->getNode()->setCounter("cost", std::min(itemTree->getNode()->getCounter("cost"), cost));
 		// }}}
 	}
 	// Add node to item tree {{{

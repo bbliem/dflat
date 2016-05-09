@@ -3,3 +3,8 @@ build
 instances
 .ycm_extra_conf.py
 .ycm_extra_conf.pyc
+src/parser/Driver.cpp
+src/parser/Driver.h
+src/parser/parser.yy
+src/parser/scanner.ll
+

@@ -84,7 +84,7 @@ LazySolver::Row LazySolver::nextRow(long costBound)
 		}
 
 		handleRowCandidate(costBound);
-		assert(newestRow == itemTree->getChildren().end() || (*newestRow)->getNode()->getCost() < costBound);
+        assert(newestRow == itemTree->getChildren().end() || (*newestRow)->getNode()->getCounter("cost") < costBound);
 
 		if(app.getPrinter().listensForSolverEvents()) {
 			std::ostringstream msg;
@@ -243,7 +243,7 @@ void LazySolver::initializeItemTrees()
 
 	// Set cost to "infinity"
 	if(!app.isOptimizationDisabled())
-		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
+        itemTree->getNode()->setCounter("cost", std::numeric_limits<decltype(itemTree->getNode()->getCounter("cost"))>::max());
 }
 
 ItemTreePtr LazySolver::compute()
@@ -262,12 +262,12 @@ ItemTreePtr LazySolver::compute()
 		while(row != itemTree->getChildren().end()) {
 			if(app.getPrinter().listensForSolverEvents()) {
 				std::ostringstream msg;
-				msg << "Found new solution with cost " << (*row)->getNode()->getCost();
+                msg << "Found new solution with cost " << (*row)->getNode()->getCounter("cost");
 				app.getPrinter().solverEvent(msg.str());
 			}
 			app.getPrinter().provisionalSolution(*(*row)->getNode());
 
-			const long newCostBound = bbLevel == BranchAndBoundLevel::none ? std::numeric_limits<long>::max() : (*row)->getNode()->getCost();
+            const long newCostBound = bbLevel == BranchAndBoundLevel::none ? std::numeric_limits<long>::max() : (*row)->getNode()->getCounter("cost");
 			row = nextRow(newCostBound);
 		}
 	}
@@ -302,8 +302,8 @@ void LazySolver::finalize()
 		for(const auto& row : itemTree->getChildren()) {
 			const auto& node = *row->getNode();
 			// FIXME We should eventually be able to deal with negative costs
-			assert(node.getCost() >= 0);
-			forgottenCostLowerBound = std::min(forgottenCostLowerBound, node.getCost() - node.getCurrentCost());
+            assert(node.getCounter("cost") >= 0);
+            forgottenCostLowerBound = std::min(forgottenCostLowerBound, node.getCounter("cost") - node.getCurrentCounter("cost"));
 		}
 	}
 }

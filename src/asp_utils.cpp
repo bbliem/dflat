@@ -104,7 +104,10 @@ void declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode
 	// If this is a leaf, declare cost
 	const ItemTree::Children& children = itemTree->getChildren();
 	if(children.empty()) {
-		out << "childCost(" << itemSetName << ',' << itemTree->getNode()->getCost() << ")." << std::endl;
+        out << "childCost(" << itemSetName << ',' << itemTree->getNode()->getCounter("cost") << ")." << std::endl;
+        for(const auto& counter : itemTree->getNode()->getCounters()) {
+            out << "childCounter(" << itemSetName << ',' << counter.first << ',' << counter.second << ")." << std::endl;
+        }
 	}
 	else {
 		// Declare child item sets

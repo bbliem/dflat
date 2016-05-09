@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -42,6 +42,8 @@ public:
 	typedef std::shared_ptr<ItemTreeNode> ExtensionPointer;
 	typedef std::vector<ExtensionPointer> ExtensionPointerTuple;
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
+    typedef std::map<std::string,long> Counters;
+    typedef std::map<std::string,long> CurrentCounters;
 
 	enum class Type {
 		UNDEFINED,
@@ -78,12 +80,19 @@ public:
 
 	const mpz_class& getCount() const { return count; }
 
-	long getCost() const { return cost; }
+    //long getCost() const { return counters.find("cost")->second; }
+        long getCounter(std::string counterName) const { std::map<std::string,long>::const_iterator it = counters.find(counterName); return (it == counters.end() ? 0 : it->second) ; }
+        Counters getCounters() const { return counters; }
 	// Throws a runtime_error if this is a REJECT node.
-	void setCost(long cost);
+	//void setCost(long cost);
+        void setCounter(std::string counterName, long counterValue);
 
-	long getCurrentCost() const { return currentCost; }
-	void setCurrentCost(long currentCost);
+	//long getCurrentCost() const { return currentCost; }
+	//void setCurrentCost(long currentCost);
+        //long getCost() const { return counters.find("cost")->second; }
+        long getCurrentCounter(std::string currentCounterName) const { std::map<std::string,long>::const_iterator it = currentCounters.find(currentCounterName); return (it == currentCounters.end() ? 0 : it->second) ; }
+        CurrentCounters getCurrentCounters() const { return currentCounters; }
+        void setCurrentCounter(std::string currentCounterName, long currentCounterValue);
 
 	Type getType() const { return type; }
 
@@ -120,8 +129,8 @@ private:
 	ExtensionPointers extensionPointers;
 	const ItemTreeNode* parent = nullptr;
 	mpz_class count; // number of possible extensions of this node
-	long cost = 0;
-	long currentCost = 0;
+        Counters counters;
+        CurrentCounters currentCounters;
 	Type type;
 	// Whether this node has a child whose acceptance status (either due to ACCEPT/REJECT in leaves or propagation in AND/OR nodes) is ACCEPT or REJECT, respectively.
 	// We must keep track of this explicitly since accepting/rejecting children might have been pruned.

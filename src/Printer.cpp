@@ -82,7 +82,7 @@ void Printer::provisionalSolution(const ItemTreeNode& solution)
 		std::cout << "Provisional solution:" << std::endl;
 		for(const auto& item : solution.firstExtension())
 			std::cout << item << ' ';
-		std::cout << std::endl << "Cost: " << solution.getCost() << std::endl;
+        std::cout << std::endl << "Cost: " << solution.getCounter("cost") << std::endl;
 	}
 }
 

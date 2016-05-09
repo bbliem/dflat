@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -53,6 +53,31 @@ const GringoOutputProcessor::CostAtomInfos& GringoOutputProcessor::getCostAtomIn
 	return costAtomInfos;
 }
 
+const GringoOutputProcessor::CounterRemAtomInfos& GringoOutputProcessor::getCounterRemAtomInfos() const
+{
+	return counterRemAtomInfos;
+}
+
+const GringoOutputProcessor::AllCounterIncAtomInfos& GringoOutputProcessor::getAllCounterIncAtomInfos() const
+{
+	return allCounterIncAtomInfos;
+}
+
+const GringoOutputProcessor::AllCurrentCounterIncAtomInfos& GringoOutputProcessor::getAllCurrentCounterIncAtomInfos() const
+{
+	return allCurrentCounterIncAtomInfos;
+}
+
+const GringoOutputProcessor::AllCounterAtomInfos& GringoOutputProcessor::getAllCounterAtomInfos() const
+{
+    return allCounterAtomInfos;
+}
+
+const GringoOutputProcessor::AllCurrentCounterAtomInfos& GringoOutputProcessor::getAllCurrentCounterAtomInfos() const
+{
+    return allCurrentCounterAtomInfos;
+}
+
 void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 {
 	// Store the atom together with its symbol table key and extracted arguments
@@ -68,30 +93,63 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 		v.args().front().print(argument);
 		auxItemAtomInfos.emplace_back(AuxItemAtomInfo{AuxItemAtomArguments{argument.str()}, atomUid});
 	} else if(predicate == "extend") {
-		ASP_CHECK(v.args().size() == 1, "'extend' predicate does not have arity 1");
-		std::ostringstream argument;
-		v.args().front().print(argument);
-		// Child node number is before the first '_' (and after the leading 'n')
-		// Row number is after the first '_'
-		const unsigned int underscorePos = argument.str().find('_');
-		const unsigned int decompositionChildId = std::stoi(std::string(argument.str(), 1, underscorePos-1));
-		const unsigned int rowNumber = std::stoi(std::string(argument.str(), underscorePos + 1));
-		ASP_CHECK(childItemTrees.find(decompositionChildId) != childItemTrees.end(), "Extension pointer refers to nonexistent decomposition child");
-		ASP_CHECK(rowNumber < childItemTrees.at(decompositionChildId)->getChildren().size(), "Extension pointer references invalid row number");
-		ItemTree::Children::const_iterator row = childItemTrees.at(decompositionChildId)->getChildren().begin();
-		std::advance(row, rowNumber);
-		extendAtomInfos.emplace_back(ExtendAtomInfo{{(*row)->getNode()}, atomUid});
+        ASP_CHECK(v.args().size() == 1, "'extend' predicate does not have arity 1");
+        std::ostringstream argument;
+        v.args().front().print(argument);
+        // Child node number is before the first '_' (and after the leading 'n')
+        // Row number is after the first '_'
+        const unsigned int underscorePos = argument.str().find('_');
+        const unsigned int decompositionChildId = std::stoi(std::string(argument.str(), 1, underscorePos-1));
+        const unsigned int rowNumber = std::stoi(std::string(argument.str(), underscorePos + 1));
+        ASP_CHECK(childItemTrees.find(decompositionChildId) != childItemTrees.end(), "Extension pointer refers to nonexistent decomposition child");
+        ASP_CHECK(rowNumber < childItemTrees.at(decompositionChildId)->getChildren().size(), "Extension pointer references invalid row number");
+        ItemTree::Children::const_iterator row = childItemTrees.at(decompositionChildId)->getChildren().begin();
+        std::advance(row, rowNumber);
+        extendAtomInfos.emplace_back(ExtendAtomInfo{{(*row)->getNode()}, atomUid});
 	} else if(predicate == "currentCost") {
 		ASP_CHECK(v.args().size() == 1, "'currentCost' predicate does not have arity 1");
 		std::ostringstream argument;
 		v.args().front().print(argument);
-		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo{{std::stol(argument.str())}, atomUid});
-	} else if(predicate == "cost") {
-		ASP_CHECK(v.args().size() == 1, "'cost' predicate does not have arity 1");
+        allCurrentCounterAtomInfos["cost"].emplace_back(CurrentCounterAtomInfo{CurrentCounterAtomArguments{"cost", std::stol(argument.str())}, atomUid});
+    } else if(predicate == "cost") {
+        ASP_CHECK(v.args().size() == 1, "'cost' predicate does not have arity 1");
+		std::ostringstream argument;
+        v.args().front().print(argument);
+        allCounterAtomInfos["cost"].emplace_back(CounterAtomInfo{CounterAtomArguments{"cost", std::stol(argument.str())}, atomUid});
+    } else if(predicate == "counter") {
+        ASP_CHECK(v.args().size() == 2, "'counter' predicate does not have arity 2");
+        std::ostringstream counter;
+        v.args().front().print(counter);
+        std::ostringstream value;
+        v.args()[1].print(value);
+        allCounterAtomInfos[counter.str()].emplace_back(CounterAtomInfo{CounterAtomArguments{counter.str(), std::stol(value.str())}, atomUid});
+    } else if(predicate == "currentCounter") {
+        ASP_CHECK(v.args().size() == 2, "'currentCounter' predicate does not have arity 2");
+        std::ostringstream currentCounter;
+        v.args().front().print(currentCounter);
+        std::ostringstream value;
+        v.args()[1].print(value);
+        allCurrentCounterAtomInfos[currentCounter.str()].emplace_back(CurrentCounterAtomInfo{CurrentCounterAtomArguments{currentCounter.str(), std::stol(value.str())}, atomUid});
+	} else if(predicate == "counterInc") {
+        ASP_CHECK(v.args().size() != 1, "'counterInc' predicate has arity 1");
+        std::ostringstream counter;
+		v.args().front().print(counter);
+		std::ostringstream value;
+		v.args()[1].print(value);
+		allCounterIncAtomInfos[counter.str()].emplace_back(CounterIncAtomInfo{CounterIncAtomArguments{counter.str(), std::stol(value.str())}, atomUid});
+	} else if(predicate == "currentCounterInc") {
+        ASP_CHECK(v.args().size() != 1, "'currentCounterInc' predicate has arity 1");
+        std::ostringstream currentCounter;
+		v.args().front().print(currentCounter);
+		std::ostringstream value;
+		v.args()[1].print(value);
+		allCurrentCounterIncAtomInfos[currentCounter.str()].emplace_back(CurrentCounterIncAtomInfo{CurrentCounterIncAtomArguments{currentCounter.str(), std::stol(value.str())}, atomUid});
+	} else if(predicate == "counterRem") {
+        ASP_CHECK(v.args().size() == 1, "'counterRem' predicate does not have arity 1");
 		std::ostringstream argument;
 		v.args().front().print(argument);
-		costAtomInfos.emplace_back(CostAtomInfo{{std::stol(argument.str())}, atomUid});
-	}
+		counterRemAtomInfos.emplace_back(CounterRemAtomInfo{{argument.str()}, atomUid});
+        }
 }
 
 }}} // namespace solver::clasp::tables

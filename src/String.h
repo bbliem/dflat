@@ -28,6 +28,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 class String
 {
 public:
+//    String();
+
 	String(std::string&& content);
 
 	const std::string& operator*() const { return *strings[id]; }

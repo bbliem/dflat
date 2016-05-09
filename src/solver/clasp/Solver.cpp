@@ -26,6 +26,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <gringo/logger.hh>
 #include <gringo/scripts.hh>
 #include <clasp/clasp_facade.h>
+#include <clasp/cli/clasp_output.h>
 
 #include "Solver.h"
 #include "../../Application.h"
@@ -63,11 +64,12 @@ std::unique_ptr<asp_utils::ClaspCallback> newClaspCallback(bool tableMode, const
 
 } // anonymous namespace
 
-Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode, bool cardinalityCost)
+Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool tableMode, bool cardinalityCost, bool printStatistics)
 	: ::Solver(decomposition, app)
 	, encodingFiles(encodingFiles)
 	, tableMode(tableMode)
-	, cardinalityCost(cardinalityCost)
+    , cardinalityCost(cardinalityCost)
+    , printStatistics(printStatistics)
 {
 	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
 
@@ -167,7 +169,12 @@ ItemTreePtr Solver::compute()
 	std::unique_ptr<asp_utils::ClaspCallback> cb(newClaspCallback(tableMode, *lpOut, childItemTrees, app, decomposition.isRoot(), decomposition, cardinalityCost));
 	cb->prepare(claspProgramBuilder);
 	clasp.prepare();
-	clasp.solve(cb.get());
+    clasp.solve(cb.get());
+
+    if(printStatistics) {
+        std::cout << "Solver statistics for decomposition node " << decomposition.getNode().getGlobalId() << ':' << std::endl;
+        Clasp::Cli::TextOutput{true, Clasp::Cli::TextOutput::format_asp}.printStatistics(clasp.summary(), true);
+    }
 
 	ItemTreePtr result = cb->finalize(decomposition.isRoot(), app.isPruningDisabled() == false || decomposition.isRoot());
 	app.getPrinter().solverInvocationResult(decomposition, result.get());

@@ -16,7 +16,7 @@ gringo_lib_release32=$(gringo_dir)/build/release32/libgringo.a
 gringo_lib_static=$(gringo_dir)/build/static/libgringo.a
 gringo_lib_static32=$(gringo_dir)/build/static32/libgringo.a
 
-clasp_dir=$(CURDIR)/../clasp-3.1.3-no-threads
+clasp_dir=$(CURDIR)/../clasp-3.1.4
 clasp_lib=$(clasp_dir)/build/release/libclasp/lib/libclasp.a
 clasp_lib_debug=$(clasp_dir)/build/debug/libclasp/lib/libclasp.a
 clasp_lib_gprof=$(clasp_dir)/build/gprof/libclasp/lib/libclasp.a
@@ -26,9 +26,9 @@ clasp_lib_static=$(clasp_dir)/build/static/libclasp/lib/libclasp.a
 clasp_lib_static32=$(clasp_dir)/build/static32/libclasp/lib/libclasp.a
 
 htd_dir=$(CURDIR)/../htd
-htd_lib=$(htd_dir)/build/release/lib/libhtd.a
-htd_lib_debug=$(htd_dir)/build/debug/lib/libhtd.a
-htd_lib_gprof=$(htd_dir)/build/release/lib/libhtd.a
+htd_lib=$(htd_dir)/lib/libhtd.a
+htd_lib_debug=$(htd_dir)/lib/libhtd.a
+htd_lib_gprof=$(htd_dir)/lib/libhtd.a
 htd_lib_profiler=$(htd_dir)/build/release/lib/libhtd.a
 htd_lib_release32=$(htd_dir)/build/release32/lib/libhtd.a
 htd_lib_static=$(htd_dir)/build/static/lib/libhtd.a

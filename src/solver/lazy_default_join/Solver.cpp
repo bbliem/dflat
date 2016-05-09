@@ -90,7 +90,7 @@ void Solver::handleRowCandidate(long costBound)
 	// FIXME Do proper cost computations, not this item-set cardinality proof of concept
 	long cost = items.size();
 	for(const auto& node : extended)
-		cost += node->getCost() - node->getItems().size();
+        cost += node->getCounter("cost") - node->getItems().size();
 
 	if(cost >= costBound) {
 //		++discardedJoinResults;
@@ -104,11 +104,11 @@ void Solver::handleRowCandidate(long costBound)
 	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extended}, rowType));
 
 	if(!app.isOptimizationDisabled()) {
-		node->setCost(cost);
-		node->setCurrentCost(node->getItems().size());
+        node->setCounter("cost", cost);
+        node->setCurrentCounter("cost", node->getItems().size());
 
 		// Possibly update cost of root
-		itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
+        itemTree->getNode()->setCounter("cost", std::min(itemTree->getNode()->getCounter("cost"), cost));
 	}
 
 	// Add node to item tree

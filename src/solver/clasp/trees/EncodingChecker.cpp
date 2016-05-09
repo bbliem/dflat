@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -23,16 +23,19 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 namespace {
 	typedef std::pair<Gringo::FWString, unsigned int> Predicate;
 	const std::set<Predicate> predicates = {
-		{"item",        2},
-		{"auxItem",     2},
-		{"extend",      2},
-		{"currentCost", 1},
-		{"cost",        1},
-		{"length",      1},
-		{"or",          1},
-		{"and",         1},
-		{"accept",      0},
-		{"reject",      0},
+        {"item",                2},
+        {"auxItem",             2},
+        {"extend",              2},
+        {"currentCounter",      2},
+        {"counter",             2},
+        {"currentCost",         1},
+        {"cost",                1},
+        {"length",              1},
+        {"or",                  1},
+        {"and",                 1},
+        {"counterRem",          1},
+        {"accept",              0},
+        {"reject",              0},
 	};
 }
 
@@ -46,8 +49,9 @@ void EncodingChecker::showsig(Gringo::Location const &loc, Gringo::FWSignature s
 	showUsed = true;
 
 	if(name != "") {
-		if(predicates.find(Predicate{name, arity}) == predicates.end())
-			std::cerr << "Warning: Unknown predicate " << name << '/' << arity << " shown at " << loc << '.' << std::endl;
+        if(predicates.find(Predicate{name, arity}) == predicates.end() ||
+                (name.compare("currentCounterInc") && arity < 2) || (name.compare("counterInc") && arity < 2))
+                    std::cerr << "Warning: Unknown predicate " << name << '/' << arity << " shown at " << loc << '.' << std::endl;
 		else {
 			if(name == "length")
 				lengthShown = true;

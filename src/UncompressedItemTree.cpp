@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -53,27 +53,27 @@ ItemTreePtr UncompressedItemTree::compress(bool ignoreUndefCost)
 
 	switch(result->getNode()->getType()) {
 		case ItemTreeNode::Type::OR:
-			assert(result->getNode()->getCost() == 0);
+			assert(result->getNode()->getCounter("cost") == 0);
 			assert(children.empty() == false);
 			// Set cost to "infinity"
-			result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::max());
+			result->getNode()->setCounter("cost", std::numeric_limits<decltype(result->getNode()->getCounter("cost"))>::max());
 			for(const auto& child : children) {
 				ItemTreePtr compressedChild = child->compress(ignoreUndefCost);
 				if(!ignoreUndefCost || compressedChild->getNode()->getType() != ItemTreeNode::Type::UNDEFINED)
-					result->getNode()->setCost(std::min(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
+					result->getNode()->setCounter("cost", std::min(result->getNode()->getCounter("cost"), compressedChild->getNode()->getCounter("cost")));
 				result->addChildAndMerge(std::move(compressedChild));
 			}
 			break;
 
 		case ItemTreeNode::Type::AND:
-			assert(result->getNode()->getCost() == 0);
+			assert(result->getNode()->getCounter("cost") == 0);
 			assert(children.empty() == false);
 			// Set cost to minus "infinity"
-			result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::min());
+			result->getNode()->setCounter("cost", std::numeric_limits<decltype(result->getNode()->getCounter("cost"))>::min());
 			for(const auto& child : children) {
 				ItemTreePtr compressedChild = child->compress(ignoreUndefCost);
 				if(!ignoreUndefCost || compressedChild->getNode()->getType() != ItemTreeNode::Type::UNDEFINED)
-					result->getNode()->setCost(std::max(result->getNode()->getCost(), compressedChild->getNode()->getCost()));
+					result->getNode()->setCounter("cost", std::max(result->getNode()->getCounter("cost"), compressedChild->getNode()->getCounter("cost")));
 				result->addChildAndMerge(std::move(compressedChild));
 			}
 			break;

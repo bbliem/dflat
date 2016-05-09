@@ -1,19 +1,15 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
-
 This file is part of D-FLAT.
-
 D-FLAT is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
-
 D-FLAT is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
-
 You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -99,9 +95,9 @@ ItemTree::Children::const_iterator ItemTree::costChangeAfterAddChildAndMerge(Chi
 	if(!result.second) {
 		assert(subtree);
 		const ItemTreePtr& origChild = *result.first;
-		const long oldCost = origChild->getNode()->getCost();
+		const long oldCost = origChild->getNode()->getCounter("cost");
 		origChild->merge(std::move(*subtree));
-		if(origChild->getNode()->getCost() == oldCost)
+		if(origChild->getNode()->getCounter("cost") == oldCost)
 			return children.end();
 	}
 	return result.first;
@@ -161,8 +157,8 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool pri
 		std::vector<ItemTree*> bestChildren;
 		bestChildren.reserve(children.size());
 		for(const auto& child : children)
-			if(child->node->getCost() == node->getCost())
-				bestChildren.push_back(child.get());
+            if(child->node->getCounter("cost") == node->getCounter("cost"))
+                bestChildren.push_back(child.get());
 		assert(children.empty() || bestChildren.empty() == false);
 
 		// When limiting the depth causes children not to be extended, print the number of accepting children (with optimum cost)
@@ -189,8 +185,8 @@ void ItemTree::printExtensions(std::ostream& os, unsigned int maxDepth, bool pri
 			os << item << ' ';
 
 		// Print cost
-		if(node->getCost() != 0 && (maxDepth == 0 || children.empty()))
-			os << "(cost: " << node->getCost() << ')';
+		if(node->getCounter("cost") != 0 && (maxDepth == 0 || children.empty()))
+			os << "(cost: " << node->getCounter("cost") << ')';
 
 		os << std::endl;
 
@@ -328,13 +324,13 @@ bool ItemTree::costDifferenceSignIncrease(const ItemTreePtr& other) const
 	Children::const_iterator it1 = children.begin();
 	Children::const_iterator it2 = other->children.begin();
 
-	const int difference = (*it1)->getNode()->getCost() - (*it2)->getNode()->getCost(); // Actually we are only interested if this is greater, equal to, or smaller than 0
+	const int difference = (*it1)->getNode()->getCounter("cost") - (*it2)->getNode()->getCounter("cost"); // Actually we are only interested if this is greater, equal to, or smaller than 0
 
 	while(++it1 != children.end()) {
 		++it2;
 		assert(it2 != other->children.end());
-		const auto cost1 = (*it1)->getNode()->getCost();
-		const auto cost2 = (*it2)->getNode()->getCost();
+		const auto cost1 = (*it1)->getNode()->getCounter("cost");
+		const auto cost2 = (*it2)->getNode()->getCounter("cost");
 
 		if(cost1 < cost2) {
 			if(difference >= 0)
@@ -370,20 +366,20 @@ void ItemTree::merge(ItemTree&& other)
 			break;
 
 		case ItemTreeNode::Type::OR:
-			if(other.getNode()->getCost() < node->getCost()) {
+			if(other.getNode()->getCounter("cost") < node->getCounter("cost")) {
 				*this = std::move(other);
 				return;
 			}
-			else if(other.getNode()->getCost() > node->getCost())
+			else if(other.getNode()->getCounter("cost") > node->getCounter("cost"))
 				return;
 			break;
 
 		case ItemTreeNode::Type::AND:
-			if(other.getNode()->getCost() > node->getCost()) {
+			if(other.getNode()->getCounter("cost") > node->getCounter("cost")) {
 				*this = std::move(other);
 				return;
 			}
-			else if(other.getNode()->getCost() < node->getCost())
+			else if(other.getNode()->getCounter("cost") < node->getCounter("cost"))
 				return;
 			break;
 

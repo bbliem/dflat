@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -70,9 +70,9 @@ ItemTreeNode::ItemTreeNode(Items&& items, Items&& auxItems, ExtensionPointers&& 
 			hasRejectingChild = hasRejectingChild || predecessor->hasRejectingChild;
 		}
 	}
-
-	cost = type == Type::REJECT ? std::numeric_limits<decltype(cost)>::max() : 0;
-	currentCost = 0;
+	
+        counters["cost"] = type == Type::REJECT ? std::numeric_limits<long>::max() : 0;
+	currentCounters["cost"] = 0;
 }
 
 void ItemTreeNode::setParent(const ItemTreeNode* parent)
@@ -80,18 +80,24 @@ void ItemTreeNode::setParent(const ItemTreeNode* parent)
 	this->parent = parent;
 }
 
-void ItemTreeNode::setCost(long cost)
+//void ItemTreeNode::setCost(long cost)
+//{
+//#ifndef DISABLE_CHECKS
+//	if(type == Type::REJECT)
+//		throw std::runtime_error("Tried to set cost of a reject node");
+//#endif
+//	this->counters["cost"] = cost;
+//}
+
+void ItemTreeNode::setCounter(std::string counterName, long counterValue)
 {
-#ifndef DISABLE_CHECKS
-	if(type == Type::REJECT)
-		throw std::runtime_error("Tried to set cost of a reject node");
-#endif
-	this->cost = cost;
+    if(type != Type::REJECT || counterName.compare("cost") != 0)
+        this->counters[counterName] = counterValue;
 }
 
-void ItemTreeNode::setCurrentCost(long currentCost)
+void ItemTreeNode::setCurrentCounter(std::string currentCounterName, long currentCounterValue)
 {
-	this->currentCost = currentCost;
+	this->currentCounters[currentCounterName] = currentCounterValue;
 }
 
 void ItemTreeNode::setHasAcceptingChild()
@@ -136,8 +142,8 @@ void ItemTreeNode::merge(ItemTreeNode&& other)
 {
 	assert(items == other.items);
 	assert(auxItems == other.auxItems);
-	assert(cost == other.cost);
-	assert(currentCost == other.currentCost);
+	assert(counters["cost"] == other.counters["cost"]);
+	assert(currentCounters["cost"] == other.currentCounters["cost"]);
 
 	// Merge other node's data into this
 	extensionPointers.insert(extensionPointers.end(), other.extensionPointers.begin(), other.extensionPointers.end());
@@ -149,6 +155,38 @@ int ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
 	const int c = compareSets(items, other.items);
 	if(c != 0)
 		return c;
+
+    for(const auto& counter: counters)
+    {
+        if(counter.first.compare("cost") != 0)
+        {
+            if(other.counters.find(counter.first) == other.counters.end())
+                return 1;
+            else
+            {
+                if(counter.second < other.counters.at(counter.first))
+                    return -1;
+                else if(counter.second > other.counters.at(counter.first))
+                    return 1;
+            }
+        }
+    }
+
+    for(const auto& counter: other.counters)
+    {
+        if(counter.first.compare("cost") != 0)
+        {
+            if(counters.find(counter.first) == counters.end())
+                return 1;
+            else
+            {
+                if(counter.second < counters.at(counter.first))
+                    return 1;
+                else if(counter.second > counters.at(counter.first))
+                    return -11;
+            }
+        }
+    }
 
 	if(type < other.type)
 		return -1;
@@ -229,10 +267,10 @@ std::ostream& operator<<(std::ostream& os, const ItemTreeNode& node)
 //	os << "}, this: " << &node << ", parent: " << node.parent;
 
 	// Print cost
-	if(node.cost != 0) {
-		os << " (cost: " << node.cost;
-		if(node.getCurrentCost() != 0)
-			os << "; current: " << node.getCurrentCost();
+	if(node.getCounter("cost")) {
+		os << " (cost: " << node.getCounter("cost");
+		if(node.getCurrentCounter("cost")) 
+		  os << "; current: " << node.getCurrentCounter("cost");
 		os << ')';
 	}
 

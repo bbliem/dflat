@@ -1,4 +1,4 @@
- /*
+/*
 Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
@@ -19,18 +19,18 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 %skeleton "lalr1.cc"
-%require "2.7.12"
+%require "2.7"
 
-%define parser_class_name {Parser}
+%define parser_class_name "Parser"
 
 %code requires
 {
-	#include <sstream>
-	class Instance;
-	namespace parser {
-		class Driver;
-		class Terms;
-	}
+        #include <sstream>
+        class Instance;
+        namespace parser {
+                class Driver;
+                class Terms;
+        }
 }
 
 %parse-param { parser::Driver& driver }
@@ -41,14 +41,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 %code
 {
-	#include "../../src/parser/Driver.h"
-	#include "../../src/parser/Terms.h"
+        #include "../../src/parser/Driver.h"
+        #include "../../src/parser/Terms.h"
 }
 
 %union
 {
-	std::string* string;
-	parser::Terms* terms;
+        std::string* string;
+        parser::Terms* terms;
 };
 
 %token          END        0 "end of file"
@@ -108,5 +108,5 @@ facts: /* empty */
 
 void yy::Parser::error(const yy::Parser::location_type& l, const std::string& m)
 {
-	driver.error(l, m);
+        driver.error(l, m);
 }

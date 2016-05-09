@@ -24,10 +24,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 int main(int argc, char** argv)
 {
-	try {
+    try {
 		return Application(argv[0]).run(argc-1, argv+1);
-	} catch(const std::exception& e) {
-		std::cerr << "Error: " << e.what() << std::endl;
-		return 2;
-	}
+    } catch(const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 2;
+    }
 }

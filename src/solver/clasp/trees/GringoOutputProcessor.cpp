@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -59,16 +59,6 @@ const GringoOutputProcessor::ExtendAtomInfos& GringoOutputProcessor::getExtendAt
 	return extendAtomInfos;
 }
 
-const GringoOutputProcessor::CurrentCostAtomInfos& GringoOutputProcessor::getCurrentCostAtomInfos() const
-{
-	return currentCostAtomInfos;
-}
-
-const GringoOutputProcessor::CostAtomInfos& GringoOutputProcessor::getCostAtomInfos() const
-{
-	return costAtomInfos;
-}
-
 const GringoOutputProcessor::LengthAtomInfos& GringoOutputProcessor::getLengthAtomInfos() const
 {
 	return lengthAtomInfos;
@@ -82,6 +72,31 @@ const GringoOutputProcessor::OrAtomInfos& GringoOutputProcessor::getOrAtomInfos(
 const GringoOutputProcessor::AndAtomInfos& GringoOutputProcessor::getAndAtomInfos() const
 {
 	return andAtomInfos;
+}
+
+const GringoOutputProcessor::CounterRemAtomInfos& GringoOutputProcessor::getCounterRemAtomInfos() const
+{
+    return counterRemAtomInfos;
+}
+
+const GringoOutputProcessor::AllCounterIncAtomInfos& GringoOutputProcessor::getAllCounterIncAtomInfos() const
+{
+    return allCounterIncAtomInfos;
+}
+
+const GringoOutputProcessor::AllCurrentCounterIncAtomInfos& GringoOutputProcessor::getAllCurrentCounterIncAtomInfos() const
+{
+    return allCurrentCounterIncAtomInfos;
+}
+
+const GringoOutputProcessor::AllCounterAtomInfos& GringoOutputProcessor::getAllCounterAtomInfos() const
+{
+    return allCounterAtomInfos;
+}
+
+const GringoOutputProcessor::AllCurrentCounterAtomInfos& GringoOutputProcessor::getAllCurrentCounterAtomInfos() const
+{
+    return allCurrentCounterAtomInfos;
 }
 
 const Clasp::Var* GringoOutputProcessor::getAcceptAtomKey() const
@@ -132,12 +147,16 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 		// XXX Instead of the previous loop which runs through all levels, it could be beneficial to assign a globally unique ID to each item tree node and then use a lookup-table. (The globally unique ID could be either an integer, as is already the case in the Decomposition class, but it could also be a string like the one we are already using.)
 
 		extendAtomInfos.emplace_back(ExtendAtomInfo{{level, decompositionChildId, current->getNode()}, atomUid});
-	} else if(predicate == "currentCost") {
-		ASP_CHECK(v.args().size() == 1, "'currentCost' predicate does not have arity 1");
-		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo{{std::stol(getArguments(v).front())}, atomUid});
-	} else if(predicate == "cost") {
-		ASP_CHECK(v.args().size() == 1, "'cost' predicate does not have arity 1");
-		costAtomInfos.emplace_back(CostAtomInfo{{std::stol(getArguments(v).front())}, atomUid});
+    } else if(predicate == "currentCost") {
+        ASP_CHECK(v.args().size() == 1, "'currentCost' predicate does not have arity 1");
+        std::ostringstream argument;
+        v.args().front().print(argument);
+        allCurrentCounterAtomInfos["cost"].emplace_back(CurrentCounterAtomInfo{CurrentCounterAtomArguments{"cost", std::stol(argument.str())}, atomUid});
+    } else if(predicate == "cost") {
+        ASP_CHECK(v.args().size() == 1, "'cost' predicate does not have arity 1");
+        std::ostringstream argument;
+        v.args().front().print(argument);
+        allCounterAtomInfos["cost"].emplace_back(CounterAtomInfo{CounterAtomArguments{"cost", std::stol(argument.str())}, atomUid});
 	} else if(predicate == "length") {
 		ASP_CHECK(v.args().size() == 1, "'length' predicate does not have arity 1");
 		lengthAtomInfos.emplace_back(LengthAtomInfo{{static_cast<unsigned int>(std::stol(getArguments(v).front()))}, atomUid});
@@ -155,7 +174,40 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 		ASP_CHECK(v.type() == Gringo::Value::ID, "'reject' predicate does not have arity 0");
 		assert(!rejectAtomKey);
 		rejectAtomKey.reset(new Clasp::Var(atomUid));
-	}
+    } else if(predicate == "counterInc") {
+        ASP_CHECK(v.args().size() != 1, "'counterInc' predicate has arity 1");
+        std::ostringstream counter;
+        v.args().front().print(counter);
+        std::ostringstream value;
+        v.args()[1].print(value);
+        allCounterIncAtomInfos[counter.str()].emplace_back(CounterIncAtomInfo{CounterIncAtomArguments{counter.str(), std::stol(value.str())}, atomUid});
+    } else if(predicate == "counter") {
+        ASP_CHECK(v.args().size() == 2, "'counter' predicate does not have arity 2");
+        std::ostringstream counter;
+        v.args().front().print(counter);
+        std::ostringstream value;
+        v.args()[1].print(value);
+        allCounterAtomInfos[counter.str()].emplace_back(CounterAtomInfo{CounterAtomArguments{counter.str(), std::stol(value.str())}, atomUid});
+    } else if(predicate == "currentCounter") {
+        ASP_CHECK(v.args().size() == 2, "'currentCounter' predicate does not have arity 2");
+        std::ostringstream currentCounter;
+        v.args().front().print(currentCounter);
+        std::ostringstream value;
+        v.args()[1].print(value);
+        allCurrentCounterAtomInfos[currentCounter.str()].emplace_back(CurrentCounterAtomInfo{CurrentCounterAtomArguments{currentCounter.str(), std::stol(value.str())}, atomUid});
+    } else if(predicate == "currentCounterInc") {
+        ASP_CHECK(v.args().size() != 1, "'currentCounterInc' predicate has arity 1");
+        std::ostringstream currentCounter;
+        v.args().front().print(currentCounter);
+        std::ostringstream value;
+        v.args()[1].print(value);
+        allCurrentCounterIncAtomInfos[currentCounter.str()].emplace_back(CurrentCounterIncAtomInfo{CurrentCounterIncAtomArguments{currentCounter.str(), std::stol(value.str())}, atomUid});
+    } else if(predicate == "counterRem") {
+        ASP_CHECK(v.args().size() == 1, "'counterRem' predicate does not have arity 1");
+        std::ostringstream argument;
+        v.args().front().print(argument);
+        counterRemAtomInfos.emplace_back(CounterRemAtomInfo{{argument.str()}, atomUid});
+        }
 }
 
 }}} // namespace solver::clasp::trees

@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -54,29 +54,79 @@ public:
 		long cost;
 	};
 	typedef asp_utils::GringoAtomInfo<CostAtomArguments> CostAtomInfo;
+        
+    struct CounterRemAtomArguments {
+        std::string counterName;
+	};
+	typedef asp_utils::GringoAtomInfo<CounterRemAtomArguments> CounterRemAtomInfo;   
+        
+ 	struct CounterIncAtomArguments {
+        std::string counterName;
+		long counterInc;
+	};
+	typedef asp_utils::GringoAtomInfo<CounterIncAtomArguments> CounterIncAtomInfo;   
+        
+    struct CurrentCounterIncAtomArguments {
+        std::string currentCounterName;
+		long currentCounterInc;
+	};
+	typedef asp_utils::GringoAtomInfo<CurrentCounterIncAtomArguments> CurrentCounterIncAtomInfo;   
 
-	typedef std::vector<ItemAtomInfo>        ItemAtomInfos;
-	typedef std::vector<AuxItemAtomInfo>     AuxItemAtomInfos;
-	typedef std::vector<ExtendAtomInfo>      ExtendAtomInfos;
-	typedef std::vector<CurrentCostAtomInfo> CurrentCostAtomInfos;
-	typedef std::vector<CostAtomInfo>        CostAtomInfos;
+    struct CounterAtomArguments {
+        std::string counterName;
+        long counter;
+    };
+    typedef asp_utils::GringoAtomInfo<CounterAtomArguments> CounterAtomInfo;
+
+    struct CurrentCounterAtomArguments {
+        std::string currentCounterName;
+        long currentCounter;
+    };
+    typedef asp_utils::GringoAtomInfo<CurrentCounterAtomArguments> CurrentCounterAtomInfo;
+
+	typedef std::vector<ItemAtomInfo>                                       ItemAtomInfos;
+	typedef std::vector<AuxItemAtomInfo>                                    AuxItemAtomInfos;
+	typedef std::vector<ExtendAtomInfo>                                     ExtendAtomInfos;
+	typedef std::vector<CurrentCostAtomInfo>                                CurrentCostAtomInfos;
+	typedef std::vector<CostAtomInfo>                                       CostAtomInfos;
+    typedef std::vector<CounterRemAtomInfo>                                      CounterRemAtomInfos;
+	typedef std::vector<CounterIncAtomInfo>                                 CounterIncAtomInfos;
+    typedef std::vector<CurrentCounterIncAtomInfo>                          CurrentCounterIncAtomInfos;
+    typedef std::map<std::string,std::vector<CounterIncAtomInfo>>           AllCounterIncAtomInfos;
+    typedef std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>    AllCurrentCounterIncAtomInfos;
+    typedef std::map<std::string,std::vector<CounterAtomInfo>>              AllCounterAtomInfos;
+    typedef std::map<std::string,std::vector<CurrentCounterAtomInfo>>       AllCurrentCounterAtomInfos;
 
 	GringoOutputProcessor(Clasp::Asp::LogicProgram& out, const ChildItemTrees& childItemTrees);
 
-	const ItemAtomInfos&           getItemAtomInfos()           const;
-	const AuxItemAtomInfos&        getAuxItemAtomInfos()        const;
-	const ExtendAtomInfos&         getExtendAtomInfos()         const;
-	const CurrentCostAtomInfos&    getCurrentCostAtomInfos()    const;
-	const CostAtomInfos&           getCostAtomInfos()           const;
+	const ItemAtomInfos&                    getItemAtomInfos()                  const;
+	const AuxItemAtomInfos&                 getAuxItemAtomInfos()               const;
+	const ExtendAtomInfos&                  getExtendAtomInfos()                const;
+	const CurrentCostAtomInfos&             getCurrentCostAtomInfos()           const;
+	const CostAtomInfos&                    getCostAtomInfos()                  const;
+	const CounterRemAtomInfos&              getCounterRemAtomInfos()            const;
+	const CounterIncAtomInfos&              getCounterIncAtomInfos()            const;
+	const CurrentCounterIncAtomInfos&       getCurrentCounterIncAtomInfos()     const;
+	const AllCounterIncAtomInfos&           getAllCounterIncAtomInfos()         const;
+	const AllCurrentCounterIncAtomInfos&    getAllCurrentCounterIncAtomInfos()  const;
+    const AllCounterAtomInfos&              getAllCounterAtomInfos()            const;
+    const AllCurrentCounterAtomInfos&       getAllCurrentCounterAtomInfos()     const;
 
 protected:
 	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) override;
 
-	ItemAtomInfos           itemAtomInfos;
-	AuxItemAtomInfos        auxItemAtomInfos;
-	ExtendAtomInfos         extendAtomInfos;
-	CurrentCostAtomInfos    currentCostAtomInfos;
-	CostAtomInfos           costAtomInfos;
+	ItemAtomInfos                           itemAtomInfos;
+	AuxItemAtomInfos                        auxItemAtomInfos;
+	ExtendAtomInfos                         extendAtomInfos;
+	CurrentCostAtomInfos                    currentCostAtomInfos;
+	CostAtomInfos                           costAtomInfos;
+    CounterRemAtomInfos                     counterRemAtomInfos;
+	CounterIncAtomInfos                     counterIncAtomInfos;
+    CurrentCounterIncAtomInfos              currentCounterIncAtomInfos;
+    AllCounterIncAtomInfos                  allCounterIncAtomInfos;
+    AllCurrentCounterIncAtomInfos           allCurrentCounterIncAtomInfos;
+    AllCounterAtomInfos                     allCounterAtomInfos;
+    AllCurrentCounterAtomInfos              allCurrentCounterAtomInfos;
 
 	const ChildItemTrees& childItemTrees;
 };

@@ -19,17 +19,18 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 %{
-	// XXX flex generates code using the deprecated keyword "register".
-	// Remove the following two lines (and the one at the bottom of this file)
-	// when this changes.
-	#pragma clang diagnostic push
-	#pragma clang diagnostic ignored "-Wdeprecated-register"
+        // XXX flex generates code using the deprecated keyword "register".
+        // Remove the following two lines (and the one at the bottom of this file)
+        // when this changes.
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wdeprecated-register"
 
-	#include "../../src/parser/Driver.h"
-	#include "parser.hpp"
-	#define yyterminate() return token::END
-	// Silence a Clang warning about yyinput() being unused
-	#define YY_NO_INPUT
+        #include "../../src/parser/Driver.h"
+        #include "parser.hpp"
+        #include <stdexcept>
+        #define yyterminate() return token::END
+        // Silence a Clang warning about yyinput() being unused
+        #define YY_NO_INPUT
 %}
 
 %option noyywrap nounput batch
@@ -39,65 +40,49 @@ number        -?[0-9]+
 qstring       \"[^"]*\"
 blank         [ \t]
 comment       %.*
-
 %{
-	#define YY_USER_ACTION yylloc->columns(yyleng);
+        #define YY_USER_ACTION yylloc->columns(yyleng);
 %}
-
 %%
-
 %{
-	yylloc->step();
+        yylloc->step();
 %}
-
 {blank}+   yylloc->step();
 {comment}  yylloc->step();
 [\n]+      yylloc->lines(yyleng); yylloc->step();
-
 %{
-	typedef yy::Parser::token token;
+        typedef yy::Parser::token token;
 %}
-
 [(),.] return yy::Parser::token_type(yytext[0]);
-
 {identifier} {
-	yylval->string = new std::string(yytext);
-	return token::IDENTIFIER;
+        yylval->string = new std::string(yytext);
+        return token::IDENTIFIER;
 }
-
 {number} {
-	yylval->string = new std::string(yytext);
-	return token::NUMBER;
+        yylval->string = new std::string(yytext);
+        return token::NUMBER;
 }
-
 {qstring} {
-	yylval->string = new std::string(yytext);
-	return token::QSTRING;
+        yylval->string = new std::string(yytext);
+        return token::QSTRING;
 }
-
 . driver.error(*yylloc, "invalid character");
-
 %%
-
 namespace parser {
-
 void Driver::scan_begin()
 {
-	//yy_scan_string(input.c_str());
-	if(filename.empty())
-		yyin = stdin;
-	else if(!(yyin = fopen(filename.c_str(), "r")))
-		throw std::runtime_error("Could not open input file");
+        //yy_scan_string(input.c_str());
+        if(filename.empty())
+                yyin = stdin;
+        else if(!(yyin = fopen(filename.c_str(), "r")))
+                throw std::logic_error("Could not open input file");
 }
-
 void Driver::scan_end()
 {
-	fclose(yyin);
-	yylex_destroy();
+        fclose(yyin);
+        yylex_destroy();
 }
-
 } // namespace parser
-
 // XXX flex generates code using the deprecated keyword "register".
 // Remove the following line (and two near the top of this file)
 // when this changes.
