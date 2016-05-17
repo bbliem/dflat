@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -101,10 +101,13 @@ void declareItemTree(std::ostream& out, const ItemTree* itemTree, bool tableMode
 			break;
 	}
 
-	// If this is a leaf, declare cost
+	// If this is a leaf, declare cost and counters
 	const ItemTree::Children& children = itemTree->getChildren();
 	if(children.empty()) {
 		out << "childCost(" << itemSetName << ',' << itemTree->getNode()->getCost() << ")." << std::endl;
+		out << "childCounter(" << itemSetName << ",cost," << itemTree->getNode()->getCost() << ")." << std::endl;
+        for(const auto& counter : itemTree->getNode()->getCounters())
+            out << "childCounter(" << itemSetName << ',' << counter.first << ',' << counter.second << ")." << std::endl;
 	}
 	else {
 		// Declare child item sets

@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -135,24 +135,109 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	for(size_t i = 1; i < branchData.size(); ++i)
 		branch.emplace_back(UncompressedItemTree::Node(new ItemTreeNode(std::move(branchData[i].items), std::move(branchData[i].auxItems), {std::move(branchData[i].extended)}, branchData[i].type)));
 	// }}}
-	if(!app.isOptimizationDisabled()) {
-		// Set cost {{{
-		ASP_CHECK(countTrue(m, costAtomInfos) <= 1, "More than one true cost/1 atom");
-		ASP_CHECK(countTrue(m, costAtomInfos) == 0 || std::all_of(branchData.begin(), branchData.end()-1, [](const BranchNode& node) {
-				return node.type != ItemTreeNode::Type::UNDEFINED;
-		}), "Cost specified but not all types of (non-leaf) nodes are defined");
-		forFirstTrue(m, costAtomInfos, [&branch](const GringoOutputProcessor::CostAtomArguments& arguments) {
-				branch.back()->setCost(arguments.cost);
-		});
-		// }}}
-		// Set current cost {{{
-		ASP_CHECK(countTrue(m, currentCostAtomInfos) <= 1, "More than one true currentCost/1 atom");
-		ASP_CHECK(countTrue(m, currentCostAtomInfos) == 0 || countTrue(m, costAtomInfos) == 1, "True currentCost/1 atom without true cost/1 atom");
-		forFirstTrue(m, currentCostAtomInfos, [&branch](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
-				branch.back()->setCurrentCost(arguments.currentCost);
-		});
-		// }}}
+	// Check if counters are used correctly {{{
+#ifndef DISABLE_CHECKS
+	for(const auto& counterAtomInfos : allCounterAtomInfos) {
+		if(counterAtomInfos.first.compare("cost") == 0) {
+			ASP_CHECK(countTrue(m, allCounterIncAtomInfos[counterAtomInfos.first]) == 0 || countTrue(m, counterAtomInfos.second) == 0,
+				"Both 'counter'/'cost' and 'counterInc' predicates used for setting the cost");
+			ASP_CHECK(countTrue(m, counterAtomInfos.second) <= 1, "More than one true atom for setting the cost");
+			ASP_CHECK(countTrue(m, counterAtomInfos.second) == 0 || std::all_of(branchData.begin(), branchData.end()-1, [](const BranchNode& node) {
+					return node.type != ItemTreeNode::Type::UNDEFINED;
+			}), "Cost specified but not all types of (non-leaf) nodes are defined");
+		} else {
+			ASP_CHECK(countTrue(m, allCounterIncAtomInfos[counterAtomInfos.first]) == 0 || countTrue(m, counterAtomInfos.second) == 0,
+				"Both 'counter' and 'counterInc' predicates used for setting the " + counterAtomInfos.first + " counter");
+			ASP_CHECK(countTrue(m, counterAtomInfos.second) <= 1, "More than one true atom for setting the " + counterAtomInfos.first + " counter");
+		}
 	}
+
+	for(const auto& currentCounterAtomInfos : allCurrentCounterAtomInfos) {
+		if(currentCounterAtomInfos.first.compare("cost") == 0){
+			ASP_CHECK(countTrue(m, currentCounterAtomInfos.second) == 0 || countTrue(m, allCounterAtomInfos[currentCounterAtomInfos.first]) == 1,
+					  "True current cost atom without true cost atom");
+			ASP_CHECK(countTrue(m, allCurrentCounterIncAtomInfos[currentCounterAtomInfos.first]) == 0 || countTrue(m, currentCounterAtomInfos.second) == 0,
+				"Both 'currentCounter'/'currentCost' and 'currentCounterInc' predicates used for setting the current cost");
+			ASP_CHECK(countTrue(m, currentCounterAtomInfos.second) <= 1, "More than one true atom for setting the current cost");
+		} else {
+			ASP_CHECK(countTrue(m, currentCounterAtomInfos.second) == 0 || countTrue(m, allCounterAtomInfos[currentCounterAtomInfos.first]) == 1,
+					  "True " + currentCounterAtomInfos.first + " current counter atom without true " + currentCounterAtomInfos.first + " counter atom");
+			ASP_CHECK(countTrue(m, allCurrentCounterIncAtomInfos[currentCounterAtomInfos.first]) == 0 || countTrue(m, currentCounterAtomInfos.second) == 0,
+				"Both 'currentCounter' and 'currentCounterInc' predicates used for setting the " + currentCounterAtomInfos.first + " current counter");
+			ASP_CHECK(countTrue(m, currentCounterAtomInfos.second) <= 1, "More than one true atom for setting the " + currentCounterAtomInfos.first + " current counter");
+		}
+	}
+#endif // }}}
+	// Set (current) counters and compute (if optimization is not disabled) cost {{{
+	std::map<std::string,long> counterValues;
+	for(const auto& counterIncAtomInfos : allCounterIncAtomInfos) {
+		// Note that here forFirstTrue is not sufficient
+		forEachTrue(m, counterIncAtomInfos.second, [&counterValues](const GringoOutputProcessor::CounterIncAtomArguments& arguments) {
+				counterValues[arguments.counterName] += arguments.counterInc;
+		});
+	}
+
+	for(const ItemTreeNode::ExtensionPointer& extPtr : branch.back()->getExtensionPointers().back()) {
+		for(const auto& counter : extPtr->getCounters())
+			counterValues[counter.first] += extPtr->getCounter(counter.first);
+		counterValues["cost"] += extPtr->getCost();
+	}
+
+	for(const auto& counterAtomInfos : allCounterAtomInfos) {
+		forFirstTrue(m, counterAtomInfos.second, [&counterValues](const GringoOutputProcessor::CounterAtomArguments& arguments) {
+				counterValues[arguments.counterName] = arguments.counter;
+		});
+	}
+	forFirstTrue(m, costAtomInfos, [&counterValues](const GringoOutputProcessor::CostAtomArguments& arguments) {
+			counterValues["cost"] = arguments.cost;
+	});
+
+	for(const auto& counterValue : counterValues) {
+		if(counterRemAtomInfos.find(counterValue.first) == counterRemAtomInfos.end() || !m.isTrue(counterRemAtomInfos[counterValue.first])) {
+			if(counterValue.first == "cost") {
+				if(!app.isOptimizationDisabled() && branch.back()->getType() != ItemTreeNode::Type::REJECT)
+					branch.back()->setCost(counterValue.second);
+			}
+			else
+				branch.back()->setCounter(counterValue.first, counterValue.second);
+		}
+	}
+
+	// Possibly update counters of root [XXX necessary?]
+//		for(const auto& counter : branch.back()->getCounters())
+//		   branch.back()->setCounter(counter.first, std::min(branch.back()->getCounter(counter.first), counterValues[counter.first]));
+
+	std::map<std::string,long> currentCounterValues;
+	for(const auto& currentCounterIncAtomInfos : allCurrentCounterIncAtomInfos) {
+		// Note that here forFirstTrue is not sufficient
+		forEachTrue(m, currentCounterIncAtomInfos.second, [&currentCounterValues](const GringoOutputProcessor::CurrentCounterIncAtomArguments& arguments) {
+				currentCounterValues[arguments.currentCounterName] += arguments.currentCounterInc;
+		});
+	}
+
+	for(const ItemTreeNode::ExtensionPointer& extPtr : branch.back()->getExtensionPointers().back()) {
+		for(const auto& currentCounter : extPtr->getCurrentCounters())
+			currentCounterValues[currentCounter.first] += extPtr->getCurrentCounter(currentCounter.first);
+		currentCounterValues["cost"] += extPtr->getCurrentCost();
+	}
+
+	for(const auto& currentCounterAtomInfos : allCurrentCounterAtomInfos) {
+		forFirstTrue(m, currentCounterAtomInfos.second, [&currentCounterValues](const GringoOutputProcessor::CurrentCounterAtomArguments& arguments) {
+				currentCounterValues[arguments.currentCounterName] = arguments.currentCounter;
+		});
+	}
+
+	for(const auto& currentCounterValue : currentCounterValues) {
+		if(counterRemAtomInfos.find(currentCounterValue.first) == counterRemAtomInfos.end() || !m.isTrue(counterRemAtomInfos[currentCounterValue.first])) {
+			if(currentCounterValue.first == "cost") {
+				if(!app.isOptimizationDisabled())
+					branch.back()->setCurrentCost(currentCounterValue.second);
+			}
+			else
+				branch.back()->setCurrentCounter(currentCounterValue.first, currentCounterValue.second);
+		}
+	}
+	// }}}
 	// Insert branch into tree {{{
 	if(!uncompressedItemTree)
 		uncompressedItemTree = UncompressedItemTreePtr(new UncompressedItemTree(std::move(branch.front())));
@@ -171,10 +256,6 @@ void ClaspCallback::prepare(const Clasp::Asp::LogicProgram& prg)
 		auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getExtendAtomInfos())
 		extendAtomInfos.emplace_back(ExtendAtomInfo(atom, prg));
-	for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
-		currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, prg));
-	for(const auto& atom : gringoOutput.getCostAtomInfos())
-		costAtomInfos.emplace_back(CostAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getLengthAtomInfos())
 		lengthAtomInfos.emplace_back(LengthAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getOrAtomInfos())
@@ -186,6 +267,21 @@ void ClaspCallback::prepare(const Clasp::Asp::LogicProgram& prg)
 		acceptLiteral.reset(new Clasp::Literal(prg.getLiteral(*gringoOutput.getAcceptAtomKey())));
 	if(gringoOutput.getRejectAtomKey())
 		rejectLiteral.reset(new Clasp::Literal(prg.getLiteral(*gringoOutput.getRejectAtomKey())));
+
+	for(const auto& atom : gringoOutput.getCounterRemAtomInfos())
+		counterRemAtomInfos.insert(std::pair<std::string, Clasp::Literal>(atom.arguments.counterName, Clasp::Literal(prg.getLiteral(atom.atomId))));
+	for(const auto& counterIncAtomInfos : gringoOutput.getAllCounterIncAtomInfos())
+		for(const auto& atom : counterIncAtomInfos.second)
+			allCounterIncAtomInfos[counterIncAtomInfos.first].emplace_back(CounterIncAtomInfo(atom, prg));
+	for(const auto& currentCounterIncAtomInfos : gringoOutput.getAllCurrentCounterIncAtomInfos())
+		for(const auto& atom : currentCounterIncAtomInfos.second)
+			allCurrentCounterIncAtomInfos[currentCounterIncAtomInfos.first].emplace_back(CurrentCounterIncAtomInfo(atom, prg));
+	for(const auto& counterAtomInfos : gringoOutput.getAllCounterAtomInfos())
+		for(const auto& atom : counterAtomInfos.second)
+			allCounterAtomInfos[counterAtomInfos.first].emplace_back(CounterAtomInfo(atom, prg));
+	for(const auto& currentCounterAtomInfos : gringoOutput.getAllCurrentCounterAtomInfos())
+		for(const auto& atom : currentCounterAtomInfos.second)
+			allCurrentCounterAtomInfos[currentCounterAtomInfos.first].emplace_back(CurrentCounterAtomInfo(atom, prg));
 }
 
 ItemTreePtr ClaspCallback::finalize(bool pruneUndefined, bool pruneRejecting)

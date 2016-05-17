@@ -73,6 +73,9 @@ void declareDerivedCosts(std::ostream& out, const ItemTree* itemTree, const std:
 		return;
 
 	out << "childCost(" << itemSetName << ',' << itemTree->getNode()->getCost() << ")." << std::endl;
+	out << "childCounter(" << itemSetName << ",cost," << itemTree->getNode()->getCost() << ")." << std::endl;
+	for(const auto& counter : itemTree->getNode()->getCounters())
+		out << "childCounter(" << itemSetName << ',' << counter.first << ',' << counter.second << ")." << std::endl;
 
 	size_t i = 0;
 	for(const auto& child : itemTree->getChildren()) {

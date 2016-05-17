@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -34,6 +34,12 @@ public:
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::AuxItemAtomArguments> AuxItemAtomInfo;
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCostAtomArguments> CurrentCostAtomInfo;
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterRemAtomArguments> CounterRemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterIncAtomArguments> CounterIncAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCounterIncAtomArguments> CurrentCounterIncAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterAtomArguments> CounterAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCounterAtomArguments> CurrentCounterAtomInfo;
+
 
 	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&, bool root, bool cardinalityCost = false);
 
@@ -41,11 +47,20 @@ public:
 	virtual void prepare(const Clasp::Asp::LogicProgram&) override;
 
 private:
-	std::vector<ItemAtomInfo>        itemAtomInfos;
-	std::vector<AuxItemAtomInfo>     auxItemAtomInfos;
-	std::vector<ExtendAtomInfo>      extendAtomInfos;
-	std::vector<CurrentCostAtomInfo> currentCostAtomInfos;
-	std::vector<CostAtomInfo>        costAtomInfos;
+	std::vector<ItemAtomInfo>                                       itemAtomInfos;
+	std::vector<AuxItemAtomInfo>                                    auxItemAtomInfos;
+	std::vector<ExtendAtomInfo>                                     extendAtomInfos;
+	std::vector<CurrentCostAtomInfo>                                currentCostAtomInfos;
+	std::vector<CostAtomInfo>                                       costAtomInfos;
+	std::map<std::string,Clasp::Literal>                            counterRemAtomInfos;
+	std::vector<CounterIncAtomInfo>                                 counterIncAtomInfos;
+	std::vector<CurrentCounterIncAtomInfo>                          currentCounterIncAtomInfos;
+	std::map<std::string,std::vector<CounterIncAtomInfo>>           allCounterIncAtomInfos;
+	std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>    allCurrentCounterIncAtomInfos;
+	std::vector<CounterAtomInfo>                                    counterAtomInfos;
+	std::vector<CurrentCounterAtomInfo>                             currentCounterAtomInfos;
+	std::map<std::string,std::vector<CounterAtomInfo>>              allCounterAtomInfos;
+	std::map<std::string,std::vector<CurrentCounterAtomInfo>>       allCurrentCounterAtomInfos;
 
 	const GringoOutputProcessor& gringoOutput;
 	const ChildItemTrees& childItemTrees;

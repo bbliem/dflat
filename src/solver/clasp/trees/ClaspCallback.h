@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -39,6 +39,11 @@ public:
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::LengthAtomArguments> LengthAtomInfo;
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::OrAtomArguments> OrAtomInfo;
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::AndAtomArguments> AndAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterRemAtomArguments> CounterRemAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterIncAtomArguments> CounterIncAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCounterIncAtomArguments> CurrentCounterIncAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterAtomArguments> CounterAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCounterAtomArguments> CurrentCounterAtomInfo;
 
 	ClaspCallback(const GringoOutputProcessor& gringoOutput, const ChildItemTrees& childItemTrees, const Application&, const Decomposition&);
 
@@ -49,14 +54,21 @@ public:
 private:
 	UncompressedItemTreePtr uncompressedItemTree;
 
-	std::vector<ItemAtomInfo>           itemAtomInfos;
-	std::vector<AuxItemAtomInfo>        auxItemAtomInfos;
-	std::vector<ExtendAtomInfo>         extendAtomInfos;
-	std::vector<CurrentCostAtomInfo>    currentCostAtomInfos;
-	std::vector<CostAtomInfo>           costAtomInfos;
-	std::vector<LengthAtomInfo>         lengthAtomInfos;
-	std::vector<OrAtomInfo>             orAtomInfos;
-	std::vector<AndAtomInfo>            andAtomInfos;
+	std::vector<ItemAtomInfo>                                    itemAtomInfos;
+	std::vector<AuxItemAtomInfo>                                 auxItemAtomInfos;
+	std::vector<ExtendAtomInfo>                                  extendAtomInfos;
+	std::vector<CurrentCostAtomInfo>                             currentCostAtomInfos;
+	std::vector<CostAtomInfo>                                    costAtomInfos;
+	std::vector<LengthAtomInfo>                                  lengthAtomInfos;
+	std::vector<OrAtomInfo>                                      orAtomInfos;
+	std::vector<AndAtomInfo>                                     andAtomInfos;
+	std::map<std::string,Clasp::Literal>                         counterRemAtomInfos;
+	std::vector<CounterIncAtomInfo>                              counterIncAtomInfos;
+	std::vector<CurrentCounterIncAtomInfo>                       currentCounterIncAtomInfos;
+	std::map<std::string,std::vector<CounterIncAtomInfo>>        allCounterIncAtomInfos;
+	std::map<std::string,std::vector<CurrentCounterIncAtomInfo>> allCurrentCounterIncAtomInfos;
+	std::map<std::string,std::vector<CounterAtomInfo>>           allCounterAtomInfos;
+	std::map<std::string,std::vector<CurrentCounterAtomInfo>>    allCurrentCounterAtomInfos;
 
 	std::unique_ptr<Clasp::Literal> acceptLiteral;
 	std::unique_ptr<Clasp::Literal> rejectLiteral;

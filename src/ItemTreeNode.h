@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -42,6 +42,8 @@ public:
 	typedef std::shared_ptr<ItemTreeNode> ExtensionPointer;
 	typedef std::vector<ExtensionPointer> ExtensionPointerTuple;
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
+	typedef std::map<std::string,long> Counters;
+	typedef std::map<std::string,long> CurrentCounters;
 
 	enum class Type {
 		UNDEFINED,
@@ -85,6 +87,14 @@ public:
 	long getCurrentCost() const { return currentCost; }
 	void setCurrentCost(long currentCost);
 
+	const Counters& getCounters() const { return counters; }
+	long getCounter(const std::string& counterName) const;
+	void setCounter(const std::string& counterName, long counterValue);
+
+	const CurrentCounters& getCurrentCounters() const { return currentCounters; }
+	long getCurrentCounter(const std::string& currentCounterName) const;
+	void setCurrentCounter(const std::string& currentCounterName, long currentCounterValue);
+
 	Type getType() const { return type; }
 
 	bool getHasAcceptingChild() const { return hasAcceptingChild; }
@@ -122,6 +132,8 @@ private:
 	mpz_class count; // number of possible extensions of this node
 	long cost = 0;
 	long currentCost = 0;
+	Counters counters;
+	CurrentCounters currentCounters;
 	Type type;
 	// Whether this node has a child whose acceptance status (either due to ACCEPT/REJECT in leaves or propagation in AND/OR nodes) is ACCEPT or REJECT, respectively.
 	// We must keep track of this explicitly since accepting/rejecting children might have been pruned.

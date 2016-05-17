@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -61,6 +61,7 @@ ItemTreePtr join(const ItemTreePtr& left, const ItemTreePtr& right, bool setLeav
 			type = ItemTreeNode::Type::ACCEPT;
 	}
 	result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), std::move(extensionPointers), type))));
+
 	// Set (initial) cost of this node
 	if(optimize) {
 		if(leaves) {
@@ -68,7 +69,8 @@ ItemTreePtr join(const ItemTreePtr& left, const ItemTreePtr& right, bool setLeav
 			assert(left->getNode()->getCurrentCost() == right->getNode()->getCurrentCost());
 			result->getNode()->setCurrentCost(left->getNode()->getCurrentCost());
 		} else {
-			assert(left->getNode()->getCurrentCost() == right->getNode()->getCurrentCost() && left->getNode()->getCurrentCost() == 0);
+			assert(left->getNode()->getCurrentCost() == right->getNode()->getCurrentCost());
+			assert(left->getNode()->getCurrentCost() == 0);
 			switch(type) {
 				case ItemTreeNode::Type::OR:
 					// Set cost to "infinity"
@@ -87,6 +89,20 @@ ItemTreePtr join(const ItemTreePtr& left, const ItemTreePtr& right, bool setLeav
 					assert(false);
 					break;
 			}
+		}
+	}
+
+	// Set counters (only in leaves)
+	if(leaves) {
+		std::set<std::string> keys;
+		for(const auto& counter : left->getNode()->getCounters())
+			keys.insert(counter.first);
+		for(const auto& counter : right->getNode()->getCounters())
+			keys.insert(counter.first);
+		for(const auto& key : keys) {
+			result->getNode()->setCounter(key, left->getNode()->getCounter(key) - left->getNode()->getCurrentCounter(key) + right->getNode()->getCounter(key));
+			assert(left->getNode()->getCurrentCounter(key) == right->getNode()->getCurrentCounter(key));
+			result->getNode()->setCurrentCounter(key, left->getNode()->getCurrentCounter(key));
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2012-2016, Bernhard Bliem, Marius Moldovan
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -27,7 +27,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 	// Returns a negative integer if lhs < rhs, a positive integer if rhs > lhs, 0 if lhs == rhs
-	int compareSets(const ItemTreeNode::Items& lhs, const ItemTreeNode::Items& rhs)
+	template<typename T>
+	int compareSets(const T& lhs, const T& rhs)
 	{
 		const size_t smallestSize = std::min(lhs.size(), rhs.size());
 		size_t i = 0;
@@ -94,6 +95,30 @@ void ItemTreeNode::setCurrentCost(long currentCost)
 	this->currentCost = currentCost;
 }
 
+long ItemTreeNode::getCounter(const std::string& counterName) const
+{
+	Counters::const_iterator it = counters.find(counterName);
+	return it == counters.end() ? 0 : it->second;
+}
+
+void ItemTreeNode::setCounter(const std::string& counterName, long counterValue)
+{
+	assert(counterName != "cost");
+	counters[counterName] = counterValue;
+}
+
+long ItemTreeNode::getCurrentCounter(const std::string& currentCounterName) const
+{
+	CurrentCounters::const_iterator it = currentCounters.find(currentCounterName);
+	return it == currentCounters.end() ? 0 : it->second;
+}
+
+void ItemTreeNode::setCurrentCounter(const std::string& currentCounterName, long currentCounterValue)
+{
+	assert(currentCounterName != "cost");
+	currentCounters[currentCounterName] = currentCounterValue;
+}
+
 void ItemTreeNode::setHasAcceptingChild()
 {
 	hasAcceptingChild = true;
@@ -146,7 +171,7 @@ void ItemTreeNode::merge(ItemTreeNode&& other)
 
 int ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
 {
-	const int c = compareSets(items, other.items);
+	int c = compareSets(items, other.items);
 	if(c != 0)
 		return c;
 
@@ -164,6 +189,10 @@ int ItemTreeNode::compareCostInsensitive(const ItemTreeNode& other) const
 		return -1;
 	else if(hasRejectingChild > other.hasRejectingChild)
 		return 1;
+
+	c = compareSets(counters, other.counters);
+	if(c != 0)
+		return c;
 
 	return compareSets(auxItems, other.auxItems);
 }
