@@ -14,10 +14,6 @@ optparse = OptionParser.new do |opts|
   opts.on('--sphere', 'Draw grid on a sphere (every vertex has degree 4)') do
     sphere = true
   end
-
-  opts.on('--seed N', 'Use N as random seed') do |n|
-    srand(Integer(n))
-  end
 end
 
 optparse.parse!
