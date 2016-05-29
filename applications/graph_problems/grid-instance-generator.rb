@@ -1,12 +1,18 @@
 #!/usr/bin/env ruby
 require 'optparse'
 
+sphere = false
+
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage: asp-get.rb [options] width height"
 
   opts.on('-h', '--help', 'Print usage information') do
     puts opts
     exit
+  end
+
+  opts.on('--sphere', 'Draw grid on a sphere (every vertex has degree 4)') do
+    sphere = true
   end
 
   opts.on('--seed N', 'Use N as random seed') do |n|
@@ -26,9 +32,12 @@ height = Integer(ARGV[1])
 
 height.times do |y|
   width.times do |x|
-    v = y * width + x
-    puts "vertex(#{v})."
-    puts "edge(#{v},#{v+1})." if x+1 < width
-    puts "edge(#{v},#{v+width})." if y+1 < height
+    edge_right = width > 1 && (sphere || x+1 < width)
+    edge_down = height > 1 && (sphere || y+1 < height)
+
+    here = "x#{x}y#{y}"
+    puts "vertex(#{here})."
+    puts "edge(#{here},x#{(x+1) % width}y#{y})." if edge_right
+    puts "edge(#{here},x#{x}y#{(y+1) % height})." if edge_down
   end
 end
