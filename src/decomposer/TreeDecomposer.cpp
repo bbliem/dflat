@@ -82,7 +82,7 @@ namespace {
 			stack.pop();
 			size_t numChildren = decomposition.childCount(htdParent);
 			for(size_t i = 0; i < numChildren; ++i) {
-				htd::vertex_t htdChild = decomposition.child(htdParent, i);
+				htd::vertex_t htdChild = decomposition.childAtPosition(htdParent, i);
 				const auto htdChildBag = decomposition.bagContent(htdChild);
 				DecompositionNode::Bag childBag;
 				for(auto v : htdChildBag)

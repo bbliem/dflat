@@ -178,7 +178,6 @@ ItemTreePtr Solver::compute()
 	// TODO Use a balanced join tree (with smaller "tables" further down)
 	auto it = decomposition.getChildren().begin();
 	ItemTreePtr result = (*it)->getSolver().compute();
-	unsigned int leftChildIndex = (*it)->getNode().getGlobalId();
 	for(++it; it != decomposition.getChildren().end(); ++it) {
 		if(!result)
 			return ItemTreePtr();
@@ -186,7 +185,6 @@ ItemTreePtr Solver::compute()
 		if(!itree)
 			return ItemTreePtr();
 		result = join(result, itree, setLeavesToAccept, !app.isOptimizationDisabled());
-		leftChildIndex = (*it)->getNode().getGlobalId();
 	}
 
 	if(result && result->finalize(app, decomposition.isRoot(), app.isPruningDisabled() == false || decomposition.isRoot()) == false)
