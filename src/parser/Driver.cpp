@@ -22,13 +22,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdexcept>
 
 #include "Driver.h"
-#include "Terms.h"
 #include "../Instance.h"
 
 namespace parser {
 
-Driver::Driver(const std::string& filename, const Predicates& hyperedgePredicateNames)
-	: filename(filename)
+Driver::Driver(std::istream& input, const Predicates& hyperedgePredicateNames)
+	: input(input)
 	, hyperedgePredicateNames(hyperedgePredicateNames)
 {
 }
@@ -40,32 +39,23 @@ Driver::~Driver()
 Instance Driver::parse()
 {
 	Instance instance;
-	scan_begin();
-	::yy::Parser parser(*this, instance);
+	Scanner scanner(&input);
+	Parser parser(scanner, *this, instance);
 	int res = parser.parse();
-	scan_end();
 	if(res != 0)
 		throw std::runtime_error("Parse error");
 	return instance;
 }
 
-void Driver::error(const yy::location& l, const std::string& m)
-{
-	std::ostringstream ss;
-	ss << "Parse error." << std::endl << l << ": " << m;
-	throw std::runtime_error(ss.str());
-}
-
-void Driver::processFact(Instance& instance, const std::string& predicate, const Terms* arguments)
+void Driver::processFact(Instance& instance, const std::string& predicate, const std::vector<std::string>& arguments)
 {
 	if(hyperedgePredicateNames.find(predicate) == hyperedgePredicateNames.end()) {
 		std::stringstream fact;
 		fact << predicate;
-		if(arguments) {
-			assert(arguments->getTerms().empty() == false);
+		if(!arguments.empty()) {
 			char sep = '(';
-			for(const std::string* term : arguments->getTerms()) {
-				fact << sep << *term;
+			for(const std::string& arg : arguments) {
+				fact << sep << arg;
 				sep = ',';
 			}
 			fact << ')';
@@ -75,12 +65,8 @@ void Driver::processFact(Instance& instance, const std::string& predicate, const
 
 	else {
 		Instance::Edge hyperedge;
-
-		if(arguments) {
-			for(const std::string* term : arguments->getTerms())
-				hyperedge.emplace_back(std::string(*term));
-		}
-
+		for(const std::string& arg : arguments)
+			hyperedge.emplace_back(std::string(arg));
 		instance.addEdgeFact(predicate, hyperedge);
 	}
 }

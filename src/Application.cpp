@@ -165,7 +165,15 @@ int Application::run(int argc, const char* const* const argv)
 	parser::Driver::Predicates edgePredicates(optEdge.getValues().begin(), optEdge.getValues().end());
 
 	// Parse instance
-	instance = parser::Driver(optInputFile.getValue(), edgePredicates).parse();
+	{
+		std::unique_ptr<std::istream> input;
+		if(!optInputFile.getValue().empty()) {
+			input.reset(new std::ifstream(optInputFile.getValue()));
+			if(!input->good())
+				throw std::runtime_error("Could not open input file");
+		}
+		instance = parser::Driver(input ? *input : std::cin, edgePredicates).parse();
+	}
 
 	// Decompose instance
 	DecompositionPtr decomposition = decomposer->decompose(instance);

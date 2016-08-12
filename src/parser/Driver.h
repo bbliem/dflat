@@ -22,14 +22,8 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <set>
 
+#include "Scanner.h"
 #include "parser.hpp"
-
-#define YY_DECL                                \
- yy::Parser::token_type                        \
- yylex(yy::Parser::semantic_type* yylval,      \
-       yy::Parser::location_type* yylloc,      \
-       parser::Driver& driver)
-YY_DECL;
 
 namespace parser {
 
@@ -38,17 +32,13 @@ class Driver
 public:
 	typedef std::set<std::string> Predicates;
 
-	// If filename.empty(), use stdin
-	Driver(const std::string& filename, const Predicates& hyperedgePredicateNames);
+	Driver(std::istream& input, const Predicates& hyperedgePredicateNames);
 	~Driver();
-	void scan_begin();
-	void scan_end();
 	Instance parse();
-	void error(const yy::location& l, const std::string& m);
-	void processFact(Instance& instance, const std::string& predicate, const Terms* arguments = 0);
+	void processFact(Instance& instance, const std::string& predicate, const std::vector<std::string>& arguments);
 
 private:
-	const std::string& filename;
+	std::istream& input;
 	const Predicates& hyperedgePredicateNames;
 };
 

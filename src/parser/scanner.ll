@@ -19,20 +19,21 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 %{
-	// XXX flex generates code using the deprecated keyword "register".
-	// Remove the following two lines (and the one at the bottom of this file)
-	// when this changes.
-	#pragma clang diagnostic push
-	#pragma clang diagnostic ignored "-Wdeprecated-register"
+#include <sstream>
+#include "../../src/parser/Scanner.h"
 
-	#include "../../src/parser/Driver.h"
-	#include "parser.hpp"
-	#define yyterminate() return token::END
-	// Silence a Clang warning about yyinput() being unused
-	#define YY_NO_INPUT
+#undef YY_DECL
+#define YY_DECL int parser::Scanner::yylex(Parser::semantic_type* const lval, Parser::location_type* loc)
+
+typedef parser::Parser::token token;
+
+#define yyterminate() return token::END
+
+// Update location on matching
+#define YY_USER_ACTION loc->step(); loc->columns(yyleng);
 %}
 
-%option noyywrap nounput batch
+%option c++ noyywrap batch nounput yyclass="parser::Scanner"
 
 identifier    [a-z][a-zA-Z_0-9]*
 number        -?[0-9]+
@@ -40,65 +41,37 @@ qstring       \"[^"]*\"
 blank         [ \t]
 comment       %.*
 
-%{
-	#define YY_USER_ACTION yylloc->columns(yyleng);
-%}
-
 %%
 
-%{
-	yylloc->step();
+%{ // Code executed at the beginning of yylex
+	yylval = lval;
 %}
 
-{blank}+   yylloc->step();
-{comment}  yylloc->step();
-[\n]+      yylloc->lines(yyleng); yylloc->step();
+{blank}+   ;
+{comment}  ;
+[\n]+      loc->lines(yyleng);
 
-%{
-	typedef yy::Parser::token token;
-%}
-
-[(),.] return yy::Parser::token_type(yytext[0]);
+[(),.] return Parser::token_type(yytext[0]);
 
 {identifier} {
-	yylval->string = new std::string(yytext);
+	yylval->build<std::string>(yytext);
 	return token::IDENTIFIER;
 }
 
 {number} {
-	yylval->string = new std::string(yytext);
+	yylval->build<std::string>(yytext);
 	return token::NUMBER;
 }
 
 {qstring} {
-	yylval->string = new std::string(yytext);
+	yylval->build<std::string>(yytext);
 	return token::QSTRING;
 }
 
-. driver.error(*yylloc, "invalid character");
 
+. {
+	std::ostringstream ss;
+	ss << "Parse error." << std::endl << *loc << ": Invalid character";
+	throw std::runtime_error(ss.str());
+}
 %%
-
-namespace parser {
-
-void Driver::scan_begin()
-{
-	//yy_scan_string(input.c_str());
-	if(filename.empty())
-		yyin = stdin;
-	else if(!(yyin = fopen(filename.c_str(), "r")))
-		throw std::runtime_error("Could not open input file");
-}
-
-void Driver::scan_end()
-{
-	fclose(yyin);
-	yylex_destroy();
-}
-
-} // namespace parser
-
-// XXX flex generates code using the deprecated keyword "register".
-// Remove the following line (and two near the top of this file)
-// when this changes.
-#pragma clang diagnostic pop

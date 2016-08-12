@@ -66,7 +66,6 @@ add_library(dflat-objects
 	${FLEX_Scanner_OUTPUTS}
 	${BISON_Parser_OUTPUTS}
 	parser/Driver.cpp
-	parser/Terms.cpp
 	options/Option.cpp
 	options/ValueOption.cpp
 	options/SingleValueOption.cpp

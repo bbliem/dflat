@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -17,42 +17,39 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
-//}}}
-#include <ostream>
 
-#include "Terms.h"
+#pragma once
+//}}}
+#ifndef yyFlexLexerOnce
+#include <FlexLexer.h>
+#endif
+#include <set>
+#include "parser.hpp"
+#include "location.hh"
 
 namespace parser {
 
-Terms::Terms(std::string* term)
+class Scanner : public yyFlexLexer
 {
-	terms.push_back(term);
-}
+public:
+	typedef std::set<std::string> Predicates;
 
-Terms::~Terms()
-{
-	for(auto* t : terms)
-		delete t;
-}
+	Scanner(std::istream* in)
+		: yyFlexLexer(in)
+	{
+		loc = new Parser::location_type;
+	}
 
-void Terms::push_back(std::string* term)
-{
-	terms.push_back(term);
-}
+	virtual ~Scanner()
+	{
+		delete loc;
+	}
 
-const Terms::List& Terms::getTerms() const
-{
-	return terms;
-}
+	virtual int yylex(Parser::semantic_type* const lval, Parser::location_type* loc);
 
-std::ostream& operator<<(std::ostream& stream, const Terms& terms)
-{
-	Terms::List::const_iterator i = terms.terms.begin();
-	if(i != terms.terms.end())
-		stream << **(i++);
-	while(i != terms.terms.end())
-		stream << ',' << **(i++);
-	return stream;
-}
+private:
+	Parser::semantic_type* yylval;
+	Parser::location_type* loc;
+};
 
 } // namespace parser
