@@ -20,19 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <cassert>
 #include <stack>
-#include <htd/AddEmptyLeavesOperation.hpp>
-#include <htd/AddEmptyRootOperation.hpp>
-#include <htd/AddIdenticalJoinNodeParentOperation.hpp>
-#include <htd/JoinNodeReplacementOperation.hpp>
-#include <htd/NormalizationOperation.hpp>
-#include <htd/SemiNormalizationOperation.hpp>
-#include <htd/WeakNormalizationOperation.hpp>
-#include <htd/NamedHypergraph.hpp>
-#include <htd/TreeDecompositionFactory.hpp>
-#include <htd/TreeDecompositionAlgorithmFactory.hpp>
-#include <htd/MinDegreeOrderingAlgorithm.hpp>
-#include <htd/MinFillOrderingAlgorithm.hpp>
-#include <htd/OrderingAlgorithmFactory.hpp>
+#include <htd/main.hpp>
 
 #include "TreeDecomposer.h"
 #include "../Instance.h"
@@ -42,9 +30,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 typedef htd::NamedHypergraph<std::string, std::string> Hypergraph;
 
 namespace {
-	Hypergraph buildNamedHypergraph(const Instance& instance)
+	Hypergraph buildNamedHypergraph(const htd::LibraryInstance& htd, const Instance& instance)
 	{
-		Hypergraph graph;
+		Hypergraph graph(&htd);
 
 		for(auto fact : instance.getEdgeFacts()) {
 			for(const auto& e : fact.second) {
@@ -141,40 +129,47 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 
 DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 {
+	std::unique_ptr<htd::LibraryInstance> htd(htd::createManagementInstance(htd::Id::FIRST));
+
 	// Which algorithm to use?
 	if(optEliminationOrdering.getValue() == "min-degree")
-		htd::OrderingAlgorithmFactory::instance().setConstructionTemplate(new htd::MinDegreeOrderingAlgorithm());
+		htd->orderingAlgorithmFactory().setConstructionTemplate(new htd::MinDegreeOrderingAlgorithm(htd.get()));
 	else {
 		assert(optEliminationOrdering.getValue() == "min-fill");
-		htd::OrderingAlgorithmFactory::instance().setConstructionTemplate(new htd::MinFillOrderingAlgorithm());
+		htd->orderingAlgorithmFactory().setConstructionTemplate(new htd::MinFillOrderingAlgorithm(htd.get()));
 	}
-	Hypergraph graph = buildNamedHypergraph(instance);
 
-	// Use htd to decompose
-	std::unique_ptr<htd::ITreeDecompositionAlgorithm> treeDecompositionAlgorithm{htd::TreeDecompositionAlgorithmFactory::instance().getTreeDecompositionAlgorithm()};
+	Hypergraph graph = buildNamedHypergraph(*htd, instance);
+	std::unique_ptr<htd::TreeDecompositionOptimizationOperation> operation(new htd::TreeDecompositionOptimizationOperation(htd.get()));
+	operation->setManagementInstance(htd.get());
+	// Try 10 different root nodes
+	operation->setVertexSelectionStrategy(new htd::RandomVertexSelectionStrategy(10));
 
 	// Add transformation to path decomposition
 	if(optPathDecomposition.isUsed())
-		treeDecompositionAlgorithm->addManipulationOperation(new htd::JoinNodeReplacementOperation());
+		operation->addManipulationOperation(new htd::JoinNodeReplacementOperation(htd.get()));
 
 	// Add empty leaves
 	if(optNoEmptyLeaves.isUsed() == false)
-		treeDecompositionAlgorithm->addManipulationOperation(new htd::AddEmptyLeavesOperation());
+		operation->addManipulationOperation(new htd::AddEmptyLeavesOperation(htd.get()));
 
 	// Add empty root
 	if(optNoEmptyRoot.isUsed() == false)
-		treeDecompositionAlgorithm->addManipulationOperation(new htd::AddEmptyRootOperation());
+		operation->addManipulationOperation(new htd::AddEmptyRootOperation(htd.get()));
 
 	// Normalize
 	if(optNormalization.getValue() == "semi")
-		treeDecompositionAlgorithm->addManipulationOperation(new htd::SemiNormalizationOperation());
+		operation->addManipulationOperation(new htd::SemiNormalizationOperation(htd.get()));
 	else if(optNormalization.getValue() == "weak")
-		treeDecompositionAlgorithm->addManipulationOperation(new htd::WeakNormalizationOperation());
+		operation->addManipulationOperation(new htd::WeakNormalizationOperation(htd.get()));
 	else if(optNormalization.getValue() == "normalized")
-		treeDecompositionAlgorithm->addManipulationOperation(new htd::NormalizationOperation());
+		operation->addManipulationOperation(new htd::NormalizationOperation(htd.get()));
 
 	if(optPostJoin.isUsed())
-		treeDecompositionAlgorithm->addManipulationOperation(new htd::AddIdenticalJoinNodeParentOperation());
+		operation->addManipulationOperation(new htd::AddIdenticalJoinNodeParentOperation(htd.get()));
+
+	std::unique_ptr<htd::ITreeDecompositionAlgorithm> treeDecompositionAlgorithm(htd->treeDecompositionAlgorithmFactory().getTreeDecompositionAlgorithm());
+	treeDecompositionAlgorithm->addManipulationOperation(operation.release());
 
 	// Compute decomposition
 	std::unique_ptr<htd::ITreeDecomposition> decomposition{treeDecompositionAlgorithm->computeDecomposition(graph.internalGraph())};
