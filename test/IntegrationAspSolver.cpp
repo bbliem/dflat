@@ -79,8 +79,8 @@ TEST(IntegrationAspSolver, TestProgram1)
 
 	EXPECT_EQ("Solutions:\n"
 	          "\n"
-	          "┣━ [1] a d r1 r2 r3 \n"
-	          "┗━ [1] b c r1 r2 r3 \n",
+	          "┣━ [1] b c r1 r2 r3 \n"
+	          "┗━ [1] a d r1 r2 r3 \n",
 	          result);
 }
 
@@ -186,7 +186,7 @@ TEST(IntegrationAspSolver, TestProgram4)
 
 	EXPECT_EQ("Solutions:\n"
 	          "\n"
-	          "┣━ [1] a c d r0 r1 r2 r3 r4 constraint \n"
-	          "┗━ [1] a e r0 r1 r2 r3 r4 constraint \n",
+	          "┣━ [1] a e r0 r1 r2 r3 r4 constraint \n"
+	          "┗━ [1] a c d r0 r1 r2 r3 r4 constraint \n",
 	          result);
 }
