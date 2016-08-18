@@ -49,7 +49,7 @@ comment       %.*
 
 {blank}+   ;
 {comment}  ;
-[\n]+      loc->lines(yyleng);
+\r\n|\n|\r loc->lines();
 
 [(),.] return Parser::token_type(yytext[0]);
 
