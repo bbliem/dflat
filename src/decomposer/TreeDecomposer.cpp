@@ -142,8 +142,6 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 	Hypergraph graph = buildNamedHypergraph(*htd, instance);
 	std::unique_ptr<htd::TreeDecompositionOptimizationOperation> operation(new htd::TreeDecompositionOptimizationOperation(htd.get()));
 	operation->setManagementInstance(htd.get());
-	// Try 10 different root nodes
-	operation->setVertexSelectionStrategy(new htd::RandomVertexSelectionStrategy(10));
 
 	// Add transformation to path decomposition
 	if(optPathDecomposition.isUsed())
