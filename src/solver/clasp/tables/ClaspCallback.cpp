@@ -191,15 +191,15 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	// }}}
 
 	if(cardinalityCost && !app.isOptimizationDisabled()) {
-		cost = items.size();
-		for(const auto& row : extendedRows) {
+		cost = node->getItems().size();
+		for(const auto& row : node->getExtensionPointers().front()) {
 			const auto& oldItems = row->getItems();
 			ItemTreeNode::Items intersection;
-			std::set_intersection(items.begin(), items.end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
+			std::set_intersection(node->getItems().begin(), node->getItems().end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
 			cost += row->getCost() - intersection.size();
 		}
 
-		currentCost = items.size();
+		currentCost = node->getItems().size();
 	}
 
 	node->setCost(cost);
