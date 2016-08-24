@@ -155,7 +155,10 @@ void SolverFactory::notify()
 			std::string firstLine;
 			{
 				std::ifstream file(filename);
-				std::getline(file, firstLine);
+				//std::getline(file, firstLine); // doesn't handle foreign line endings
+				char c;
+				while(file.get(c) && c != '\n' && c != '\r')
+					firstLine.push_back(c);
 			}
 			static const std::string modelinePrefix = "%dflat: ";
 			if(firstLine.substr(0, modelinePrefix.size()) == modelinePrefix) {
