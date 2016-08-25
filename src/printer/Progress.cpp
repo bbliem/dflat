@@ -69,14 +69,14 @@ void Progress::solverEvent(const std::string& msg)
 		++curFrame;
 		assert(sizeof(frames) / sizeof(frames[0]) == 4);
 		curFrame %= 4;
-		printProgress();
+		if(!computationStack.empty())
+			printProgress();
 	}
 }
 
 void Progress::result(const ItemTreePtr& rootItemTree)
 {
 	std::cout << "\r                                                        \r" << std::flush;
-
 
 	Printer::result(rootItemTree);
 }
