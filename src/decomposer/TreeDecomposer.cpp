@@ -30,6 +30,64 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 typedef htd::NamedHypergraph<std::string, std::string> Hypergraph;
 
 namespace {
+	enum class FitnessCriterion
+	{
+		WIDTH,
+		MEDIAN_JOIN_NODE_BAG_SIZE,
+		AVERAGE_JOIN_NODE_BAG_SIZE,
+	};
+
+	class FitnessFunction : public htd::ITreeDecompositionFitnessFunction
+	{
+		public:
+			FitnessFunction(FitnessCriterion criterion) : criterion(criterion) {}
+
+			virtual htd::FitnessEvaluation* fitness(const htd::IMultiHypergraph&, const htd::ITreeDecomposition& decomposition) const override
+			{
+				if(criterion == FitnessCriterion::WIDTH)
+					return new htd::FitnessEvaluation(1, -static_cast<double>(decomposition.maximumBagSize()));
+
+				std::vector<htd::vertex_t> joinNodes;
+				decomposition.copyJoinNodesTo(joinNodes);
+
+				double medianJoinNodeBagSize = 0.0;
+				double averageJoinNodeBagSize = 0.0;
+
+				if(!joinNodes.empty()) {
+					std::vector<double> bagSizes;
+					bagSizes.reserve(joinNodes.size());
+
+					for(htd::vertex_t joinNode : joinNodes) {
+						double bagSize = decomposition.bagSize(joinNode);
+						bagSizes.push_back(bagSize);
+						averageJoinNodeBagSize += bagSize;
+					}
+
+					averageJoinNodeBagSize /= joinNodes.size();
+					std::sort(bagSizes.begin(), bagSizes.end());
+
+					if(bagSizes.size() % 2 == 0)
+						medianJoinNodeBagSize = (bagSizes[bagSizes.size() / 2 - 1] + bagSizes[bagSizes.size() / 2]) / 2;
+					else
+						medianJoinNodeBagSize = bagSizes[bagSizes.size() / 2];
+				}
+
+				switch(criterion) {
+					case FitnessCriterion::MEDIAN_JOIN_NODE_BAG_SIZE:
+						return new htd::FitnessEvaluation(1, -medianJoinNodeBagSize);
+					case FitnessCriterion::AVERAGE_JOIN_NODE_BAG_SIZE:
+						return new htd::FitnessEvaluation(1, -averageJoinNodeBagSize);
+					default:
+						throw std::logic_error("Unexpected fitness criterion");
+				}
+			}
+
+			virtual FitnessFunction* clone() const override { return new FitnessFunction(criterion); }
+
+		private:
+			FitnessCriterion criterion;
+	};
+
 	Hypergraph buildNamedHypergraph(const htd::LibraryInstance& htd, const Instance& instance)
 	{
 		Hypergraph graph(&htd);
@@ -97,6 +155,7 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	: Decomposer(app, "td", "Tree decomposition (bucket elimination)", newDefault)
 	, optNormalization("n", "normalization", "Use normal form <normalization> for the tree decomposition")
 	, optEliminationOrdering("elimination", "h", "Use heuristic <h> for bucket elimination")
+	, optFitnessCriterion("fitness", "criterion", "From several generated TD's choose one with best <criterion>")
 	, optNoEmptyRoot("no-empty-root", "Do not add an empty root to the tree decomposition")
 	, optNoEmptyLeaves("no-empty-leaves", "Do not add empty leaves to the tree decomposition")
 	, optPostJoin("post-join", "To each join node, add a parent with identical bag")
@@ -113,6 +172,12 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	optEliminationOrdering.addChoice("min-fill", "Minimum fill ordering", true);
 	optEliminationOrdering.addChoice("min-degree", "Minimum degree ordering");
 	app.getOptionHandler().addOption(optEliminationOrdering, OPTION_SECTION);
+
+	optFitnessCriterion.addCondition(selected);
+	optFitnessCriterion.addChoice("width", "Maximum bag size", true);
+	optFitnessCriterion.addChoice("join-bag-avg", "Average join node bag size");
+	optFitnessCriterion.addChoice("join-bag-median", "Median join node bag size");
+	app.getOptionHandler().addOption(optFitnessCriterion, OPTION_SECTION);
 
 	optNoEmptyRoot.addCondition(selected);
 	app.getOptionHandler().addOption(optNoEmptyRoot, OPTION_SECTION);
@@ -166,11 +231,26 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 	if(optPostJoin.isUsed())
 		operation->addManipulationOperation(new htd::AddIdenticalJoinNodeParentOperation(htd.get()));
 
-	std::unique_ptr<htd::ITreeDecompositionAlgorithm> treeDecompositionAlgorithm(htd->treeDecompositionAlgorithmFactory().createInstance());
-	treeDecompositionAlgorithm->addManipulationOperation(operation.release());
+	// Set up fitness function to find a "good" TD
+	FitnessCriterion fitnessCriterion;
+	if(optFitnessCriterion.getValue() == "join-bag-avg")
+		fitnessCriterion = FitnessCriterion::AVERAGE_JOIN_NODE_BAG_SIZE;
+	else if(optFitnessCriterion.getValue() == "join-bag-median")
+		fitnessCriterion = FitnessCriterion::MEDIAN_JOIN_NODE_BAG_SIZE;
+	else {
+		assert(optFitnessCriterion.getValue() == "width");
+		fitnessCriterion = FitnessCriterion::WIDTH;
+	}
+	FitnessFunction fitnessFunction(fitnessCriterion);
+
+	std::unique_ptr<htd::ITreeDecompositionAlgorithm> baseAlgorithm(htd->treeDecompositionAlgorithmFactory().createInstance());
+	baseAlgorithm->addManipulationOperation(operation.release());
+	htd::IterativeImprovementTreeDecompositionAlgorithm algorithm(htd.get(), baseAlgorithm.release(), fitnessFunction);
+	algorithm.setIterationCount(100);
+	algorithm.setNonImprovementLimit(25);
 
 	// Compute decomposition
-	std::unique_ptr<htd::ITreeDecomposition> decomposition{treeDecompositionAlgorithm->computeDecomposition(graph.internalGraph())};
+	std::unique_ptr<htd::ITreeDecomposition> decomposition{algorithm.computeDecomposition(graph.internalGraph())};
 
 	// Transform htd's tree decomposition into our format
 	DecompositionPtr result = transformTd(*decomposition, graph, app);

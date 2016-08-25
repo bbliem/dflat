@@ -37,6 +37,7 @@ private:
 
 	options::Choice optNormalization;
 	options::Choice optEliminationOrdering;
+	options::Choice optFitnessCriterion;
 	options::Option optNoEmptyRoot;
 	options::Option optNoEmptyLeaves;
 	options::Option optPostJoin;
