@@ -35,6 +35,7 @@ namespace {
 		WIDTH,
 		MEDIAN_JOIN_NODE_BAG_SIZE,
 		AVERAGE_JOIN_NODE_BAG_SIZE,
+		NUM_JOIN_NODES,
 	};
 
 	class FitnessFunction : public htd::ITreeDecompositionFitnessFunction
@@ -44,11 +45,18 @@ namespace {
 
 			virtual htd::FitnessEvaluation* fitness(const htd::IMultiHypergraph&, const htd::ITreeDecomposition& decomposition) const override
 			{
-				if(criterion == FitnessCriterion::WIDTH)
-					return new htd::FitnessEvaluation(1, -static_cast<double>(decomposition.maximumBagSize()));
+				switch(criterion) {
+					case FitnessCriterion::WIDTH:
+						return new htd::FitnessEvaluation(1, -static_cast<double>(decomposition.maximumBagSize()));
+					case FitnessCriterion::NUM_JOIN_NODES:
+						return new htd::FitnessEvaluation(1, -decomposition.joinNodeCount());
+					default:
+						break;
+				}
 
 				std::vector<htd::vertex_t> joinNodes;
 				decomposition.copyJoinNodesTo(joinNodes);
+
 
 				double medianJoinNodeBagSize = 0.0;
 				double averageJoinNodeBagSize = 0.0;
@@ -177,6 +185,7 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	optFitnessCriterion.addChoice("width", "Maximum bag size", true);
 	optFitnessCriterion.addChoice("join-bag-avg", "Average join node bag size");
 	optFitnessCriterion.addChoice("join-bag-median", "Median join node bag size");
+	optFitnessCriterion.addChoice("num-joins", "Number of join nodes");
 	app.getOptionHandler().addOption(optFitnessCriterion, OPTION_SECTION);
 
 	optNoEmptyRoot.addCondition(selected);
@@ -237,6 +246,8 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 		fitnessCriterion = FitnessCriterion::AVERAGE_JOIN_NODE_BAG_SIZE;
 	else if(optFitnessCriterion.getValue() == "join-bag-median")
 		fitnessCriterion = FitnessCriterion::MEDIAN_JOIN_NODE_BAG_SIZE;
+	else if(optFitnessCriterion.getValue() == "num-joins")
+		fitnessCriterion = FitnessCriterion::NUM_JOIN_NODES;
 	else {
 		assert(optFitnessCriterion.getValue() == "width");
 		fitnessCriterion = FitnessCriterion::WIDTH;
