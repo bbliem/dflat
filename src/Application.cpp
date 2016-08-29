@@ -25,6 +25,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Application.h"
 #include "Decomposition.h"
+#include "util.h"
 #include "version.h"
 
 #include "options/MultiValueOption.h"
@@ -50,22 +51,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "parser/Driver.h"
 
 const std::string Application::MODULE_SECTION = "Module selection";
-
-namespace {
-	int strToInt(const std::string& str, const std::string& errorMsg)
-	{
-		int value;
-		size_t idx;
-		try {
-			value = std::stoi(str, &idx);
-			if(idx != str.size())
-				throw std::invalid_argument("");
-		} catch(const std::invalid_argument&) {
-			throw std::runtime_error(errorMsg);
-		}
-		return value;
-	}
-}
 
 Application::Application(const std::string& binaryName)
 	: binaryName(binaryName)
@@ -143,10 +128,10 @@ int Application::run(int argc, const char* const* const argv)
 		opts.checkConditions();
 
 		if(optSeed.isUsed())
-			seed = strToInt(optSeed.getValue(), "Invalid random seed");
+			seed = util::strToInt(optSeed.getValue(), "Invalid random seed");
 
 		if(optDepth.isUsed())
-			depth = strToInt(optDepth.getValue(), "Invalid depth");
+			depth = util::strToInt(optDepth.getValue(), "Invalid depth");
 
 		if(!optEdge.isUsed())
 			throw std::runtime_error("Option -e must be supplied at least once");

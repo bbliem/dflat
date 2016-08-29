@@ -34,14 +34,16 @@ public:
 
 private:
 	static const std::string OPTION_SECTION;
+	static const int DEFAULT_ITERATION_COUNT;
 
-	options::Choice optNormalization;
-	options::Choice optEliminationOrdering;
-	options::Choice optFitnessCriterion;
-	options::Option optNoEmptyRoot;
-	options::Option optNoEmptyLeaves;
-	options::Option optPostJoin;
-	options::Option optPathDecomposition;
+	options::Choice            optNormalization;
+	options::Choice            optEliminationOrdering;
+	options::Choice            optFitnessCriterion;
+	options::SingleValueOption optIterationCount;
+	options::Option            optNoEmptyRoot;
+	options::Option            optNoEmptyLeaves;
+	options::Option            optPostJoin;
+	options::Option            optPathDecomposition;
 };
 
 } // namespace decomposer

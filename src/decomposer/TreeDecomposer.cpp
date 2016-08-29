@@ -22,6 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <stack>
 #include <htd/main.hpp>
 
+#include "../util.h"
 #include "TreeDecomposer.h"
 #include "../Instance.h"
 #include "../Decomposition.h"
@@ -158,16 +159,18 @@ namespace {
 namespace decomposer {
 
 const std::string TreeDecomposer::OPTION_SECTION = "Tree decomposition";
+const int TreeDecomposer::DEFAULT_ITERATION_COUNT = 1; // If you change this, also update help message of --iteration-count (because C++ doesn't let me insert the value of this into a string literal easily and the alternatives are too cumbersome)
 
 TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	: Decomposer(app, "td", "Tree decomposition (bucket elimination)", newDefault)
-	, optNormalization("n", "normalization", "Use normal form <normalization> for the tree decomposition")
-	, optEliminationOrdering("elimination", "h", "Use heuristic <h> for bucket elimination")
-	, optFitnessCriterion("fitness", "criterion", "From several generated TD's choose one with best <criterion>")
-	, optNoEmptyRoot("no-empty-root", "Do not add an empty root to the tree decomposition")
-	, optNoEmptyLeaves("no-empty-leaves", "Do not add empty leaves to the tree decomposition")
-	, optPostJoin("post-join", "To each join node, add a parent with identical bag")
-	, optPathDecomposition("path-decomposition", "Generate a path decomposition")
+	, optNormalization      ("n", "normalization",   "Use normal form <normalization> for the tree decomposition")
+	, optEliminationOrdering("elimination", "h",     "Use heuristic <h> for bucket elimination")
+	, optFitnessCriterion   ("fitness", "criterion", "From several generated TD's choose one with best <criterion>")
+	, optIterationCount     ("iteration-count", "i", "Use <i> iterations for finding fittest TD (default: 1)")
+	, optNoEmptyRoot        ("no-empty-root",        "Do not add an empty root to the tree decomposition")
+	, optNoEmptyLeaves      ("no-empty-leaves",      "Do not add empty leaves to the tree decomposition")
+	, optPostJoin           ("post-join",            "To each join node, add a parent with identical bag")
+	, optPathDecomposition  ("path-decomposition",   "Generate a path decomposition")
 {
 	optNormalization.addCondition(selected);
 	optNormalization.addChoice("none", "No normalization", true);
@@ -187,6 +190,9 @@ TreeDecomposer::TreeDecomposer(Application& app, bool newDefault)
 	optFitnessCriterion.addChoice("join-bag-median", "Median join node bag size");
 	optFitnessCriterion.addChoice("num-joins", "Number of join nodes");
 	app.getOptionHandler().addOption(optFitnessCriterion, OPTION_SECTION);
+
+	optIterationCount.addCondition(selected);
+	app.getOptionHandler().addOption(optIterationCount, OPTION_SECTION);
 
 	optNoEmptyRoot.addCondition(selected);
 	app.getOptionHandler().addOption(optNoEmptyRoot, OPTION_SECTION);
@@ -257,8 +263,12 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 	std::unique_ptr<htd::ITreeDecompositionAlgorithm> baseAlgorithm(htd->treeDecompositionAlgorithmFactory().createInstance());
 	baseAlgorithm->addManipulationOperation(operation.release());
 	htd::IterativeImprovementTreeDecompositionAlgorithm algorithm(htd.get(), baseAlgorithm.release(), fitnessFunction);
-	algorithm.setIterationCount(100);
-	algorithm.setNonImprovementLimit(25);
+
+	int iterationCount = DEFAULT_ITERATION_COUNT;
+	if(optIterationCount.isUsed())
+		iterationCount = util::strToInt(optIterationCount.getValue(), "Invalid iteration count");
+	algorithm.setIterationCount(iterationCount);
+	algorithm.setNonImprovementLimit(-1);
 
 	// Compute decomposition
 	std::unique_ptr<htd::ITreeDecomposition> decomposition{algorithm.computeDecomposition(graph.internalGraph())};
