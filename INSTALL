@@ -1,11 +1,11 @@
 COMPILING
 
 Compilation of D-FLAT has been tested with the following versions of the dependencies:
-- CMake (http://cmake.org/), version 3.6.1
+- CMake (http://cmake.org/), version 3.6.3
 - libgringo (http://potassco.sourceforge.net/), version 4.5.4
 - libclasp (http://potassco.sourceforge.net/), version 3.1.4 with patch supplied with D-FLAT source code
 - GMP (http://gmplib.org/), version 6.1.1 -- make sure to also compile the C++ interface
-- htd (https://github.com/mabseher/htd), commit 8743a0e (August 24, 2016) -- make sure to build static libraries with CMake argument -DBUILD_SHARED_LIBS=false
+- htd (https://github.com/mabseher/htd), version 1.0.0 -- make sure to build static libraries with CMake argument -DBUILD_SHARED_LIBS=false
 
 IMPORTANT: You need to apply the patch to clasp that is contained in the root directory of the D-FLAT source code.
 

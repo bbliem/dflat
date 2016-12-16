@@ -166,7 +166,7 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 	if(optPostJoin.isUsed())
 		operation->addManipulationOperation(new htd::AddIdenticalJoinNodeParentOperation(htd.get()));
 
-	std::unique_ptr<htd::ITreeDecompositionAlgorithm> treeDecompositionAlgorithm(htd->treeDecompositionAlgorithmFactory().getTreeDecompositionAlgorithm());
+	std::unique_ptr<htd::ITreeDecompositionAlgorithm> treeDecompositionAlgorithm(htd->treeDecompositionAlgorithmFactory().createInstance());
 	treeDecompositionAlgorithm->addManipulationOperation(operation.release());
 
 	// Compute decomposition
