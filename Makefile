@@ -25,7 +25,7 @@ clasp_lib_release32=$(clasp_dir)/build/release_m32/libclasp/lib/libclasp.a
 clasp_lib_static=$(clasp_dir)/build/static/libclasp/lib/libclasp.a
 clasp_lib_static32=$(clasp_dir)/build/static32/libclasp/lib/libclasp.a
 
-htd_dir=$(CURDIR)/../htd-1.0.0
+htd_dir=$(CURDIR)/../htd-1.0.1
 htd_lib=$(htd_dir)/build/release/lib/libhtd.a
 htd_lib_debug=$(htd_dir)/build/debug/lib/libhtd.a
 htd_lib_gprof=$(htd_dir)/build/release/lib/libhtd.a

@@ -5,11 +5,11 @@ Compilation of D-FLAT has been tested with the following versions of the depende
 - libgringo (http://potassco.sourceforge.net/), version 4.5.4
 - libclasp (http://potassco.sourceforge.net/), version 3.1.4 with patch supplied with D-FLAT source code
 - GMP (http://gmplib.org/), version 6.1.1 -- make sure to also compile the C++ interface
-- htd (https://github.com/mabseher/htd), version 1.0.0 -- make sure to build static libraries with CMake argument -DBUILD_SHARED_LIBS=false
+- htd (https://github.com/mabseher/htd), version 1.0.1 -- make sure to build static libraries with CMake argument -DBUILD_SHARED_LIBS=false
 
 IMPORTANT: You need to apply the patch to clasp that is contained in the root directory of the D-FLAT source code.
 
-Compilation was tested with the stated version numbers and GCC 6.1.1. Unless the developers of the dependencies introduce incompatible changes, later versions should work too. (Older versions might work if you're lucky.) If you run into any problems with later releases, try compiling D-FLAT with the version specified above.
+Compilation was tested with the stated version numbers and GCC 6.2.1. Unless the developers of the dependencies introduce incompatible changes, later versions should work too. (Older versions might work if you're lucky.) If you run into any problems with later releases, try compiling D-FLAT with the version specified above.
 
 You need to adjust the paths in D-FLAT's Makefile. In particular, the variables gringo_dir, clasp_dir and htd_dir.
 
