@@ -87,10 +87,48 @@ void Solver::handleRowCandidate(long costBound)
 	for(const auto& node : extended)
 		auxItems.insert(node->getAuxItems().begin(), node->getAuxItems().end());
 
-	// FIXME Do proper cost computations, not this item-set cardinality proof of concept
-	long cost = items.size();
-	for(const auto& node : extended)
-		cost += node->getCost() - node->getItems().size();
+	assert(itemTree);
+
+	// Create item tree node
+	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extended}, rowType));
+
+	std::set<std::string> keys;
+	bool costAsCounter = false;
+	for(const auto& node : extended) {
+		for(const auto& counter : node->getCounters()) {
+			keys.insert(counter.first);
+			if(counter.first.compare("cost") == 0)
+				costAsCounter = true;
+		}
+	}
+
+	long cost = 0;
+	long currentCost = 0;
+	for(const auto& key : keys) {
+		long counter = 0;
+		long currentCounter = extended.front()->getCurrentCounter(key);
+		for(const auto& child :  extended) {
+			counter += child->getCounter(key);
+			assert(currentCounter == child->getCurrentCounter(key));
+		}
+		counter -= currentCounter * (extended.size() - 1);
+		if(key.compare("cost") == 0) {
+			cost = counter;
+			currentCost = currentCounter;
+		}
+		else {
+			node->setCounter(key, counter);
+			node->setCurrentCounter(key, currentCounter);
+		}
+	}
+	if(!costAsCounter) {
+		currentCost = extended.front()->getCurrentCost();
+		for(const auto& child :  extended) {
+			cost += child->getCost();
+			assert(currentCost == child->getCurrentCost());
+		}
+		cost -= currentCost * (extended.size() - 1);
+	}
 
 	if(cost >= costBound) {
 //		++discardedJoinResults;
@@ -98,14 +136,9 @@ void Solver::handleRowCandidate(long costBound)
 		return;
 	}
 
-	assert(itemTree);
-
-	// Create item tree node
-	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extended}, rowType));
-
 	if(!app.isOptimizationDisabled()) {
 		node->setCost(cost);
-		node->setCurrentCost(node->getItems().size());
+		node->setCurrentCost(currentCost);
 
 		// Possibly update cost of root
 		itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));

@@ -50,25 +50,69 @@ public:
 	};
 	typedef asp_utils::GringoAtomInfo<CostAtomArguments> CostAtomInfo;
 
-	typedef std::vector<ItemAtomInfo>           ItemAtomInfos;
-	typedef std::vector<AuxItemAtomInfo>        AuxItemAtomInfos;
-	typedef std::vector<CurrentCostAtomInfo>    CurrentCostAtomInfos;
-	typedef std::vector<CostAtomInfo>           CostAtomInfos;
+	struct CounterRemAtomArguments {
+		std::string counterName;
+	};
+	typedef asp_utils::GringoAtomInfo<CounterRemAtomArguments> CounterRemAtomInfo;
+
+	struct CounterIncAtomArguments {
+		std::string counterName;
+		long counterInc;
+	};
+	typedef asp_utils::GringoAtomInfo<CounterIncAtomArguments> CounterIncAtomInfo;
+
+	struct CurrentCounterIncAtomArguments {
+		std::string currentCounterName;
+		long currentCounterInc;
+	};
+	typedef asp_utils::GringoAtomInfo<CurrentCounterIncAtomArguments> CurrentCounterIncAtomInfo;
+
+	struct CounterAtomArguments {
+		std::string counterName;
+		long counter;
+	};
+	typedef asp_utils::GringoAtomInfo<CounterAtomArguments> CounterAtomInfo;
+
+	struct CurrentCounterAtomArguments {
+		std::string currentCounterName;
+		long currentCounter;
+	};
+	typedef asp_utils::GringoAtomInfo<CurrentCounterAtomArguments> CurrentCounterAtomInfo;
+
+	typedef std::vector<ItemAtomInfo>                                       ItemAtomInfos;
+	typedef std::vector<AuxItemAtomInfo>                                    AuxItemAtomInfos;
+	typedef std::vector<CurrentCostAtomInfo>                                CurrentCostAtomInfos;
+	typedef std::vector<CostAtomInfo>                                       CostAtomInfos;
+	typedef std::vector<CounterRemAtomInfo>                                 CounterRemAtomInfos;
+	typedef std::map<std::string,std::vector<CounterIncAtomInfo>>           AllCounterIncAtomInfos;
+	typedef std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>    AllCurrentCounterIncAtomInfos;
+	typedef std::map<std::string,std::vector<CounterAtomInfo>>              AllCounterAtomInfos;
+	typedef std::map<std::string,std::vector<CurrentCounterAtomInfo>>       AllCurrentCounterAtomInfos;
 
 	GringoOutputProcessor(Clasp::Asp::LogicProgram& out);
 
-	const ItemAtomInfos&        getItemAtomInfos()           const;
-	const AuxItemAtomInfos&     getAuxItemAtomInfos()        const;
-	const CurrentCostAtomInfos& getCurrentCostAtomInfos()    const;
-	const CostAtomInfos&        getCostAtomInfos()           const;
+	const ItemAtomInfos&                    getItemAtomInfos()                  const;
+	const AuxItemAtomInfos&                 getAuxItemAtomInfos()               const;
+	const CurrentCostAtomInfos&             getCurrentCostAtomInfos()           const;
+	const CostAtomInfos&                    getCostAtomInfos()                  const;
+	const CounterRemAtomInfos&              getCounterRemAtomInfos()            const;
+	const AllCounterIncAtomInfos&           getAllCounterIncAtomInfos()         const;
+	const AllCurrentCounterIncAtomInfos&    getAllCurrentCounterIncAtomInfos()  const;
+	const AllCounterAtomInfos&              getAllCounterAtomInfos()            const;
+	const AllCurrentCounterAtomInfos&       getAllCurrentCounterAtomInfos()     const;
 
 protected:
 	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) override;
 
-	ItemAtomInfos           itemAtomInfos;
-	AuxItemAtomInfos        auxItemAtomInfos;
-	CurrentCostAtomInfos    currentCostAtomInfos;
-	CostAtomInfos           costAtomInfos;
+	ItemAtomInfos                   itemAtomInfos;
+	AuxItemAtomInfos                auxItemAtomInfos;
+	CurrentCostAtomInfos            currentCostAtomInfos;
+	CostAtomInfos                   costAtomInfos;
+	CounterRemAtomInfos             counterRemAtomInfos;
+	AllCounterIncAtomInfos          allCounterIncAtomInfos;
+	AllCurrentCounterIncAtomInfos   allCurrentCounterIncAtomInfos;
+	AllCounterAtomInfos             allCounterAtomInfos;
+	AllCurrentCounterAtomInfos      allCurrentCounterAtomInfos;
 };
 
 }} // namespace solver::lazy_clasp
