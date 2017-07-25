@@ -94,7 +94,7 @@ ItemTreePtr join(const ItemTreePtr& left, const ItemTreePtr& right, bool setLeav
 
 	// Set counters (only in leaves)
 	if(leaves) {
-		std::set<std::string> keys;
+        std::set<std::string> keys;
 		for(const auto& counter : left->getNode()->getCounters())
 			keys.insert(counter.first);
 		for(const auto& counter : right->getNode()->getCounters())

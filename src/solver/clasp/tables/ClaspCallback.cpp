@@ -42,13 +42,13 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	// Check if counters are used correctly {{{
 #ifndef DISABLE_CHECKS
 	for(const auto& counterAtomInfos : allCounterAtomInfos) {
-		if(counterAtomInfos.first.compare("cost") == 0) {
+        if(counterAtomInfos.first.compare("cost") == 0) {
 			ASP_CHECK(countTrue(m, allCounterIncAtomInfos[counterAtomInfos.first]) == 0 || countTrue(m, counterAtomInfos.second) == 0,
 				"Both 'counter'/'cost' and 'counterInc' predicates used for setting the cost");
 			ASP_CHECK(countTrue(m, counterAtomInfos.second) <= 1, "More than one true atom for setting the cost");
 		} else {
 			ASP_CHECK(countTrue(m, allCounterIncAtomInfos[counterAtomInfos.first]) == 0 || countTrue(m, counterAtomInfos.second) == 0,
-				"Both 'counter' and 'counterInc' predicates used for setting the " + counterAtomInfos.first + " counter");
+                "Both 'counter' and 'counterInc' predicates used for setting the " + counterAtomInfos.first + " counter");
 			ASP_CHECK(countTrue(m, counterAtomInfos.second) <= 1, "More than one true atom for setting the " + counterAtomInfos.first + " counter");
 		}
 	}
@@ -117,7 +117,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	long currentCost = 0;
 
 	// Set (current) counters and compute (if optimization is not disabled) cost {{{
-	std::map<std::string,long> counterValues;
+    std::map<std::string,long> counterValues;
 	for(const auto& counterIncAtomInfos : allCounterIncAtomInfos) {
 		// Note that here forFirstTrue is not sufficient
 		forEachTrue(m, counterIncAtomInfos.second, [&counterValues](const GringoOutputProcessor::CounterIncAtomArguments& arguments) {
@@ -155,7 +155,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 //	for(const auto& counter : itemTree->getNode()->getCounters())
 //		itemTree->getNode()->setCounter(counter.first, std::min(itemTree->getNode()->getCounter(counter.first), counterValues[counter.first]));
 
-	std::map<std::string,long> currentCounterValues;
+    std::map<std::string,long> currentCounterValues;
 	for(const auto& currentCounterIncAtomInfos : allCurrentCounterIncAtomInfos) {
 		// Note that here forFirstTrue is not sufficient
 		forEachTrue(m, currentCounterIncAtomInfos.second, [&currentCounterValues](const GringoOutputProcessor::CurrentCounterIncAtomArguments& arguments) {
@@ -228,7 +228,7 @@ void ClaspCallback::prepare(const Clasp::Asp::LogicProgram& prg)
 	for(const auto& atom : gringoOutput.getCostAtomInfos())
 		costAtomInfos.emplace_back(CostAtomInfo(atom, prg));
 	for(const auto& atom : gringoOutput.getCounterRemAtomInfos())
-		counterRemAtomInfos.insert(std::pair<std::string, Clasp::Literal>(atom.arguments.counterName, Clasp::Literal(prg.getLiteral(atom.atomId))));
+        counterRemAtomInfos.insert(std::pair<std::string, Clasp::Literal>(atom.arguments.counterName, Clasp::Literal(prg.getLiteral(atom.atomId))));
 	for(const auto& counterIncAtomInfos : gringoOutput.getAllCounterIncAtomInfos())
 		for(const auto& atom : counterIncAtomInfos.second)
 			allCounterIncAtomInfos[counterIncAtomInfos.first].emplace_back(CounterIncAtomInfo(atom, prg));

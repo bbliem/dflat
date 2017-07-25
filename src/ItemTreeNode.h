@@ -20,6 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
+#include <cstddef>
 #include <ostream>
 #include <vector>
 #include <set>
@@ -42,8 +43,8 @@ public:
 	typedef std::shared_ptr<ItemTreeNode> ExtensionPointer;
 	typedef std::vector<ExtensionPointer> ExtensionPointerTuple;
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
-	typedef std::map<std::string,long> Counters;
-	typedef std::map<std::string,long> CurrentCounters;
+    typedef std::map<std::string,long> Counters;
+    typedef std::map<std::string,long> CurrentCounters;
 
 	enum class Type {
 		UNDEFINED,
@@ -88,12 +89,12 @@ public:
 	void setCurrentCost(long currentCost);
 
 	const Counters& getCounters() const { return counters; }
-	long getCounter(const std::string& counterName) const;
-	void setCounter(const std::string& counterName, long counterValue);
+    long getCounter(const std::string& counterName) const;
+    void setCounter(const std::string& counterName, long counterValue);
 
 	const CurrentCounters& getCurrentCounters() const { return currentCounters; }
-	long getCurrentCounter(const std::string& currentCounterName) const;
-	void setCurrentCounter(const std::string& currentCounterName, long currentCounterValue);
+    long getCurrentCounter(const std::string& currentCounterName) const;
+    void setCurrentCounter(const std::string& currentCounterName, long currentCounterValue);
 
 	Type getType() const { return type; }
 

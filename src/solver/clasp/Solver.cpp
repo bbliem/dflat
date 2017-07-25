@@ -85,7 +85,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 			asp_utils::DummyGringoModule module;
 			Gringo::Scripts scripts(module);
 			Gringo::Defines defs;
-			std::unique_ptr<EncodingChecker> encodingChecker{new trees::EncodingChecker(scripts, program, *out, defs)};
+            std::unique_ptr<EncodingChecker> encodingChecker{new trees::EncodingChecker(scripts, program, *out, defs)};
 			Gringo::Input::NonGroundParser parser(*encodingChecker);
 			for(const auto& file : encodingFiles)
 				parser.pushFile(std::string(file));

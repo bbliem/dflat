@@ -55,7 +55,8 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 	app.getOptionHandler().addOption(optEncodingFiles, OPTION_SECTION);
 
 	optCardinalityCost.addCondition(selected);
-	optCardinalityCost.addCondition(condTables);
+    optCardinalityCost.addCondition(condTables);
+    optCardinalityCost.addCondition(condLazy);
 	app.getOptionHandler().addOption(optCardinalityCost, OPTION_SECTION);
 
 	optPrintStatistics.addCondition(selected);
@@ -109,9 +110,9 @@ std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decompos
 			bbLevel = LazySolver::BranchAndBoundLevel::full;
 		}
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
-			return std::unique_ptr<::Solver>(new lazy_default_join::Solver(decomposition, app, decomposition.isRoot(), bbLevel, !optNoBinarySearch.isUsed()));
+            return std::unique_ptr<::Solver>(new lazy_default_join::Solver(decomposition, app, decomposition.isRoot(), bbLevel, !optNoBinarySearch.isUsed()));
 		else
-			return std::unique_ptr<::Solver>(new lazy_clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optReground.isUsed(), bbLevel));
+            return std::unique_ptr<::Solver>(new lazy_clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optReground.isUsed(), bbLevel, optCardinalityCost.isUsed()));
 	}
 	else {
 		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())

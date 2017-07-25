@@ -62,13 +62,13 @@ private:
 	std::vector<LengthAtomInfo>                                  lengthAtomInfos;
 	std::vector<OrAtomInfo>                                      orAtomInfos;
 	std::vector<AndAtomInfo>                                     andAtomInfos;
-	std::map<std::string,Clasp::Literal>                         counterRemAtomInfos;
+    std::map<std::string,Clasp::Literal>                         counterRemAtomInfos;
 	std::vector<CounterIncAtomInfo>                              counterIncAtomInfos;
 	std::vector<CurrentCounterIncAtomInfo>                       currentCounterIncAtomInfos;
-	std::map<std::string,std::vector<CounterIncAtomInfo>>        allCounterIncAtomInfos;
-	std::map<std::string,std::vector<CurrentCounterIncAtomInfo>> allCurrentCounterIncAtomInfos;
-	std::map<std::string,std::vector<CounterAtomInfo>>           allCounterAtomInfos;
-	std::map<std::string,std::vector<CurrentCounterAtomInfo>>    allCurrentCounterAtomInfos;
+    std::map<std::string,std::vector<CounterIncAtomInfo>>        allCounterIncAtomInfos;
+    std::map<std::string,std::vector<CurrentCounterIncAtomInfo>> allCurrentCounterIncAtomInfos;
+    std::map<std::string,std::vector<CounterAtomInfo>>           allCounterAtomInfos;
+    std::map<std::string,std::vector<CurrentCounterAtomInfo>>    allCurrentCounterAtomInfos;
 
 	std::unique_ptr<Clasp::Literal> acceptLiteral;
 	std::unique_ptr<Clasp::Literal> rejectLiteral;

@@ -1,4 +1,4 @@
-%dflat: -d td --lazy --tables -e vertex -e edge --no-empty-leaves -n semi --default-join
+%dflat: -d td --lazy --tables -e vertex -e edge --no-empty-leaves -n semi --default-join --cardinality-cost
 % TODO Costs (right now D-FLAT internally does item set cardinality minimization)
 #external childItem(in(X)) : childNode(N), bag(N,X).
 #external childAuxItem(dominated(X)) : childNode(N), bag(N,X).
@@ -13,3 +13,5 @@ auxItem(dominated(Y)) :- item(in(X)), edge(X,Y), current(X), current(Y).
 
 #show item/1.
 #show auxItem/1.
+#show cost/1.
+#show currentCost/1.
