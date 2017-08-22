@@ -66,7 +66,7 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 	app.getOptionHandler().addOption(optDefaultJoin, OPTION_SECTION);
 
 	optLazy.addCondition(selected);
-    optLazy.addCondition(condTables);
+	optLazy.addCondition(condTables);
 	app.getOptionHandler().addOption(optLazy, OPTION_SECTION);
 
 	optNoBinarySearch.addCondition(selected);

@@ -45,16 +45,16 @@ void Solver::startSolvingForCurrentRowCombination()
 	if(binarySearch) {
 		// Binary search in resetRowIteratorsOnNewRow() ensures that the current row combination is joinable
 		assert(std::all_of(getCurrentRowCombination().begin()+1, getCurrentRowCombination().end(), [this](const ItemTreeNode::ExtensionPointer& node) {
-			return node->getItems() == this->getCurrentRowCombination()[0]->getItems();
-			}));
+					return node->getItems() == this->getCurrentRowCombination()[0]->getItems();
+					}));
 		currentRowCombinationExhausted = false;
 	}
 	else {
 		const auto& extended = getCurrentRowCombination();
 		const auto& items = extended[0]->getItems();
 		currentRowCombinationExhausted = !std::all_of(extended.begin()+1, extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
-			return node->getItems() == items;
-			});
+				return node->getItems() == items;
+				});
 	}
 }
 
@@ -75,7 +75,7 @@ void Solver::handleRowCandidate(long costBound)
 
 	ItemTreeNode::Items items = (*extended.begin())->getItems();
 	assert(std::all_of(extended.begin(), extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
-		return node->getItems() == items;
+			return node->getItems() == items;
 	}));
 
 	ItemTreeNode::Items auxItems;
@@ -157,9 +157,9 @@ bool Solver::resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from)
 			const auto& rows = static_cast<LazySolver&>(child->getSolver()).getItemTree()->getChildren();
 			assert(rows.begin() != rows.end());
 			const auto range = std::equal_range(rows.begin(), rows.end(), *newRow,
-				[](const ItemTreePtr& a, const ItemTreePtr& b) {
-				return a->getNode()->getItems() < b->getNode()->getItems();
-				});
+					[](const ItemTreePtr& a, const ItemTreePtr& b) {
+					return a->getNode()->getItems() < b->getNode()->getItems();
+					});
 			if(range.first == range.second)
 				return false;
 			rowIterators.push_back({range.first, range.first, range.second});
