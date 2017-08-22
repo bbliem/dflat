@@ -34,7 +34,7 @@ void declareDecomposition(const Decomposition& decomposition, std::ostream& out)
 	out << "#const numChildNodes=" << decomposition.getChildren().size() << '.' << std::endl;
 	if(decomposition.getChildren().empty())
 		out << "initial." << std::endl;
-    else {
+	else {
 		for(const auto& child : decomposition.getChildren()) {
 			out << "childNode(" << child->getNode().getGlobalId() << ")." << std::endl;
 			for(const auto& v : child->getNode().getBag()) {
@@ -124,7 +124,7 @@ void induceSubinstance(std::ostream& out, const Instance& instance, const Decomp
 {
 	out << "% Induced subinstance" << std::endl;
 	for(const auto& str : instance.getNonEdgeFacts())
-        out << str << '.' << std::endl;
+		out << str << '.' << std::endl;
 
 	// Select edge facts whose arguments are all in the bag
 	for(auto facts : instance.getEdgeFacts()) {

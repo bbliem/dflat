@@ -1,15 +1,19 @@
 /*{{{
 Copyright 2012-2016, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
+
 This file is part of D-FLAT.
+
 D-FLAT is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
+
 D-FLAT is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
+
 You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -47,30 +51,30 @@ public:
 	typedef asp_utils::GringoAtomInfo<CostAtomArguments> CostAtomInfo;
 	
 	struct CounterRemAtomArguments {
-        std::string counterName;
+		std::string counterName;
 	};
 	typedef asp_utils::GringoAtomInfo<CounterRemAtomArguments> CounterRemAtomInfo;
 
 	struct CounterIncAtomArguments {
-        std::string counterName;
+		std::string counterName;
 		long counterInc;
 	};
 	typedef asp_utils::GringoAtomInfo<CounterIncAtomArguments> CounterIncAtomInfo;
 
 	struct CurrentCounterIncAtomArguments {
-        std::string currentCounterName;
+		std::string currentCounterName;
 		long currentCounterInc;
 	};
 	typedef asp_utils::GringoAtomInfo<CurrentCounterIncAtomArguments> CurrentCounterIncAtomInfo;
 
 	struct CounterAtomArguments {
-        std::string counterName;
+		std::string counterName;
 		long counter;
 	};
 	typedef asp_utils::GringoAtomInfo<CounterAtomArguments> CounterAtomInfo;
 
 	struct CurrentCounterAtomArguments {
-        std::string currentCounterName;
+		std::string currentCounterName;
 		long currentCounter;
 	};
 	typedef asp_utils::GringoAtomInfo<CurrentCounterAtomArguments> CurrentCounterAtomInfo;
@@ -80,10 +84,10 @@ public:
 	typedef std::vector<CurrentCostAtomInfo>								CurrentCostAtomInfos;
 	typedef std::vector<CostAtomInfo>										CostAtomInfos;
 	typedef std::vector<CounterRemAtomInfo>									CounterRemAtomInfos;
-    typedef std::map<std::string,std::vector<CounterIncAtomInfo>>			AllCounterIncAtomInfos;
-    typedef std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>	AllCurrentCounterIncAtomInfos;
-    typedef std::map<std::string,std::vector<CounterAtomInfo>>				AllCounterAtomInfos;
-    typedef std::map<std::string,std::vector<CurrentCounterAtomInfo>>		AllCurrentCounterAtomInfos;
+	typedef std::map<std::string,std::vector<CounterIncAtomInfo>>			AllCounterIncAtomInfos;
+	typedef std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>	AllCurrentCounterIncAtomInfos;
+	typedef std::map<std::string,std::vector<CounterAtomInfo>>				AllCounterAtomInfos;
+	typedef std::map<std::string,std::vector<CurrentCounterAtomInfo>>		AllCurrentCounterAtomInfos;
 
 	GringoOutputProcessor(Clasp::Asp::LogicProgram& out);
 

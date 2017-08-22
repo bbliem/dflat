@@ -200,8 +200,7 @@ void Application::printUsage() const
 
 void Application::printVersion() const
 {
-    //TBD VERSION_NUMBER
-    std::cout << "D-FLAT version " << std::endl;
+	std::cout << "D-FLAT version 1.2.5" << std::endl;
 }
 
 const Instance& Application::getInstance() const

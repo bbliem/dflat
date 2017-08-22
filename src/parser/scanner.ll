@@ -20,7 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 %{
 #include <sstream>
-#include "../src/parser/Scanner.h"
+#include "../../src/parser/Scanner.h"
 
 #undef YY_DECL
 #define YY_DECL int parser::Scanner::yylex(Parser::semantic_type* const lval, Parser::location_type* loc)

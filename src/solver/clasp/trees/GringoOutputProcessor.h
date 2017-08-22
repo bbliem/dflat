@@ -75,30 +75,30 @@ public:
 	typedef asp_utils::GringoAtomInfo<AndAtomArguments> AndAtomInfo;
 
 	struct CounterRemAtomArguments {
-        std::string counterName;
+		std::string counterName;
 	};
 	typedef asp_utils::GringoAtomInfo<CounterRemAtomArguments> CounterRemAtomInfo;
 
 	struct CounterIncAtomArguments {
-        std::string counterName;
+		std::string counterName;
 		long counterInc;
 	};
 	typedef asp_utils::GringoAtomInfo<CounterIncAtomArguments> CounterIncAtomInfo;
 
 	struct CurrentCounterIncAtomArguments {
-        std::string currentCounterName;
+		std::string currentCounterName;
 		long currentCounterInc;
 	};
 	typedef asp_utils::GringoAtomInfo<CurrentCounterIncAtomArguments> CurrentCounterIncAtomInfo;
 
 	struct CounterAtomArguments {
-        std::string counterName;
+		std::string counterName;
 		long counter;
 	};
 	typedef asp_utils::GringoAtomInfo<CounterAtomArguments> CounterAtomInfo;
 
 	struct CurrentCounterAtomArguments {
-        std::string currentCounterName;
+		std::string currentCounterName;
 		long currentCounter;
 	};
 	typedef asp_utils::GringoAtomInfo<CurrentCounterAtomArguments> CurrentCounterAtomInfo;
@@ -112,10 +112,10 @@ public:
 	typedef std::vector<OrAtomInfo>                                      OrAtomInfos;
 	typedef std::vector<AndAtomInfo>                                     AndAtomInfos;
 	typedef std::vector<CounterRemAtomInfo>                              CounterRemAtomInfos;
-    typedef std::map<std::string,std::vector<CounterIncAtomInfo>>        AllCounterIncAtomInfos;
-    typedef std::map<std::string,std::vector<CurrentCounterIncAtomInfo>> AllCurrentCounterIncAtomInfos;
-    typedef std::map<std::string,std::vector<CounterAtomInfo>>           AllCounterAtomInfos;
-    typedef std::map<std::string,std::vector<CurrentCounterAtomInfo>>    AllCurrentCounterAtomInfos;
+	typedef std::map<std::string,std::vector<CounterIncAtomInfo>>        AllCounterIncAtomInfos;
+	typedef std::map<std::string,std::vector<CurrentCounterIncAtomInfo>> AllCurrentCounterIncAtomInfos;
+	typedef std::map<std::string,std::vector<CounterAtomInfo>>           AllCounterAtomInfos;
+	typedef std::map<std::string,std::vector<CurrentCounterAtomInfo>>    AllCurrentCounterAtomInfos;
 
 	GringoOutputProcessor(Clasp::Asp::LogicProgram& out, const ChildItemTrees& childItemTrees);
 

@@ -42,9 +42,6 @@ distribution.
 #endif
 
 /*
-   TODO: intern strings instead of allocation.
-*/
-/*
 	gcc:
         g++ -Wall -DDEBUG tinyxml2.cpp xmltest.cpp -o gccxmltest.exe
 

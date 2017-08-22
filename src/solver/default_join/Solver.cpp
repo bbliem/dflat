@@ -94,7 +94,7 @@ ItemTreePtr join(const ItemTreePtr& left, const ItemTreePtr& right, bool setLeav
 
 	// Set counters (only in leaves)
 	if(leaves) {
-        std::set<std::string> keys;
+		std::set<std::string> keys;
 		for(const auto& counter : left->getNode()->getCounters())
 			keys.insert(counter.first);
 		for(const auto& counter : right->getNode()->getCounters())
@@ -190,8 +190,7 @@ ItemTreePtr Solver::compute()
 
 	assert(decomposition.getChildren().size() > 1);
 	// Compute item trees of child nodes
-	// When at least two have been computed, join them with the result so far
-	// TODO Use a balanced join tree (with smaller "tables" further down)
+    // When at least two have been computed, join them with the result so far
 	auto it = decomposition.getChildren().begin();
 	ItemTreePtr result = (*it)->getSolver().compute();
 	for(++it; it != decomposition.getChildren().end(); ++it) {

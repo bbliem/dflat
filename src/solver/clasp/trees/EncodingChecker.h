@@ -30,17 +30,17 @@ public:
 	using ::solver::clasp::EncodingChecker::EncodingChecker;
 
 	virtual void showsig(Gringo::Location const &loc, Gringo::FWSignature sig, bool csp) override;
-    virtual void check() override;
+	virtual void check() override;
 
 private:
 	bool showUsed = false;
 	bool lengthShown = false;
 	bool itemShown = false;
-    bool auxItemShown = false;
-    bool costShown = false;
-    bool currentCostShown = false;
-    bool counterShown = false;
-    bool currentCounterShown = false;
+	bool auxItemShown = false;
+	bool costShown = false;
+	bool currentCostShown = false;
+	bool counterShown = false;
+	bool currentCounterShown = false;
 	bool extendShown = false;
 	bool orAndShown = false;
 	bool acceptRejectShown = false;

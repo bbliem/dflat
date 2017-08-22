@@ -46,7 +46,6 @@ ItemTreePtr AtomIntroductionSolver::compute()
 		assert(childResult->getChildren().empty() == false);
 
 		// Find out which rules are satisfied by setting introducedAtom to true or false, respectively, and which disappear from the reduct by setting introducedAtom to true.
-		// TODO unordered_set?
 		Rules rulesSatisfiedByTrue;
 		Rules rulesSatisfiedByFalse;
 		Rules rulesDisappearingByTrue;

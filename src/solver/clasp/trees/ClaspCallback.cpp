@@ -169,7 +169,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 	}
 #endif // }}}
 	// Set (current) counters and compute (if optimization is not disabled) cost {{{
-    std::map<std::string,long> counterValues;
+	std::map<std::string,long> counterValues;
 	for(const auto& counterIncAtomInfos : allCounterIncAtomInfos) {
 		// Note that here forFirstTrue is not sufficient
 		forEachTrue(m, counterIncAtomInfos.second, [&counterValues](const GringoOutputProcessor::CounterIncAtomArguments& arguments) {
@@ -207,7 +207,7 @@ bool ClaspCallback::onModel(const Clasp::Solver& s, const Clasp::Model& m)
 //		for(const auto& counter : branch.back()->getCounters())
 //		   branch.back()->setCounter(counter.first, std::min(branch.back()->getCounter(counter.first), counterValues[counter.first]));
 
-    std::map<std::string,long> currentCounterValues;
+	std::map<std::string,long> currentCounterValues;
 	for(const auto& currentCounterIncAtomInfos : allCurrentCounterIncAtomInfos) {
 		// Note that here forFirstTrue is not sufficient
 		forEachTrue(m, currentCounterIncAtomInfos.second, [&currentCounterValues](const GringoOutputProcessor::CurrentCounterIncAtomArguments& arguments) {
@@ -269,7 +269,7 @@ void ClaspCallback::prepare(const Clasp::Asp::LogicProgram& prg)
 		rejectLiteral.reset(new Clasp::Literal(prg.getLiteral(*gringoOutput.getRejectAtomKey())));
 
 	for(const auto& atom : gringoOutput.getCounterRemAtomInfos())
-        counterRemAtomInfos.insert(std::pair<std::string, Clasp::Literal>(atom.arguments.counterName, Clasp::Literal(prg.getLiteral(atom.atomId))));
+		counterRemAtomInfos.insert(std::pair<std::string, Clasp::Literal>(atom.arguments.counterName, Clasp::Literal(prg.getLiteral(atom.atomId))));
 	for(const auto& counterIncAtomInfos : gringoOutput.getAllCounterIncAtomInfos())
 		for(const auto& atom : counterIncAtomInfos.second)
 			allCounterIncAtomInfos[counterIncAtomInfos.first].emplace_back(CounterIncAtomInfo(atom, prg));

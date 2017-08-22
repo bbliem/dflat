@@ -46,7 +46,7 @@ namespace solver { namespace lazy_clasp {
 Solver::Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground, BranchAndBoundLevel bbLevel, bool cardinalityCost)
 	: ::LazySolver(decomposition, app, bbLevel)
 	, reground(reground)
-    , cardinalityCost(cardinalityCost)
+	, cardinalityCost(cardinalityCost)
 	, encodingFiles(encodingFiles)
 {
 	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
@@ -84,16 +84,16 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 					ASP_CHECK(v.args().size() == 1, "'childCost' predicate does not have arity 1");
 					std::ostringstream argument;
 					v.args().front().print(argument);
-                    self->costsToLitIndices.emplace(std::stol(argument.str()), self->literals.size());
+					self->costsToLitIndices.emplace(std::stol(argument.str()), self->literals.size());
 					self->literals.push_back(Clasp::posLit(atomUid));
 				}
 				else if(n == "childCounter") {
-                    ASP_CHECK(v.args().size() <= 2, "'childCounter' predicate does not have greater than 1");
-                    std::ostringstream counter;
-                    v.args().front().print(counter);
-                    std::ostringstream value;
-                    v.args()[1].print(value);
-                    self->countersToLitIndices.emplace(std::make_pair(counter.str(),std::stol(value.str())), self->literals.size());
+					ASP_CHECK(v.args().size() <= 2, "'childCounter' predicate does not have greater than 1");
+					std::ostringstream counter;
+					v.args().front().print(counter);
+					std::ostringstream value;
+					v.args()[1].print(value);
+					self->countersToLitIndices.emplace(std::make_pair(counter.str(),std::stol(value.str())), self->literals.size());
 					self->literals.push_back(Clasp::posLit(atomUid));
 				}
 				GringoOutputProcessor::storeAtom(atomUid, v);
@@ -155,26 +155,24 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 			itemAtomInfos.emplace_back(ItemAtomInfo(atom, claspProgramBuilder));
 		for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
 			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, claspProgramBuilder));
-        for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
+		for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
 			currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, claspProgramBuilder));
-        for(const auto& atom : gringoOutput.getCostAtomInfos())
-            costAtomInfos.emplace_back(CostAtomInfo(atom, claspProgramBuilder));
- //       for(const auto& atom : gringoOutput.getCounterRemAtomInfos())
- //           counterRemAtomInfos.emplace_back(CounterRemAtomInfo(atom, claspProgramBuilder));
-        for(const auto& atom : gringoOutput.getCounterRemAtomInfos())
-            counterRemAtomInfos.insert(std::pair<std::string, Clasp::Literal>(atom.arguments.counterName, Clasp::Literal(claspProgramBuilder.getLiteral(atom.atomId))));
-        for(const auto& counterIncAtomInfos : gringoOutput.getAllCounterIncAtomInfos())
-            for(const auto& atom : counterIncAtomInfos.second)
-                allCounterIncAtomInfos[counterIncAtomInfos.first].emplace_back(CounterIncAtomInfo(atom, claspProgramBuilder));
-        for(const auto& currentCounterIncAtomInfos : gringoOutput.getAllCurrentCounterIncAtomInfos())
-            for(const auto& atom : currentCounterIncAtomInfos.second)
-                allCurrentCounterIncAtomInfos[currentCounterIncAtomInfos.first].emplace_back(CurrentCounterIncAtomInfo(atom, claspProgramBuilder));
-        for(const auto& counterAtomInfos : gringoOutput.getAllCounterAtomInfos())
-            for(const auto& atom : counterAtomInfos.second)
-                allCounterAtomInfos[counterAtomInfos.first].emplace_back(CounterAtomInfo(atom, claspProgramBuilder));
-        for(const auto& currentCounterAtomInfos : gringoOutput.getAllCurrentCounterAtomInfos())
-            for(const auto& atom : currentCounterAtomInfos.second)
-                allCurrentCounterAtomInfos[currentCounterAtomInfos.first].emplace_back(CurrentCounterAtomInfo(atom, claspProgramBuilder));
+		for(const auto& atom : gringoOutput.getCostAtomInfos())
+			costAtomInfos.emplace_back(CostAtomInfo(atom, claspProgramBuilder));
+		for(const auto& atom : gringoOutput.getCounterRemAtomInfos())
+			counterRemAtomInfos.insert(std::pair<std::string, Clasp::Literal>(atom.arguments.counterName, Clasp::Literal(claspProgramBuilder.getLiteral(atom.atomId))));
+		for(const auto& counterIncAtomInfos : gringoOutput.getAllCounterIncAtomInfos())
+			for(const auto& atom : counterIncAtomInfos.second)
+				allCounterIncAtomInfos[counterIncAtomInfos.first].emplace_back(CounterIncAtomInfo(atom, claspProgramBuilder));
+		for(const auto& currentCounterIncAtomInfos : gringoOutput.getAllCurrentCounterIncAtomInfos())
+			for(const auto& atom : currentCounterIncAtomInfos.second)
+				allCurrentCounterIncAtomInfos[currentCounterIncAtomInfos.first].emplace_back(CurrentCounterIncAtomInfo(atom, claspProgramBuilder));
+		for(const auto& counterAtomInfos : gringoOutput.getAllCounterAtomInfos())
+			for(const auto& atom : counterAtomInfos.second)
+				allCounterAtomInfos[counterAtomInfos.first].emplace_back(CounterAtomInfo(atom, claspProgramBuilder));
+		for(const auto& currentCounterAtomInfos : gringoOutput.getAllCurrentCounterAtomInfos())
+			for(const auto& atom : currentCounterAtomInfos.second)
+				allCurrentCounterAtomInfos[currentCounterAtomInfos.first].emplace_back(CurrentCounterAtomInfo(atom, claspProgramBuilder));
 
 		// Prepare for solving.
 		clasp.prepare();
@@ -188,10 +186,8 @@ void Solver::startSolvingForCurrentRowCombination()
 
 	if(reground) {
 		// Set up ASP solver
-		config.solve.numModels = 0;
-		// TODO The last parameter of clasp.startAsp in the next line is "allowUpdate". Does setting it to false have benefits?
-		// WORKAROUND for BUG in ClaspFacade::startAsp()
-		// TODO remove on update to new version
+        config.solve.numModels = 0;
+        // WORKAROUND for BUG in ClaspFacade::startAsp()
 		if(clasp.ctx.numVars() == 0 && clasp.ctx.frozen())
 			clasp.ctx.reset();
 
@@ -252,28 +248,28 @@ void Solver::startSolvingForCurrentRowCombination()
 		claspProgramBuilder.endProgram();
 
 		itemAtomInfos.clear();
-        for(const auto& atom : gringoOutput.getItemAtomInfos())
-            itemAtomInfos.emplace_back(ItemAtomInfo(atom, claspProgramBuilder));
-        for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
-            auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, claspProgramBuilder));
-        for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
-            currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, claspProgramBuilder));
-        for(const auto& atom : gringoOutput.getCostAtomInfos())
-            costAtomInfos.emplace_back(CostAtomInfo(atom, claspProgramBuilder));
-        for(const auto& atom : gringoOutput.getCounterRemAtomInfos())
-            counterRemAtomInfos.insert(std::pair<std::string, Clasp::Literal>(atom.arguments.counterName, Clasp::Literal(claspProgramBuilder.getLiteral(atom.atomId))));
-        for(const auto& counterIncAtomInfos : gringoOutput.getAllCounterIncAtomInfos())
-            for(const auto& atom : counterIncAtomInfos.second)
-                allCounterIncAtomInfos[counterIncAtomInfos.first].emplace_back(CounterIncAtomInfo(atom, claspProgramBuilder));
-        for(const auto& currentCounterIncAtomInfos : gringoOutput.getAllCurrentCounterIncAtomInfos())
-            for(const auto& atom : currentCounterIncAtomInfos.second)
-                allCurrentCounterIncAtomInfos[currentCounterIncAtomInfos.first].emplace_back(CurrentCounterIncAtomInfo(atom, claspProgramBuilder));
-        for(const auto& counterAtomInfos : gringoOutput.getAllCounterAtomInfos())
-            for(const auto& atom : counterAtomInfos.second)
-                allCounterAtomInfos[counterAtomInfos.first].emplace_back(CounterAtomInfo(atom, claspProgramBuilder));
-        for(const auto& currentCounterAtomInfos : gringoOutput.getAllCurrentCounterAtomInfos())
-            for(const auto& atom : currentCounterAtomInfos.second)
-                allCurrentCounterAtomInfos[currentCounterAtomInfos.first].emplace_back(CurrentCounterAtomInfo(atom, claspProgramBuilder));
+		for(const auto& atom : gringoOutput.getItemAtomInfos())
+			itemAtomInfos.emplace_back(ItemAtomInfo(atom, claspProgramBuilder));
+		for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
+			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, claspProgramBuilder));
+		for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
+			currentCostAtomInfos.emplace_back(CurrentCostAtomInfo(atom, claspProgramBuilder));
+		for(const auto& atom : gringoOutput.getCostAtomInfos())
+			costAtomInfos.emplace_back(CostAtomInfo(atom, claspProgramBuilder));
+		for(const auto& atom : gringoOutput.getCounterRemAtomInfos())
+			counterRemAtomInfos.insert(std::pair<std::string, Clasp::Literal>(atom.arguments.counterName, Clasp::Literal(claspProgramBuilder.getLiteral(atom.atomId))));
+		for(const auto& counterIncAtomInfos : gringoOutput.getAllCounterIncAtomInfos())
+			for(const auto& atom : counterIncAtomInfos.second)
+				allCounterIncAtomInfos[counterIncAtomInfos.first].emplace_back(CounterIncAtomInfo(atom, claspProgramBuilder));
+		for(const auto& currentCounterIncAtomInfos : gringoOutput.getAllCurrentCounterIncAtomInfos())
+			for(const auto& atom : currentCounterIncAtomInfos.second)
+				allCurrentCounterIncAtomInfos[currentCounterIncAtomInfos.first].emplace_back(CurrentCounterIncAtomInfo(atom, claspProgramBuilder));
+		for(const auto& counterAtomInfos : gringoOutput.getAllCounterAtomInfos())
+			for(const auto& atom : counterAtomInfos.second)
+				allCounterAtomInfos[counterAtomInfos.first].emplace_back(CounterAtomInfo(atom, claspProgramBuilder));
+		for(const auto& currentCounterAtomInfos : gringoOutput.getAllCurrentCounterAtomInfos())
+			for(const auto& atom : currentCounterAtomInfos.second)
+				allCurrentCounterAtomInfos[currentCounterAtomInfos.first].emplace_back(CurrentCounterAtomInfo(atom, claspProgramBuilder));
 		clasp.prepare();
 	}
 
@@ -318,54 +314,41 @@ void Solver::startSolvingForCurrentRowCombination()
 #endif
 			}
 
-            if(countersToLitIndices.size() > 0) {
-                for(const auto& item : row->getCounters()) {
-                    assert(countersToLitIndices.find(item) != countersToLitIndices.end());
-                    assert(countersToLitIndices.at(item) < literals.size());
-    #ifdef DISABLE_CHECKS
-                    literals[countersToLitIndices.at(item)].watch();
-    #else
-                    try {
-                        literals[countersToLitIndices.at(item)].watch();
-                    }
-                    catch(const std::out_of_range&) {
-                        std::ostringstream msg;
-                        msg << "Unknown variable; atom childCounter(" << item.first << "," << item.second << ") not shown or not declared as external?";
-                        throw std::runtime_error(msg.str());
-                    }
-    #endif
-                }
-            }/*
-            std::ofstream dummyStream;
-            std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, dummyStream));
-            Gringo::Input::Program program;
-            asp_utils::DummyGringoModule module;
-            Gringo::Scripts scripts(module);
-            Gringo::Defines defs;
-            std::unique_ptr<EncodingChecker> encodingChecker{new trees::EncodingChecker(scripts, program, *out, defs)};
-            Gringo::Input::NonGroundParser parser(*encodingChecker);
-            for(const auto& file : encodingFiles)
-                parser.pushFile(std::string(file));
-            parser.parse();
-            encodingChecker->check();*/
-            const auto& item = row->getCost();
-            //if((item != 0 || costsToLitIndices.find(item) != costsToLitIndices.end()) && !cardinalityCost)
-            if(!cardinalityCost && costsToLitIndices.size() > 0){
-                assert(costsToLitIndices.find(item) != costsToLitIndices.end());
-                assert(costsToLitIndices.at(item) < literals.size());
+			if(countersToLitIndices.size() > 0) {
+				for(const auto& item : row->getCounters()) {
+					assert(countersToLitIndices.find(item) != countersToLitIndices.end());
+					assert(countersToLitIndices.at(item) < literals.size());
 #ifdef DISABLE_CHECKS
-                literals[costsToLitIndices.at(item)].watch();
+					literals[countersToLitIndices.at(item)].watch();
 #else
-                try {
-                    literals[costsToLitIndices.at(item)].watch();
-                }
-                catch(const std::out_of_range&) {
-                    std::ostringstream msg;
-                    msg << "Unknown variable; atom childCost(" << item << ") not shown or not declared as external?";
-                    throw std::runtime_error(msg.str());
-                }
+					try {
+						literals[countersToLitIndices.at(item)].watch();
+					}
+					catch(const std::out_of_range&) {
+						std::ostringstream msg;
+						msg << "Unknown variable; atom childCounter(" << item.first << "," << item.second << ") not shown or not declared as external?";
+						throw std::runtime_error(msg.str());
+					}
 #endif
-            }
+				}
+			}
+			const auto& item = row->getCost();
+			if(!cardinalityCost && costsToLitIndices.size() > 0){
+				assert(costsToLitIndices.find(item) != costsToLitIndices.end());
+				assert(costsToLitIndices.at(item) < literals.size());
+#ifdef DISABLE_CHECKS
+				literals[costsToLitIndices.at(item)].watch();
+#else
+				try {
+					literals[costsToLitIndices.at(item)].watch();
+				}
+				catch(const std::out_of_range&) {
+					std::ostringstream msg;
+					msg << "Unknown variable; atom childCost(" << item << ") not shown or not declared as external?";
+					throw std::runtime_error(msg.str());
+				}
+#endif
+			}
 		}
 		// Set marked literals to true and all others to false
 		for(auto& lit : literals) {
@@ -429,7 +412,7 @@ void Solver::handleRowCandidate(long costBound)
 		}
 	}
 #endif // }}}	
-	
+
 	// Get items {{{
 	ItemTreeNode::Items items;
 	asp_utils::forEachTrue(m, itemAtomInfos, [&items](const GringoOutputProcessor::ItemAtomArguments& arguments) {
@@ -450,110 +433,105 @@ void Solver::handleRowCandidate(long costBound)
 	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {getCurrentRowCombination()}));
 	// }}}
 
-    if(!app.isOptimizationDisabled()) {
+	if(!app.isOptimizationDisabled()) {
 
-        long cost = 0;
-        long currentCost = 0;
+		long cost = 0;
+		long currentCost = 0;
 
-        // Set (current) counters and compute (if optimization is not disabled) cost {{{
-        std::map<std::string,long> counterValues;
-        for(const auto& counterIncAtomInfos : allCounterIncAtomInfos) {
-            // Note that here forFirstTrue is not sufficient
-            forEachTrue(m, counterIncAtomInfos.second, [&counterValues](const GringoOutputProcessor::CounterIncAtomArguments& arguments) {
-                    counterValues[arguments.counterName] += arguments.counterInc;
-            });
-        }
+		// Set (current) counters and compute (if optimization is not disabled) cost {{{
+		std::map<std::string,long> counterValues;
+		for(const auto& counterIncAtomInfos : allCounterIncAtomInfos) {
+			// Note that here forFirstTrue is not sufficient
+			forEachTrue(m, counterIncAtomInfos.second, [&counterValues](const GringoOutputProcessor::CounterIncAtomArguments& arguments) {
+				counterValues[arguments.counterName] += arguments.counterInc;
+			});
+		}
 
-        for(const auto& row : getCurrentRowCombination()) {
-            for(const auto& counter : row->getCounters())
-                counterValues[counter.first] += counter.second;
-            counterValues["cost"] += row->getCost();
-        }
+		for(const auto& row : getCurrentRowCombination()) {
+			for(const auto& counter : row->getCounters())
+				counterValues[counter.first] += counter.second;
+			counterValues["cost"] += row->getCost();
+		}
 
-        for(const auto& counterAtomInfos : allCounterAtomInfos) {
-            forFirstTrue(m, counterAtomInfos.second, [&counterValues](const GringoOutputProcessor::CounterAtomArguments& arguments) {
-                    counterValues[arguments.counterName] = arguments.counter;
-            });
-        }
-        forFirstTrue(m, costAtomInfos, [&counterValues](const GringoOutputProcessor::CostAtomArguments& arguments) {
-                counterValues["cost"] = arguments.cost;
-        });
+		for(const auto& counterAtomInfos : allCounterAtomInfos) {
+			forFirstTrue(m, counterAtomInfos.second, [&counterValues](const GringoOutputProcessor::CounterAtomArguments& arguments) {
+				counterValues[arguments.counterName] = arguments.counter;
+			});
+		}
+		forFirstTrue(m, costAtomInfos, [&counterValues](const GringoOutputProcessor::CostAtomArguments& arguments) {
+			counterValues["cost"] = arguments.cost;
+		});
 
-        for(const auto& counterValue : counterValues) {
-            if(counterRemAtomInfos.find(counterValue.first) == counterRemAtomInfos.end() || !m.isTrue(counterRemAtomInfos[counterValue.first])) {
-                if(counterValue.first == "cost") {
-                    if(!app.isOptimizationDisabled())
-                        cost = counterValue.second;
-                }
-                else
-                    node->setCounter(counterValue.first, counterValue.second);
-            }
-        }
+		for(const auto& counterValue : counterValues) {
+			if(counterRemAtomInfos.find(counterValue.first) == counterRemAtomInfos.end() || !m.isTrue(counterRemAtomInfos[counterValue.first])) {
+				if(counterValue.first == "cost") {
+					if(!app.isOptimizationDisabled())
+						cost = counterValue.second;
+				}
+				else
+					node->setCounter(counterValue.first, counterValue.second);
+			}
+		}
 
-    // Possibly update counters of root [XXX necessary?]
-    //	for(const auto& counter : itemTree->getNode()->getCounters())
-    //		itemTree->getNode()->setCounter(counter.first, std::min(itemTree->getNode()->getCounter(counter.first), counterValues[counter.first]));
+		std::map<std::string,long> currentCounterValues;
+		for(const auto& currentCounterIncAtomInfos : allCurrentCounterIncAtomInfos) {
+			// Note that here forFirstTrue is not sufficient
+			forEachTrue(m, currentCounterIncAtomInfos.second, [&currentCounterValues](const GringoOutputProcessor::CurrentCounterIncAtomArguments& arguments) {
+				currentCounterValues[arguments.currentCounterName] += arguments.currentCounterInc;
+			});
+		}
 
-        std::map<std::string,long> currentCounterValues;
-        for(const auto& currentCounterIncAtomInfos : allCurrentCounterIncAtomInfos) {
-            // Note that here forFirstTrue is not sufficient
-            forEachTrue(m, currentCounterIncAtomInfos.second, [&currentCounterValues](const GringoOutputProcessor::CurrentCounterIncAtomArguments& arguments) {
-                    currentCounterValues[arguments.currentCounterName] += arguments.currentCounterInc;
-            });
-        }
+		for(const auto& row : getCurrentRowCombination()) {
+			for(const auto& currentCounter : row->getCurrentCounters())
+				currentCounterValues[currentCounter.first] += row->getCurrentCounter(currentCounter.first);
+			currentCounterValues["cost"] += row->getCurrentCost();
+		}
 
-        for(const auto& row : getCurrentRowCombination()) {
-            for(const auto& currentCounter : row->getCurrentCounters())
-                currentCounterValues[currentCounter.first] += row->getCurrentCounter(currentCounter.first);
-            currentCounterValues["cost"] += row->getCurrentCost();
-        }
+		for(const auto& currentCounterAtomInfos : allCurrentCounterAtomInfos) {
+			forFirstTrue(m, currentCounterAtomInfos.second, [&currentCounterValues](const GringoOutputProcessor::CurrentCounterAtomArguments& arguments) {
+				currentCounterValues[arguments.currentCounterName] = arguments.currentCounter;
+			});
+		}
+		forFirstTrue(m, currentCostAtomInfos, [&currentCounterValues](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
+			currentCounterValues["cost"] = arguments.currentCost;
+		});
 
-        for(const auto& currentCounterAtomInfos : allCurrentCounterAtomInfos) {
-            forFirstTrue(m, currentCounterAtomInfos.second, [&currentCounterValues](const GringoOutputProcessor::CurrentCounterAtomArguments& arguments) {
-                    currentCounterValues[arguments.currentCounterName] = arguments.currentCounter;
-            });
-        }
-        forFirstTrue(m, currentCostAtomInfos, [&currentCounterValues](const GringoOutputProcessor::CurrentCostAtomArguments& arguments) {
-                currentCounterValues["cost"] = arguments.currentCost;
-        });
+		for(const auto& currentCounterValue : currentCounterValues) {
+			if(counterRemAtomInfos.find(currentCounterValue.first) == counterRemAtomInfos.end() || !m.isTrue(counterRemAtomInfos[currentCounterValue.first])) {
+				if(currentCounterValue.first == "cost") {
+					if(!app.isOptimizationDisabled())
+						currentCost = currentCounterValue.second;
+				}
+				else
+					node->setCurrentCounter(currentCounterValue.first, currentCounterValue.second);
+			}
+		}
+		// }}}
 
-        for(const auto& currentCounterValue : currentCounterValues) {
-            if(counterRemAtomInfos.find(currentCounterValue.first) == counterRemAtomInfos.end() || !m.isTrue(counterRemAtomInfos[currentCounterValue.first])) {
-                if(currentCounterValue.first == "cost") {
-                    if(!app.isOptimizationDisabled())
-                        currentCost = currentCounterValue.second;
-                }
-                else
-                    node->setCurrentCounter(currentCounterValue.first, currentCounterValue.second);
-            }
-        }
-        // }}}
+		if(cardinalityCost) {
+			cost = node->getItems().size();
+			for(const auto& row : node->getExtensionPointers().front()) {
+				const auto& oldItems = row->getItems();
+				ItemTreeNode::Items intersection;
+				std::set_intersection(node->getItems().begin(), node->getItems().end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
+				cost += row->getCost() - intersection.size();
+			}
 
-        if(cardinalityCost) {
-            cost = node->getItems().size();
-            for(const auto& row : node->getExtensionPointers().front()) {
-                const auto& oldItems = row->getItems();
-                ItemTreeNode::Items intersection;
-                std::set_intersection(node->getItems().begin(), node->getItems().end(), oldItems.begin(), oldItems.end(), std::inserter(intersection, intersection.begin()));
-                cost += row->getCost() - intersection.size();
-            }
+			currentCost = node->getItems().size();
+		}
 
-            currentCost = node->getItems().size();
-        }
+		if(cost >= costBound) {
+			newestRow = itemTree->getChildren().end();
+			return;
+		}
 
-        if(cost >= costBound) {
-    //		++discardedModels;
-            newestRow = itemTree->getChildren().end();
-            return;
-        }
+		node->setCost(cost);
+		node->setCurrentCost(currentCost);
 
-        node->setCost(cost);
-        node->setCurrentCost(currentCost);
-
-        // Possibly update cost of root {{{
-        itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
-        // }}}
-    }
+		// Possibly update cost of root {{{
+		itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
+		// }}}
+	}
 		
 	// Add node to item tree {{{
 	//ItemTree::Children::const_iterator newChild = itemTree->addChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));

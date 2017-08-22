@@ -39,7 +39,7 @@ public:
 //	static unsigned models;
 //	static unsigned discardedModels;
 
-    Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground = false, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full, bool cardinalityCost = false);
+	Solver(const Decomposition& decomposition, const Application& app, const std::vector<std::string>& encodingFiles, bool reground = false, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full, bool cardinalityCost = false);
 
 protected:
 	virtual void startSolvingForCurrentRowCombination() override;
@@ -54,22 +54,19 @@ private:
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CostAtomArguments> CostAtomInfo;
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCounterAtomArguments> CurrentCounterAtomInfo;
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterAtomArguments> CounterAtomInfo;
-    typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCounterIncAtomArguments> CurrentCounterIncAtomInfo;
-    typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterIncAtomArguments> CounterIncAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CurrentCounterIncAtomArguments> CurrentCounterIncAtomInfo;
+	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterIncAtomArguments> CounterIncAtomInfo;
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterRemAtomArguments> CounterRemAtomInfo;
 
-    // Only for pairs of std::hash-able types for simplicity.
-    // You can of course template this struct to allow other hash functions
-    struct pair_hash {
-        template <class T1, class T2>
-        std::size_t operator () (std::pair<T1,T2> const& p) const {
-            auto h1 = std::hash<T1>{}(p.first);
-            auto h2 = std::hash<T2>{}(p.second);
-
-            return h1^h2;
-        }
-    };
-    using Custom_map = std::unordered_map<std::pair<std::string,long>, size_t, pair_hash>;
+	struct pair_hash {
+		template <class T1, class T2>
+		std::size_t operator () (std::pair<T1,T2> const& p) const {
+			auto h1 = std::hash<T1>{}(p.first);
+			auto h2 = std::hash<T2>{}(p.second);
+			return h1^h2;
+		}
+	};
+	using Custom_map = std::unordered_map<std::pair<std::string,long>, size_t, pair_hash>;
 
 	std::vector<ItemAtomInfo>										itemAtomInfos;
 	std::vector<AuxItemAtomInfo>									auxItemAtomInfos;
@@ -79,21 +76,20 @@ private:
 	std::vector<CounterAtomInfo>									counterAtomInfos;
 	std::vector<CurrentCounterIncAtomInfo>							currentCounterIncAtomInfos;
 	std::vector<CounterIncAtomInfo>									counterIncAtomInfos;
-    //std::vector<CounterRemAtomInfo>									counterRemAtomInfos;
-    std::map<std::string,Clasp::Literal>                            counterRemAtomInfos;
-    std::map<std::string,std::vector<CounterIncAtomInfo>>           allCounterIncAtomInfos;
-    std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>    allCurrentCounterIncAtomInfos;
-    std::map<std::string,std::vector<CounterAtomInfo>>              allCounterAtomInfos;
-    std::map<std::string,std::vector<CurrentCounterAtomInfo>>       allCurrentCounterAtomInfos;
+	std::map<std::string,Clasp::Literal>                            counterRemAtomInfos;
+	std::map<std::string,std::vector<CounterIncAtomInfo>>           allCounterIncAtomInfos;
+	std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>    allCurrentCounterIncAtomInfos;
+	std::map<std::string,std::vector<CounterAtomInfo>>              allCounterAtomInfos;
+	std::map<std::string,std::vector<CurrentCounterAtomInfo>>       allCurrentCounterAtomInfos;
 
 	bool reground;
-    bool cardinalityCost;
-    std::vector<std::string> encodingFiles;
+	bool cardinalityCost;
+	std::vector<std::string> encodingFiles;
 	std::vector<Clasp::Literal> literals;
 	std::unordered_map<String, size_t> itemsToLitIndices;
-    std::unordered_map<String, size_t> auxItemsToLitIndices;
-    Custom_map countersToLitIndices;
-    std::unordered_map<long, size_t> costsToLitIndices;
+	std::unordered_map<String, size_t> auxItemsToLitIndices;
+	Custom_map countersToLitIndices;
+	std::unordered_map<long, size_t> costsToLitIndices;
 
 	Clasp::ClaspFacade clasp;
 	Clasp::ClaspConfig config;

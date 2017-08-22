@@ -29,146 +29,144 @@ namespace solver { namespace lazy_default_join {
 //unsigned Solver::discardedJoinResults = 0;
 
 Solver::Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, BranchAndBoundLevel bbLevel, bool binarySearch)
-    : ::LazySolver(decomposition, app, bbLevel)
-    , binarySearch(binarySearch)
-    , rowType(setLeavesToAccept ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::UNDEFINED)
-    , currentRowCombinationExhausted(true)
+	: ::LazySolver(decomposition, app, bbLevel)
+	, binarySearch(binarySearch)
+	, rowType(setLeavesToAccept ? ItemTreeNode::Type::ACCEPT : ItemTreeNode::Type::UNDEFINED)
+	, currentRowCombinationExhausted(true)
 {
-    assert(decomposition.getChildren().size() > 1);
+	assert(decomposition.getChildren().size() > 1);
 }
 
 void Solver::startSolvingForCurrentRowCombination()
 {
 //	++joinSetups;
-    assert(getCurrentRowCombination().empty() == false);
-    assert(currentRowCombinationExhausted);
-    if(binarySearch) {
-        // Binary search in resetRowIteratorsOnNewRow() ensures that the current row combination is joinable
-        assert(std::all_of(getCurrentRowCombination().begin()+1, getCurrentRowCombination().end(), [this](const ItemTreeNode::ExtensionPointer& node) {
-                    return node->getItems() == this->getCurrentRowCombination()[0]->getItems();
-                    }));
-        currentRowCombinationExhausted = false;
-    }
-    else {
-        const auto& extended = getCurrentRowCombination();
-        const auto& items = extended[0]->getItems();
-        currentRowCombinationExhausted = !std::all_of(extended.begin()+1, extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
-                return node->getItems() == items;
-                });
-    }
+	assert(getCurrentRowCombination().empty() == false);
+	assert(currentRowCombinationExhausted);
+	if(binarySearch) {
+		// Binary search in resetRowIteratorsOnNewRow() ensures that the current row combination is joinable
+		assert(std::all_of(getCurrentRowCombination().begin()+1, getCurrentRowCombination().end(), [this](const ItemTreeNode::ExtensionPointer& node) {
+			return node->getItems() == this->getCurrentRowCombination()[0]->getItems();
+			}));
+		currentRowCombinationExhausted = false;
+	}
+	else {
+		const auto& extended = getCurrentRowCombination();
+		const auto& items = extended[0]->getItems();
+		currentRowCombinationExhausted = !std::all_of(extended.begin()+1, extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
+			return node->getItems() == items;
+			});
+	}
 }
 
 bool Solver::endOfRowCandidates() const
 {
-    return currentRowCombinationExhausted;
+	return currentRowCombinationExhausted;
 }
 
 void Solver::nextRowCandidate()
 {
-    currentRowCombinationExhausted = true;
+	currentRowCombinationExhausted = true;
 }
 
 void Solver::handleRowCandidate(long costBound)
 {
-//	++joinCalls;
-    const auto& extended = getCurrentRowCombination();
-    assert(extended.empty() == false);
+	const auto& extended = getCurrentRowCombination();
+	assert(extended.empty() == false);
 
-    ItemTreeNode::Items items = (*extended.begin())->getItems();
-    assert(std::all_of(extended.begin(), extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
-            return node->getItems() == items;
-    }));
+	ItemTreeNode::Items items = (*extended.begin())->getItems();
+	assert(std::all_of(extended.begin(), extended.end(), [&items](const ItemTreeNode::ExtensionPointer& node) {
+		return node->getItems() == items;
+	}));
 
-    ItemTreeNode::Items auxItems;
-    for(const auto& node : extended)
-        auxItems.insert(node->getAuxItems().begin(), node->getAuxItems().end());
+	ItemTreeNode::Items auxItems;
+	for(const auto& node : extended)
+		auxItems.insert(node->getAuxItems().begin(), node->getAuxItems().end());
 
-    assert(itemTree);
+	assert(itemTree);
 
-    // Create item tree node
-    std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extended}, rowType));
+	// Create item tree node
+	std::shared_ptr<ItemTreeNode> node(new ItemTreeNode(std::move(items), std::move(auxItems), {extended}, rowType));
 
-    std::set<std::string> keys;
-    bool costAsCounter = false;
-    for(const auto& node : extended) {
-        for(const auto& counter : node->getCounters()) {
-            keys.insert(counter.first);
-            if(counter.first.compare("cost") == 0)
-                    costAsCounter = true;
-        }
-    }
+	std::set<std::string> keys;
+	bool costAsCounter = false;
+	for(const auto& node : extended) {
+		for(const auto& counter : node->getCounters()) {
+			keys.insert(counter.first);
+			if(counter.first.compare("cost") == 0)
+				costAsCounter = true;
+		}
+	}
 
-    long cost = 0;
-    long currentCost = 0;
-    for(const auto& key : keys) {
-        long counter = 0;
-        long currentCounter = extended.front()->getCurrentCounter(key);
-        for(const auto& child :  extended) {
-            counter += child->getCounter(key);
-            assert(currentCounter == child->getCurrentCounter(key));
-        }
-        counter -= currentCounter * (extended.size() - 1);
-        if(key.compare("cost") == 0) {
-            cost = counter;
-            currentCost = currentCounter;
-        }
-        else {
-            node->setCounter(key, counter);
-            node->setCurrentCounter(key, currentCounter);
-        }
-    }
-    if(!costAsCounter) {
-        currentCost = extended.front()->getCurrentCost();
-        for(const auto& child :  extended) {
-            cost += child->getCost();
-            assert(currentCost == child->getCurrentCost());
-        }
-        cost -= currentCost * (extended.size() - 1);
-    }
+	long cost = 0;
+	long currentCost = 0;
+	for(const auto& key : keys) {
+		long counter = 0;
+		long currentCounter = extended.front()->getCurrentCounter(key);
+		for(const auto& child :  extended) {
+			counter += child->getCounter(key);
+			assert(currentCounter == child->getCurrentCounter(key));
+		}
+		counter -= currentCounter * (extended.size() - 1);
+		if(key.compare("cost") == 0) {
+			cost = counter;
+			currentCost = currentCounter;
+		}
+		else {
+			node->setCounter(key, counter);
+			node->setCurrentCounter(key, currentCounter);
+		}
+	}
+	if(!costAsCounter) {
+		currentCost = extended.front()->getCurrentCost();
+		for(const auto& child :  extended) {
+			cost += child->getCost();
+			assert(currentCost == child->getCurrentCost());
+		}
+		cost -= currentCost * (extended.size() - 1);
+	}
 
-    if(cost >= costBound) {
-//		++discardedJoinResults;
-        newestRow = itemTree->getChildren().end();
-        return;
-    }
+	if(cost >= costBound) {
+		newestRow = itemTree->getChildren().end();
+		return;
+	}
 
-    if(!app.isOptimizationDisabled()) {
-        node->setCost(cost);
-        node->setCurrentCost(currentCost);
+	if(!app.isOptimizationDisabled()) {
+		node->setCost(cost);
+		node->setCurrentCost(currentCost);
 
-        // Possibly update cost of root
-        itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
-    }
+		// Possibly update cost of root
+		itemTree->getNode()->setCost(std::min(itemTree->getNode()->getCost(), cost));
+	}
 
-    // Add node to item tree
-    newestRow = itemTree->costChangeAfterAddChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
+	// Add node to item tree
+	newestRow = itemTree->costChangeAfterAddChildAndMerge(ItemTree::ChildPtr(new ItemTree(std::move(node))));
 }
 
 bool Solver::resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from)
 {
-    if(!binarySearch)
-        return LazySolver::resetRowIteratorsOnNewRow(newRow, from);
+	if(!binarySearch)
+		return LazySolver::resetRowIteratorsOnNewRow(newRow, from);
 
-    rowIterators.clear();
-    for(const auto& child : decomposition.getChildren()) {
-        if(child.get() == &from) {
-            Row end = newRow;
-            ++end;
-            rowIterators.push_back({newRow, newRow, end});
-        } else {
-            const auto& rows = static_cast<LazySolver&>(child->getSolver()).getItemTree()->getChildren();
-            assert(rows.begin() != rows.end());
-            const auto range = std::equal_range(rows.begin(), rows.end(), *newRow,
-                    [](const ItemTreePtr& a, const ItemTreePtr& b) {
-                    return a->getNode()->getItems() < b->getNode()->getItems();
-                    });
-            if(range.first == range.second)
-                return false;
-            rowIterators.push_back({range.first, range.first, range.second});
-        }
-    }
+	rowIterators.clear();
+	for(const auto& child : decomposition.getChildren()) {
+		if(child.get() == &from) {
+			Row end = newRow;
+			++end;
+			rowIterators.push_back({newRow, newRow, end});
+		} else {
+			const auto& rows = static_cast<LazySolver&>(child->getSolver()).getItemTree()->getChildren();
+			assert(rows.begin() != rows.end());
+			const auto range = std::equal_range(rows.begin(), rows.end(), *newRow,
+				[](const ItemTreePtr& a, const ItemTreePtr& b) {
+				return a->getNode()->getItems() < b->getNode()->getItems();
+				});
+			if(range.first == range.second)
+				return false;
+			rowIterators.push_back({range.first, range.first, range.second});
+		}
+	}
 
-    return true;
+	return true;
 }
 
 }} // namespace solver::lazy_default_join

@@ -52,15 +52,15 @@ private:
 	std::vector<ExtendAtomInfo>                                     extendAtomInfos;
 	std::vector<CurrentCostAtomInfo>                                currentCostAtomInfos;
 	std::vector<CostAtomInfo>                                       costAtomInfos;
-    std::map<std::string,Clasp::Literal>                            counterRemAtomInfos;
+	std::map<std::string,Clasp::Literal>                            counterRemAtomInfos;
 	std::vector<CounterIncAtomInfo>                                 counterIncAtomInfos;
 	std::vector<CurrentCounterIncAtomInfo>                          currentCounterIncAtomInfos;
-    std::map<std::string,std::vector<CounterIncAtomInfo>>           allCounterIncAtomInfos;
-    std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>    allCurrentCounterIncAtomInfos;
+	std::map<std::string,std::vector<CounterIncAtomInfo>>           allCounterIncAtomInfos;
+	std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>    allCurrentCounterIncAtomInfos;
 	std::vector<CounterAtomInfo>                                    counterAtomInfos;
 	std::vector<CurrentCounterAtomInfo>                             currentCounterAtomInfos;
-    std::map<std::string,std::vector<CounterAtomInfo>>              allCounterAtomInfos;
-    std::map<std::string,std::vector<CurrentCounterAtomInfo>>       allCurrentCounterAtomInfos;
+	std::map<std::string,std::vector<CounterAtomInfo>>              allCounterAtomInfos;
+	std::map<std::string,std::vector<CurrentCounterAtomInfo>>       allCurrentCounterAtomInfos;
 
 	const GringoOutputProcessor& gringoOutput;
 	const ChildItemTrees& childItemTrees;

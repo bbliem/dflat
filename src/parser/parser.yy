@@ -44,7 +44,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 %code
 {
-#include "../src/parser/Driver.h"
+#include "../../src/parser/Driver.h"
 
 #undef yylex
 #define yylex scanner.yylex

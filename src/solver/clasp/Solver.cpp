@@ -74,7 +74,6 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 	Gringo::message_printer()->disable(Gringo::W_ATOM_UNDEFINED);
 
 #ifndef DISABLE_CHECKS
-	// TODO: Implement tables::EncodingChecker
 	if(!tableMode) {
 		// Check the encoding, but only in the decomposition root.
 		// Otherwise we'd probably do checks redundantly.
@@ -85,7 +84,7 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, const
 			asp_utils::DummyGringoModule module;
 			Gringo::Scripts scripts(module);
 			Gringo::Defines defs;
-            std::unique_ptr<EncodingChecker> encodingChecker{new trees::EncodingChecker(scripts, program, *out, defs)};
+			std::unique_ptr<EncodingChecker> encodingChecker{new trees::EncodingChecker(scripts, program, *out, defs)};
 			Gringo::Input::NonGroundParser parser(*encodingChecker);
 			for(const auto& file : encodingFiles)
 				parser.pushFile(std::string(file));
@@ -133,8 +132,7 @@ ItemTreePtr Solver::compute()
 	// Set up ASP solver
 	Clasp::ClaspConfig config;
 	config.solve.numModels = 0;
-	Clasp::ClaspFacade clasp;
-	// TODO The last parameter of clasp.startAsp in the next line is "allowUpdate". Does setting it to false have benefits?
+    Clasp::ClaspFacade clasp;
 	Clasp::Asp::LogicProgram& claspProgramBuilder = dynamic_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config));
 	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut(newGringoOutputProcessor(claspProgramBuilder, childItemTrees, tableMode));
 	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));

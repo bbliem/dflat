@@ -31,7 +31,7 @@ public:
 //	static unsigned joinCalls;
 //	static unsigned discardedJoinResults;
 
-    Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full, bool binarySearch = true);
+	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full, bool binarySearch = true);
 
 protected:
 	virtual void startSolvingForCurrentRowCombination() override;
