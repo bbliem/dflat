@@ -200,7 +200,7 @@ void Application::printUsage() const
 
 void Application::printVersion() const
 {
-	std::cout << "D-FLAT version 1.2.5" << std::endl;
+	std::cout << "D-FLAT version " VERSION_NUMBER << std::endl;
 }
 
 const Instance& Application::getInstance() const

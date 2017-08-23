@@ -21,7 +21,8 @@ for instance in $(seq 1 $numInstances); do
 	claspExit=${PIPESTATUS[1]}
 	claspOptVal=$(<$claspOptValFile)
 
-	dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | awk -F " |)" '{print $3}' > $dflatOptValFile	dflatExit=${PIPESTATUS[0]}
+	dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | awk -F " |)" '{print $3}' > $dflatOptValFile	
+	dflatExit=${PIPESTATUS[0]}
 	dflatOptVal=$(<$dflatOptValFile)
 
 	[ $claspExit -ne 30 ] || claspExit=10
