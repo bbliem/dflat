@@ -53,7 +53,7 @@ for instance in $(seq 1 $numInstances); do
 		claspOptVal=0
 	fi
 
-	dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | awk '		
+	dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | awk '
 		{
 			print $3 ? substr($3,1,length($3)-1) : 0
 			print substr($1,2,length($1)-2)

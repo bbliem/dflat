@@ -191,6 +191,7 @@ ItemTreePtr Solver::compute()
 	assert(decomposition.getChildren().size() > 1);
 	// Compute item trees of child nodes
 	// When at least two have been computed, join them with the result so far
+	// TODO Use a balanced join tree (with smaller "tables" further down)
 	auto it = decomposition.getChildren().begin();
 	ItemTreePtr result = (*it)->getSolver().compute();
 	for(++it; it != decomposition.getChildren().end(); ++it) {

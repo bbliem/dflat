@@ -8,3 +8,5 @@ auxItem(dominated(X)) :- childAuxItem(dominated(X)), not removed(X).
 { item(in(X)) : introduced(X) }.
 auxItem(dominated(Y)) :- item(in(X)), edge(X,Y), current(X), current(Y).
 :- removed(X), not childItem(in(X)), not childAuxItem(dominated(X)).
+
+#show item/1. #show auxItem/1, #show childItem/1. #show childAuxItem/1.

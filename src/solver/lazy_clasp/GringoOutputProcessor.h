@@ -49,7 +49,7 @@ public:
 		long cost;
 	};
 	typedef asp_utils::GringoAtomInfo<CostAtomArguments> CostAtomInfo;
-	
+
 	struct CounterRemAtomArguments {
 		std::string counterName;
 	};
@@ -79,40 +79,40 @@ public:
 	};
 	typedef asp_utils::GringoAtomInfo<CurrentCounterAtomArguments> CurrentCounterAtomInfo;
 
-	typedef std::vector<ItemAtomInfo>										ItemAtomInfos;
-	typedef std::vector<AuxItemAtomInfo>									AuxItemAtomInfos;
-	typedef std::vector<CurrentCostAtomInfo>								CurrentCostAtomInfos;
-	typedef std::vector<CostAtomInfo>										CostAtomInfos;
-	typedef std::vector<CounterRemAtomInfo>									CounterRemAtomInfos;
-	typedef std::map<std::string,std::vector<CounterIncAtomInfo>>			AllCounterIncAtomInfos;
-	typedef std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>	AllCurrentCounterIncAtomInfos;
-	typedef std::map<std::string,std::vector<CounterAtomInfo>>				AllCounterAtomInfos;
-	typedef std::map<std::string,std::vector<CurrentCounterAtomInfo>>		AllCurrentCounterAtomInfos;
+	typedef std::vector<ItemAtomInfo>                                       ItemAtomInfos;
+	typedef std::vector<AuxItemAtomInfo>                                    AuxItemAtomInfos;
+	typedef std::vector<CurrentCostAtomInfo>                                CurrentCostAtomInfos;
+	typedef std::vector<CostAtomInfo>                                       CostAtomInfos;
+	typedef std::vector<CounterRemAtomInfo>                                 CounterRemAtomInfos;
+	typedef std::map<std::string,std::vector<CounterIncAtomInfo>>           AllCounterIncAtomInfos;
+	typedef std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>    AllCurrentCounterIncAtomInfos;
+	typedef std::map<std::string,std::vector<CounterAtomInfo>>              AllCounterAtomInfos;
+	typedef std::map<std::string,std::vector<CurrentCounterAtomInfo>>       AllCurrentCounterAtomInfos;
 
 	GringoOutputProcessor(Clasp::Asp::LogicProgram& out);
 
-	const ItemAtomInfos&					getItemAtomInfos()					const;
-	const AuxItemAtomInfos&					getAuxItemAtomInfos()				const;
-	const CurrentCostAtomInfos&				getCurrentCostAtomInfos()			const;
-	const CostAtomInfos&					getCostAtomInfos()					const;
-	const CounterRemAtomInfos&				getCounterRemAtomInfos()			const;
-	const AllCounterIncAtomInfos&			getAllCounterIncAtomInfos()			const;
-	const AllCurrentCounterIncAtomInfos&	getAllCurrentCounterIncAtomInfos()	const;
-	const AllCounterAtomInfos&				getAllCounterAtomInfos()			const;
-	const AllCurrentCounterAtomInfos&		getAllCurrentCounterAtomInfos()		const;
+	const ItemAtomInfos&                    getItemAtomInfos()                  const;
+	const AuxItemAtomInfos&                 getAuxItemAtomInfos()               const;
+	const CurrentCostAtomInfos&             getCurrentCostAtomInfos()           const;
+	const CostAtomInfos&                    getCostAtomInfos()                  const;
+	const CounterRemAtomInfos&              getCounterRemAtomInfos()            const;
+	const AllCounterIncAtomInfos&           getAllCounterIncAtomInfos()         const;
+	const AllCurrentCounterIncAtomInfos&    getAllCurrentCounterIncAtomInfos()  const;
+	const AllCounterAtomInfos&              getAllCounterAtomInfos()            const;
+	const AllCurrentCounterAtomInfos&       getAllCurrentCounterAtomInfos()     const;
 
 protected:
 	virtual void storeAtom(unsigned int atomUid, Gringo::Value v) override;
 
-	ItemAtomInfos					itemAtomInfos;
-	AuxItemAtomInfos				auxItemAtomInfos;
-	CurrentCostAtomInfos			currentCostAtomInfos;
-	CostAtomInfos					costAtomInfos;
-	CounterRemAtomInfos				counterRemAtomInfos;
-	AllCounterIncAtomInfos			allCounterIncAtomInfos;
-	AllCurrentCounterIncAtomInfos	allCurrentCounterIncAtomInfos;
-	AllCounterAtomInfos				allCounterAtomInfos;
-	AllCurrentCounterAtomInfos		allCurrentCounterAtomInfos;
+	ItemAtomInfos                   itemAtomInfos;
+	AuxItemAtomInfos                auxItemAtomInfos;
+	CurrentCostAtomInfos            currentCostAtomInfos;
+	CostAtomInfos                   costAtomInfos;
+	CounterRemAtomInfos             counterRemAtomInfos;
+	AllCounterIncAtomInfos          allCounterIncAtomInfos;
+	AllCurrentCounterIncAtomInfos   allCurrentCounterIncAtomInfos;
+	AllCounterAtomInfos             allCounterAtomInfos;
+	AllCurrentCounterAtomInfos      allCurrentCounterAtomInfos;
 };
 
 }} // namespace solver::lazy_clasp

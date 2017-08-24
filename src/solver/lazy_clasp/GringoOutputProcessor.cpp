@@ -95,7 +95,6 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 		ASP_CHECK(v.args().size() == 1, "'cost' predicate does not have arity 1");
 		std::ostringstream argument;
 		v.args().front().print(argument);
-		//  std::cout << "!!!!!!!!!!!!!!" << argument.str() << "\n";
 		costAtomInfos.emplace_back(CostAtomInfo{{std::stol(argument.str())}, atomUid});
 	} else if(predicate == "counter") {
 		ASP_CHECK(v.args().size() == 2, "'counter' predicate does not have arity 2");

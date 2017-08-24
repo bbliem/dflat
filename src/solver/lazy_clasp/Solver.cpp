@@ -186,8 +186,10 @@ void Solver::startSolvingForCurrentRowCombination()
 
 	if(reground) {
 		// Set up ASP solver
-        config.solve.numModels = 0;
-        // WORKAROUND for BUG in ClaspFacade::startAsp()
+		config.solve.numModels = 0;
+		// TODO The last parameter of clasp.startAsp in the next line is "allowUpdate". Does setting it to false have benefits?
+		// WORKAROUND for BUG in ClaspFacade::startAsp()
+		// TODO remove on update to new version
 		if(clasp.ctx.numVars() == 0 && clasp.ctx.frozen())
 			clasp.ctx.reset();
 
@@ -220,7 +222,7 @@ void Solver::startSolvingForCurrentRowCombination()
 			for(const auto& item : row->getAuxItems())
 				*childRowsInput << "childAuxItem(" << item << ")." << std::endl;
 			for(const auto& item : row->getCounters())
-                *childRowsInput << "childCounter(" << item.first << "," << item.second << ")." << std::endl;
+				*childRowsInput << "childCounter(" << item.first << "," << item.second << ")." << std::endl;
 			const auto& item = row->getCost();
 			*childRowsInput << "childCost(" << item << ")." << std::endl;
 		}
@@ -250,6 +252,7 @@ void Solver::startSolvingForCurrentRowCombination()
 		itemAtomInfos.clear();
 		for(const auto& atom : gringoOutput.getItemAtomInfos())
 			itemAtomInfos.emplace_back(ItemAtomInfo(atom, claspProgramBuilder));
+		auxItemAtomInfos.clear();
 		for(const auto& atom : gringoOutput.getAuxItemAtomInfos())
 			auxItemAtomInfos.emplace_back(AuxItemAtomInfo(atom, claspProgramBuilder));
 		for(const auto& atom : gringoOutput.getCurrentCostAtomInfos())
@@ -434,7 +437,6 @@ void Solver::handleRowCandidate(long costBound)
 	// }}}
 
 	if(!app.isOptimizationDisabled()) {
-
 		long cost = 0;
 		long currentCost = 0;
 

@@ -12,3 +12,5 @@ auxItem(dominated(Y)) :- item(in(X)), edge(X,Y), current(X), current(Y).
 counterInc(cost,1,X) :- introduced(X), item(in(X)).
 currentCounterInc(cost,1,X) :- introduced(X), item(in(X)).
 currentCounterInc(cost,-1,X) :- removed(X), childItem(in(X)).
+
+#show item/1. #show auxItem/1, #show childItem/1. #show childAuxItem/1.

@@ -58,24 +58,26 @@ private:
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterIncAtomArguments> CounterIncAtomInfo;
 	typedef asp_utils::ClaspAtomInfo<GringoOutputProcessor::CounterRemAtomArguments> CounterRemAtomInfo;
 
-	struct pair_hash {
+	struct pair_hash
+	{
 		template <class T1, class T2>
-		std::size_t operator () (std::pair<T1,T2> const& p) const {
+		std::size_t operator () (std::pair<T1,T2> const& p) const
+		{
 			auto h1 = std::hash<T1>{}(p.first);
 			auto h2 = std::hash<T2>{}(p.second);
 			return h1^h2;
 		}
 	};
-	using Custom_map = std::unordered_map<std::pair<std::string,long>, size_t, pair_hash>;
+	typedef std::unordered_map<std::pair<std::string,long>, size_t, pair_hash> CounterMap;
 
-	std::vector<ItemAtomInfo>										itemAtomInfos;
-	std::vector<AuxItemAtomInfo>									auxItemAtomInfos;
-	std::vector<CurrentCostAtomInfo>								currentCostAtomInfos;
-	std::vector<CostAtomInfo>										costAtomInfos;
-	std::vector<CurrentCounterAtomInfo>								currentCounterAtomInfos;
-	std::vector<CounterAtomInfo>									counterAtomInfos;
-	std::vector<CurrentCounterIncAtomInfo>							currentCounterIncAtomInfos;
-	std::vector<CounterIncAtomInfo>									counterIncAtomInfos;
+	std::vector<ItemAtomInfo>                                       itemAtomInfos;
+	std::vector<AuxItemAtomInfo>                                    auxItemAtomInfos;
+	std::vector<CurrentCostAtomInfo>                                currentCostAtomInfos;
+	std::vector<CostAtomInfo>                                       costAtomInfos;
+	std::vector<CurrentCounterAtomInfo>                             currentCounterAtomInfos;
+	std::vector<CounterAtomInfo>                                    counterAtomInfos;
+	std::vector<CurrentCounterIncAtomInfo>                          currentCounterIncAtomInfos;
+	std::vector<CounterIncAtomInfo>                                 counterIncAtomInfos;
 	std::map<std::string,Clasp::Literal>                            counterRemAtomInfos;
 	std::map<std::string,std::vector<CounterIncAtomInfo>>           allCounterIncAtomInfos;
 	std::map<std::string,std::vector<CurrentCounterIncAtomInfo>>    allCurrentCounterIncAtomInfos;
@@ -88,7 +90,7 @@ private:
 	std::vector<Clasp::Literal> literals;
 	std::unordered_map<String, size_t> itemsToLitIndices;
 	std::unordered_map<String, size_t> auxItemsToLitIndices;
-	Custom_map countersToLitIndices;
+	CounterMap countersToLitIndices;
 	std::unordered_map<long, size_t> costsToLitIndices;
 
 	Clasp::ClaspFacade clasp;

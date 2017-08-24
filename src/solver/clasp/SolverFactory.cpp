@@ -56,7 +56,6 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 
 	optCardinalityCost.addCondition(selected);
 	optCardinalityCost.addCondition(condTables);
-	optCardinalityCost.addCondition(condLazy);
 	app.getOptionHandler().addOption(optCardinalityCost, OPTION_SECTION);
 
 	optPrintStatistics.addCondition(selected);
@@ -66,7 +65,7 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 	app.getOptionHandler().addOption(optDefaultJoin, OPTION_SECTION);
 
 	optLazy.addCondition(selected);
-	optLazy.addCondition(condTables);
+	optLazy.addCondition(condTables); // TODO Lazy solving should not require table mode?
 	app.getOptionHandler().addOption(optLazy, OPTION_SECTION);
 
 	optNoBinarySearch.addCondition(selected);
