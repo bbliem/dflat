@@ -20,6 +20,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
+#include <cstddef>
 #include <ostream>
 #include <vector>
 #include <set>

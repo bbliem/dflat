@@ -36,6 +36,11 @@ private:
 	bool showUsed = false;
 	bool lengthShown = false;
 	bool itemShown = false;
+	bool auxItemShown = false;
+	bool costShown = false;
+	bool currentCostShown = false;
+	bool counterShown = false;
+	bool currentCounterShown = false;
 	bool extendShown = false;
 	bool orAndShown = false;
 	bool acceptRejectShown = false;

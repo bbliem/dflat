@@ -133,8 +133,8 @@ ItemTreePtr Solver::compute()
 	// Set up ASP solver
 	Clasp::ClaspConfig config;
 	config.solve.numModels = 0;
-	Clasp::ClaspFacade clasp;
 	// TODO The last parameter of clasp.startAsp in the next line is "allowUpdate". Does setting it to false have benefits?
+	Clasp::ClaspFacade clasp;
 	Clasp::Asp::LogicProgram& claspProgramBuilder = dynamic_cast<Clasp::Asp::LogicProgram&>(clasp.startAsp(config));
 	std::unique_ptr<Gringo::Output::LparseOutputter> lpOut(newGringoOutputProcessor(claspProgramBuilder, childItemTrees, tableMode));
 	std::unique_ptr<Gringo::Output::OutputBase> out(new Gringo::Output::OutputBase({}, *lpOut));

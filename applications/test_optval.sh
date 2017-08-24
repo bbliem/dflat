@@ -20,7 +20,7 @@ for instance in $(seq 1 $numInstances); do
 	gringo $monolithicEncoding $instance | clasp -q 0 | awk '/^Optimization :/ { print $3 }' > $claspOptValFile
 	claspExit=${PIPESTATUS[1]}
 	claspOptVal=$(<$claspOptValFile)
-	
+
 	dflat $dflatArguments --depth 0 --seed $seed < $instance | tail -n1 | awk -F " |)" '{print $3}' > $dflatOptValFile
 	dflatExit=${PIPESTATUS[0]}
 	dflatOptVal=$(<$dflatOptValFile)

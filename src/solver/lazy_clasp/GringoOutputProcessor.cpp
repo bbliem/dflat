@@ -47,6 +47,31 @@ const GringoOutputProcessor::CostAtomInfos& GringoOutputProcessor::getCostAtomIn
 	return costAtomInfos;
 }
 
+const GringoOutputProcessor::CounterRemAtomInfos& GringoOutputProcessor::getCounterRemAtomInfos() const
+{
+	return counterRemAtomInfos;
+}
+
+const GringoOutputProcessor::AllCounterIncAtomInfos& GringoOutputProcessor::getAllCounterIncAtomInfos() const
+{
+	return allCounterIncAtomInfos;
+}
+
+const GringoOutputProcessor::AllCurrentCounterIncAtomInfos& GringoOutputProcessor::getAllCurrentCounterIncAtomInfos() const
+{
+	return allCurrentCounterIncAtomInfos;
+}
+
+const GringoOutputProcessor::AllCounterAtomInfos& GringoOutputProcessor::getAllCounterAtomInfos() const
+{
+	return allCounterAtomInfos;
+}
+
+const GringoOutputProcessor::AllCurrentCounterAtomInfos& GringoOutputProcessor::getAllCurrentCounterAtomInfos() const
+{
+	return allCurrentCounterAtomInfos;
+}
+
 void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 {
 	// Store the atom together with its symbol table key and extracted arguments
@@ -71,6 +96,39 @@ void GringoOutputProcessor::storeAtom(unsigned int atomUid, Gringo::Value v)
 		std::ostringstream argument;
 		v.args().front().print(argument);
 		costAtomInfos.emplace_back(CostAtomInfo{{std::stol(argument.str())}, atomUid});
+	} else if(predicate == "counter") {
+		ASP_CHECK(v.args().size() == 2, "'counter' predicate does not have arity 2");
+		std::ostringstream counter;
+		v.args().front().print(counter);
+		std::ostringstream value;
+		v.args()[1].print(value);
+		allCounterAtomInfos[counter.str()].emplace_back(CounterAtomInfo{CounterAtomArguments{counter.str(), std::stol(value.str())}, atomUid});
+	} else if(predicate == "currentCounter") {
+		ASP_CHECK(v.args().size() == 2, "'currentCounter' predicate does not have arity 2");
+		std::ostringstream currentCounter;
+		v.args().front().print(currentCounter);
+		std::ostringstream value;
+		v.args()[1].print(value);
+		allCurrentCounterAtomInfos[currentCounter.str()].emplace_back(CurrentCounterAtomInfo{CurrentCounterAtomArguments{currentCounter.str(), std::stol(value.str())}, atomUid});
+	} else if(predicate == "counterInc") {
+		ASP_CHECK(v.args().size() >= 2, "'counterInc' predicate does not have arity at least 2");
+		std::ostringstream counter;
+		v.args().front().print(counter);
+		std::ostringstream value;
+		v.args()[1].print(value);
+		allCounterIncAtomInfos[counter.str()].emplace_back(CounterIncAtomInfo{CounterIncAtomArguments{counter.str(), std::stol(value.str())}, atomUid});
+	} else if(predicate == "currentCounterInc") {
+		ASP_CHECK(v.args().size() >= 2, "'currentCounterInc' predicate does not have arity at least 2");
+		std::ostringstream currentCounter;
+		v.args().front().print(currentCounter);
+		std::ostringstream value;
+		v.args()[1].print(value);
+		allCurrentCounterIncAtomInfos[currentCounter.str()].emplace_back(CurrentCounterIncAtomInfo{CurrentCounterIncAtomArguments{currentCounter.str(), std::stol(value.str())}, atomUid});
+	} else if(predicate == "counterRem") {
+		ASP_CHECK(v.args().size() == 1, "'counterRem' predicate does not have arity 1");
+		std::ostringstream argument;
+		v.args().front().print(argument);
+		counterRemAtomInfos.emplace_back(CounterRemAtomInfo{{argument.str()}, atomUid});
 	}
 }
 
