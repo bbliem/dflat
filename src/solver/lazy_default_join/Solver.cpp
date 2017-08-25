@@ -74,7 +74,7 @@ void Solver::nextRowCandidate()
 
 void Solver::handleRowCandidate(long costBound)
 {
-	++joinCalls;
+//	++joinCalls;
 	const auto& extended = getCurrentRowCombination();
 	assert(extended.empty() == false);
 
@@ -131,7 +131,7 @@ void Solver::handleRowCandidate(long costBound)
 	}
 
 	if(cost >= costBound) {
-		++discardedJoinResults;
+//		++discardedJoinResults;
 		newestRow = itemTree->getChildren().end();
 		return;
 	}

@@ -117,9 +117,9 @@ TEST(IntegrationAspSolver, TestProgram2)
 
 	EXPECT_EQ("Solutions:\n"
 	          "\n"
+	          "┣━ [1] a e r0 r1 r2 r3 r4 \n"
 	          "┣━ [1] a c d r0 r1 r2 r3 r4 \n"
-	          "┣━ [1] a b d r0 r1 r2 r3 r4 \n"
-	          "┗━ [1] a e r0 r1 r2 r3 r4 \n",
+	          "┗━ [1] a b d r0 r1 r2 r3 r4 \n",
 	          result);
 }
 
