@@ -147,6 +147,7 @@ namespace {
 				Decomposition* parentOrPostJoinNode = parent.get();
 
 				DecompositionPtr child{new Decomposition{childBag, app.getSolverFactory()}};
+				child->setParent(parentOrPostJoinNode);
 				parentOrPostJoinNode->addChild(child);
 				stack.push({htdChild, child});
 			}
@@ -275,7 +276,6 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 
 	// Transform htd's tree decomposition into our format
 	DecompositionPtr result = transformTd(*decomposition, graph, app);
-	result->setRoot();
 	return result;
 }
 

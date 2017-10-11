@@ -72,10 +72,12 @@ TEST_F(DecompositionTest, IdentifiesJoinNodes)
 		EXPECT_FALSE(child->isJoinNode());
 }
 
-TEST_F(DecompositionTest, IsNotRootByDefault)
+TEST_F(DecompositionTest, SetsParent)
 {
 	Decomposition d = {DecompositionNode{{}}, solverFactory};
-	EXPECT_FALSE(d.isRoot());
-	d.setRoot();
-	EXPECT_TRUE(d.isRoot());
+	EXPECT_EQ(nullptr, d.getParent());
+	DecompositionPtr c{new Decomposition{DecompositionNode{{}}, solverFactory}};
+	c->setParent(&d);
+	d.addChild(std::move(c));
+	EXPECT_EQ(&d, (*d.getChildren().begin())->getParent());
 }

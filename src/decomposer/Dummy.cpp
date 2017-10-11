@@ -39,7 +39,6 @@ DecompositionPtr Dummy::decompose(const Instance& instance) const
 			vertices.insert(arguments.begin(), arguments.end());
 
 	DecompositionPtr result(new Decomposition(vertices, app.getSolverFactory()));
-	result->setRoot();
 	return result;
 }
 

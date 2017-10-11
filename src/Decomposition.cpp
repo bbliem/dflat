@@ -21,10 +21,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Decomposition.h"
 #include "SolverFactory.h"
 
-Decomposition::Decomposition(Node&& leaf, const SolverFactory& solverFactory)
-	: DirectedAcyclicGraph(std::move(leaf))
+Decomposition::Decomposition(Node&& node, const SolverFactory& solverFactory)
+	: DirectedAcyclicGraph(std::move(node))
 	, solverFactory(solverFactory)
-	, root(false)
+	, parent(nullptr)
 	, postJoinNode(false)
 {
 }
@@ -44,14 +44,9 @@ bool Decomposition::isJoinNode() const
 	});
 }
 
-void Decomposition::setRoot(bool root)
-{
-	this->root = root;
-}
-
 bool Decomposition::isRoot() const
 {
-	return root;
+	return parent == nullptr;
 }
 
 void Decomposition::setPostJoinNode(bool postJoinNode)
@@ -62,6 +57,16 @@ void Decomposition::setPostJoinNode(bool postJoinNode)
 bool Decomposition::isPostJoinNode() const
 {
 	return postJoinNode;
+}
+
+const Decomposition* Decomposition::getParent() const
+{
+	return parent;
+}
+
+void Decomposition::setParent(const Decomposition* parent)
+{
+	this->parent = parent;
 }
 
 int Decomposition::getWidth() const

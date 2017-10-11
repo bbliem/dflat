@@ -61,6 +61,7 @@ namespace {
 			DecompositionNode::Bag bag = decomposition.getNode().getBag();
 			bag.erase(bag.begin());
 			DecompositionPtr child(new Decomposition(bag, app.getSolverFactory()));
+			child->setParent(&decomposition);
 			decomposition.addChild(std::move(child));
 		}
 
@@ -74,6 +75,7 @@ namespace {
 			DecompositionNode::Bag bag = oldRoot->getNode().getBag();
 			bag.erase(bag.begin());
 			DecompositionPtr newNode(new Decomposition(bag, app.getSolverFactory()));
+			oldRoot->setParent(newNode.get());
 			newNode->addChild(std::move(oldRoot));
 			return addEmptyRoot(std::move(newNode), app);
 		}
@@ -140,6 +142,7 @@ DecompositionPtr GraphMl::decompose(const Instance& instance) const
 			const DecompositionPtr to = nodes.top();
 			nodes.pop();
 			const DecompositionPtr& from = nodes.top();
+			to->setParent(from.get());
 			from->addChild(std::move(to));
 		}
 		else
@@ -155,7 +158,6 @@ DecompositionPtr GraphMl::decompose(const Instance& instance) const
 	if(optAddEmptyRoot.isUsed())
 		root = addEmptyRoot(std::move(root), app);
 
-	root->setRoot();
 	return root;
 }
 

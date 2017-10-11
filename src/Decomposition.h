@@ -43,11 +43,7 @@ public:
 	// Returns true if the node is a join node, i.e., has at least two children and all children have equal bags
 	bool isJoinNode() const;
 
-	// Mark this node to be the root.
-	// Only do this if this is not a child of any node.
-	void setRoot(bool root = true);
-
-	// Returns true if setRoot(true) has been called.
+	// Returns true if setParent() has not been called (with non-null argument)
 	bool isRoot() const;
 
 	// Mark this node to be a node added for post-processing join nodes.
@@ -55,6 +51,9 @@ public:
 
 	// Returns true if setPostJoinNode(true) has been called.
 	bool isPostJoinNode() const;
+
+	const Decomposition* getParent() const;
+	void setParent(const Decomposition*);
 
 	// Traverses the decomposition and returns its width
 	int getWidth() const;
@@ -67,6 +66,6 @@ protected:
 
 	const SolverFactory& solverFactory;
 	std::unique_ptr<Solver> solver;
-	bool root;
+	const Decomposition* parent;
 	bool postJoinNode;
 };

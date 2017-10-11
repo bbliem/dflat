@@ -46,6 +46,13 @@ void declareDecomposition(const Decomposition& decomposition, std::ostream& out)
 
 	if(decomposition.isRoot())
 		out << "final." << std::endl;
+	else {
+		assert(decomposition.getParent() != nullptr);
+		const Decomposition& parent = *decomposition.getParent();
+		out << "parentNode(" << parent.getNode().getGlobalId() << ")." << std::endl;
+		for(const auto& v : parent.getNode().getBag())
+			out << "bag(" << parent.getNode().getGlobalId() << ',' << v << ")." << std::endl;
+	}
 
 	if(decomposition.isPostJoinNode())
 		out << "postJoin." << std::endl;
