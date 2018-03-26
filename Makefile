@@ -182,7 +182,7 @@ dist: release
 	cp build/release/dflat $(DIST_DIR)/dflat.bin
 	strip $(DIST_DIR)/dflat.bin
 	cp run-dflat.sh $(DIST_DIR)/dflat
-	cp -L $(shell ldd build/release/dflat | awk '/=>/ { printf("%s ",$$3) } /ld-linux/ { printf("%s ",$$1) }') $(DIST_DIR)/lib
+	cp -L $(shell ldd build/release/dflat | awk '/=> .*\.so/ { printf("%s ",$$3) } /ld-linux/ { printf("%s ",$$1) }') $(DIST_DIR)/lib
 	cp -R applications $(DIST_DIR)
 	cd build/dist && tar czf $(RELEASE).tar.gz $(RELEASE)
 	mv build/dist/$(RELEASE).tar.gz build
@@ -196,7 +196,7 @@ dist32: release32
 	cp build/release32/dflat $(DIST_DIR)/dflat.bin
 	strip $(DIST_DIR)/dflat.bin
 	cp run-dflat.sh $(DIST_DIR)/dflat
-	cp -L $(shell ldd build/release32/dflat | awk '/=>/ { printf("%s ",$$3) } /ld-linux/ { printf("%s ",$$1) }') $(DIST_DIR)/lib
+	cp -L $(shell ldd build/release32/dflat | awk '/=> .*\.so/ { printf("%s ",$$3) } /ld-linux/ { printf("%s ",$$1) }') $(DIST_DIR)/lib
 	cp -R applications $(DIST_DIR)
 	cd build/dist32 && tar czf $(RELEASE).tar.gz $(RELEASE)
 	mv build/dist32/$(RELEASE).tar.gz build
