@@ -33,10 +33,10 @@ public:
 	Progress(Application& app, bool newDefault = false);
 
 	virtual void decomposerResult(const Decomposition& result) override;
-	virtual void solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result) override;
+	virtual void solverInvocationResult(const Decomposition& decompositionNode, const Table* result) override;
 	virtual bool listensForSolverEvents() const override;
 	virtual void solverEvent(const std::string& msg) override;
-	virtual void result(const ItemTreePtr& rootItemTree) override;
+	virtual void result(const TablePtr& rootTable) override;
 
 protected:
 	virtual void enterNode(const Decomposition& decompositionNode) override;

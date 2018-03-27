@@ -50,7 +50,7 @@ void Progress::decomposerResult(const Decomposition& result)
 	totalNodes = DecompositionNode({}).getGlobalId() - 1;
 }
 
-void Progress::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
+void Progress::solverInvocationResult(const Decomposition& decompositionNode, const Table* result)
 {
 	if(nodeCounter < totalNodes)
 		++nodeCounter;
@@ -74,11 +74,11 @@ void Progress::solverEvent(const std::string& msg)
 	}
 }
 
-void Progress::result(const ItemTreePtr& rootItemTree)
+void Progress::result(const TablePtr& rootTable)
 {
 	std::cout << "\r                                                        \r" << std::flush;
 
-	Printer::result(rootItemTree);
+	Printer::result(rootTable);
 }
 
 void Progress::enterNode(const Decomposition& decompositionNode)

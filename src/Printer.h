@@ -21,8 +21,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 //}}}
 #include "Module.h"
-#include "ItemTree.h" // XXX Change Solver::compute() to return an ItemTree instead of an ItemTreePtr and we can dispense with this (forward declare)
-#include "UncompressedItemTree.h"
+#include "Table.h" // XXX Change Solver::compute() to return a Table instead of a TablePtr and we can dispense with this (forward declare)
 
 class Decomposition;
 class DecompositionNode;
@@ -57,20 +56,18 @@ public:
 
 	// This may be called only once per decomposition node (typically when it
 	// has been processed completely)
-	virtual void solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result);
-
-	virtual void uncompressedSolverInvocationResult(const Decomposition& decompositionNode, const UncompressedItemTree* result);
+	virtual void solverInvocationResult(const Decomposition& decompositionNode, const Table* result);
 
 	// Whether calls to solverEvent() have any effect.
 	virtual bool listensForSolverEvents() const; // this implementation returns false
 	virtual void solverEvent(const std::string& msg);
 
-	virtual void result(const ItemTreePtr& rootItemTree);
+	virtual void result(const TablePtr& rootTable);
 
 	virtual void select() override;
 
 	// Report possibly suboptimal solutions (if run as an anytime algorithm)
-	void provisionalSolution(const ItemTreeNode& solution);
+	void provisionalSolution(const Row& solution);
 
 protected:
 	// Called by NodeStackElement

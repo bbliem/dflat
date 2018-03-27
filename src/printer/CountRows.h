@@ -30,7 +30,7 @@ class CountRows : public Printer
 public:
 	CountRows(Application& app, bool newDefault = false);
 
-	virtual void solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result) override;
+	virtual void solverInvocationResult(const Decomposition& decompositionNode, const Table* result) override;
 };
 
 } // namespace printer

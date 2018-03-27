@@ -24,20 +24,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../Decomposition.h"
 #include "../Application.h"
 
-namespace {
-
-	size_t countNodes(const ItemTree& tree)
-	{
-		size_t nodes = 1;
-
-		for(const auto& child : tree.getChildren())
-			nodes += countNodes(*child);
-
-		return nodes;
-	}
-
-} // anonymous namespace
-
 namespace printer {
 
 const std::string Debug::OPTION_SECTION = "Human-readable debugging output";
@@ -46,16 +32,12 @@ Debug::Debug(Application& app, bool newDefault)
 	: Printer(app, "debug", "Human-readable debugging output", newDefault)
 	, optPrintSolverEvents("print-solver-events", "Print events that occurred during solving")
 	, optPrintSolverInvocationInput("print-solver-input", "Print solver invocation input")
-	, optPrintUncompressedItemTrees("print-uncompressed", "Print item trees before compression")
 {
 	optPrintSolverEvents.addCondition(selected);
 	app.getOptionHandler().addOption(optPrintSolverEvents, OPTION_SECTION);
 
 	optPrintSolverInvocationInput.addCondition(selected);
 	app.getOptionHandler().addOption(optPrintSolverInvocationInput, OPTION_SECTION);
-
-	optPrintUncompressedItemTrees.addCondition(selected);
-	app.getOptionHandler().addOption(optPrintUncompressedItemTrees, OPTION_SECTION);
 }
 
 void Debug::decomposerResult(const Decomposition& result)
@@ -69,31 +51,19 @@ void Debug::solverInvocationInput(const Decomposition& decompositionNode, const 
 		std::cout << "Input for solver at decomposition node " << decompositionNode.getNode().getGlobalId() << ':' << std::endl << input << std::endl;
 }
 
-void Debug::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
+void Debug::solverInvocationResult(const Decomposition& decompositionNode, const Table* result)
 {
-	std::cout << std::endl << "Resulting item tree (";
+	std::cout << std::endl << "Resulting table (";
 	if(result)
-		std::cout << countNodes(*result);
+		std::cout << result->getRows().size();
 	else
 		std::cout << '0';
-	std::cout << " nodes) at decomposition node " << decompositionNode.getNode().getGlobalId() << ':' << std::endl;
+	std::cout << " rows) at decomposition node " << decompositionNode.getNode().getGlobalId() << ':' << std::endl;
 	if(result)
 		std::cout << *result;
 	else
 		std::cout << "(empty)";
 	std::cout << std::endl;
-}
-
-void Debug::uncompressedSolverInvocationResult(const Decomposition& decompositionNode, const UncompressedItemTree* result)
-{
-	if(optPrintUncompressedItemTrees.isUsed()) {
-		std::cout << std::endl << "Uncompressed item tree at decomposition node " << decompositionNode.getNode().getGlobalId();
-		if(result)
-			std::cout << ':' << std::endl << *result;
-		else
-			std::cout << " is empty.";
-		std::cout << std::endl;
-	}
 }
 
 bool Debug::listensForSolverEvents() const

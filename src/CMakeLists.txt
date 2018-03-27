@@ -84,41 +84,20 @@ add_library(dflat-objects
 	SolverFactory.cpp
 	Solver.cpp
 	LazySolver.cpp
-	solver/asp/AtomIntroductionSolver.cpp
-	solver/asp/AtomRemovalSolver.cpp
-	solver/asp/LeafSolver.cpp
-	solver/asp/RuleIntroductionSolver.cpp
-	solver/asp/RuleRemovalSolver.cpp
-	solver/asp/SolverBase.cpp
-	solver/asp/SolverFactory.cpp
-	solver/clasp/Solver.cpp
-	solver/clasp/SolverFactory.cpp
-	solver/clasp/tables/ClaspCallback.cpp
-	solver/clasp/tables/GringoOutputProcessor.cpp
-	solver/clasp/trees/ClaspCallback.cpp
-	solver/clasp/trees/EncodingChecker.cpp
-	solver/clasp/trees/GringoOutputProcessor.cpp
 	solver/default_join/Solver.cpp
 	solver/dummy/Solver.cpp
 	solver/dummy/SolverFactory.cpp
-	solver/lazy_clasp/GringoOutputProcessor.cpp
-	solver/lazy_clasp/Solver.cpp
-	solver/lazy_clasp/SolveIter.cpp
 	solver/lazy_default_join/Solver.cpp
+	solver/steiner/SolverFactory.cpp
+	solver/steiner/Solver.cpp
 	Printer.cpp
 	printer/Quiet.cpp
 	printer/Progress.cpp
 	printer/Debug.cpp
-	printer/MachineReadable.cpp
 	printer/CountRows.cpp
-	asp_utils.cpp
-	asp_utils/GringoOutputProcessor.cpp
-	asp_utils/ClaspCallback.cpp
 	String.cpp
-	ItemTreeNode.cpp
-	ItemTree.cpp
-	UncompressedItemTree.cpp
-	ExtensionIterator.cpp
+  Row.cpp
+	Table.cpp
 	Application.cpp
 	util.cpp
 	tinyxml2.cpp
@@ -126,4 +105,4 @@ add_library(dflat-objects
 add_executable(dflat main.cpp)
 
 # GPERFTOOLS_LIBRARIES is only set when find_package(Gperftools) has been called, which is only called if CMAKE_BUILD_TYPE is "profiler".
-target_link_libraries(dflat dflat-objects gringo clasp htd gmpxx gmp ${GPERFTOOLS_LIBRARIES})
+target_link_libraries(dflat dflat-objects htd gmpxx gmp ${GPERFTOOLS_LIBRARIES})

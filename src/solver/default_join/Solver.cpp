@@ -27,90 +27,53 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace {
 
-bool isJoinable(const ItemTreeNode& left, const ItemTreeNode& right)
+bool isJoinable(const Row& left, const Row& right)
 {
-	return left.getItems() == right.getItems() &&
-		(left.getType() == ItemTreeNode::Type::UNDEFINED || right.getType() == ItemTreeNode::Type::UNDEFINED || left.getType() == right.getType());
+	return left.getItems() == right.getItems();
 }
 
-ItemTreePtr join(const ItemTreePtr& left, const ItemTreePtr& right, bool setLeavesToAccept, bool optimize)
+RowPtr joinRows(const RowPtr& left, const RowPtr& right, bool optimize)
 {
 	assert(left);
 	assert(right);
-	assert(left->getNode());
-	assert(right->getNode());
-	if(!isJoinable(*left->getNode(), *right->getNode()))
-		return ItemTreePtr();
+	if(!isJoinable(*left, *right))
+	    return RowPtr();
 
-	ItemTreePtr result;
+	RowPtr result;
 
 	// Join left and right
-	ItemTreeNode::Items items = left->getNode()->getItems();
-	ItemTreeNode::Items auxItems;
+	Row::Items items = left->getItems();
+	Row::Items auxItems;
 	// Unify auxiliary items
-	const auto& auxL = left->getNode()->getAuxItems();
-	const auto& auxR = right->getNode()->getAuxItems();
+	const auto& auxL = left->getAuxItems();
+	const auto& auxR = right->getAuxItems();
 	std::set_union(auxL.begin(), auxL.end(), auxR.begin(), auxR.end(), std::inserter(auxItems, auxItems.end()));
 
-	ItemTreeNode::ExtensionPointers extensionPointers = {{left->getNode(), right->getNode()}};
-	const bool leaves = left->getChildren().empty() && right->getChildren().empty();
-	ItemTreeNode::Type type = left->getNode()->getType();
-	if(type == ItemTreeNode::Type::UNDEFINED) {
-		type = right->getNode()->getType();
-		if(setLeavesToAccept && leaves && type == ItemTreeNode::Type::UNDEFINED)
-			type = ItemTreeNode::Type::ACCEPT;
-	}
-	result.reset(new ItemTree(ItemTree::Node(new ItemTreeNode(std::move(items), std::move(auxItems), std::move(extensionPointers), type))));
+	Row::ExtensionPointers extensionPointers = {{left, right}};
+	result.reset(new Row(std::move(items), std::move(auxItems), std::move(extensionPointers)));
 
 	// Set (initial) cost of this node
 	if(optimize) {
-		if(leaves) {
-			result->getNode()->setCost(left->getNode()->getCost() - left->getNode()->getCurrentCost() + right->getNode()->getCost());
-			assert(left->getNode()->getCurrentCost() == right->getNode()->getCurrentCost());
-			result->getNode()->setCurrentCost(left->getNode()->getCurrentCost());
-		} else {
-			assert(left->getNode()->getCurrentCost() == right->getNode()->getCurrentCost());
-			assert(left->getNode()->getCurrentCost() == 0);
-			switch(type) {
-				case ItemTreeNode::Type::OR:
-					// Set cost to "infinity"
-					result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::max());
-					break;
-
-				case ItemTreeNode::Type::AND:
-					// Set cost to minus "infinity"
-					result->getNode()->setCost(std::numeric_limits<decltype(result->getNode()->getCost())>::min());
-					break;
-
-				case ItemTreeNode::Type::UNDEFINED:
-					break;
-
-				default:
-					assert(false);
-					break;
-			}
-		}
+		result->setCost(left->getCost() - left->getCurrentCost() + right->getCost());
+		assert(left->getCurrentCost() == right->getCurrentCost());
+		result->setCurrentCost(left->getCurrentCost());
 	}
 
-	// Set counters (only in leaves)
-	if(leaves) {
-		std::set<std::string> keys;
-		for(const auto& counter : left->getNode()->getCounters())
-			keys.insert(counter.first);
-		for(const auto& counter : right->getNode()->getCounters())
-			keys.insert(counter.first);
-		for(const auto& key : keys) {
-			result->getNode()->setCounter(key, left->getNode()->getCounter(key) - left->getNode()->getCurrentCounter(key) + right->getNode()->getCounter(key));
-			assert(left->getNode()->getCurrentCounter(key) == right->getNode()->getCurrentCounter(key));
-			result->getNode()->setCurrentCounter(key, left->getNode()->getCurrentCounter(key));
-		}
-	}
+	return result;
+}
 
-	// Join children recursively
-	auto lit = left->getChildren().begin();
-	auto rit = right->getChildren().begin();
-	while(lit != left->getChildren().end() && rit != right->getChildren().end()) {
-		ItemTreePtr childResult = join(*lit, *rit, setLeavesToAccept, optimize);
+TablePtr joinTables(const TablePtr& left, const TablePtr& right, bool optimize)
+{
+	assert(left);
+	assert(right);
+
+	TablePtr result;
+
+	// Join rows recursively
+	auto lit = left->getRows().begin();
+	auto rit = right->getRows().begin();
+	while(lit != left->getRows().end() && rit != right->getRows().end()) {
+		RowPtr childResult = joinRows(*lit, *rit, optimize);
 		if(childResult) {
 			// lit and rit match
 			// Remember position of rit. We will later advance rit until is doesn't match with lit anymore.
@@ -118,38 +81,18 @@ ItemTreePtr join(const ItemTreePtr& left, const ItemTreePtr& right, bool setLeav
 join_lit_with_all_matches:
 			// Join lit will all partners starting at rit
 			do {
-				// Update cost
-				if(optimize) {
-					switch(type) {
-						case ItemTreeNode::Type::OR:
-							result->getNode()->setCost(std::min(result->getNode()->getCost(), childResult->getNode()->getCost()));
-							break;
-
-						case ItemTreeNode::Type::AND:
-							result->getNode()->setCost(std::max(result->getNode()->getCost(), childResult->getNode()->getCost()));
-							break;
-
-						case ItemTreeNode::Type::UNDEFINED:
-							break;
-
-						default:
-							assert(false);
-							break;
-					}
-				}
-
-				result->addChildAndMerge(std::move(childResult));
+				result->add(std::move(childResult));
 				++rit;
-				if(rit == right->getChildren().end())
+				if(rit == right->getRows().end())
 					break;
-				childResult = join(*lit, *rit, setLeavesToAccept, optimize);
+				childResult = joinRows(*lit, *rit, optimize);
 			} while(childResult);
 
 			// lit and rit don't match anymore (or rit is past the end)
 			// Advance lit. If it joins with mark, reset rit to mark.
 			++lit;
-			if(lit != left->getChildren().end()) {
-				childResult = join(*lit, *mark, setLeavesToAccept, optimize);
+			if(lit != left->getRows().end()) {
+				childResult = joinRows(*lit, *mark, optimize);
 				if(childResult) {
 					rit = mark;
 					goto join_lit_with_all_matches;
@@ -159,17 +102,12 @@ join_lit_with_all_matches:
 		else {
 			// lit and rit don't match
 			// Advance iterator pointing to smaller value
-			if((*lit)->getNode()->getItems() < (*rit)->getNode()->getItems())
+			if((*lit)->getItems() < (*rit)->getItems())
 				++lit;
 			else
 				++rit;
 		}
 	}
-
-	// In leaves, make sure two branches can only be joined if they have the same length
-	assert(result);
-	if(result->getChildren().empty() && (!left->getChildren().empty() || !right->getChildren().empty()))
-		result.reset();
 
 	return result;
 }
@@ -178,33 +116,30 @@ join_lit_with_all_matches:
 
 namespace solver { namespace default_join {
 
-Solver::Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept)
+Solver::Solver(const Decomposition& decomposition, const Application& app)
 	: ::Solver(decomposition, app)
-	, setLeavesToAccept(setLeavesToAccept)
 {
 }
 
-ItemTreePtr Solver::compute()
+TablePtr Solver::compute()
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
 	assert(decomposition.getChildren().size() > 1);
-	// Compute item trees of child nodes
-	// When at least two have been computed, join them with the result so far
-	// TODO Use a balanced join tree (with smaller "tables" further down)
+	// Compute tables of child nodes.
+	// When at least two have been computed, join them with the result so far.
+	// TODO Use a balanced join tree (with smaller "tables" further down).
 	auto it = decomposition.getChildren().begin();
-	ItemTreePtr result = (*it)->getSolver().compute();
+	TablePtr result = (*it)->getSolver().compute();
 	for(++it; it != decomposition.getChildren().end(); ++it) {
 		if(!result)
-			return ItemTreePtr();
-		ItemTreePtr itree = (*it)->getSolver().compute();
-		if(!itree)
-			return ItemTreePtr();
-		result = join(result, itree, setLeavesToAccept, !app.isOptimizationDisabled());
+			return TablePtr();
+		TablePtr table = (*it)->getSolver().compute();
+		if(!table)
+			return TablePtr();
+		result = joinTables(result, table, !app.isOptimizationDisabled());
 	}
 
-	if(result && result->finalize(app, decomposition.isRoot(), app.isPruningDisabled() == false || decomposition.isRoot()) == false)
-		result.reset();
 	app.getPrinter().solverInvocationResult(decomposition, result.get());
 	return result;
 }

@@ -39,13 +39,11 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "decomposer/GraphMl.h"
 
 #include "solver/dummy/SolverFactory.h"
-#include "solver/clasp/SolverFactory.h"
-#include "solver/asp/SolverFactory.h"
+#include "solver/steiner/SolverFactory.h"
 
 #include "printer/Quiet.h"
 #include "printer/Progress.h"
 #include "printer/Debug.h"
-#include "printer/MachineReadable.h"
 #include "printer/CountRows.h"
 
 #include "parser/Driver.h"
@@ -59,12 +57,10 @@ Application::Application(const std::string& binaryName)
 	, optPrinter("output", "module", "Print information during the run using <module>")
 	, optNoCounting("no-counting", "Do not count the number of solutions")
 	, optNoOptimization("no-optimization", "Ignore solution costs")
-	, optNoPruning("no-pruning", "Prune rejecting subtrees only in the decomposition root")
 	, optPrintDecomposition("print-decomposition", "Print the generated decomposition")
 	, optPrintProvisional("print-provisional", "Report possibly non-optimal solutions")
 	, decomposer(0)
 	, solverFactory(0)
-	, depth(std::numeric_limits<unsigned int>::max())
 {
 }
 
@@ -83,9 +79,6 @@ int Application::run(int argc, const char* const* const argv)
 	options::VersionObserver versionObserver(*this, optVersion);
 	opts.registerObserver(versionObserver);
 
-	options::SingleValueOption optDepth("depth", "d", "Print only item sets of depth at most <d>");
-	opts.addOption(optDepth);
-
 	options::MultiValueOption optEdge("e", "edge", "Predicate <edge> declares (hyper)edges");
 	opts.addOption(optEdge);
 
@@ -94,7 +87,6 @@ int Application::run(int argc, const char* const* const argv)
 
 	opts.addOption(optNoCounting);
 	opts.addOption(optNoOptimization);
-	opts.addOption(optNoPruning);
 	opts.addOption(optPrintDecomposition);
 	opts.addOption(optPrintProvisional);
 	options::SingleValueOption optGraphMlOut("graphml-out", "file", "Write the decomposition in the GraphML format to <file>");
@@ -111,14 +103,12 @@ int Application::run(int argc, const char* const* const argv)
 
 	opts.addOption(optSolver, MODULE_SECTION);
 	solver::dummy::SolverFactory dummySolverFactory(*this);
-	solver::clasp::SolverFactory claspSolverFactory(*this, true);
-	solver::asp::SolverFactory aspSolverFactory(*this);
+	solver::steiner::SolverFactory steinerSolverFactory(*this, true);
 
 	opts.addOption(optPrinter, MODULE_SECTION);
 	printer::Quiet quietPrinter(*this);
 	printer::Progress progressPrinter(*this, true);
 	printer::Debug debugPrinter(*this);
-	printer::MachineReadable machineReadablePrinter(*this);
 	printer::CountRows countRows(*this);
 
 	time_t seed = time(0);
@@ -129,9 +119,6 @@ int Application::run(int argc, const char* const* const argv)
 
 		if(optSeed.isUsed())
 			seed = util::strToInt(optSeed.getValue(), "Invalid random seed");
-
-		if(optDepth.isUsed())
-			depth = util::strToInt(optDepth.getValue(), "Invalid depth");
 
 		if(!optEdge.isUsed())
 			throw std::runtime_error("Option -e must be supplied at least once");
@@ -171,9 +158,9 @@ int Application::run(int argc, const char* const* const argv)
 	printer->decomposerResult(*decomposition);
 
 	// Solve
-	ItemTreePtr rootItree = decomposition->getSolver().compute();
-	printer->result(rootItree);
-	return rootItree ? 10 : 20;
+	TablePtr rootTable = decomposition->getSolver().compute();
+	printer->result(rootTable);
+	return rootTable ? 10 : 20; // TOOD update exit codes
 }
 
 void Application::printUsage() const
@@ -250,11 +237,6 @@ bool Application::isOptimizationDisabled() const
 	return optNoOptimization.isUsed();
 }
 
-bool Application::isPruningDisabled() const
-{
-	return optNoPruning.isUsed();
-}
-
 bool Application::printDecomposition() const
 {
 	return optPrintDecomposition.isUsed();
@@ -263,9 +245,4 @@ bool Application::printDecomposition() const
 bool Application::printProvisionalSolutions() const
 {
 	return optPrintProvisional.isUsed();
-}
-
-unsigned int Application::getMaterializationDepth() const
-{
-	return depth;
 }

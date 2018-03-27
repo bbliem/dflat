@@ -43,16 +43,16 @@ LazySolver::LazySolver(const Decomposition& decomposition, const Application& ap
 	rowIterators.reserve(decomposition.getChildren().size());
 }
 
-bool LazySolver::resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from)
+bool LazySolver::resetRowIteratorsOnNewRow(Rows::const_iterator newRow, const Decomposition& from)
 {
 	rowIterators.clear();
 	for(const auto& child : decomposition.getChildren()) {
 		if(child.get() == &from) {
-			Row end = newRow;
+			Rows::const_iterator end = newRow;
 			++end;
 			rowIterators.push_back({newRow, newRow, end});
 		} else {
-			const auto& rows = static_cast<LazySolver&>(child->getSolver()).itemTree->getChildren();
+			const auto& rows = static_cast<LazySolver&>(child->getSolver()).table->getRows();
 			assert(rows.begin() != rows.end());
 			rowIterators.push_back({rows.begin(), rows.begin(), rows.end()});
 		}
@@ -62,14 +62,14 @@ bool LazySolver::resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from
 }
 
 
-LazySolver::Row LazySolver::nextRow(long costBound)
+Rows::const_iterator LazySolver::nextRow(long costBound)
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
-	if(itemTree->getChildren().empty()) {
+	if(table->getRows().empty()) {
 		if(loadFirstChildRowCombination(costBound) == false) {
 			finalize();
-			return itemTree->getChildren().end();
+			return table->getRows().end();
 		}
 		startSolvingForCurrentRowCombination();
 	}
@@ -78,41 +78,41 @@ LazySolver::Row LazySolver::nextRow(long costBound)
 		while(endOfRowCandidates()) {
 			if(loadNextChildRowCombination(costBound) == false) {
 				finalize();
-				return itemTree->getChildren().end();
+				return table->getRows().end();
 			}
 			startSolvingForCurrentRowCombination();
 		}
 
 		handleRowCandidate(costBound);
-		assert(newestRow == itemTree->getChildren().end() || (*newestRow)->getNode()->getCost() < costBound);
+		assert(newestRow == table->getRows().end() || (*newestRow)->getCost() < costBound);
 
 		if(app.getPrinter().listensForSolverEvents()) {
 			std::ostringstream msg;
 			msg << "Node " << decomposition.getNode().getGlobalId() << ": ";
-			if(newestRow == itemTree->getChildren().end())
+			if(newestRow == table->getRows().end())
 				msg << "[no new row within cost bound]";
 			else
-				msg << (*newestRow)->getNode();
+				msg << *newestRow;
 			app.getPrinter().solverEvent(msg.str());
 		}
 
 		nextRowCandidate();
-	} while(newestRow == itemTree->getChildren().end());
+	} while(newestRow == table->getRows().end());
 
 	return newestRow;
 }
 
 bool LazySolver::loadFirstChildRowCombination(long costBound)
 {
-	assert(itemTree->getChildren().empty());
+	assert(table->getRows().empty());
 	assert(rowIterators.empty());
 
 	// Get the first row from each child node
 	LazySolver* solver = nullptr;
-	Row newRow;
+	Rows::const_iterator newRow;
 	for(const auto& child : decomposition.getChildren()) {
 		solver = static_cast<LazySolver*>(&child->getSolver());
-		assert(solver->itemTree->getChildren().empty());
+		assert(solver->table->getRows().empty());
 
 		assert(forgottenCostLowerBound >= solver->forgottenCostLowerBound);
 		assert(bbLevel != BranchAndBoundLevel::none || forgottenCostLowerBound == 0);
@@ -121,8 +121,8 @@ bool LazySolver::loadFirstChildRowCombination(long costBound)
 		newRow = solver->nextRow(costBound - forgottenCostLowerBound);
 		forgottenCostLowerBound += solver->forgottenCostLowerBound;
 
-		assert(newRow == solver->itemTree->getChildren().begin());
-		if(newRow == solver->itemTree->getChildren().end())
+		assert(newRow == solver->table->getRows().begin());
+		if(newRow == solver->table->getRows().end())
 			return false;
 	}
 	// Now (solver != nullptr and newRow is set) iff there are child nodes
@@ -140,7 +140,7 @@ bool LazySolver::loadFirstChildRowCombination(long costBound)
 	assert(rowIterators.size() == decomposition.getChildren().size());
 	currentRowCombination.clear();
 	for(const auto& it : rowIterators)
-		currentRowCombination.push_back((*it.current)->getNode());
+		currentRowCombination.push_back(*it.current);
 
 	return true;
 }
@@ -154,7 +154,7 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 	if(nextExistingRowCombination() == false) {
 		// There is no combination of existing child rows, so we compute a new one
 		LazySolver* childSolver;
-		Row newRow;
+		Rows::const_iterator newRow;
 		do {
 			assert(nextChildSolverToCall != nonExhaustedChildSolvers.end());
 			childSolver = *nextChildSolverToCall;
@@ -167,7 +167,7 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 			newRow = childSolver->nextRow(costBound - forgottenCostLowerBound);
 			forgottenCostLowerBound += childSolver->forgottenCostLowerBound;
 
-			while(newRow == childSolver->itemTree->getChildren().end()) {
+			while(newRow == childSolver->table->getRows().end()) {
 				// The child solver is now exhausted
 				// Remove it from nonExhaustedChildSolvers
 				// Set nextChildSolverToCall to the next one
@@ -200,7 +200,7 @@ bool LazySolver::loadNextChildRowCombination(long costBound)
 
 	currentRowCombination.clear();
 	for(const auto& it : rowIterators)
-		currentRowCombination.push_back((*it.current)->getNode());
+		currentRowCombination.push_back(*it.current);
 
 	return true;
 }
@@ -226,48 +226,40 @@ bool LazySolver::nextExistingRowCombination(size_t incrementPos)
 	return true;
 }
 
-void LazySolver::initializeItemTrees()
+void LazySolver::initializeTables()
 {
-	assert(!itemTree);
-	ItemTreeNode::ExtensionPointerTuple rootExtensionPointers;
-	rootExtensionPointers.reserve(decomposition.getChildren().size());
+	assert(!table);
 	for(const auto& child : decomposition.getChildren()) {
 		auto& solver = static_cast<LazySolver&>(child->getSolver());
-		assert(!solver.itemTree);
-		solver.initializeItemTrees();
-		assert(solver.itemTree);
-		rootExtensionPointers.push_back(solver.itemTree->getNode());
+		assert(!solver.table);
+		solver.initializeTables();
 	}
 
-	itemTree.reset(new ItemTree(std::shared_ptr<ItemTreeNode>(new ItemTreeNode({}, {}, {std::move(rootExtensionPointers)}, ItemTreeNode::Type::OR))));
-
-	// Set cost to "infinity"
-	if(!app.isOptimizationDisabled())
-		itemTree->getNode()->setCost(std::numeric_limits<decltype(itemTree->getNode()->getCost())>::max());
+	table.reset(new Table);
 }
 
-ItemTreePtr LazySolver::compute()
+TablePtr LazySolver::compute()
 {
 	// Currently this is only called at the root of the decomposition.
 	assert(decomposition.isRoot());
 
 	// Initialize item trees of all decomposition nodes
-	initializeItemTrees();
+	initializeTables();
 
-	Row row = nextRow(std::numeric_limits<long>::max());
+	Rows::const_iterator row = nextRow(std::numeric_limits<long>::max());
 
 	// If we are solving an optimization problem, check optimality of "row" by
 	// finding more solutions with cost of "row" as the bound
 	if(!app.isOptimizationDisabled()) {
-		while(row != itemTree->getChildren().end()) {
+		while(row != table->getRows().end()) {
 			if(app.getPrinter().listensForSolverEvents()) {
 				std::ostringstream msg;
-				msg << "Found new solution with cost " << (*row)->getNode()->getCost();
+				msg << "Found new solution with cost " << (*row)->getCost();
 				app.getPrinter().solverEvent(msg.str());
 			}
-			app.getPrinter().provisionalSolution(*(*row)->getNode());
+			app.getPrinter().provisionalSolution(**row);
 
-			const long newCostBound = bbLevel == BranchAndBoundLevel::none ? std::numeric_limits<long>::max() : (*row)->getNode()->getCost();
+			const long newCostBound = bbLevel == BranchAndBoundLevel::none ? std::numeric_limits<long>::max() : (*row)->getCost();
 			row = nextRow(newCostBound);
 		}
 	}
@@ -283,27 +275,24 @@ ItemTreePtr LazySolver::compute()
 //		<< "discarded join results: " << solver::lazy_default_join::Solver::discardedJoinResults << '\n';
 
 	finalizeRecursively();
-	return std::move(itemTree);
+	return std::move(table);
 }
 
 void LazySolver::finalize()
 {
 	assert(!finalized);
-	if(itemTree && itemTree->finalize(app, false, false) == false)
-		itemTree.reset();
-	app.getPrinter().solverInvocationResult(decomposition, itemTree.get());
+	app.getPrinter().solverInvocationResult(decomposition, table.get());
 	finalized = true;
 
 	// Calculate lower bound for the cost of a solution for the forgotten subgraph
-	if(itemTree && bbLevel == BranchAndBoundLevel::full) {
+	if(table && bbLevel == BranchAndBoundLevel::full) {
 		forgottenCostLowerBound = std::numeric_limits<long>::max();
-		assert(itemTree->getChildren().empty() == false);
+		assert(table->getRows().empty() == false);
 
-		for(const auto& row : itemTree->getChildren()) {
-			const auto& node = *row->getNode();
+		for(const auto& row : table->getRows()) {
 			// FIXME We should eventually be able to deal with negative costs
-			assert(node.getCost() >= 0);
-			forgottenCostLowerBound = std::min(forgottenCostLowerBound, node.getCost() - node.getCurrentCost());
+			assert(row->getCost() >= 0);
+			forgottenCostLowerBound = std::min(forgottenCostLowerBound, row->getCost() - row->getCurrentCost());
 		}
 	}
 }

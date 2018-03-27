@@ -34,15 +34,13 @@ public:
 	};
 	LazySolver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full);
 
-	virtual ItemTreePtr compute() override final;
+	virtual TablePtr compute() override final;
 
 	// While the solver is computing its item tree, other objects can get the item tree that has been constructed so far with this method.
-	const ItemTreePtr& getItemTree() const { return itemTree; }
+	const TablePtr& getTable() const { return table; }
 
 protected:
-	typedef ItemTree::Children::const_iterator Row;
-
-	const ItemTreeNode::ExtensionPointerTuple& getCurrentRowCombination() const
+	const Row::ExtensionPointerTuple& getCurrentRowCombination() const
 	{
 		return currentRowCombination;
 	}
@@ -51,40 +49,40 @@ protected:
 	virtual void startSolvingForCurrentRowCombination() = 0;
 	virtual bool endOfRowCandidates() const = 0;
 	virtual void nextRowCandidate() = 0;
-	// Sets newestRow to the newest row or itemTree->getChildren().end() if no new row was produced
+	// Sets newestRow to the newest row or table->getRows().end() if no new row was produced
 	virtual void handleRowCandidate(long costBound) = 0;
 
 	struct RowIterator
 	{
-		Row current;
-		Row begin;
-		Row end;
+		Rows::const_iterator current;
+		Rows::const_iterator begin;
+		Rows::const_iterator end;
 	};
 	typedef std::vector<RowIterator> RowIterators;
 	RowIterators rowIterators; // Key: Child node; Value: Row in the item tree at this child
-	virtual bool resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from);
+	virtual bool resetRowIteratorsOnNewRow(Rows::const_iterator newRow, const Decomposition& from);
 
-	ItemTreePtr itemTree;
-	// Equal to itemTree->getChildren().end() if merging occurred for the last added row candidate
-	Row newestRow;
+	TablePtr table;
+	// Equal to table->getRows().end() if merging occurred for the last added row candidate
+	Rows::const_iterator newestRow;
 
 private:
 	// Compute (via lazy solving) the next row having cost less than costBound
-	Row nextRow(long costBound);
+	Rows::const_iterator nextRow(long costBound);
 
 	bool loadFirstChildRowCombination(long costBound);
 	bool loadNextChildRowCombination(long costBound);
 	// Returns false if we can establish that there is a child table having no relevant child rows joinable with newRow
 	bool nextExistingRowCombination(size_t incrementPos = 0);
-	void initializeItemTrees();
+	void initializeTables();
 
-	// Call this when the solver will not compute any more rows. It calls finalize() on the resulting item tree and calls Printer::solverInvocationResult.
+	// Call this when the solver will not compute any more rows. It calls Printer::solverInvocationResult.
 	void finalize();
 
 	// Recursively call finalize() (and thus print all solver invocation results)
 	void finalizeRecursively();
 
-	ItemTreeNode::ExtensionPointerTuple currentRowCombination;
+	Row::ExtensionPointerTuple currentRowCombination;
 	std::list<LazySolver*> nonExhaustedChildSolvers;
 	std::list<LazySolver*>::const_iterator nextChildSolverToCall; // points to elements of nonExhaustedChildSolvers
 	BranchAndBoundLevel bbLevel;

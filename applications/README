@@ -1,4 +1,0 @@
-In this directory, example D-FLAT encodings and related tools for various problems can be found.
-Some naming conventions:
-- dynamic.lp is a D-FLAT encoding.
-- monolithic.lp is a monolithic ASP program that can serve as comparison and is not used by D-FLAT.

@@ -59,13 +59,8 @@ public:
 
 	bool isCountingDisabled() const;
 	bool isOptimizationDisabled() const;
-	bool isPruningDisabled() const;
 	bool printDecomposition() const;
 	bool printProvisionalSolutions() const;
-
-	// Returns the depth until which the solution item tree should be materialized.
-	// If the user did not specify a value, returns the greatest unsigned int.
-	unsigned int getMaterializationDepth() const;
 
 private:
 	static const std::string MODULE_SECTION;
@@ -79,13 +74,10 @@ private:
 	options::Choice optPrinter;
 	options::Option optNoCounting;
 	options::Option optNoOptimization;
-	options::Option optNoPruning;
 	options::Option optPrintDecomposition;
 	options::Option optPrintProvisional;
 
 	Decomposer* decomposer;
 	SolverFactory* solverFactory;
 	Printer* printer;
-
-	unsigned int depth;
 };

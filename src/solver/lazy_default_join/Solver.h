@@ -31,18 +31,17 @@ public:
 //	static unsigned joinCalls;
 //	static unsigned discardedJoinResults;
 
-	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full, bool binarySearch = true);
+	Solver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full, bool binarySearch = true);
 
 protected:
 	virtual void startSolvingForCurrentRowCombination() override;
 	virtual bool endOfRowCandidates() const override;
 	virtual void nextRowCandidate() override;
 	virtual void handleRowCandidate(long costBound) override;
-	virtual bool resetRowIteratorsOnNewRow(Row newRow, const Decomposition& from) override;
+	virtual bool resetRowIteratorsOnNewRow(Rows::const_iterator newRow, const Decomposition& from) override;
 
 private:
 	bool binarySearch;
-	ItemTreeNode::Type rowType; // ACCEPT or UNDEFINED
 	bool currentRowCombinationExhausted;
 };
 

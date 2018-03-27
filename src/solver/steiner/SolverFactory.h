@@ -20,27 +20,33 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../Printer.h"
-#include "../options/Option.h"
+#include "config.h"
+#include "../../SolverFactory.h"
+#include "../../options/MultiValueOption.h"
+#include "../../options/Choice.h"
 
-namespace printer {
+namespace solver { namespace steiner {
 
-class Debug: public Printer
+class SolverFactory : public ::SolverFactory
 {
 public:
-	Debug(Application& app, bool newDefault = false);
+	SolverFactory(Application& app, bool newDefault = false);
 
-	virtual void decomposerResult(const Decomposition& result) override;
-	virtual void solverInvocationInput(const Decomposition& decompositionNode, const std::string& input) override;
-	virtual void solverInvocationResult(const Decomposition& decompositionNode, const Table* result) override;
-	virtual bool listensForSolverEvents() const override;
-	virtual void solverEvent(const std::string& msg) override;
+	virtual std::unique_ptr<::Solver> newSolver(const Decomposition& decomposition) const override;
+
+	virtual void notify() override;
 
 private:
 	static const std::string OPTION_SECTION;
 
-	options::Option optPrintSolverEvents;
-	options::Option optPrintSolverInvocationInput;
+	options::Condition        condLazy;
+	options::Condition        condDefaultJoin;
+	options::Condition        condOptimization;
+
+	options::Option           optDefaultJoin;
+	options::Option           optLazy;
+	options::Option           optNoBinarySearch;
+	options::Choice           optBbLevel;
 };
 
-} // namespace printer
+}} // namespace solver::steiner

@@ -259,11 +259,11 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 		assert(optFitnessCriterion.getValue() == "width");
 		fitnessCriterion = FitnessCriterion::WIDTH;
 	}
-	FitnessFunction fitnessFunction(fitnessCriterion);
+	std::unique_ptr<FitnessFunction> fitnessFunction(new FitnessFunction(fitnessCriterion));
 
 	std::unique_ptr<htd::ITreeDecompositionAlgorithm> baseAlgorithm(htd->treeDecompositionAlgorithmFactory().createInstance());
 	baseAlgorithm->addManipulationOperation(operation.release());
-	htd::IterativeImprovementTreeDecompositionAlgorithm algorithm(htd.get(), baseAlgorithm.release(), fitnessFunction);
+	htd::IterativeImprovementTreeDecompositionAlgorithm algorithm(htd.get(), baseAlgorithm.release(), fitnessFunction.release());
 
 	int iterationCount = DEFAULT_ITERATION_COUNT;
 	if(optIterationCount.isUsed())

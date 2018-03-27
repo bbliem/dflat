@@ -27,12 +27,9 @@ namespace solver { namespace default_join {
 class Solver : public ::Solver
 {
 public:
-	Solver(const Decomposition& decomposition, const Application& app, bool setLeavesToAccept);
+	Solver(const Decomposition& decomposition, const Application& app);
 
-	virtual ItemTreePtr compute() override;
-
-private:
-	bool setLeavesToAccept;
+	virtual TablePtr compute() override;
 };
 
 }} // namespace solver::default_join

@@ -22,7 +22,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include <vector>
 
-#include "ItemTree.h"
+#include "Table.h"
 
 class Decomposition;
 class Application;
@@ -34,8 +34,8 @@ public:
 	Solver(const Decomposition& decomposition, const Application& app);
 	virtual ~Solver();
 
-	// Return the complete item tree
-	virtual ItemTreePtr compute() = 0;
+	// Return the complete table
+	virtual TablePtr compute() = 0;
 
 protected:
 	const Decomposition& decomposition;

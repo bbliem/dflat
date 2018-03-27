@@ -59,11 +59,7 @@ void Printer::solverInvocationInput(const Decomposition& decompositionNode, cons
 {
 }
 
-void Printer::solverInvocationResult(const Decomposition& decompositionNode, const ItemTree* result)
-{
-}
-
-void Printer::uncompressedSolverInvocationResult(const Decomposition& decompositionNode, const UncompressedItemTree* result)
+void Printer::solverInvocationResult(const Decomposition& decompositionNode, const Table* result)
 {
 }
 
@@ -76,7 +72,7 @@ void Printer::solverEvent(const std::string& msg)
 {
 }
 
-void Printer::provisionalSolution(const ItemTreeNode& solution)
+void Printer::provisionalSolution(const Row& solution)
 {
 	if(app.printProvisionalSolutions()) {
 		std::cout << "Provisional solution:" << std::endl;
@@ -86,11 +82,11 @@ void Printer::provisionalSolution(const ItemTreeNode& solution)
 	}
 }
 
-void Printer::result(const ItemTreePtr& rootItemTree)
+void Printer::result(const TablePtr& rootTable)
 {
 	std::cout << "Solutions:" << std::endl;
-	if(rootItemTree)
-		rootItemTree->printExtensions(std::cout, app.getMaterializationDepth(), !app.isCountingDisabled());
+	if(rootTable)
+		rootTable->printExtensions(std::cout);
 	else
 		std::cout << "[0]" << std::endl;
 }

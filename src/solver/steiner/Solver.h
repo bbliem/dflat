@@ -17,28 +17,26 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#pragma once
 //}}}
-#include <iostream>
+#include <list>
 
-#include "CountRows.h"
-#include "../Decomposition.h"
-#include "../Application.h"
+#include "../../Decomposition.h"
+#include "../../LazySolver.h"
 
-namespace printer {
+namespace solver { namespace steiner {
 
-CountRows::CountRows(Application& app, bool newDefault)
-	: Printer(app, "count-rows", "Number of level-1 item tree nodes per decomposition node", newDefault)
+class Solver : public ::LazySolver
 {
-}
+public:
+	Solver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full);
 
-void CountRows::solverInvocationResult(const Decomposition& decompositionNode, const Table* result)
-{
-	std::cout << "Number of rows at decomposition node " << decompositionNode.getNode().getGlobalId() << ": ";
-	if(result)
-		std::cout << result->getRows().size();
-	else
-		std::cout << '0';
-	std::cout << std::endl;
-}
+protected:
+	virtual void startSolvingForCurrentRowCombination() override;
+	virtual bool endOfRowCandidates() const override;
+	virtual void nextRowCandidate() override;
+	virtual void handleRowCandidate(long costBound) override;
+};
 
-} // namespace printer
+}} // namespace solver::steiner
