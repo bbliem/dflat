@@ -23,28 +23,14 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <limits>
 
 #include "Row.h"
+#include "Decomposition.h"
 
-namespace {
-	// Returns a negative integer if lhs < rhs, a positive integer if rhs > lhs, 0 if lhs == rhs
-	template<typename T>
-	int compareSets(const T& lhs, const T& rhs)
-	{
-		const size_t smallestSize = std::min(lhs.size(), rhs.size());
-		size_t i = 0;
-		for(auto it1 = lhs.begin(), it2 = rhs.begin(); i < smallestSize; ++it1, ++it2, ++i) {
-			if(*it1 < *it2)
-				return -1;
-			else if(*it1 > *it2)
-				return 1;
-		}
-		return lhs.size() - rhs.size();
-	}
-}
-
-Row::Row(Items&& items, Items&& auxItems, ExtensionPointers&& extensionPointers)
-	: items(std::move(items))
-	, auxItems(std::move(auxItems))
-	, extensionPointers(std::move(extensionPointers))
+Row::Row(AdjacencyMatrix&& selectedEdges, Row::VertexList&& selectedVertices, AdjacencyMatrix&& connectedViaSelectedEdges, bool hasForgottenComponent, ExtensionPointers&& extensionPointers)
+	: extensionPointers(std::move(extensionPointers))
+	, selectedEdges(std::move(selectedEdges))
+	, selectedVertices(selectedVertices)
+	, connectedViaSelectedEdges(connectedViaSelectedEdges)
+	, hasForgottenComponent(hasForgottenComponent)
 {
 	assert(!this->extensionPointers.empty());
 	count = 0;
@@ -59,20 +45,21 @@ Row::Row(Items&& items, Items&& auxItems, ExtensionPointers&& extensionPointers)
 	currentCost = 0;
 }
 
-void Row::setCost(long cost)
+void Row::setCost(unsigned long cost)
 {
 	this->cost = cost;
 }
 
-void Row::setCurrentCost(long currentCost)
+void Row::setCurrentCost(unsigned long currentCost)
 {
 	this->currentCost = currentCost;
 }
 
 void Row::merge(Row&& other)
 {
-	assert(items == other.items);
-	assert(auxItems == other.auxItems);
+	//assert(items == other.items);
+	//assert(auxItems == other.auxItems);
+	// TODO add replacements for the above assertions
 	assert(cost == other.cost);
 	assert(currentCost == other.currentCost);
 
@@ -81,60 +68,77 @@ void Row::merge(Row&& other)
 	count += other.count;
 }
 
-int Row::compareCostInsensitive(const Row& other) const
+Row::EdgeSet Row::firstExtension(const Decomposition& node) const
 {
-	int c = compareSets(items, other.items);
-	if(c != 0)
-		return c;
-
-	return compareSets(auxItems, other.auxItems);
-}
-
-Row::Items Row::firstExtension() const
-{
-	Items result = items;
+	EdgeSet result;
 	assert(extensionPointers.size() > 0);
 	ExtensionPointerTuple ept = extensionPointers.front();
-	for(const ExtensionPointer& ep : ept) {
-		const Items childResult = ep->firstExtension();
+	//for(const ExtensionPointer& ep : ept)
+	assert(ept.size() == node.getChildren().size());
+	for(unsigned i = 0; i < ept.size(); ++i) {
+		const ExtensionPointer& ep = ept[i];
+		const EdgeSet childResult = ep->firstExtension(*node.getChildren()[i]);
 		result.insert(childResult.begin(), childResult.end());
+	}
+
+	const std::vector<unsigned>& names = node.getNode().getInducedInstance().getVertexNames();
+	for(unsigned i = 0; i < selectedEdges.getNumRows(); ++i) {
+		for(unsigned j = 0; j < i; ++j) {
+			if(selectedEdges(i,j)) {
+				if(names[i] < names[j])
+					result.emplace(names[i], names[j]);
+				else
+					result.emplace(names[j], names[i]);
+			}
+		}
 	}
 	return result;
 }
 
-std::ostream& operator<<(std::ostream& os, const Row& row)
+void Row::printWithNames(std::ostream& os, const std::vector<unsigned>& names) const
 {
+	assert(names.empty() || names.size() == selectedEdges.getNumRows());
 	// Print count
-//	os << '[' << row.count << "] ";
+	//os << '[' << row.count << "] ";
 
-	// Print items
-	for(const auto& item : row.items)
-		os << item << ' ';
-	for(const auto& item : row.auxItems)
-		os << item << ' ';
+	selectedEdges.printWithNames(os, names);
 
-//	os << "; extend: {";
-//	std::string tupleSep;
-//	for(const auto& tuple : row.extensionPointers) {
-//		os << tupleSep << '(';
-//		std::string ptrSep;
-//		for(const auto& extended : tuple) {
-//			os << ptrSep << extended.first << ':' << extended.second.get();
-//			ptrSep = ", ";
-//		}
-//		os << ')';
-//		tupleSep = ", ";
-//	}
-//	os << "}, this: " << &row << ", parent: " << row.parent;
+	//os << "; extend: {";
+	//std::string tupleSep;
+	//for(const auto& tuple : row.extensionPointers) {
+	//    os << tupleSep << '(';
+	//    std::string ptrSep;
+	//    for(const auto& extended : tuple) {
+	//        os << ptrSep << extended.first << ':' << extended.second.get();
+	//        ptrSep = ", ";
+	//    }
+	//    os << ')';
+	//    tupleSep = ", ";
+	//}
+	//os << "}, this: " << &row << ", parent: " << row.parent;
 
-	// Print cost
-	if(row.cost != 0) {
-		os << " (cost: " << row.cost;
-		if(row.getCurrentCost() != 0)
-			os << "; current: " << row.getCurrentCost();
-		os << ')';
+	os << "; selected vertices:";
+	assert(selectedVertices.size() == selectedEdges.getNumRows());
+	for(unsigned i = 0; i < selectedVertices.size(); ++i) {
+		if(selectedVertices[i])
+			os << ' ' << (names.empty() ? i : names[i]);
 	}
 
+	os << "; connected:";
+	connectedViaSelectedEdges.printWithNames(os, names);
+
+	if(cost != 0) {
+		os << "; cost: " << cost;
+		if(currentCost != 0)
+			os << "; current cost: " << currentCost;
+	}
+
+	os << "; forgotten component: " << hasForgottenComponent;
+}
+
+std::ostream& operator<<(std::ostream& os, const Row& row)
+{
+	row.printWithNames(os, {});
 	return os;
 }
 

@@ -39,12 +39,8 @@ public:
 private:
 	static const std::string OPTION_SECTION;
 
-	options::Condition        condLazy;
-	options::Condition        condDefaultJoin;
 	options::Condition        condOptimization;
 
-	options::Option           optDefaultJoin;
-	options::Option           optLazy;
 	options::Option           optNoBinarySearch;
 	options::Choice           optBbLevel;
 };

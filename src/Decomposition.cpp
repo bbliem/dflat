@@ -40,7 +40,7 @@ Solver& Decomposition::getSolver()
 bool Decomposition::isJoinNode() const
 {
 	return children.size() > 1 && std::all_of(children.begin(), children.end(), [&](const ChildPtr& child) {
-			return child->getNode().getBag() == node.getBag();
+			return child->getNode().getInducedInstance().getVertexNames() == node.getInducedInstance().getVertexNames();
 	});
 }
 
@@ -71,7 +71,7 @@ void Decomposition::setParent(const Decomposition* parent)
 
 int Decomposition::getWidth() const
 {
-	int width = node.getBag().size() - 1;
+	int width = node.getInducedInstance().getNumVertices() - 1;
 	for(const auto& child : children)
 		width = std::max(child->getWidth(), width);
 	return width;
@@ -98,7 +98,7 @@ void Decomposition::printGraphMlElements(std::ostream& out) const
 	out << "    <node id=\"n" << node.getGlobalId() << "\">" << std::endl;
 	out << "      <data key=\"bag\">";
 	std::string separator;
-	for(const auto& vertex : node.getBag()) {
+	for(const auto& vertex : node.getInducedInstance().getVertexNames()) {
 		out << separator << vertex;
 		separator = ", ";
 	}

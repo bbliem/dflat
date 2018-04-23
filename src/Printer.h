@@ -62,12 +62,12 @@ public:
 	virtual bool listensForSolverEvents() const; // this implementation returns false
 	virtual void solverEvent(const std::string& msg);
 
-	virtual void result(const TablePtr& rootTable);
+	virtual void result(const TablePtr& rootTable, const Decomposition& root);
 
 	virtual void select() override;
 
 	// Report possibly suboptimal solutions (if run as an anytime algorithm)
-	void provisionalSolution(const Row& solution);
+	void provisionalSolution(const Row& solution, const Decomposition& root);
 
 protected:
 	// Called by NodeStackElement

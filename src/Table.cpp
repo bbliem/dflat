@@ -27,9 +27,26 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 #endif
 
+// IMPORTANT: Change this whenever attributes of Row change
 bool RowComparator::operator()(const RowPtr& lhs, const RowPtr& rhs)
 {
-	return false; // TODO
+	// TODO optimize
+	// XXX can we avoid this additional comparison with a three-way comparison?
+	if(lhs->getHasForgottenComponent() < rhs->getHasForgottenComponent())
+	   return true;
+	if(rhs->getHasForgottenComponent() < lhs->getHasForgottenComponent())
+	   return false;
+	if(lhs->getSelectedVertices() < rhs->getSelectedVertices())
+		return true;
+	if(rhs->getSelectedVertices() < lhs->getSelectedVertices())
+		return false;
+	if(lhs->getSelectedEdges() < rhs->getSelectedEdges())
+	   return true;
+	if(rhs->getSelectedEdges() < lhs->getSelectedEdges())
+	   return false;
+	if(lhs->getConnectedViaSelectedEdges() < rhs->getConnectedViaSelectedEdges())
+		return true;
+	return false;
 }
 
 Rows::const_iterator Table::add(RowPtr&& row)
@@ -47,16 +64,23 @@ Rows::const_iterator Table::add(RowPtr&& row)
 	if(!result.second) {
 		assert(row);
 		const RowPtr& origRow = *result.first;
-		const long oldCost = origRow->getCost();
-		origRow->merge(std::move(*row));
-		if(origRow->getCost() == oldCost)
+		const unsigned long oldCost = origRow->getCost();
+		if(oldCost > row->getCost())
+			*origRow = *row;
+		else if(oldCost < row->getCost())
 			return rows.end();
+		else {
+			assert(origRow->getCost() == oldCost);
+			// TODO If we don't need to enumerate all optimal solutions, we could avoid merging.
+			origRow->merge(std::move(*row));
+			return rows.end();
+		}
 	}
 	return result.first;
 }
 
-void Table::printExtensions(std::ostream& os) const
-{
+//void Table::printExtensions(std::ostream& os) const
+//{
 //    std::unique_ptr<ExtensionIterator> it(new ExtensionIterator(*node, parent));
 //
 //    while(it->isValid()) {
@@ -132,17 +156,19 @@ void Table::printExtensions(std::ostream& os) const
 //                child->printExtensions(os, maxDepth - 1, printCount, false, ++i == bestChildren.size(), childIndent, currentIt.get());
 //        }
 //    }
-}
+//}
 
-void Table::print(std::ostream& os) const
+void Table::printWithNames(std::ostream& os, const std::vector<unsigned>& names) const
 {
-	for(const auto& row : rows)
-		os << row << std::endl;
+	for(const auto& row : rows) {
+		row->printWithNames(os, names);
+		os << std::endl;
+	}
 }
 
 #ifndef NDEBUG
 void Table::printDebug() const
 {
-	print(std::cout);
+	printWithNames(std::cout, {});
 }
 #endif

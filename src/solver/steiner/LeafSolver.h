@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2018, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -20,25 +20,18 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include <ostream>
-#include <set>
+#include "Solver.h"
 
-#include "Instance.h"
+namespace solver { namespace steiner {
 
-class DecompositionNode
+class LeafSolver : public Solver
 {
 public:
-	DecompositionNode(const Instance& inducedInstance);
+	//LeafSolver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full);
+	using Solver::Solver;
 
-	const Instance& getInducedInstance() const;
-
-	// Each DecompositionNode object that is created gets assigned a unique number starting from 1. This can, for instance, be used for printing when nodes should have unique names.
-	unsigned int getGlobalId() const;
-
-	// Print this node (no newlines)
-	friend std::ostream& operator<<(std::ostream& os, const DecompositionNode& node);
-
-private:
-	unsigned int globalId;
-	Instance induced;
+	void startSolvingForCurrentRowCombination() override;
+	virtual void nextRowCandidate() override;
 };
+
+}} // namespace solver::steiner

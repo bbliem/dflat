@@ -74,11 +74,11 @@ void Progress::solverEvent(const std::string& msg)
 	}
 }
 
-void Progress::result(const TablePtr& rootTable)
+void Progress::result(const TablePtr& rootTable, const Decomposition& root)
 {
 	std::cout << "\r                                                        \r" << std::flush;
 
-	Printer::result(rootTable);
+	Printer::result(rootTable, root);
 }
 
 void Progress::enterNode(const Decomposition& decompositionNode)
@@ -101,7 +101,7 @@ void Progress::printProgress()
 	const Decomposition& top = *computationStack.top();
 	const auto curNode = top.getNode().getGlobalId();
 	const auto numChildren = top.getChildren().size();
-	const auto bagSize = top.getNode().getBag().size();
+	const auto bagSize = top.getNode().getInducedInstance().getNumVertices();
 	std::cout << '\r'
 		<< "Node " << std::setw(digits) << curNode << ", "
 		<< std::setw(2) << bagSize << " elements, "

@@ -28,64 +28,69 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include <memory>
 #include <gmpxx.h>
 
-#include "String.h"
+#include "AdjacencyMatrix.h"
 
-class ExtensionIterator;
+class Decomposition;
 
 class Row
 {
 public:
-	typedef std::set<String> Items; // We need the sortedness for, e.g., the default join.
 	typedef std::shared_ptr<Row> ExtensionPointer;
 	typedef std::vector<ExtensionPointer> ExtensionPointerTuple;
 	typedef std::vector<ExtensionPointerTuple> ExtensionPointers;
+	typedef std::vector<bool> VertexList;
+	typedef std::set<std::pair<unsigned,unsigned>> EdgeSet;
 
 	// extensionPointers may not be empty; if there are no decomposition
 	// children, it should contain a 0-tuple.
 	// Sets the count to the sum of the products of the counts for each
 	// extension pointer tuple.
 	// Sets the cost to 0.
-	Row(Items&& items = {}, Items&& auxItems = {}, ExtensionPointers&& extensionPointers = {{}});
+	Row(AdjacencyMatrix&& selectedEdges, VertexList&& selectedVertices, AdjacencyMatrix&& connectedViaSelectedEdges, bool hasForgottenComponent, ExtensionPointers&& extensionPointers = {{}});
 
-	// Returns the items of this row (but not the auxiliary items, see below).
-	const Items& getItems() const { return items; }
-
-	// Returns the items that have been declared as auxiliary.
-	// These items are disregarded in the default join.
-	const Items& getAuxItems() const { return auxItems; }
+	const AdjacencyMatrix& getSelectedEdges() const { return selectedEdges; }
+	const VertexList& getSelectedVertices() const { return selectedVertices; }
+	const AdjacencyMatrix& getConnectedViaSelectedEdges() const { return connectedViaSelectedEdges; }
+	bool getHasForgottenComponent() const { return hasForgottenComponent; }
 
 	const ExtensionPointers& getExtensionPointers() const { return extensionPointers; }
 	void clearExtensionPointers() { extensionPointers.clear(); }
 
 	const mpz_class& getCount() const { return count; }
 
-	long getCost() const { return cost; }
-	void setCost(long cost);
+	unsigned long getCost() const { return cost; }
+	void setCost(unsigned long cost);
 
-	long getCurrentCost() const { return currentCost; }
-	void setCurrentCost(long currentCost);
+	unsigned long getCurrentCost() const { return currentCost; }
+	void setCurrentCost(unsigned long currentCost);
 
-	// Unify extension pointers of this row with the other one's given that the item sets are equal.
+	// Unify extension pointers of this row with the other one's given that thy are equal.
 	// "other" will subsequently be thrown away and only "this" will be retained.
 	void merge(Row&& other);
 
-	// Returns a negative/positive integer if this is "less"/"greater" than other, without considering costs.
-	// Returns zero if this is equal to other, without considering costs.
-	int compareCostInsensitive(const Row& other) const;
-
-	// Materialize just one extension
-	Items firstExtension() const;
+	// Materialize just one extension.
+	// Returns an adjacency list containing all selected edges.
+	EdgeSet firstExtension(const Decomposition& node) const;
 
 	// Print this row (no newlines)
+	// If names is empty, prints indices.
+	void printWithNames(std::ostream& os, const std::vector<unsigned>& names) const;
+
+	// Print this row (no newlines) with indices
 	friend std::ostream& operator<<(std::ostream& os, const Row& row);
 
 private:
-	Items items;
-	Items auxItems;
 	ExtensionPointers extensionPointers;
 	mpz_class count; // number of possible extensions of this row
-	long cost = 0;
-	long currentCost = 0;
+	unsigned long cost = 0;
+	unsigned long currentCost = 0;
+
+	AdjacencyMatrix selectedEdges;
+	VertexList selectedVertices; // For each bag element with index i, selectedVertices[i] is true iff the bag element is (was) incident to a (previously) selected edge.
+	AdjacencyMatrix connectedViaSelectedEdges;
+	bool hasForgottenComponent;
+
+	// IMPORTANT: If you add/remove attributes, also update RowComparator!
 };
 
 std::ostream& operator<<(std::ostream& os, const std::shared_ptr<Row>& row);

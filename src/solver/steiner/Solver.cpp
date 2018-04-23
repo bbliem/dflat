@@ -27,6 +27,18 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../../Decomposition.h"
 #include "../../Application.h"
 
+// TODO remove
+#ifndef NDEBUG
+#define LOG(STR) \
+	if(app.getPrinter().listensForSolverEvents()) { \
+		std::ostringstream logmsg; \
+		logmsg << "Node " << decomposition.getNode().getGlobalId() << ": " << STR; \
+		app.getPrinter().solverEvent(logmsg.str()); \
+	}
+#else
+#define LOG(STR) ;
+#endif
+
 namespace solver { namespace steiner {
 
 Solver::Solver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel)
@@ -36,49 +48,59 @@ Solver::Solver(const Decomposition& decomposition, const Application& app, Branc
 
 void Solver::startSolvingForCurrentRowCombination()
 {
-	// TODO
+	LOG("startSolvingForCurrentRowCombination");
+	end = false;
+	hasForgottenComponent = false;
+	currentCost = 0;
+	intersectionCost = 0;
 }
 
 bool Solver::endOfRowCandidates() const
 {
-	// TODO
-	return true;
+	LOG("endOfRowCandidates returning " << end);
+	return end;
 }
 
 void Solver::nextRowCandidate()
 {
-	// TODO
+	LOG("nextRowCandidate");
 }
 
-void Solver::handleRowCandidate(long costBound)
+void Solver::handleRowCandidate(unsigned long costBound)
 {
+	LOG("handleRowCandidate");
 	assert(table);
-	Row::Items items;
-	Row::Items auxItems;
+	assert(!end);
 
-	// TODO
-
-	std::shared_ptr<Row> row(new Row(std::move(items), std::move(auxItems), {getCurrentRowCombination()}));
+	LOG("  Selected edges: " << selectedEdges);
+	LOG("  Connections: " << connectedViaSelectedEdges);
+	std::shared_ptr<Row> row(new Row(std::move(selectedEdges), std::move(selectedVertices), std::move(connectedViaSelectedEdges), hasForgottenComponent, {getCurrentRowCombination()}));
 
 	if(!app.isOptimizationDisabled()) {
-		long cost = 0;
-		long currentCost = 0;
-
-		// TODO
+		unsigned long cost = currentCost;
+		for(const auto& childRow : row->getExtensionPointers().front())
+			cost += childRow->getCost() - intersectionCost;
 
 		if(cost >= costBound) {
+			LOG("  Cost " << cost << " not below bound " << costBound);
 			newestRow = table->getRows().end();
 			return;
 		}
 
+		LOG("  Setting cost to " << cost << "; current cost to " << currentCost);
 		row->setCost(cost);
 		row->setCurrentCost(currentCost);
 	}
 
+	LOG("  Adding row " << *row);
 	newestRow = table->add(std::move(row));
-
-	//if(newChild != itemTree->getChildren().end())
-	//	newestRow = newChild;
+#ifndef NDEBUG
+	if(newestRow == table->getRows().end()) {
+		LOG("  Failed adding row");
+	} else {
+		LOG("  Successfully added row");
+	}
+#endif
 }
 
 }} // namespace solver::steiner

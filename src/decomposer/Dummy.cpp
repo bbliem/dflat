@@ -33,12 +33,13 @@ Dummy::Dummy(Application& app, bool newDefault)
 DecompositionPtr Dummy::decompose(const Instance& instance) const
 {
 	// Create set of all vertices
-	DecompositionNode::Bag vertices;
-	for(const auto edgeFacts : instance.getEdgeFacts())
-		for(const auto& arguments : edgeFacts.second)
-			vertices.insert(arguments.begin(), arguments.end());
+	//DecompositionNode::Bag vertices;
+	//for(const auto edgeFacts : instance.getEdgeFacts())
+	//    for(const auto& arguments : edgeFacts.second)
+	//        vertices.insert(arguments.begin(), arguments.end());
+	// TODO
 
-	DecompositionPtr result(new Decomposition(vertices, app.getSolverFactory()));
+	DecompositionPtr result(new Decomposition(instance, app.getSolverFactory()));
 	return result;
 }
 

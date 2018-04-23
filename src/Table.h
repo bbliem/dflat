@@ -31,7 +31,7 @@ typedef std::unique_ptr<Table> TablePtr;
 class Application;
 typedef std::shared_ptr<Row> RowPtr;
 struct RowComparator { bool operator()(const RowPtr& lhs, const RowPtr& rhs); };
-typedef std::set<RowPtr, RowComparator> Rows;
+typedef std::set<RowPtr, RowComparator> Rows; // TODO If we don't use binary search, could we use unordered sets?
 
 class Table
 {
@@ -39,20 +39,26 @@ public:
 	const Rows& getRows() const { return rows; }
 
 	// If there already is a row that is equal to the given one, it is unified
-	// with the given one. If no merging has occurred (i.e., a new row was
-	// added), or if merging resulted in a change of costs (i.e., the given row
-	// leads to a better partial solution), returns an iterator to this new
-	// row; otherwise returns an iterator to this->rows.end(). Updates the
-	// optimum cost if necessary.
+	// with the given one.
+	// If there is already an equal row that is more expensive, it is replaced
+	// with the given row.
+	// If a new row was added, or if merging resulted in a change of costs
+	// (i.e., the given row leads to a better partial solution), returns an
+	// iterator to this new row; otherwise returns an iterator to
+	// this->rows.end().
 	Rows::const_iterator add(RowPtr&& row);
 	/// XXX was: costChangeAfterAddChildAndMerge
 
 	// Print all extensions of all rows
-	void printExtensions(std::ostream& os) const;
+	// TOOD
+	//void printExtensions(std::ostream& os) const;
+
+	// Print this table. If names is empty, prints indices.
+	void printWithNames(std::ostream& os, const std::vector<unsigned>& names) const;
 
 	friend std::ostream& operator<<(std::ostream& os, const Table& table)
 	{
-		table.print(os);
+		table.printWithNames(os, {});
 		return os;
 	}
 
@@ -62,8 +68,6 @@ private:
 	// Recursively unify extension pointers of this row with the other one's
 	// given that the item sets are all equal.
 	void merge(Table&& other);
-
-	void print(std::ostream& os) const;
 
 #ifndef NDEBUG
 	void printDebug() const;

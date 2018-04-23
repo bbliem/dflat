@@ -28,7 +28,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "../Decomposition.h"
 #include "../Application.h"
 
-typedef htd::NamedHypergraph<std::string, std::string> Hypergraph;
+typedef htd::NamedGraph<unsigned, std::string> Graph;
 
 namespace {
 	enum class FitnessCriterion
@@ -97,32 +97,34 @@ namespace {
 			FitnessCriterion criterion;
 	};
 
-	Hypergraph buildNamedHypergraph(const htd::LibraryInstance& htd, const Instance& instance)
+	Graph buildNamedHypergraph(const htd::LibraryInstance& htd, const Instance& instance)
 	{
-		Hypergraph graph(&htd);
+		Graph graph(&htd);
 
-		for(auto fact : instance.getEdgeFacts()) {
-			for(const auto& e : fact.second) {
-				std::vector<std::string> vs;
-				for(auto v : e)
-					vs.push_back(*v);
-				graph.addEdge(vs);
+		const Instance::WeightedAdjacencyMatrix& m = instance.getAdjacencyMatrix();
+		for(unsigned i = 0; i < m.size(); ++i) {
+			for(unsigned j = 0; j <= i; ++j) {
+				assert(m[i][j] == m[j][i]);
+				if(m[i][j] > 0)
+					graph.addEdge(i+1, j+1);
 			}
 		}
 
 		return graph;
 	}
 
-	DecompositionPtr transformTd(htd::ITreeDecomposition& decomposition, const Hypergraph& graph, const Application& app)
+	DecompositionPtr transformTd(htd::ITreeDecomposition& decomposition, const Graph& graph, const Application& app)
 	{
 		if(decomposition.root() == htd::Vertex::UNKNOWN)
 			return DecompositionPtr{};
 
 		auto htdRootBag = decomposition.bagContent(decomposition.root());
-		DecompositionNode::Bag rootBag;
+		std::vector<unsigned> rootBag;
+		rootBag.reserve(htdRootBag.size());
 		for(auto v : htdRootBag)
-			rootBag.emplace(std::string{graph.vertexName(v)});
-		DecompositionPtr result{new Decomposition{rootBag, app.getSolverFactory()}};
+			rootBag.push_back(graph.vertexName(v));
+		std::sort(rootBag.begin(), rootBag.end());
+		DecompositionPtr result{new Decomposition{app.getInstance().induceByNames(rootBag), app.getSolverFactory()}};
 
 		// If root is a join node, maybe add post join node
 		DecompositionPtr rootOrPostJoinNode = result;
@@ -139,14 +141,16 @@ namespace {
 			for(size_t i = 0; i < numChildren; ++i) {
 				htd::vertex_t htdChild = decomposition.childAtPosition(htdParent, i);
 				const auto htdChildBag = decomposition.bagContent(htdChild);
-				DecompositionNode::Bag childBag;
+				std::vector<unsigned> bag;
+				bag.reserve(htdChildBag.size());
 				for(auto v : htdChildBag)
-					childBag.emplace(std::string{graph.vertexName(v)});
+					bag.push_back(graph.vertexName(v));
+				std::sort(bag.begin(), bag.end());
 
 				// Add post join node if necessary
 				Decomposition* parentOrPostJoinNode = parent.get();
 
-				DecompositionPtr child{new Decomposition{childBag, app.getSolverFactory()}};
+				DecompositionPtr child{new Decomposition{app.getInstance().induceByNames(bag), app.getSolverFactory()}};
 				child->setParent(parentOrPostJoinNode);
 				parentOrPostJoinNode->addChild(child);
 				stack.push({htdChild, child});
@@ -220,7 +224,7 @@ DecompositionPtr TreeDecomposer::decompose(const Instance& instance) const
 		htd->orderingAlgorithmFactory().setConstructionTemplate(new htd::MinFillOrderingAlgorithm(htd.get()));
 	}
 
-	Hypergraph graph = buildNamedHypergraph(*htd, instance);
+	Graph graph = buildNamedHypergraph(*htd, instance);
 	std::unique_ptr<htd::TreeDecompositionOptimizationOperation> operation(new htd::TreeDecompositionOptimizationOperation(htd.get()));
 	operation->setManagementInstance(htd.get());
 

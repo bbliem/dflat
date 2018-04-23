@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2018, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -17,19 +17,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#pragma once
 //}}}
-#include "../../Solver.h"
+#include "LeafSolver.h"
 
-namespace solver { namespace default_join {
+namespace solver { namespace steiner {
 
-class Solver : public ::Solver
+void LeafSolver::startSolvingForCurrentRowCombination()
 {
-public:
-	Solver(const Decomposition& decomposition, const Application& app);
+	Solver::startSolvingForCurrentRowCombination();
 
-	virtual TablePtr compute() override;
-};
+	assert(getCurrentRowCombination().empty()); // We're in a leaf
+}
 
-}} // namespace solver::default_join
+void LeafSolver::nextRowCandidate()
+{
+	Solver::nextRowCandidate();
+	end = true;
+}
+
+}} // namespace solver::steiner

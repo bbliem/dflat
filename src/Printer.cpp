@@ -72,23 +72,42 @@ void Printer::solverEvent(const std::string& msg)
 {
 }
 
-void Printer::provisionalSolution(const Row& solution)
+void Printer::provisionalSolution(const Row& solution, const Decomposition& root)
 {
 	if(app.printProvisionalSolutions()) {
 		std::cout << "Provisional solution:" << std::endl;
-		for(const auto& item : solution.firstExtension())
-			std::cout << item << ' ';
+		for(const auto& edge : solution.firstExtension(root))
+		    std::cout << '(' << edge.first << ',' << edge.second << ") ";
 		std::cout << std::endl << "Cost: " << solution.getCost() << std::endl;
 	}
 }
 
-void Printer::result(const TablePtr& rootTable)
+void Printer::result(const TablePtr& rootTable, const Decomposition& root)
 {
-	std::cout << "Solutions:" << std::endl;
-	if(rootTable)
-		rootTable->printExtensions(std::cout);
+	// TODO allow enumeration of solutions
+	//std::cout << "Solutions:" << std::endl;
+	//if(rootTable)
+	//    rootTable->printExtensions(std::cout);
+	//else
+	//    std::cout << "[0]" << std::endl;
+
+	unsigned long bestCost = std::numeric_limits<unsigned long>::max();
+	const Row* bestRow = nullptr;
+	for(const auto& row: rootTable->getRows()) {
+		if(row->getCost() < bestCost) {
+			bestCost = row->getCost();
+			bestRow = row.get();
+		}
+	}
+
+	if(bestRow) {
+		std::cout << "Solution:" << std::endl;
+		for(const auto& edge : bestRow->firstExtension(root))
+			std::cout << '(' << edge.first << ',' << edge.second << ") ";
+		std::cout << std::endl << "Cost: " << bestCost << std::endl;
+	}
 	else
-		std::cout << "[0]" << std::endl;
+		std::cout << "Unsatisfiable" << std::endl;
 }
 
 void Printer::select()

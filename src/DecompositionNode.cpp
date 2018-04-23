@@ -20,16 +20,16 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 //}}}
 #include "DecompositionNode.h"
 
-DecompositionNode::DecompositionNode(const Bag& bag)
-	: bag(bag)
+DecompositionNode::DecompositionNode(const Instance& inducedInstance)
+	: induced(inducedInstance)
 {
 	static unsigned int nextGlobalId = 1;
 	globalId = nextGlobalId++;
 }
 
-const DecompositionNode::Bag& DecompositionNode::getBag() const
+const Instance& DecompositionNode::getInducedInstance() const
 {
-	return bag;
+	return induced;
 }
 
 unsigned int DecompositionNode::getGlobalId() const
@@ -42,10 +42,10 @@ std::ostream& operator<<(std::ostream& os, const DecompositionNode& node)
 	os << node.globalId << ' ';
 	// Print bag
 	os << '{';
-	DecompositionNode::Bag::const_iterator it = node.bag.begin();
-	if(it != node.bag.end()) {
+	auto it = node.induced.getVertexNames().begin();
+	if(it != node.induced.getVertexNames().end()) {
 			os << *it;
-		while(++it != node.bag.end())
+		while(++it != node.induced.getVertexNames().end())
 			os << ',' << *it;
 	}
 	os << '}';

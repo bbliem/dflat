@@ -36,7 +36,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "decomposer/Dummy.h"
 #include "decomposer/TreeDecomposer.h"
-#include "decomposer/GraphMl.h"
 
 #include "solver/dummy/SolverFactory.h"
 #include "solver/steiner/SolverFactory.h"
@@ -79,9 +78,6 @@ int Application::run(int argc, const char* const* const argv)
 	options::VersionObserver versionObserver(*this, optVersion);
 	opts.registerObserver(versionObserver);
 
-	options::MultiValueOption optEdge("e", "edge", "Predicate <edge> declares (hyper)edges");
-	opts.addOption(optEdge);
-
 	options::SingleValueOption optInputFile("f", "file", "Read problem instance from <file> (stdin by default)");
 	opts.addOption(optInputFile);
 
@@ -89,8 +85,6 @@ int Application::run(int argc, const char* const* const argv)
 	opts.addOption(optNoOptimization);
 	opts.addOption(optPrintDecomposition);
 	opts.addOption(optPrintProvisional);
-	options::SingleValueOption optGraphMlOut("graphml-out", "file", "Write the decomposition in the GraphML format to <file>");
-	opts.addOption(optGraphMlOut);
 
 	options::SingleValueOption optSeed("seed", "n", "Initialize random number generator with seed <n>");
 	opts.addOption(optSeed);
@@ -99,7 +93,6 @@ int Application::run(int argc, const char* const* const argv)
 	opts.addOption(optDecomposer, MODULE_SECTION);
 	decomposer::Dummy dummyDecomposer(*this);
 	decomposer::TreeDecomposer treeDecomposer(*this, true);
-	decomposer::GraphMl graphMlDecomposer(*this);
 
 	opts.addOption(optSolver, MODULE_SECTION);
 	solver::dummy::SolverFactory dummySolverFactory(*this);
@@ -119,9 +112,6 @@ int Application::run(int argc, const char* const* const argv)
 
 		if(optSeed.isUsed())
 			seed = util::strToInt(optSeed.getValue(), "Invalid random seed");
-
-		if(!optEdge.isUsed())
-			throw std::runtime_error("Option -e must be supplied at least once");
 	}
 	catch(...) {
 		printUsage();
@@ -133,9 +123,6 @@ int Application::run(int argc, const char* const* const argv)
 	assert(decomposer);
 	assert(solverFactory);
 
-	// Get (hyper-)edge predicate names
-	parser::Driver::Predicates edgePredicates(optEdge.getValues().begin(), optEdge.getValues().end());
-
 	// Parse instance
 	{
 		std::unique_ptr<std::istream> input;
@@ -144,22 +131,16 @@ int Application::run(int argc, const char* const* const argv)
 			if(!input->good())
 				throw std::runtime_error("Could not open input file");
 		}
-		instance = parser::Driver(input ? *input : std::cin, edgePredicates).parse();
+		instance = parser::Driver(input ? *input : std::cin).parse();
 	}
 
 	// Decompose instance
 	DecompositionPtr decomposition = decomposer->decompose(instance);
-	if(optGraphMlOut.isUsed()) {
-		std::ofstream graphMlFile(optGraphMlOut.getValue().c_str());
-		decomposition->printGraphMl(graphMlFile);
-		if(!graphMlFile)
-			throw std::runtime_error("Could not write GraphML output");
-	}
 	printer->decomposerResult(*decomposition);
 
 	// Solve
 	TablePtr rootTable = decomposition->getSolver().compute();
-	printer->result(rootTable);
+	printer->result(rootTable, *decomposition);
 	return rootTable ? 10 : 20; // TOOD update exit codes
 }
 

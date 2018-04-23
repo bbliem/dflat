@@ -20,36 +20,46 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include <set>
-#include <unordered_map>
-#include <string>
 #include <vector>
-
-#include "String.h"
+#include <unordered_map>
 
 class Instance
 {
 public:
-	typedef String Vertex;
-	typedef std::vector<Vertex> Edge;
-	typedef std::set<Edge> Edges;
-	// Key: Edge predicate; value: One tuple of arguments
-	typedef std::unordered_map<std::string, Edges> EdgeFacts;
-	typedef std::vector<std::string> NonEdgeFacts;
+	typedef std::vector<std::vector<unsigned>> WeightedAdjacencyMatrix;
 
-	const Edges& getEdgeFactsOfPredicate(const std::string& predicate) const
-	{
-		const EdgeFacts::const_iterator it = edgeFacts.find(predicate);
-		return it == edgeFacts.end() ? emptyEdgeSet : it->second;
-	}
-	const EdgeFacts& getEdgeFacts() const { return edgeFacts; }
-	const NonEdgeFacts& getNonEdgeFacts() const { return nonEdgeFacts; }
+	// Call this before any other method.
+	void setVertexNames(std::vector<unsigned>&& names);
 
-	void addEdgeFact(const std::string& predicate, const Edge& e) { edgeFacts[predicate].insert(e); }
-	void addNonEdgeFact(const std::string& fact) { nonEdgeFacts.push_back(fact); }
+	unsigned getNumVertices() const { return names.size(); }
+
+	const std::vector<unsigned>& getVertexNames() const { return names; }
+
+	unsigned getIndexOf(unsigned name) const { return indexOf.at(name); }
+
+	const WeightedAdjacencyMatrix& getAdjacencyMatrix() const { return adj; }
+
+	// Adds an undirected edge with given weight between the given vertices.
+	// We assume that all weights are positive.
+	// setNumVertices must have been set before and x,y must be valid indices.
+	void addEdge(unsigned x, unsigned y, unsigned w);
+
+	// Returns true iff the vertex with index i is a terminal.
+	bool isTerminal(unsigned i) const;
+
+	// setNumVertices must have been set accordingly before.
+	// i must be a valid index.
+	void setTerminal(unsigned i);
+
+	// Induce a subinstance on the vertices with the given indices.
+	Instance induce(const std::vector<unsigned>& indices) const;
+
+	// Induce a subinstance on the vertices with the given names
+	Instance induceByNames(const std::vector<unsigned>& names) const;
 
 private:
-	EdgeFacts edgeFacts;
-	Edges emptyEdgeSet; // always empty, to be returned by getEdgeFactsOfPredicate() for unknown predicate
-	NonEdgeFacts nonEdgeFacts;
+	std::vector<bool> terminals; // terminals[i] is true iff i+1 is a terminal vertex
+	WeightedAdjacencyMatrix adj; // 0 iff the vertices are not adjacent
+	std::vector<unsigned> names; // Map indices to their names
+	std::unordered_map<unsigned, unsigned> indexOf; // Map names to indices
 };

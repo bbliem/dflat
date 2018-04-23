@@ -74,22 +74,25 @@ add_library(dflat-objects
 	options/OptionHandler.cpp
 	options/HelpObserver.cpp
 	options/VersionObserver.cpp
+  AdjacencyMatrix.cpp
 	DecompositionNode.cpp
 	Decomposition.cpp
+  Instance.cpp
 	Module.cpp
 	Decomposer.cpp
 	decomposer/Dummy.cpp
 	decomposer/TreeDecomposer.cpp
-	decomposer/GraphMl.cpp
 	SolverFactory.cpp
 	Solver.cpp
 	LazySolver.cpp
-	solver/default_join/Solver.cpp
 	solver/dummy/Solver.cpp
 	solver/dummy/SolverFactory.cpp
-	solver/lazy_default_join/Solver.cpp
 	solver/steiner/SolverFactory.cpp
 	solver/steiner/Solver.cpp
+  solver/steiner/LeafSolver.cpp
+  solver/steiner/IntroductionSolver.cpp
+  solver/steiner/RemovalSolver.cpp
+  solver/steiner/JoinSolver.cpp
 	Printer.cpp
 	printer/Quiet.cpp
 	printer/Progress.cpp

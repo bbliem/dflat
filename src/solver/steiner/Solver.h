@@ -24,6 +24,7 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../Decomposition.h"
 #include "../../LazySolver.h"
+#include "../../AdjacencyMatrix.h"
 
 namespace solver { namespace steiner {
 
@@ -36,7 +37,17 @@ protected:
 	virtual void startSolvingForCurrentRowCombination() override;
 	virtual bool endOfRowCandidates() const override;
 	virtual void nextRowCandidate() override;
-	virtual void handleRowCandidate(long costBound) override;
+	virtual void handleRowCandidate(unsigned long costBound) override;
+
+	bool end = false;
+
+	AdjacencyMatrix selectedEdges;
+	Row::VertexList selectedVertices;
+	AdjacencyMatrix connectedViaSelectedEdges;
+	bool hasForgottenComponent;
+
+	unsigned int currentCost; // sum of the cost of the intersections between the current row and its extended child rows
+	unsigned int intersectionCost; // sum of the cost of the intersections between the current row and its extended child rows
 };
 
 }} // namespace solver::steiner

@@ -19,9 +19,10 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 */
 //}}}
 #include "SolverFactory.h"
-#include "Solver.h"
-#include "../default_join/Solver.h"
-#include "../lazy_default_join/Solver.h"
+#include "LeafSolver.h"
+#include "IntroductionSolver.h"
+#include "RemovalSolver.h"
+#include "JoinSolver.h"
 #include "../../Application.h"
 #include "../../Decomposition.h"
 
@@ -31,24 +32,13 @@ const std::string SolverFactory::OPTION_SECTION = "Steiner Tree solver";
 
 SolverFactory::SolverFactory(Application& app, bool newDefault)
 	: ::SolverFactory(app, "steiner", "Steiner Tree solver", newDefault)
-	, optDefaultJoin    ("default-join",     "Use built-in implementation for join nodes")
-	, optLazy           ("lazy",             "Use lazy evaluation to find one solution")
 	, optNoBinarySearch ("no-binary-search", "Disable binary search in lazy default join")
-	, optBbLevel        ("bb", "s",          "Use branch and bound stategy <s> for lazy solving")
+	, optBbLevel        ("bb", "s",          "Use branch and bound stategy <s>")
 {
-	optDefaultJoin.addCondition(selected);
-	app.getOptionHandler().addOption(optDefaultJoin, OPTION_SECTION);
-
-	optLazy.addCondition(selected);
-	app.getOptionHandler().addOption(optLazy, OPTION_SECTION);
-
 	optNoBinarySearch.addCondition(selected);
-	optNoBinarySearch.addCondition(condLazy);
-	optNoBinarySearch.addCondition(condDefaultJoin);
 	app.getOptionHandler().addOption(optNoBinarySearch, OPTION_SECTION);
 
 	optBbLevel.addCondition(selected);
-	optBbLevel.addCondition(condLazy);
 	optBbLevel.addCondition(condOptimization);
 	optBbLevel.addChoice("none", "No branch and bound");
 	optBbLevel.addChoice("basic", "Prevent rows not cheaper than current provisional solution");
@@ -58,40 +48,61 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 
 std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decomposition) const
 {
-	if(optLazy.isUsed()) {
-		assert(!optNoBinarySearch.isUsed() || optDefaultJoin.isUsed());
-		LazySolver::BranchAndBoundLevel bbLevel;
-		if(optBbLevel.getValue() == "none")
-			bbLevel = LazySolver::BranchAndBoundLevel::none;
-		else if(optBbLevel.getValue() == "basic")
-			bbLevel = LazySolver::BranchAndBoundLevel::basic;
-		else {
-			assert(optBbLevel.getValue() == "full");
-			bbLevel = LazySolver::BranchAndBoundLevel::full;
-		}
-		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
-			return std::unique_ptr<::Solver>(new lazy_default_join::Solver(decomposition, app, bbLevel, !optNoBinarySearch.isUsed()));
-		else
-			return std::unique_ptr<::Solver>(new steiner::Solver(decomposition, app, bbLevel));
-	}
+	assert(!optNoBinarySearch.isUsed());
+	LazySolver::BranchAndBoundLevel bbLevel;
+	if(optBbLevel.getValue() == "none")
+		bbLevel = LazySolver::BranchAndBoundLevel::none;
+	else if(optBbLevel.getValue() == "basic")
+		bbLevel = LazySolver::BranchAndBoundLevel::basic;
 	else {
-		if(optDefaultJoin.isUsed() && decomposition.isJoinNode())
-			return std::unique_ptr<::Solver>(new default_join::Solver(decomposition, app));
+		assert(optBbLevel.getValue() == "full");
+		bbLevel = LazySolver::BranchAndBoundLevel::full;
+	}
+
+	if(decomposition.isJoinNode())
+		return std::unique_ptr<::Solver>(new JoinSolver(decomposition, app));
+
+	// Presuppose normalization
+	else if(decomposition.getChildren().size() > 1)
+		throw std::runtime_error("Steiner Tree solver requires normalization");
+
+	// Empty leaves
+	else if(decomposition.getChildren().empty()) {
+		if(decomposition.getNode().getInducedInstance().getNumVertices() > 0)
+			throw std::runtime_error("Steiner Tree solver requires empty leaves");
+		return std::unique_ptr<::Solver>(new LeafSolver(decomposition, app, bbLevel));
+	}
+
+	// Presuppose empty root
+	else if(decomposition.isRoot() && decomposition.getNode().getInducedInstance().getNumVertices() > 0)
+		throw std::runtime_error("Steiner Tree solver requires empty root");
+
+	// Exchange node
+	else {
+		assert(decomposition.getChildren().size() == 1);
+		Decomposition& childNode = **decomposition.getChildren().begin();
+		const auto& bag = decomposition.getNode().getInducedInstance().getVertexNames();
+		const auto& childBag = childNode.getNode().getInducedInstance().getVertexNames();
+
+		assert(std::is_sorted(bag.begin(), bag.end()));
+		assert(std::is_sorted(childBag.begin(), childBag.end()));
+		std::vector<unsigned> bagDifference;
+		std::set_symmetric_difference(bag.begin(), bag.end(), childBag.begin(), childBag.end(), std::inserter(bagDifference, bagDifference.begin()));
+		if(bagDifference.size() != 1)
+			throw std::runtime_error("Steiner Tree solver requires normalization");
+		const auto differentElement = *bagDifference.begin();
+
+		// Introduction or removal?
+		if(bag.size() > childBag.size())
+			return std::unique_ptr<::Solver>(new IntroductionSolver(decomposition, app, differentElement, bbLevel));
 		else
-			//return std::unique_ptr<::Solver>(new clasp::Solver(decomposition, app, optEncodingFiles.getValues(), optTables.isUsed(), optCardinalityCost.isUsed(), optPrintStatistics.isUsed()));
-			return {}; // TODO
+			return std::unique_ptr<::Solver>(new RemovalSolver(decomposition, app, differentElement, bbLevel));
 	}
 }
 
 void SolverFactory::notify()
 {
 	::SolverFactory::notify();
-
-	if(optLazy.isUsed())
-		condLazy.setSatisfied();
-
-	if(optDefaultJoin.isUsed())
-		condDefaultJoin.setSatisfied();
 
 	if(!app.isOptimizationDisabled())
 		condOptimization.setSatisfied();

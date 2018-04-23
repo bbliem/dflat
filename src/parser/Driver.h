@@ -30,16 +30,14 @@ namespace parser {
 class Driver
 {
 public:
-	typedef std::set<std::string> Predicates;
-
-	Driver(std::istream& input, const Predicates& hyperedgePredicateNames);
+	Driver(std::istream& input);
 	~Driver();
 	Instance parse();
 	void processFact(Instance& instance, const std::string& predicate, const std::vector<std::string>& arguments);
 
 private:
 	std::istream& input;
-	const Predicates& hyperedgePredicateNames;
+	bool seenNumVertices;
 };
 
 } // namespace parser

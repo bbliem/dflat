@@ -26,10 +26,6 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "Printer.h"
 #include "LazySolver.h"
 
-//// XXX remove
-//#include "solver/lazy_clasp/Solver.h"
-//#include "solver/lazy_default_join/Solver.h"
-
 LazySolver::LazySolver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel)
 	: ::Solver(decomposition, app)
 	, bbLevel(bbLevel)
@@ -61,8 +57,7 @@ bool LazySolver::resetRowIteratorsOnNewRow(Rows::const_iterator newRow, const De
 	return true;
 }
 
-
-Rows::const_iterator LazySolver::nextRow(long costBound)
+Rows::const_iterator LazySolver::nextRow(unsigned long costBound)
 {
 	const auto nodeStackElement = app.getPrinter().visitNode(decomposition);
 
@@ -102,7 +97,7 @@ Rows::const_iterator LazySolver::nextRow(long costBound)
 	return newestRow;
 }
 
-bool LazySolver::loadFirstChildRowCombination(long costBound)
+bool LazySolver::loadFirstChildRowCombination(unsigned long costBound)
 {
 	assert(table->getRows().empty());
 	assert(rowIterators.empty());
@@ -145,7 +140,7 @@ bool LazySolver::loadFirstChildRowCombination(long costBound)
 	return true;
 }
 
-bool LazySolver::loadNextChildRowCombination(long costBound)
+bool LazySolver::loadNextChildRowCombination(unsigned long costBound)
 {
 	if(decomposition.getChildren().empty())
 		return false;
@@ -246,7 +241,7 @@ TablePtr LazySolver::compute()
 	// Initialize item trees of all decomposition nodes
 	initializeTables();
 
-	Rows::const_iterator row = nextRow(std::numeric_limits<long>::max());
+	Rows::const_iterator row = nextRow(std::numeric_limits<unsigned long>::max());
 
 	// If we are solving an optimization problem, check optimality of "row" by
 	// finding more solutions with cost of "row" as the bound
@@ -257,9 +252,9 @@ TablePtr LazySolver::compute()
 				msg << "Found new solution with cost " << (*row)->getCost();
 				app.getPrinter().solverEvent(msg.str());
 			}
-			app.getPrinter().provisionalSolution(**row);
+			app.getPrinter().provisionalSolution(**row, decomposition);
 
-			const long newCostBound = bbLevel == BranchAndBoundLevel::none ? std::numeric_limits<long>::max() : (*row)->getCost();
+			const unsigned long newCostBound = bbLevel == BranchAndBoundLevel::none ? std::numeric_limits<unsigned long>::max() : (*row)->getCost();
 			row = nextRow(newCostBound);
 		}
 	}
@@ -286,8 +281,9 @@ void LazySolver::finalize()
 
 	// Calculate lower bound for the cost of a solution for the forgotten subgraph
 	if(table && bbLevel == BranchAndBoundLevel::full) {
-		forgottenCostLowerBound = std::numeric_limits<long>::max();
-		assert(table->getRows().empty() == false);
+		//forgottenCostLowerBound = std::numeric_limits<unsigned long>::max();
+		//assert(table->getRows().empty() == false);
+		forgottenCostLowerBound = table->getRows().empty() ? 0 : std::numeric_limits<unsigned long>::max();
 
 		for(const auto& row : table->getRows()) {
 			// FIXME We should eventually be able to deal with negative costs

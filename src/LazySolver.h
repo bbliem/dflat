@@ -50,7 +50,7 @@ protected:
 	virtual bool endOfRowCandidates() const = 0;
 	virtual void nextRowCandidate() = 0;
 	// Sets newestRow to the newest row or table->getRows().end() if no new row was produced
-	virtual void handleRowCandidate(long costBound) = 0;
+	virtual void handleRowCandidate(unsigned long costBound) = 0;
 
 	struct RowIterator
 	{
@@ -63,15 +63,15 @@ protected:
 	virtual bool resetRowIteratorsOnNewRow(Rows::const_iterator newRow, const Decomposition& from);
 
 	TablePtr table;
-	// Equal to table->getRows().end() if merging occurred for the last added row candidate
+	// Equal to table->getRows().end() if the last added row candidate was merged or more expensive than an already existing row with the same content
 	Rows::const_iterator newestRow;
 
 private:
 	// Compute (via lazy solving) the next row having cost less than costBound
-	Rows::const_iterator nextRow(long costBound);
+	Rows::const_iterator nextRow(unsigned long costBound);
 
-	bool loadFirstChildRowCombination(long costBound);
-	bool loadNextChildRowCombination(long costBound);
+	bool loadFirstChildRowCombination(unsigned long costBound);
+	bool loadNextChildRowCombination(unsigned long costBound);
 	// Returns false if we can establish that there is a child table having no relevant child rows joinable with newRow
 	bool nextExistingRowCombination(size_t incrementPos = 0);
 	void initializeTables();
@@ -89,5 +89,5 @@ private:
 	bool finalized;
 
 	// Currently known lower bound for the cost of a solution for the forgotten subgraph (0 until finalized)
-	long forgottenCostLowerBound;
+	unsigned long forgottenCostLowerBound;
 };

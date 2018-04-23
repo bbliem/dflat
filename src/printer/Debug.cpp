@@ -60,7 +60,8 @@ void Debug::solverInvocationResult(const Decomposition& decompositionNode, const
 		std::cout << '0';
 	std::cout << " rows) at decomposition node " << decompositionNode.getNode().getGlobalId() << ':' << std::endl;
 	if(result)
-		std::cout << *result;
+		//std::cout << *result;
+		result->printWithNames(std::cout, decompositionNode.getNode().getInducedInstance().getVertexNames());
 	else
 		std::cout << "(empty)";
 	std::cout << std::endl;

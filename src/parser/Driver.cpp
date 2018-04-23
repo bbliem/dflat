@@ -23,12 +23,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Driver.h"
 #include "../Instance.h"
+#include "../util.h"
 
 namespace parser {
 
-Driver::Driver(std::istream& input, const Predicates& hyperedgePredicateNames)
+Driver::Driver(std::istream& input)
 	: input(input)
-	, hyperedgePredicateNames(hyperedgePredicateNames)
+	, seenNumVertices(false)
 {
 }
 
@@ -49,25 +50,40 @@ Instance Driver::parse()
 
 void Driver::processFact(Instance& instance, const std::string& predicate, const std::vector<std::string>& arguments)
 {
-	if(hyperedgePredicateNames.find(predicate) == hyperedgePredicateNames.end()) {
-		std::stringstream fact;
-		fact << predicate;
-		if(!arguments.empty()) {
-			char sep = '(';
-			for(const std::string& arg : arguments) {
-				fact << sep << arg;
-				sep = ',';
-			}
-			fact << ')';
-		}
-		instance.addNonEdgeFact(fact.str());
+	if(predicate == "numVertices") {
+		if(arguments.size() != 1)
+			throw std::runtime_error("numVertices predicate must be unary");
+		const int numVertices = util::strToInt(arguments[0], "Invalid number of vertices");
+		std::vector<unsigned> vertexNames;
+		vertexNames.reserve(numVertices);
+		for(int i = 1; i <= numVertices; ++i)
+			vertexNames.push_back(i);
+		instance.setVertexNames(std::move(vertexNames));
+		seenNumVertices = true;
 	}
+	else
+	{
+		if(!seenNumVertices)
+			throw std::runtime_error("First fact must be over predicate numVertices/1");
 
-	else {
-		Instance::Edge hyperedge;
-		for(const std::string& arg : arguments)
-			hyperedge.emplace_back(std::string(arg));
-		instance.addEdgeFact(predicate, hyperedge);
+		if(predicate == "edge") {
+			if(arguments.size() != 3)
+				throw std::runtime_error("edge predicate must be ternary");
+			const int x = util::strToInt(arguments[0], "Invalid vertex") - 1;
+			const int y = util::strToInt(arguments[1], "Invalid vertex") - 1;
+			const int w = util::strToInt(arguments[2], "Invalid weight");
+			instance.addEdge(x, y, w);
+		}
+		else if(predicate == "terminal") {
+			if(arguments.size() != 1)
+				throw std::runtime_error("terminal predicate must be unary");
+			instance.setTerminal(util::strToInt(arguments[0], "Invalid terminal") - 1);
+		}
+		else {
+			std::ostringstream msg;
+			msg << "Unexpected predicate " << predicate;
+			throw std::runtime_error(msg.str());
+		}
 	}
 }
 

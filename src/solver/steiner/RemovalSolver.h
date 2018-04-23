@@ -1,5 +1,5 @@
 /*{{{
-Copyright 2012-2016, Bernhard Bliem
+Copyright 2018, Bernhard Bliem
 WWW: <http://dbai.tuwien.ac.at/research/project/dflat/>.
 
 This file is part of D-FLAT.
@@ -20,29 +20,24 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include "../../LazySolver.h"
+#include "Solver.h"
 
-namespace solver { namespace lazy_default_join {
+namespace solver { namespace steiner {
 
-class Solver : public ::LazySolver
+class RemovalSolver : public Solver
 {
 public:
-//	static unsigned joinSetups;
-//	static unsigned joinCalls;
-//	static unsigned discardedJoinResults;
+	RemovalSolver(const Decomposition& decomposition, const Application& app, unsigned removed, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full);
 
-	Solver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full, bool binarySearch = true);
-
-protected:
 	virtual void startSolvingForCurrentRowCombination() override;
-	virtual bool endOfRowCandidates() const override;
 	virtual void nextRowCandidate() override;
-	virtual void handleRowCandidate(long costBound) override;
-	virtual bool resetRowIteratorsOnNewRow(Rows::const_iterator newRow, const Decomposition& from) override;
 
 private:
-	bool binarySearch;
-	bool currentRowCombinationExhausted;
+	unsigned removedIndex;
+	bool removedIsTerminal; // true iff removed vertex is a terminal vertex
+
+	// Set selectedEdges to information from current child row and remove the vertex. Retain observed terminals except for the removed vertex.
+	void extendChildRow();
 };
 
-}} // namespace solver::lazy_default_join
+}} // namespace solver::steiner
