@@ -20,8 +20,9 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 //}}}
-#include <vector>
 #include <ostream>
+#include <vector>
+#include <boost/dynamic_bitset.hpp>
 
 // TODO we just have undirected graphs, so use a triangle and save half the space
 // TODO write move constructor?
@@ -31,7 +32,7 @@ public:
 	typedef unsigned int Index;
 
 	AdjacencyMatrix();
-	AdjacencyMatrix(unsigned int size);
+	AdjacencyMatrix(unsigned int numRows);
 
 	// create a new matrix from a given matrix where the given row and column is removed
 	static AdjacencyMatrix remove(const AdjacencyMatrix& from, Index remove);
@@ -39,13 +40,12 @@ public:
 	// create a new matrix from a given matrix where a new row and column is added to the given index
 	static AdjacencyMatrix introduce(const AdjacencyMatrix& to, Index at);
 
-	unsigned int getNumRows() const { return m.size(); }
+	unsigned int getNumRows() const { return numRows; }
 
 	void reset();
 
 	void set(Index i, Index j, bool value = true);
 
-	const std::vector<bool>& getRow(Index i) const;
 	bool operator()(Index i, Index j) const;
 
 	// Compute transitive closure
@@ -66,11 +66,8 @@ public:
 	friend std::ostream& operator<<(std::ostream& os, const AdjacencyMatrix& m);
 
 private:
-	// TODO probably using something other than vector<bool> is more efficient
-	std::vector<std::vector<bool>> m;
-
-	//std::vector<String> vertexNames;
-	//std::unordered_map<String, Index> vertexIndices; // inverse of vertexNames
-    //
-	//void buildVertexIndices();
+	unsigned int numRows;
+	unsigned int size; // numRows*numRows
+	typedef boost::dynamic_bitset<> bitset;
+	bitset matrix; // we use mpz_class as a big bit vector
 };

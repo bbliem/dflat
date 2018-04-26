@@ -23,140 +23,119 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 #include "AdjacencyMatrix.h"
 
 AdjacencyMatrix::AdjacencyMatrix()
+	: numRows(0)
+	, size(0)
 {
 }
 
-AdjacencyMatrix::AdjacencyMatrix(unsigned int size)
-	: m(size)
+AdjacencyMatrix::AdjacencyMatrix(unsigned int numRows)
+	: numRows(numRows)
+	, size(numRows*numRows)
+	, matrix(size)
 {
-	for(auto& row : m)
-		row.resize(size, false);
 }
 
-//AdjacencyMatrix::AdjacencyMatrix(const std::vector<String>& vertexNames)
-//    : m(vertexNames.size())
-//    , vertexNames(vertexNames)
-//{
-//    vertexIndices.reserve(vertexNames.size());
-//
-//    for(Index i = 0; i < vertexNames.size(); ++i) {
-//        m[i].resize(vertexNames.size(), false);
-//        vertexIndices[vertexNames[i]] = i;
-//    }
-//}
-
-AdjacencyMatrix AdjacencyMatrix::remove(const AdjacencyMatrix& from, Index remove)
+AdjacencyMatrix AdjacencyMatrix::remove(const AdjacencyMatrix& a, Index remove)
 {
-	assert(from.isSymmetric());
-	AdjacencyMatrix newMatrix;
-	const auto size = from.m.size();
-	const auto newSize = size - 1;
-	//newMatrix.vertexNames.reserve(newSize);
-	//newMatrix.vertexNames.insert(newMatrix.vertexNames.end(), from.vertexNames.begin(), from.vertexNames.begin() + remove);
-	//newMatrix.vertexNames.insert(newMatrix.vertexNames.end(), from.vertexNames.begin() + remove + 1, from.vertexNames.end());
-	//newMatrix.buildVertexIndices();
-	newMatrix.m.reserve(newSize);
+	assert(a.isSymmetric());
+	AdjacencyMatrix b(a.numRows-1);
 
-	for(Index i = 0; i < size; ++i) {
-		if(i == remove)
+	Index aIndex = 0;
+	Index bIndex = 0;
+
+	for(Index i = 0; i < a.numRows; ++i) {
+		if(i == remove) {
+			aIndex += a.numRows;
 			continue;
-
-		const auto& oldRow = from.m[i];
-		assert(oldRow.size() == size);
-		std::vector<bool> newRow;
-		newRow.reserve(newSize);
-
-		for(Index j = 0; j < size; ++j) {
-			if(j != remove)
-				newRow.push_back(oldRow[j]);
 		}
-		newMatrix.m.push_back(std::move(newRow));
-	}
-	assert(newMatrix.isSymmetric());
 
-	return newMatrix;
+		for(Index j = 0; j < a.numRows; ++j) {
+			if(j != remove) {
+				b.matrix.set(bIndex, a.matrix[aIndex]);
+				++bIndex;
+			}
+			++aIndex;
+		}
+	}
+	assert(b.isSymmetric());
+	assert(aIndex == a.matrix.size());
+	assert(bIndex == b.matrix.size());
+
+	return b;
 }
 
-//AdjacencyMatrix AdjacencyMatrix::introduce(const AdjacencyMatrix& to, String name)
-AdjacencyMatrix AdjacencyMatrix::introduce(const AdjacencyMatrix& to, Index at)
+AdjacencyMatrix AdjacencyMatrix::introduce(const AdjacencyMatrix& a, Index introduce)
 {
-	assert(to.isSymmetric());
-	AdjacencyMatrix newMatrix;
-	const auto size = to.m.size();
-	const auto newSize = size + 1;
-	//newMatrix.vertexNames.reserve(newSize);
-	//newMatrix.vertexNames.insert(newMatrix.vertexNames.end(), to.vertexNames.begin(), to.vertexNames.end());
-	//newMatrix.vertexNames.push_back(name);
-	//newMatrix.buildVertexIndices();
-	newMatrix.m.reserve(newSize);
+	assert(a.isSymmetric());
+	assert(introduce <= a.numRows);
+	AdjacencyMatrix b(a.numRows+1);
 
-	for(Index i = 0; i < at; ++i) {
-		const auto& oldRow = to.m[i];
-		assert(oldRow.size() == size);
-		std::vector<bool> newRow;
-		newRow.reserve(newSize);
-		newRow.insert(newRow.end(), oldRow.begin(), oldRow.begin() + at);
-		newRow.emplace_back();
-		newRow.insert(newRow.end(), oldRow.begin() + at, oldRow.end());
-		newMatrix.m.push_back(std::move(newRow));
-	}
-	newMatrix.m.emplace_back(newSize);
-	for(Index i = at; i < size; ++i) {
-		const auto& oldRow = to.m[i];
-		assert(oldRow.size() == size);
-		std::vector<bool> newRow;
-		newRow.reserve(newSize);
-		//newRow.insert(newRow.end(), oldRow.begin(), oldRow.end());
-		//newRow.emplace_back();
-		newRow.insert(newRow.end(), oldRow.begin(), oldRow.begin() + at);
-		newRow.emplace_back();
-		newRow.insert(newRow.end(), oldRow.begin() + at, oldRow.end());
-		newMatrix.m.push_back(std::move(newRow));
-	}
-	assert(newMatrix.isSymmetric());
+	Index aIndex = 0;
+	Index bIndex = 0;
 
-	return newMatrix;
+	for(Index i = 0; i < introduce; ++i) {
+		for(Index j = 0; j < introduce; ++j) {
+			b.matrix.set(bIndex, a.matrix[aIndex]);
+			++aIndex;
+			++bIndex;
+		}
+		++bIndex;
+		for(Index j = introduce; j < a.numRows; ++j) {
+			b.matrix.set(bIndex, a.matrix[aIndex]);
+			++aIndex;
+			++bIndex;
+		}
+	}
+	bIndex += b.numRows;
+	for(Index i = introduce; i < a.numRows; ++i) {
+		for(Index j = 0; j < introduce; ++j) {
+			b.matrix.set(bIndex, a.matrix[aIndex]);
+			++aIndex;
+			++bIndex;
+		}
+		++bIndex;
+		for(Index j = introduce; j < a.numRows; ++j) {
+			b.matrix.set(bIndex, a.matrix[aIndex]);
+			++aIndex;
+			++bIndex;
+		}
+	}
+	assert(b.isSymmetric());
+
+	return b;
 }
 
 void AdjacencyMatrix::reset()
 {
-	for(auto& row : m)
-		std::fill(row.begin(), row.end(), false);
+	matrix.reset();
 }
 
 void AdjacencyMatrix::set(unsigned int i, unsigned int j, bool value)
 {
-	assert(i < m.size() && j < m[i].size());
-	// XXX use triangle instead
-	assert(m[i][j] == m[j][i]);
+	assert(i < numRows && j < numRows);
+	// XXX use triangle instead?
+	assert(matrix[i*numRows + j] == matrix[j*numRows + i]);
+	matrix[i*numRows+j] = value;
+	matrix[j*numRows+i] = value;
 	assert(isSymmetric());
-	m[i][j] = value;
-	m[j][i] = value;
-}
-
-const std::vector<bool>& AdjacencyMatrix::getRow(Index i) const
-{
-	assert(i < m.size());
-	return m[i];
 }
 
 bool AdjacencyMatrix::operator()(unsigned int i, unsigned int j) const
 {
-	assert(i < m.size() && j < m[i].size());
+	assert(i < numRows && j < numRows);
 	// XXX use triangle instead?
-	return m[i][j];
+	return matrix[i*numRows+j];
 }
 
 void AdjacencyMatrix::makeTransitive()
 {
 	// Walshall's algorithm
 	assert(isSymmetric());
-	const unsigned n = m.size();
-	for(unsigned i = 0; i < n; ++i) {
-		for(unsigned j = 0; j < n; ++j) {
-			if(m[j][i]) { // XXX avoid conditional?
-				for(unsigned k = 0; k < n; ++k) {
-					m[j][k] = m[j][k] || m[i][k]; // XXX Use specialized implementations and fast bitwise operations if n <= sizeof(int)?
+	for(unsigned i = 0; i < numRows; ++i) {
+		for(unsigned j = 0; j < numRows; ++j) {
+			if(matrix[j*numRows+i]) { // XXX avoid conditional?
+				for(unsigned k = 0; k < numRows; ++k) {
+					matrix[j*numRows+k] = matrix[j*numRows+k] || matrix[i*numRows+k]; // XXX Use specialized implementations and fast bitwise operations if numRows <= sizeof(int)?
 				}
 			}
 		}
@@ -166,24 +145,23 @@ void AdjacencyMatrix::makeTransitive()
 
 void AdjacencyMatrix::bitwiseOr(const AdjacencyMatrix& other)
 {
-	const auto size = m.size();
-	assert(other.m.size() == size);
-	for(unsigned i = 0; i < size; ++i) {
-		for(unsigned j = 0; j < size; ++j) {
-			set(i, j, m[i][j] || other.m[i][j]);
-		}
-	}
+	//const auto size = m.size();
+	//assert(other.m.size() == size);
+	//for(unsigned i = 0; i < size; ++i) {
+	//    for(unsigned j = 0; j < size; ++j) {
+	//        set(i, j, m[i][j] || other.m[i][j]);
+	//    }
+	//}
+	matrix |= other.matrix;
 }
 
 void AdjacencyMatrix::printWithNames(std::ostream& os, const std::vector<unsigned>& names) const
 {
 	std::string sep;
-	const auto size = m.size();
 	assert(names.empty() || size == 0 || names.size() == size);
-	for(unsigned int i = 0; i < size; ++i) {
-		assert(m[i].size() == size);
+	for(unsigned int i = 0; i < numRows; ++i) {
 		for(unsigned int j = 0; j < i; ++j) {
-			if(m[i][j]) {
+			if(matrix[i*numRows+j]) {
 				if(names.empty())
 					os << sep << '(' << j << ',' << i << ')';
 				else
@@ -196,12 +174,9 @@ void AdjacencyMatrix::printWithNames(std::ostream& os, const std::vector<unsigne
 
 bool AdjacencyMatrix::isSymmetric() const
 {
-	const unsigned n = m.size();
-	for(unsigned i = 0; i < n; ++i) {
-		if(m[i].size() != n)
-			return false;
-		for(unsigned j = 0; j < n; ++j) {
-			if(m[i][j] != m[j][i])
+	for(unsigned i = 0; i < numRows; ++i) {
+		for(unsigned j = 0; j < numRows; ++j) {
+			if(matrix[i*numRows+j] != matrix[j*numRows+i])
 				return false;
 		}
 	}
@@ -210,12 +185,12 @@ bool AdjacencyMatrix::isSymmetric() const
 
 bool operator==(const AdjacencyMatrix& a, const AdjacencyMatrix& b)
 {
-	return a.m == b.m;
+	return a.matrix == b.matrix;
 }
 
 bool operator<(const AdjacencyMatrix& a, const AdjacencyMatrix& b)
 {
-	return a.m < b.m;
+	return a.matrix < b.matrix;
 }
 
 std::ostream& operator<<(std::ostream& os, const AdjacencyMatrix& m)
