@@ -27,11 +27,15 @@ namespace solver { namespace steiner {
 class JoinSolver : public Solver
 {
 public:
-	//LeafSolver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel = BranchAndBoundLevel::full);
-	using Solver::Solver;
+	//using Solver::Solver;
+	JoinSolver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel, bool binarySearch);
 
 	virtual void nextRowCandidate() override;
 	virtual void startSolvingForCurrentRowCombination() override;
+	virtual bool resetRowIteratorsOnNewRow(Rows::const_iterator newRow, const Decomposition& from) override;
+
+private:
+	bool binarySearch;
 };
 
 }} // namespace solver::steiner

@@ -31,7 +31,12 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 bool RowComparator::operator()(const RowPtr& lhs, const RowPtr& rhs)
 {
 	// TODO optimize
+	// TODO Play with different orders of comparisons to find out which is best
 	// XXX can we avoid this additional comparison with a three-way comparison?
+	if(lhs->getSelectedEdges() < rhs->getSelectedEdges())
+	   return true;
+	if(rhs->getSelectedEdges() < lhs->getSelectedEdges())
+	   return false;
 	if(lhs->getHasForgottenComponent() < rhs->getHasForgottenComponent())
 	   return true;
 	if(rhs->getHasForgottenComponent() < lhs->getHasForgottenComponent())
@@ -40,10 +45,6 @@ bool RowComparator::operator()(const RowPtr& lhs, const RowPtr& rhs)
 		return true;
 	if(rhs->getSelectedVertices() < lhs->getSelectedVertices())
 		return false;
-	if(lhs->getSelectedEdges() < rhs->getSelectedEdges())
-	   return true;
-	if(rhs->getSelectedEdges() < lhs->getSelectedEdges())
-	   return false;
 	if(lhs->getConnectedViaSelectedEdges() < rhs->getConnectedViaSelectedEdges())
 		return true;
 	return false;

@@ -48,7 +48,6 @@ SolverFactory::SolverFactory(Application& app, bool newDefault)
 
 std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decomposition) const
 {
-	assert(!optNoBinarySearch.isUsed());
 	LazySolver::BranchAndBoundLevel bbLevel;
 	if(optBbLevel.getValue() == "none")
 		bbLevel = LazySolver::BranchAndBoundLevel::none;
@@ -60,7 +59,7 @@ std::unique_ptr<::Solver> SolverFactory::newSolver(const Decomposition& decompos
 	}
 
 	if(decomposition.isJoinNode())
-		return std::unique_ptr<::Solver>(new JoinSolver(decomposition, app));
+		return std::unique_ptr<::Solver>(new JoinSolver(decomposition, app, bbLevel, !optNoBinarySearch.isUsed()));
 
 	// Presuppose normalization
 	else if(decomposition.getChildren().size() > 1)

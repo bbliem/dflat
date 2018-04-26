@@ -22,6 +22,13 @@ along with D-FLAT.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace solver { namespace steiner {
 
+JoinSolver::JoinSolver(const Decomposition& decomposition, const Application& app, BranchAndBoundLevel bbLevel, bool binarySearch)
+	: Solver(decomposition, app, bbLevel)
+	, binarySearch(binarySearch)
+{
+	assert(decomposition.getChildren().size() > 1);
+}
+
 void JoinSolver::nextRowCandidate()
 {
 	Solver::nextRowCandidate();
@@ -57,9 +64,10 @@ void JoinSolver::startSolvingForCurrentRowCombination()
 	}
 
 	selectedEdges = firstExtendedRow.getSelectedEdges();
-	//assert(std::all_of(extended.begin(), extended.end(), [this](const Row::ExtensionPointer& row) {
-	//        return row->getSelectedEdges() == this->selectedEdges;
-	//}));
+	// If we used binary search, we are guaranteed that at least the selected edges match.
+	assert(!binarySearch || std::all_of(extended.begin(), extended.end(), [this](const Row::ExtensionPointer& row) {
+			return row->getSelectedEdges() == this->selectedEdges;
+	}));
 
 	connectedViaSelectedEdges = firstExtendedRow.getConnectedViaSelectedEdges();
 	const unsigned size = selectedVertices.size();
@@ -75,9 +83,11 @@ void JoinSolver::startSolvingForCurrentRowCombination()
 		assert(extendedSelectedVertices.size() == size);
 		assert(extendedConnected.getNumRows() == size);
 
-		if(!(selectedEdges == extendedSelectedEdges)) {
-			end = true;
-			return;
+		if(!binarySearch) { // If we use binary search, the selected edges are guaranteed to be the same
+			if(!(selectedEdges == extendedSelectedEdges)) {
+				end = true;
+				return;
+			}
 		}
 		assert((*it)->getCurrentCost() == currentCost);
 
@@ -94,6 +104,34 @@ void JoinSolver::startSolvingForCurrentRowCombination()
 		connectedViaSelectedEdges.bitwiseOr(extendedConnected);
 	}
 	connectedViaSelectedEdges.makeTransitive();
+}
+
+bool JoinSolver::resetRowIteratorsOnNewRow(Rows::const_iterator newRow, const Decomposition& from)
+{
+	if(!binarySearch)
+		return LazySolver::resetRowIteratorsOnNewRow(newRow, from);
+
+	rowIterators.clear();
+	for(const auto& child : decomposition.getChildren()) {
+		if(child.get() == &from) {
+			Rows::const_iterator end = newRow;
+			++end;
+			rowIterators.push_back({newRow, newRow, end});
+		} else {
+			const auto& rows = static_cast<LazySolver&>(child->getSolver()).getTable()->getRows();
+			assert(rows.begin() != rows.end());
+			const auto range = std::equal_range(rows.begin(), rows.end(), *newRow,
+					[](const RowPtr& a, const RowPtr& b) {
+					// FIXME Incomplete?
+					return a->getSelectedEdges() < b->getSelectedEdges();
+					});
+			if(range.first == range.second)
+				return false;
+			rowIterators.push_back({range.first, range.first, range.second});
+		}
+	}
+
+	return true;
 }
 
 }} // namespace solver::steiner
