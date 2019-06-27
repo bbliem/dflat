@@ -84,7 +84,7 @@ void Decomposition::printGraphMl(std::ostream& out) const
 		<< "         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" << std::endl
 		<< "         xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns "
 		   "http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">" << std::endl
-		<< "  <key id=\"bag\" for=\"node\"/>" << std::endl
+		<< "  <key id=\"bag\" for=\"node\" attr.name=\"bag\" attr.type=\"string\"/>" << std::endl
 		<< "  <graph edgedefault=\"undirected\">" << std::endl;
 
 	printGraphMlElements(out);
